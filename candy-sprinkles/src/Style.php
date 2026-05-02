@@ -34,6 +34,8 @@ final class Style
         private readonly ?Color $bg = null,
         private readonly ?AdaptiveColor $fgAdaptive = null,
         private readonly ?AdaptiveColor $bgAdaptive = null,
+        private readonly ?CompleteColor $fgComplete = null,
+        private readonly ?CompleteColor $bgComplete = null,
         private readonly bool $bold = false,
         private readonly bool $italic = false,
         private readonly bool $underline = false,
@@ -90,6 +92,31 @@ final class Style
     }
 
     /**
+     * Set a foreground that picks per-tier from the supplied triple
+     * based on the live {@see ColorProfile}. Use this when you want
+     * to override the automatic downsampling with designer-chosen
+     * values for each terminal capability tier. Mirrors lipgloss v2's
+     * `CompleteColor`.
+     */
+    public function foregroundComplete(Color $trueColor, Color $ansi256, Color $ansi): self
+    {
+        return $this->with(
+            fgComplete: new CompleteColor($trueColor, $ansi256, $ansi),
+            fgCompleteSet: true,
+            propsAdded: ['fgComplete'],
+        );
+    }
+
+    public function backgroundComplete(Color $trueColor, Color $ansi256, Color $ansi): self
+    {
+        return $this->with(
+            bgComplete: new CompleteColor($trueColor, $ansi256, $ansi),
+            bgCompleteSet: true,
+            propsAdded: ['bgComplete'],
+        );
+    }
+
+    /**
      * Collapse any adaptive fg/bg slots into concrete `foreground` /
      * `background` based on the supplied dark-background flag (typically
      * the value of {@see \CandyCore\Core\Msg\BackgroundColorMsg::isDark()}).
@@ -108,6 +135,28 @@ final class Style
         }
         if ($this->bgAdaptive !== null && !$hasBg) {
             $next = $next->background($this->bgAdaptive->pick($isDark));
+        }
+        return $next;
+    }
+
+    /**
+     * Collapse any complete-colour fg/bg slots into concrete
+     * `foreground` / `background` based on the style's current colour
+     * profile. Explicit concrete colours win, matching lipgloss
+     * precedence. Call this after any `colorProfile()` change but
+     * before `render()` if you mixed `foregroundComplete()` calls
+     * into the style.
+     */
+    public function resolveProfile(): self
+    {
+        $next = $this;
+        $hasFg = isset($this->propsSet['fg']);
+        $hasBg = isset($this->propsSet['bg']);
+        if ($this->fgComplete !== null && !$hasFg) {
+            $next = $next->foreground($this->fgComplete->pick($this->profile));
+        }
+        if ($this->bgComplete !== null && !$hasBg) {
+            $next = $next->background($this->bgComplete->pick($this->profile));
         }
         return $next;
     }
@@ -211,6 +260,8 @@ final class Style
             bg:          $has('bg')          ? $this->bg          : $parent->bg,
             fgAdaptive:  $has('fgAdaptive')  ? $this->fgAdaptive  : $parent->fgAdaptive,
             bgAdaptive:  $has('bgAdaptive')  ? $this->bgAdaptive  : $parent->bgAdaptive,
+            fgComplete:  $has('fgComplete')  ? $this->fgComplete  : $parent->fgComplete,
+            bgComplete:  $has('bgComplete')  ? $this->bgComplete  : $parent->bgComplete,
             bold:        $has('bold')        ? $this->bold        : $parent->bold,
             italic:      $has('italic')      ? $this->italic      : $parent->italic,
             underline:   $has('underline')   ? $this->underline   : $parent->underline,
@@ -468,6 +519,8 @@ final class Style
         ?Color $bg = null, bool $bgSet = false,
         ?AdaptiveColor $fgAdaptive = null, bool $fgAdaptiveSet = false,
         ?AdaptiveColor $bgAdaptive = null, bool $bgAdaptiveSet = false,
+        ?CompleteColor $fgComplete = null, bool $fgCompleteSet = false,
+        ?CompleteColor $bgComplete = null, bool $bgCompleteSet = false,
         ?bool $bold = null,
         ?bool $italic = null,
         ?bool $underline = null,
@@ -497,6 +550,8 @@ final class Style
             bg:          $bgSet         ? $bg          : $this->bg,
             fgAdaptive:  $fgAdaptiveSet ? $fgAdaptive  : $this->fgAdaptive,
             bgAdaptive:  $bgAdaptiveSet ? $bgAdaptive  : $this->bgAdaptive,
+            fgComplete:  $fgCompleteSet ? $fgComplete  : $this->fgComplete,
+            bgComplete:  $bgCompleteSet ? $bgComplete  : $this->bgComplete,
             bold:        $bold          ?? $this->bold,
             italic:      $italic        ?? $this->italic,
             underline:   $underline     ?? $this->underline,

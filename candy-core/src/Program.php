@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace CandyCore\Core;
 
+use CandyCore\Core\Msg\ColorProfileMsg;
+use CandyCore\Core\Msg\EnvMsg;
 use CandyCore\Core\Msg\QuitMsg;
 use CandyCore\Core\Msg\WindowSizeMsg;
 use CandyCore\Core\Util\Ansi;
+use CandyCore\Core\Util\ColorProfile;
 use CandyCore\Core\Util\Tty;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
@@ -64,9 +67,11 @@ final class Program
         $this->setupTerminal();
         $this->installSignalHandlers();
 
-        // Initial size + init Cmd.
+        // Initial size + env + colour-profile + init Cmd.
         $size = $this->tty->size();
         $this->dispatch(new WindowSizeMsg($size['cols'], $size['rows']));
+        $this->dispatch(new EnvMsg($this->collectEnv()));
+        $this->dispatch(new ColorProfileMsg(ColorProfile::detect()));
 
         $initCmd = $this->model->init();
         if ($initCmd !== null) {
@@ -288,6 +293,24 @@ final class Program
         if ($this->options->useAltScreen) {
             fwrite($this->output, Ansi::altScreenLeave());
         }
+    }
+
+    /**
+     * Snapshot the current process environment for the startup
+     * {@see EnvMsg}. We pull from PHP's `getenv()` (no args) which
+     * returns every variable PHP knows about, regardless of the
+     * `variables_order` ini setting.
+     *
+     * @return array<string,string>
+     */
+    private function collectEnv(): array
+    {
+        $env = getenv();
+        if (!is_array($env)) {
+            return [];
+        }
+        /** @var array<string,string> $env */
+        return $env;
     }
 
     private function installSignalHandlers(): void

@@ -7,6 +7,8 @@ namespace CandyCore\Core\Tests;
 use CandyCore\Core\Cmd;
 use CandyCore\Core\Model;
 use CandyCore\Core\Msg;
+use CandyCore\Core\Msg\ColorProfileMsg;
+use CandyCore\Core\Msg\EnvMsg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Msg\QuitMsg;
 use CandyCore\Core\Msg\WindowSizeMsg;
@@ -81,7 +83,9 @@ final class ProgramTest extends TestCase
         [$in, $out, $writer] = $this->pipes();
         $loop = new StreamSelectLoop();
 
-        $model = new RecordingModel(quitAfter: 2);
+        // Startup emits 3 msgs (WindowSize, Env, ColorProfile) before
+        // the queued KeyMsg, so quit after the 4th.
+        $model = new RecordingModel(quitAfter: 4);
         $program = new Program($model, $this->makeOptions($in, $out, $loop));
         $program->send(new KeyMsg(\CandyCore\Core\KeyType::Char, 'q'));
 
@@ -90,9 +94,11 @@ final class ProgramTest extends TestCase
 
         $final = $program->run();
         $this->assertInstanceOf(RecordingModel::class, $final);
-        $this->assertCount(2, $final->log);
-        $this->assertInstanceOf(WindowSizeMsg::class, $final->log[0]);
-        $this->assertInstanceOf(KeyMsg::class,        $final->log[1]);
+        $this->assertCount(4, $final->log);
+        $this->assertInstanceOf(WindowSizeMsg::class,  $final->log[0]);
+        $this->assertInstanceOf(EnvMsg::class,         $final->log[1]);
+        $this->assertInstanceOf(ColorProfileMsg::class, $final->log[2]);
+        $this->assertInstanceOf(KeyMsg::class,         $final->log[3]);
 
         fclose($writer);
         fclose($in);
@@ -104,7 +110,8 @@ final class ProgramTest extends TestCase
         [$in, $out, $writer] = $this->pipes();
         $loop = new StreamSelectLoop();
 
-        $model = new RecordingModel(quitAfter: 3);
+        // 3 startup msgs + 2 input bytes = 5.
+        $model = new RecordingModel(quitAfter: 5);
         $program = new Program($model, $this->makeOptions($in, $out, $loop));
 
         $loop->addTimer(0.01, static function () use ($writer) {
@@ -115,10 +122,10 @@ final class ProgramTest extends TestCase
 
         $final = $program->run();
 
-        $this->assertCount(3, $final->log);
+        $this->assertCount(5, $final->log);
         $this->assertInstanceOf(WindowSizeMsg::class, $final->log[0]);
-        $this->assertSame('a', $final->log[1]->rune);
-        $this->assertSame('b', $final->log[2]->rune);
+        $this->assertSame('a', $final->log[3]->rune);
+        $this->assertSame('b', $final->log[4]->rune);
 
         fclose($in);
         fclose($out);
@@ -131,7 +138,8 @@ final class ProgramTest extends TestCase
 
         $marker = new class implements Msg {};
         $model = new RecordingModel(
-            quitAfter: 2,
+            // 3 startup msgs + the init-Cmd marker = 4.
+            quitAfter: 4,
             initCmd: static fn() => $marker,
         );
         $program = new Program($model, $this->makeOptions($in, $out, $loop));
@@ -140,9 +148,9 @@ final class ProgramTest extends TestCase
 
         $final = $program->run();
 
-        $this->assertCount(2, $final->log);
+        $this->assertCount(4, $final->log);
         $this->assertInstanceOf(WindowSizeMsg::class, $final->log[0]);
-        $this->assertSame($marker, $final->log[1]);
+        $this->assertSame($marker, $final->log[3]);
 
         fclose($writer);
         fclose($in);
@@ -270,10 +278,59 @@ final class ProgramTest extends TestCase
         $program->quit();
 
         $final = $program->run();
-        // QuitMsg short-circuits before the loop, so only WindowSizeMsg
-        // hit update().
-        $this->assertCount(1, $final->log);
-        $this->assertInstanceOf(WindowSizeMsg::class, $final->log[0]);
+        // QuitMsg short-circuits before the loop, so only the 3
+        // startup msgs hit update().
+        $this->assertCount(3, $final->log);
+        $this->assertInstanceOf(WindowSizeMsg::class,   $final->log[0]);
+        $this->assertInstanceOf(EnvMsg::class,          $final->log[1]);
+        $this->assertInstanceOf(ColorProfileMsg::class, $final->log[2]);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testEnvMsgCarriesProcessEnv(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        // Inject something distinctive into the env so we can assert
+        // it round-tripped into EnvMsg::vars.
+        putenv('CANDYCORE_TEST_ENV_FLAG=42');
+
+        $model = new RecordingModel(quitAfter: PHP_INT_MAX);
+        $program = new Program($model, $this->makeOptions($in, $out, $loop));
+        $program->quit();
+        $final = $program->run();
+
+        putenv('CANDYCORE_TEST_ENV_FLAG'); // unset
+
+        /** @var EnvMsg $env */
+        $env = $final->log[1];
+        $this->assertInstanceOf(EnvMsg::class, $env);
+        $this->assertSame('42', $env->get('CANDYCORE_TEST_ENV_FLAG'));
+        $this->assertNull($env->get('NOT_SET_DEFAULT_NULL'));
+        $this->assertSame('fallback', $env->get('NOT_SET_DEFAULT_VALUE', 'fallback'));
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testColorProfileMsgEmittedAtStartup(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $model = new RecordingModel(quitAfter: PHP_INT_MAX);
+        $program = new Program($model, $this->makeOptions($in, $out, $loop));
+        $program->quit();
+        $final = $program->run();
+
+        $msg = $final->log[2];
+        $this->assertInstanceOf(ColorProfileMsg::class, $msg);
+        $this->assertInstanceOf(\CandyCore\Core\Util\ColorProfile::class, $msg->profile);
 
         fclose($writer);
         fclose($in);
