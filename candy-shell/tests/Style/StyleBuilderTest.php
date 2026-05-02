@@ -62,6 +62,28 @@ final class StyleBuilderTest extends TestCase
         StyleBuilder::parseSides('1 2 3');
     }
 
+    public function testParseSidesRejectsNonNumericToken(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        StyleBuilder::parseSides('foo');
+    }
+
+    public function testParseSidesRejectsMixedToken(): void
+    {
+        // `(int) '1bar'` would silently coerce to 1; must throw instead.
+        $this->expectException(\InvalidArgumentException::class);
+        StyleBuilder::parseSides('1,bar');
+    }
+
+    public function testParseSidesAcceptsNegativeNumbers(): void
+    {
+        // The Style layer rejects negatives, but the parser itself
+        // should treat `-1` as a valid integer token (and let the higher
+        // layer's validation surface a clearer error).
+        $this->expectException(\InvalidArgumentException::class);
+        StyleBuilder::parseSides('-1,bogus');
+    }
+
     public function testPaddingApplied(): void
     {
         $s = StyleBuilder::fromFlags(['padding' => '0 2']);

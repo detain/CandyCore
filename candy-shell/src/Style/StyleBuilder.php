@@ -128,6 +128,9 @@ final class StyleBuilder
 
     /**
      * Parse a CSS-style padding/margin shorthand: `1`, `1,2`, `1,2,3,4`.
+     * Tokens must be valid integers; non-numeric inputs (`foo`, `1bar`)
+     * raise an `InvalidArgumentException` rather than being coerced to
+     * 0/1 silently.
      *
      * @return list<int>
      */
@@ -135,7 +138,18 @@ final class StyleBuilder
     {
         $parts = preg_split('/[\s,]+/', trim($raw)) ?: [];
         $parts = array_values(array_filter($parts, static fn($p) => $p !== ''));
-        $ints  = array_map(static fn($p) => (int) $p, $parts);
+
+        $ints = [];
+        foreach ($parts as $token) {
+            // Accept optional leading sign + at least one digit, nothing else.
+            if (preg_match('/^-?\d+$/', $token) !== 1) {
+                throw new \InvalidArgumentException(
+                    "padding/margin token must be an integer; got: '$token'",
+                );
+            }
+            $ints[] = (int) $token;
+        }
+
         if (!in_array(count($ints), [1, 2, 4], true)) {
             throw new \InvalidArgumentException(
                 'padding/margin needs 1, 2, or 4 integers; got: ' . count($ints),
