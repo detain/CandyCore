@@ -50,6 +50,14 @@ jobs:
         working-directory: ${{ matrix.lib }}
         run: composer install --prefer-dist --no-progress
 
+      # vhs-action's bundled ffmpeg install is flaky on the Ubuntu
+      # runner; install via apt up-front so the action skips its own.
+      - name: Install ffmpeg + ttyd
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Render every .tape in ${{ matrix.lib }}/.vhs/
         if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
         uses: charmbracelet/vhs-action@v2
