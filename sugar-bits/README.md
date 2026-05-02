@@ -1,5 +1,7 @@
 # SugarBits
 
+![demo](.vhs/spinners.gif)
+
 PHP port of [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) —
 14 pre-built TUI components for CandyCore.
 

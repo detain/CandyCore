@@ -1,5 +1,7 @@
 # SugarSpark
 
+![demo](.vhs/inspect.gif)
+
 PHP port of [charmbracelet/sequin](https://github.com/charmbracelet/sequin) —
 an ANSI escape-sequence inspector. Pipe styled output through it and each
 escape becomes a labelled line.

@@ -323,6 +323,51 @@ code, pre, .mono {
     flex-wrap: wrap;
 }
 
+/* ── Demo gallery ──────────────────────────────────────────────── */
+.demo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+.demo-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: transform .18s ease, box-shadow .18s ease;
+    color: var(--ink);
+    display: block;
+}
+
+.demo-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-md);
+    color: var(--ink);
+}
+
+.demo-card img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: #1f162d;
+    border-bottom: 1px solid var(--line);
+}
+
+.demo-card h3 {
+    margin: 16px 18px 4px;
+    font-size: 1.05rem;
+    letter-spacing: -0.005em;
+}
+
+.demo-card p {
+    margin: 0 18px 16px;
+    color: var(--ink-2);
+    font-size: 0.92rem;
+}
+
 /* ── Code blocks ───────────────────────────────────────────────── */
 pre.code, .code-block {
     background: #1f162d;

@@ -1,5 +1,7 @@
 # CandyCore
 
+![demo](.vhs/counter.gif)
+
 PHP port of [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) —
 the Elm-architecture TUI runtime at the heart of the Charmbracelet stack.
 

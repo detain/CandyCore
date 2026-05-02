@@ -1,5 +1,7 @@
 # CandyMold
 
+![demo](.vhs/start.gif)
+
 Skeleton repo for bootstrapping a CandyCore TUI app. Pour your model into the mold and you've got a working app.
 
 ```bash

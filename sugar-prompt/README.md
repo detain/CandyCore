@@ -1,5 +1,7 @@
 # SugarPrompt
 
+![demo](.vhs/form.gif)
+
 PHP port of [charmbracelet/huh](https://github.com/charmbracelet/huh) —
 interactive form library built on top of CandyCore + SugarBits.
 

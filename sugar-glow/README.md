@@ -1,5 +1,7 @@
 # SugarGlow
 
+![demo](.vhs/render.gif)
+
 PHP port of [charmbracelet/glow](https://github.com/charmbracelet/glow) —
 a Markdown CLI viewer that composes **CandyShine** (rendering) and
 **SugarBits Viewport** (scrolling).

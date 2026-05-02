@@ -1,5 +1,7 @@
 # CandyShell
 
+![demo](.vhs/style.gif)
+
 PHP port of [charmbracelet/gum](https://github.com/charmbracelet/gum) —
 a composer-installable CLI of CandyCore TUI primitives, useful for
 shell scripts.

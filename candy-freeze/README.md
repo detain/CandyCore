@@ -1,5 +1,7 @@
 # CandyFreeze
 
+![demo](.vhs/screenshot.gif)
+
 PHP port of [charmbracelet/freeze](https://github.com/charmbracelet/freeze) —
 turn code or terminal output into an SVG screenshot. **No `ext-gd` /
 Imagick required**; the output is plain text suitable for git diffs and

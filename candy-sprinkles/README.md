@@ -1,5 +1,7 @@
 # CandySprinkles
 
+![demo](.vhs/dashboard.gif)
+
 PHP port of [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) —
 declarative styling and layout for terminal UIs.
 
