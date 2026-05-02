@@ -1,0 +1,104 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * `candyfreeze` — render code or terminal output to an SVG screenshot.
+ *
+ * Usage:
+ *   echo "hello" | candyfreeze --theme dracula > out.svg
+ *   candyfreeze input.txt --theme tokyo-night --no-window --line-numbers
+ *
+ * Reads from stdin when no path is supplied; writes the SVG to
+ * stdout (or `--output <path>`).
+ */
+
+$root = dirname(__DIR__, 2);
+foreach ([__DIR__ . '/../vendor/autoload.php', $root . '/vendor/autoload.php'] as $auto) {
+    if (file_exists($auto)) {
+        require $auto;
+        break;
+    }
+}
+
+use CandyCore\Freeze\SvgRenderer;
+use CandyCore\Freeze\Theme;
+
+$argv = $_SERVER['argv'] ?? $argv ?? [];
+array_shift($argv);
+
+$themeName     = 'dark';
+$padding       = 24;
+$window        = true;
+$shadow        = true;
+$border        = true;
+$lineNumbers   = false;
+$borderRadius  = 8;
+$output        = null;
+$inputPath     = null;
+
+while (($arg = array_shift($argv)) !== null) {
+    switch ($arg) {
+        case '--theme':         $themeName    = (string) array_shift($argv); break;
+        case '--padding':       $padding      = (int) array_shift($argv); break;
+        case '--no-window':     $window       = false; break;
+        case '--no-shadow':     $shadow       = false; break;
+        case '--no-border':     $border       = false; break;
+        case '--line-numbers':  $lineNumbers  = true;  break;
+        case '--border-radius': $borderRadius = (int) array_shift($argv); break;
+        case '-o':
+        case '--output':        $output       = (string) array_shift($argv); break;
+        case '-h':
+        case '--help':
+            fwrite(STDERR, file_get_contents(__FILE__, false, null, 0, 1024) ?: '');
+            exit(0);
+        default:
+            if ($inputPath === null && !str_starts_with($arg, '-')) {
+                $inputPath = $arg;
+            } else {
+                fwrite(STDERR, "candyfreeze: unrecognised flag '{$arg}'\n");
+                exit(2);
+            }
+    }
+}
+
+$theme = match (strtolower(str_replace('_', '-', $themeName))) {
+    'dark'        => Theme::dark(),
+    'light'       => Theme::light(),
+    'dracula'     => Theme::dracula(),
+    'tokyo-night' => Theme::tokyoNight(),
+    'nord'        => Theme::nord(),
+    default       => null,
+};
+if ($theme === null) {
+    fwrite(STDERR, "candyfreeze: unknown theme '{$themeName}'. Known: dark, light, dracula, tokyo-night, nord\n");
+    exit(2);
+}
+
+$text = $inputPath !== null
+    ? @file_get_contents($inputPath)
+    : stream_get_contents(STDIN);
+if ($text === false || $text === null) {
+    fwrite(STDERR, "candyfreeze: failed to read input\n");
+    exit(1);
+}
+
+$svg = (new SvgRenderer(
+    theme:        $theme,
+    padding:      $padding,
+    window:       $window,
+    shadow:       $shadow,
+    border:       $border,
+    lineNumbers:  $lineNumbers,
+    borderRadius: $borderRadius,
+))->render($text);
+
+if ($output !== null) {
+    if (@file_put_contents($output, $svg) === false) {
+        fwrite(STDERR, "candyfreeze: failed to write '{$output}'\n");
+        exit(1);
+    }
+} else {
+    echo $svg;
+}

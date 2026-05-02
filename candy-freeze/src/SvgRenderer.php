@@ -1,0 +1,213 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Freeze;
+
+use CandyCore\Core\Util\Ansi;
+
+/**
+ * Renders text (with optional ANSI styling) to an SVG document. The
+ * output is plain text — no `ext-gd` / Imagick required — making it
+ * safe to drop into pipelines and CI artifacts.
+ *
+ * Mirrors charmbracelet/freeze's SVG output mode. Supports:
+ *
+ *  - macOS-style window-control "traffic lights" (`withWindow(true)`)
+ *  - Padding around the code area
+ *  - Optional rounded-corner frame
+ *  - Optional drop shadow
+ *  - Line numbers in the gutter
+ *  - Inline ANSI SGR colour parsing — foreground colours from the
+ *    rendered tokens become `<tspan fill="…">` segments. Background
+ *    colours and attribute flags (bold, italic, underline) are also
+ *    honoured.
+ *
+ * Width and height are computed from the rendered text using a
+ * monospace cell estimate (font size × 0.6 wide, font size × line
+ * height tall) so the surrounding frame fits the content.
+ */
+final class SvgRenderer
+{
+    public function __construct(
+        public readonly Theme $theme       = new Theme(
+            background:   '#0d1117',
+            foreground:   '#c9d1d9',
+            border:       '#30363d',
+            shadow:       'rgba(0, 0, 0, 0.5)',
+            lineNumber:   '#6e7681',
+            windowRed:    '#ff5f56',
+            windowYellow: '#ffbd2e',
+            windowGreen:  '#27c93f',
+        ),
+        public readonly int $padding       = 24,
+        public readonly bool $window       = true,
+        public readonly bool $shadow       = true,
+        public readonly bool $border       = true,
+        public readonly bool $lineNumbers  = false,
+        public readonly int $borderRadius  = 8,
+    ) {}
+
+    public static function dark():       self { return new self(theme: Theme::dark()); }
+    public static function light():      self { return new self(theme: Theme::light()); }
+    public static function dracula():    self { return new self(theme: Theme::dracula()); }
+    public static function tokyoNight(): self { return new self(theme: Theme::tokyoNight()); }
+    public static function nord():       self { return new self(theme: Theme::nord()); }
+
+    public function withTheme(Theme $t):     self { return $this->copy(theme: $t); }
+    public function withPadding(int $p):     self { return $this->copy(padding: max(0, $p)); }
+    public function withWindow(bool $on):    self { return $this->copy(window: $on); }
+    public function withShadow(bool $on):    self { return $this->copy(shadow: $on); }
+    public function withBorder(bool $on):    self { return $this->copy(border: $on); }
+    public function withLineNumbers(bool $on): self { return $this->copy(lineNumbers: $on); }
+    public function withBorderRadius(int $r): self { return $this->copy(borderRadius: max(0, $r)); }
+
+    /**
+     * Render `$text` (which may contain ANSI escape sequences) to an
+     * SVG document and return the bytes.
+     */
+    public function render(string $text): string
+    {
+        $lines = explode("\n", rtrim($text, "\n"));
+        $cellW = $this->theme->fontSize * 0.6;
+        $cellH = $this->theme->fontSize * $this->theme->lineHeight;
+
+        // Strip ANSI for sizing; the actual emit honours the styling
+        // via tspans built by the parser.
+        $maxCols = 0;
+        foreach ($lines as $line) {
+            $cols = mb_strlen(Ansi::strip($line), 'UTF-8');
+            if ($cols > $maxCols) {
+                $maxCols = $cols;
+            }
+        }
+        $gutter = $this->lineNumbers
+            ? max(2, strlen((string) count($lines))) + 2
+            : 0;
+
+        $contentWidth  = ($maxCols + $gutter) * $cellW;
+        $contentHeight = count($lines) * $cellH;
+
+        $headerHeight = $this->window ? 36 : 0;
+        $svgWidth  = (int) ceil($contentWidth + $this->padding * 2);
+        $svgHeight = (int) ceil($contentHeight + $this->padding * 2 + $headerHeight);
+
+        $shadowMargin = $this->shadow ? 32 : 0;
+        $totalW = $svgWidth + $shadowMargin * 2;
+        $totalH = $svgHeight + $shadowMargin * 2;
+
+        $svg  = '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        $svg .= '<svg xmlns="http://www.w3.org/2000/svg" '
+              . 'width="' . $totalW . '" height="' . $totalH . '" '
+              . 'viewBox="0 0 ' . $totalW . ' ' . $totalH . '">' . "\n";
+
+        // Defs (drop shadow filter).
+        if ($this->shadow) {
+            $svg .= '<defs>' . "\n"
+                 . '  <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">' . "\n"
+                 . '    <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="' . self::xmlEscape($this->theme->shadow) . '" />' . "\n"
+                 . '  </filter>' . "\n"
+                 . '</defs>' . "\n";
+        }
+
+        // Background frame.
+        $frameAttrs = sprintf(
+            'x="%d" y="%d" width="%d" height="%d" rx="%d" fill="%s"',
+            $shadowMargin, $shadowMargin, $svgWidth, $svgHeight, $this->borderRadius,
+            self::xmlEscape($this->theme->background),
+        );
+        if ($this->border) {
+            $frameAttrs .= ' stroke="' . self::xmlEscape($this->theme->border) . '" stroke-width="1"';
+        }
+        if ($this->shadow) {
+            $frameAttrs .= ' filter="url(#shadow)"';
+        }
+        $svg .= '<rect ' . $frameAttrs . ' />' . "\n";
+
+        if ($this->window) {
+            $svg .= $this->renderWindowControls($shadowMargin);
+        }
+
+        $textY0 = $shadowMargin + $this->padding + $headerHeight + $this->theme->fontSize;
+        $textX0 = $shadowMargin + $this->padding;
+
+        $svg .= '<g font-family="' . self::xmlEscape($this->theme->fontFamily) . '" '
+              . 'font-size="' . $this->theme->fontSize . '" '
+              . 'fill="' . self::xmlEscape($this->theme->foreground) . '" '
+              . 'xml:space="preserve">' . "\n";
+
+        foreach ($lines as $i => $line) {
+            $y = $textY0 + $i * $cellH;
+            if ($this->lineNumbers) {
+                $svg .= sprintf(
+                    '<text x="%.2f" y="%.2f" fill="%s">%s</text>' . "\n",
+                    $textX0,
+                    $y,
+                    self::xmlEscape($this->theme->lineNumber),
+                    self::xmlEscape(str_pad((string) ($i + 1), max(2, strlen((string) count($lines))), ' ', STR_PAD_LEFT)),
+                );
+            }
+            $segments = AnsiParser::parse($line);
+            $x = $textX0 + $gutter * $cellW;
+            foreach ($segments as $seg) {
+                $attrs = '';
+                if ($seg->fg !== null) {
+                    $attrs .= ' fill="' . self::xmlEscape($seg->fg) . '"';
+                }
+                if ($seg->bold)      { $attrs .= ' font-weight="bold"';   }
+                if ($seg->italic)    { $attrs .= ' font-style="italic"';  }
+                if ($seg->underline) { $attrs .= ' text-decoration="underline"'; }
+                $svg .= sprintf(
+                    '<text x="%.2f" y="%.2f"%s>%s</text>' . "\n",
+                    $x, $y, $attrs, self::xmlEscape($seg->text),
+                );
+                $x += mb_strlen($seg->text, 'UTF-8') * $cellW;
+            }
+        }
+        $svg .= '</g>' . "\n";
+        $svg .= '</svg>' . "\n";
+        return $svg;
+    }
+
+    private function renderWindowControls(int $shadowMargin): string
+    {
+        $cy = $shadowMargin + 18;
+        $base = $shadowMargin + 18;
+        $r = 6;
+        $gap = 18;
+        $colors = [$this->theme->windowRed, $this->theme->windowYellow, $this->theme->windowGreen];
+        $svg = '';
+        foreach ($colors as $i => $c) {
+            $svg .= sprintf(
+                '<circle cx="%d" cy="%d" r="%d" fill="%s" />' . "\n",
+                $base + $i * $gap, $cy, $r, self::xmlEscape($c),
+            );
+        }
+        return $svg;
+    }
+
+    private static function xmlEscape(string $s): string
+    {
+        return htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
+    private function copy(
+        ?Theme $theme = null,
+        ?int $padding = null,
+        ?bool $window = null,
+        ?bool $shadow = null,
+        ?bool $border = null,
+        ?bool $lineNumbers = null,
+        ?int $borderRadius = null,
+    ): self {
+        return new self(
+            theme:        $theme        ?? $this->theme,
+            padding:      $padding      ?? $this->padding,
+            window:       $window       ?? $this->window,
+            shadow:       $shadow       ?? $this->shadow,
+            border:       $border       ?? $this->border,
+            lineNumbers:  $lineNumbers  ?? $this->lineNumbers,
+            borderRadius: $borderRadius ?? $this->borderRadius,
+        );
+    }
+}
