@@ -49,4 +49,30 @@ final class RenderCommandTest extends TestCase
     {
         $this->assertNull(RenderCommand::loadInput('/no/such/path/sugar-glow-test.md'));
     }
+
+    public function testPickThemeDarkLightDraculaTokyoNightPink(): void
+    {
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('dark'));
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('light'));
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('dracula'));
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('tokyo-night'));
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('tokyonight'));
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('pink'));
+        // Underscores accepted as separators.
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme('tokyo_night'));
+    }
+
+    public function testPickThemeNotty(): void
+    {
+        // Notty is a no-style fallback (matches plain visually).
+        $theme = RenderCommand::pickTheme('notty');
+        $this->assertSame('plain', $theme->paragraph->render('plain'));
+    }
+
+    public function testPickThemeEmptyDefaultsToAnsi(): void
+    {
+        // The CLI passes the --theme default of 'ansi', but a direct
+        // empty-string call should still produce a usable Theme.
+        $this->assertInstanceOf(Theme::class, RenderCommand::pickTheme(''));
+    }
 }
