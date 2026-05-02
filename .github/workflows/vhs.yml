@@ -173,8 +173,8 @@ jobs:
       - name: Commit + push
         run: |
           set -euo pipefail
-          git config user.name  'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git config user.name  'Joe Huss'
+          git config user.email 'detain@interserver.net'
           git add */.vhs/*.gif
           if git diff --cached --quiet; then
             echo "no GIF changes — skipping commit"

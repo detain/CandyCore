@@ -1,0 +1,88 @@
+name: Sync to sugarcraft org
+
+# Pushes every lib/app subdir to its sibling sugarcraft/<lib> repo,
+# and pushes docs/ to sugarcraft/sugarcraft.github.io. Treats this
+# monorepo as the source of truth.
+#
+# Auth: SUGARCRAFT_SYNC_TOKEN secret — a PAT with `repo` scope on
+# the sugarcraft org. Without it, all push steps will 403.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+# Don't pile on concurrent syncs — race-pushes back to master.
+# Don't cancel-in-progress; let each sync finish so org repos stay
+# coherent.
+concurrency:
+  group: sync-sugarcraft
+  cancel-in-progress: false
+
+jobs:
+  sync-libs:
+    name: Subtree-push 20 lib/app subdirs to sugarcraft/<lib>
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # git subtree split needs full history
+
+      - name: Configure git identity
+        run: |
+          git config user.name  'Joe Huss'
+          git config user.email 'detain@interserver.net'
+
+      - name: Subtree-split + force-push each lib
+        env:
+          TOKEN: ${{ secrets.SUGARCRAFT_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          libs=(
+            candy-core candy-sprinkles honey-bounce candy-zone
+            sugar-bits sugar-charts sugar-prompt candy-shell
+            candy-shine candy-kit candy-freeze sugar-glow sugar-spark
+            candy-wish sugar-wishlist candy-metrics
+            candy-mold candy-tetris super-candy sugar-crush
+          )
+          for lib in "${libs[@]}"; do
+            [ -d "$lib" ] || { echo "skip $lib (no dir)"; continue; }
+            br="sync-$lib"
+            git branch -D "$br" 2>/dev/null || true
+            git subtree split --prefix="$lib" --branch="$br" --quiet
+            git push --force \
+              "https://x-access-token:$TOKEN@github.com/sugarcraft/$lib.git" \
+              "$br:main"
+            git branch -D "$br" >/dev/null
+            echo "✓ synced $lib"
+          done
+
+  sync-site:
+    name: Push docs/ to sugarcraft/sugarcraft.github.io
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Mirror docs/ → sugarcraft.github.io main
+        env:
+          TOKEN: ${{ secrets.SUGARCRAFT_SYNC_TOKEN }}
+        run: |
+          set -euo pipefail
+          tmp=$(mktemp -d)
+          git clone --quiet \
+            "https://x-access-token:$TOKEN@github.com/sugarcraft/sugarcraft.github.io.git" \
+            "$tmp/site"
+          # rsync the docs/ tree on top, deleting site files that no
+          # longer exist in docs/. .git is preserved.
+          rsync -a --delete --exclude=.git ./docs/ "$tmp/site/"
+          cd "$tmp/site"
+          git config user.name  'Joe Huss'
+          git config user.email 'detain@interserver.net'
+          git add -A
+          if git diff --cached --quiet; then
+            echo "site already in sync"
+            exit 0
+          fi
+          git commit --quiet -m "Sync from monorepo @ ${GITHUB_SHA:0:7}"
+          git push --quiet origin main
+          echo "✓ pushed site update"
