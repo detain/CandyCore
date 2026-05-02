@@ -148,7 +148,8 @@ final class InspectorTest extends TestCase
     public function testUnknownCsiFallsBackToGeneric(): void
     {
         // Random unrecognised CSI — should not crash, should describe.
-        $seg = Inspector::parse("\x1b[1;2Z")[0];
+        // Final byte 'Y' has no defined meaning in the dispatch table.
+        $seg = Inspector::parse("\x1b[1;2Y")[0];
         $this->assertStringContainsString('CSI', $seg->describe());
     }
 
@@ -162,5 +163,90 @@ final class InspectorTest extends TestCase
     {
         $seg = Inspector::parse("hi\x1b")[1];
         $this->assertSame("\x1b", $seg->raw());
+    }
+
+    public function testDcsXTVERSIONReply(): void
+    {
+        $seg = Inspector::parse("\x1bP>|xterm(367)\x1b\\")[0];
+        $this->assertStringContainsString('terminal version', $seg->describe());
+        $this->assertStringContainsString('xterm(367)', $seg->describe());
+    }
+
+    public function testApcCandyZoneMarker(): void
+    {
+        $seg = Inspector::parse("\x1b_candyzone:S:btn-1\x1b\\")[0];
+        $this->assertStringContainsString('CandyZone marker', $seg->describe());
+        $this->assertStringContainsString('S:btn-1',          $seg->describe());
+    }
+
+    public function testApcKittyGraphics(): void
+    {
+        $seg = Inspector::parse("\x1b_GBASE64DATA\x1b\\")[0];
+        $this->assertStringContainsString('kitty graphics', $seg->describe());
+    }
+
+    public function testCursorShape(): void
+    {
+        $seg = Inspector::parse("\x1b[2 q")[0];
+        $this->assertStringContainsString('steady block', $seg->describe());
+    }
+
+    public function testScrollRegion(): void
+    {
+        $seg = Inspector::parse("\x1b[2;10r")[0];
+        $this->assertStringContainsString('set scrolling region 2;10', $seg->describe());
+        $reset = Inspector::parse("\x1b[r")[0];
+        $this->assertStringContainsString('reset scrolling region', $reset->describe());
+    }
+
+    public function testScrollUpDown(): void
+    {
+        $seg = Inspector::parse("\x1b[3S")[0];
+        $this->assertStringContainsString('scroll up 3', $seg->describe());
+    }
+
+    public function testTabForward(): void
+    {
+        $seg = Inspector::parse("\x1b[2I")[0];
+        $this->assertStringContainsString('tab forward 2', $seg->describe());
+    }
+
+    public function testKittyKeyboardQuery(): void
+    {
+        $seg = Inspector::parse("\x1b[?u")[0];
+        $this->assertStringContainsString('kitty keyboard query', $seg->describe());
+    }
+
+    public function testOscPaletteAndProgress(): void
+    {
+        $palette = Inspector::parse("\x1b]4;1;rgb:ff/00/00\x07")[0];
+        $this->assertStringContainsString('palette', $palette->describe());
+
+        $progress = Inspector::parse("\x1b]9;4;1;42\x07")[0];
+        $this->assertStringContainsString('progress', $progress->describe());
+    }
+
+    public function testOscColourSetReset(): void
+    {
+        $set = Inspector::parse("\x1b]10;rgb:ff/00/00\x07")[0];
+        $this->assertStringContainsString('set foreground colour', $set->describe());
+
+        $reset = Inspector::parse("\x1b]110\x1b\\")[0];
+        $this->assertStringContainsString('reset foreground colour', $reset->describe());
+    }
+
+    public function testDecPrivateExtras(): void
+    {
+        $sync = Inspector::parse("\x1b[?2026h")[0];
+        $this->assertStringContainsString('synchronized output', $sync->describe());
+
+        $unicode = Inspector::parse("\x1b[?2027h")[0];
+        $this->assertStringContainsString('unicode', $unicode->describe());
+    }
+
+    public function testCsiRequestCursorPosition(): void
+    {
+        $seg = Inspector::parse("\x1b[6n")[0];
+        $this->assertStringContainsString('request cursor position', $seg->describe());
     }
 }

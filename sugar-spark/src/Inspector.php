@@ -101,6 +101,44 @@ final class Inspector
                 }
             }
 
+            // DCS: ESC P payload (BEL | ESC \). Used by XTVERSION,
+            // DECRPM, DECRPSS, sixel, and other "device" replies.
+            if ($next === 'P') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    if ($input[$j] === "\x07") { $j++; break; }
+                    if ($input[$j] === "\x1b" && ($input[$j + 1] ?? '') === '\\') {
+                        $j += 2; break;
+                    }
+                    $j++;
+                }
+                $bytes   = substr($input, $i, $j - $i);
+                $payload = substr($bytes, 2, -2); // strip ESC P ... ESC \
+                $flushText();
+                $out[] = new SequenceSegment($bytes, self::describeDcs($payload));
+                $i = $j;
+                continue;
+            }
+
+            // APC: ESC _ payload ESC \ — CandyZone markers, kitty
+            // graphics, and other custom application program commands.
+            if ($next === '_') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    if ($input[$j] === "\x07") { $j++; break; }
+                    if ($input[$j] === "\x1b" && ($input[$j + 1] ?? '') === '\\') {
+                        $j += 2; break;
+                    }
+                    $j++;
+                }
+                $bytes   = substr($input, $i, $j - $i);
+                $payload = substr($bytes, 2, -2);
+                $flushText();
+                $out[] = new SequenceSegment($bytes, self::describeApc($payload));
+                $i = $j;
+                continue;
+            }
+
             // Two-byte ESC <c> (e.g. ESC 7 = save cursor).
             $bytes = substr($input, $i, 2);
             $flushText();
@@ -132,6 +170,60 @@ final class Inspector
             return ($on ? 'enable ' : 'disable ') . implode(', ', $names);
         }
 
+        // DECRQM (mode-state query): `CSI [?] mode $p`.
+        if (str_ends_with($params, '$') && $final === 'p') {
+            $body = substr($params, 0, -1);
+            $private = $body !== '' && $body[0] === '?';
+            $mode = $private ? substr($body, 1) : $body;
+            return ($private ? 'DEC private mode query (DECRQM) ' : 'mode query ') . $mode;
+        }
+        // DECRPM (mode-state reply): `CSI [?] mode ; state $y`.
+        if (str_ends_with($params, '$') && $final === 'y') {
+            $body = substr($params, 0, -1);
+            return 'mode report (DECRPM) ' . $body;
+        }
+        // DECSCUSR (cursor shape): `CSI N SP q`.
+        if (preg_match('/^\d* $/', $params) === 1 && $final === 'q') {
+            $n = (int) trim($params);
+            $shape = match ($n) {
+                0, 1 => 'blinking block (default)',
+                2 => 'steady block',
+                3 => 'blinking underline',
+                4 => 'steady underline',
+                5 => 'blinking bar',
+                6 => 'steady bar',
+                default => "shape $n",
+            };
+            return 'cursor shape: ' . $shape;
+        }
+        // Kitty keyboard query: `CSI ? u` and replies.
+        if ($params === '?' && $final === 'u') {
+            return 'kitty keyboard query';
+        }
+        if (preg_match('/^\?\d+$/', $params) === 1 && $final === 'u') {
+            return 'kitty keyboard reply, flags=' . substr($params, 1);
+        }
+        if ($final === 'u' && str_starts_with($params, '<')) {
+            return 'pop kitty keyboard layers ' . substr($params, 1);
+        }
+        if ($final === 'u' && str_starts_with($params, '>')) {
+            return 'push kitty keyboard flags ' . substr($params, 1);
+        }
+        // XTVERSION request: `CSI > 0 q`.
+        if ($params === '>0' && $final === 'q') {
+            return 'request terminal version (XTVERSION)';
+        }
+        // OSC palette set/query and DSR.
+        if ($params === '6' && $final === 'n') {
+            return 'request cursor position (DSR-CPR)';
+        }
+        // DECSTBM scrolling region: `CSI [top;bottom] r`.
+        if ($final === 'r') {
+            return $params === ''
+                ? 'reset scrolling region'
+                : 'set scrolling region ' . $params;
+        }
+
         return match ($final) {
             'm' => 'SGR ' . self::describeSgr($params),
             'A' => 'cursor up '    . ($params === '' ? '1' : $params),
@@ -148,10 +240,16 @@ final class Inspector
             'M' => 'delete lines '    . ($params === '' ? '1' : $params),
             'P' => 'F1',
             'Q' => 'F2',
-            'R' => 'F3',
-            'S' => 'F4',
+            'R' => 'cursor position report ' . $params,
+            'S' => 'scroll up ' . ($params === '' ? '1' : $params),
+            'T' => 'scroll down ' . ($params === '' ? '1' : $params),
+            'b' => 'repeat preceding character ' . ($params === '' ? '1' : $params),
             's' => 'save cursor',
             'u' => 'restore cursor',
+            'I' => 'tab forward ' . ($params === '' ? '1' : $params),
+            'Z' => 'tab backward ' . ($params === '' ? '1' : $params),
+            'g' => $params === '3' ? 'clear all tab stops' : 'clear tab stop',
+            '@' => 'insert chars ' . ($params === '' ? '1' : $params),
             '~' => self::describeTilde($params),
             default => 'CSI ' . ($params === '' ? '' : $params . ' ') . $final,
         };
@@ -257,14 +355,22 @@ final class Inspector
     private static function decPrivateName(int $code): string
     {
         return match ($code) {
+            7    => 'auto wrap',
+            12   => 'cursor blink',
             25   => 'cursor visibility',
+            47   => 'alternate screen (legacy)',
             1000 => 'mouse press/release',
             1002 => 'mouse cell motion',
             1003 => 'mouse all motion',
             1004 => 'focus reporting',
             1006 => 'mouse SGR encoding',
+            1015 => 'mouse urxvt encoding',
+            1047 => 'alternate screen (no save)',
+            1048 => 'save/restore cursor',
             1049 => 'alternate screen',
             2004 => 'bracketed paste',
+            2026 => 'synchronized output',
+            2027 => 'unicode (grapheme cluster) mode',
             default => "DEC ?$code",
         };
     }
@@ -275,13 +381,57 @@ final class Inspector
             return match ($m[1]) {
                 '0', '2'  => 'set window title to "' . $m[2] . '"',
                 '1'       => 'set icon name to "' . $m[2] . '"',
+                '4'       => 'palette ' . $m[2],
                 '7'       => 'cwd ' . $m[2],
                 '8'       => 'hyperlink ' . $m[2],
+                '9'       => str_starts_with($m[2], '4;')
+                                ? 'progress ' . substr($m[2], 2)
+                                : 'iTerm2 ' . $m[2],
+                '10'      => 'set foreground colour ' . $m[2],
+                '11'      => 'set background colour ' . $m[2],
+                '12'      => 'set cursor colour ' . $m[2],
                 '52'      => 'clipboard ' . $m[2],
+                '110'     => 'reset foreground colour',
+                '111'     => 'reset background colour',
+                '112'     => 'reset cursor colour',
                 default   => "OSC $payload",
             };
         }
+        if (in_array($payload, ['110', '111', '112'], true)) {
+            return match ($payload) {
+                '110' => 'reset foreground colour',
+                '111' => 'reset background colour',
+                '112' => 'reset cursor colour',
+            };
+        }
         return "OSC $payload";
+    }
+
+    /** Decode DCS payloads — XTVERSION reply, DECRQSS, DECRPSS, sixel. */
+    private static function describeDcs(string $payload): string
+    {
+        if (str_starts_with($payload, '>|')) {
+            return 'terminal version (XTVERSION reply): ' . substr($payload, 2);
+        }
+        if (str_starts_with($payload, '1$r') || str_starts_with($payload, '0$r')) {
+            return 'DECRPSS reply ' . $payload;
+        }
+        if (str_starts_with($payload, 'q')) {
+            return 'sixel image (' . strlen($payload) . ' bytes)';
+        }
+        return 'DCS ' . $payload;
+    }
+
+    /** Decode APC payloads — CandyZone markers, kitty graphics. */
+    private static function describeApc(string $payload): string
+    {
+        if (str_starts_with($payload, 'candyzone:')) {
+            return 'CandyZone marker ' . substr($payload, strlen('candyzone:'));
+        }
+        if (str_starts_with($payload, 'G')) {
+            return 'kitty graphics (' . strlen($payload) . ' bytes)';
+        }
+        return 'APC ' . $payload;
     }
 
     private static function describeSs3(string $final): string
