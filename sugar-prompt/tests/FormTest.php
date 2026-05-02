@@ -8,8 +8,10 @@ use CandyCore\Core\KeyType;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Prompt\Field\Confirm;
 use CandyCore\Prompt\Field\Input;
+use CandyCore\Prompt\Field\MultiSelect;
 use CandyCore\Prompt\Field\Note;
 use CandyCore\Prompt\Field\Select;
+use CandyCore\Prompt\Field\Text;
 use CandyCore\Prompt\Form;
 use CandyCore\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
@@ -194,5 +196,60 @@ final class FormTest extends TestCase
         $form = Form::new(Select::new('lang')->withOptions('PHP', 'Go'));
         [$form, ] = $form->update(new KeyMsg(KeyType::Escape));
         $this->assertTrue($form->isAborted());
+    }
+
+    public function testArrowDownInsideMultiSelectMovesItsCursorNotForm(): void
+    {
+        $form = Form::new(
+            MultiSelect::new('foods')->withOptions('A', 'B', 'C'),
+            Input::new('name'),
+        );
+        $this->assertSame(0, $form->focusedIndex);
+        $msField = $form->fields[0];
+        $this->assertSame(0, $msField->cursor);
+
+        [$form, ] = $form->update(new KeyMsg(KeyType::Down));
+
+        // Form focus stays on the MultiSelect.
+        $this->assertSame(0, $form->focusedIndex);
+        // The MultiSelect's internal cursor advanced.
+        $this->assertSame(1, $form->fields[0]->cursor);
+    }
+
+    public function testArrowDownInsideSelectMovesListNotForm(): void
+    {
+        $form = Form::new(
+            Select::new('lang')->withOptions('PHP', 'Go', 'Rust'),
+            Input::new('name'),
+        );
+        [$form, ] = $form->update(new KeyMsg(KeyType::Down));
+        $this->assertSame(0, $form->focusedIndex);
+        $this->assertSame('Go', $form->fields[0]->value());
+    }
+
+    public function testArrowDownInsideTextMovesLineCursorNotForm(): void
+    {
+        $form = Form::new(
+            Text::new('notes')->withTitle('Notes'),
+            Input::new('name'),
+        );
+        // Type two lines.
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, 'a'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Enter));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, 'b'));
+        $this->assertSame("a\nb", $form->fields[0]->value());
+
+        // Up moves between text lines, not between fields.
+        [$form, ] = $form->update(new KeyMsg(KeyType::Up));
+        $this->assertSame(0, $form->focusedIndex);
+        $this->assertSame(0, $form->fields[0]->area->row);
+    }
+
+    public function testArrowDownStillNavigatesBetweenInputFields(): void
+    {
+        // Inputs don't claim Up/Down — form should still advance focus.
+        $form = Form::new(Input::new('a'), Input::new('b'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Down));
+        $this->assertSame(1, $form->focusedIndex);
     }
 }
