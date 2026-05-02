@@ -65,4 +65,33 @@ final class BarChartTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         BarChart::new([], -1, 5);
     }
+
+    public function testRenderedRowsNeverExceedWidth(): void
+    {
+        // 5 bars in a 3-cell budget — trailing bars must be dropped so
+        // every rendered row fits the chart width.
+        $bars = [
+            ['a', 0.1], ['b', 0.2], ['c', 0.3], ['d', 0.4], ['e', 0.5],
+        ];
+        $out = BarChart::new($bars, 3, 4)->view();
+        foreach (explode("\n", $out) as $row) {
+            $this->assertLessThanOrEqual(3, mb_strlen($row, 'UTF-8'),
+                'each row must fit the configured width');
+        }
+    }
+
+    public function testHeightOneWithLabelsRendersOneRow(): void
+    {
+        // height=1 + showLabels would otherwise emit body+labels=2 rows.
+        $out = BarChart::new([['a', 0.5], ['b', 1.0]], 5, 1)->view();
+        $rows = array_filter(explode("\n", $out), static fn($r) => $r !== '');
+        $this->assertCount(1, $rows);
+    }
+
+    public function testHeightTwoWithLabelsRendersTwoRows(): void
+    {
+        // height=2 fits both a body row and a label row.
+        $out = BarChart::new([['a', 1.0]], 3, 2)->view();
+        $this->assertCount(2, explode("\n", $out));
+    }
 }

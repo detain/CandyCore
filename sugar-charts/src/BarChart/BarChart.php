@@ -65,23 +65,45 @@ final class BarChart
             return '';
         }
 
-        $values  = array_map(static fn(Bar $b): float => $b->value, $this->bars);
-        $min     = $this->min ?? min(min($values), 0.0);
-        $max     = $this->max ?? max($values);
+        // Drop trailing bars that don't fit the width budget. With
+        // colW=1 + gap=1, at most `(width + 1) / 2` bars fit; without a
+        // gap, at most `width` bars fit. Prefer keeping every bar when
+        // gaps fit, otherwise fall back to packing as many as `width`
+        // allows so the rendered output never exceeds the requested
+        // width.
+        $bars       = $this->bars;
+        $count      = count($bars);
+        $withGapMax = intdiv($this->width + 1, 2);
+        if ($count > $withGapMax) {
+            $maxCount = max(0, min($count, $this->width));
+            if ($count > $maxCount) {
+                $bars  = array_slice($bars, 0, $maxCount);
+                $count = $maxCount;
+            }
+        }
+        $values = array_map(static fn(Bar $b): float => $b->value, $bars);
+        if ($values === []) {
+            return '';
+        }
+
+        $min = $this->min ?? min(min($values), 0.0);
+        $max = $this->max ?? max($values);
         if ($max === $min) {
             $max = $min + 1.0;
         }
 
-        // Distribute available width across the bars, reserving a 1-cell
-        // gap between adjacent columns when there's room. Bars expand to
-        // fill remaining space so labels can render in full when possible.
-        $count = count($this->bars);
+        // Distribute available width across the surviving bars; reserve a
+        // 1-cell gap when there's room. Bars expand to fill the remainder
+        // so labels can render in full when possible.
         $gap   = $count > 1 && $this->width >= 2 * $count - 1 ? 1 : 0;
         $avail = $this->width - ($count - 1) * $gap;
         $colW  = max(1, intdiv($avail, max(1, $count)));
 
-        // Heights: scale value into [0, height].
-        $bodyHeight = $this->showLabels ? max(1, $this->height - 1) : $this->height;
+        // Reserve one row for labels only if the chart is tall enough to
+        // also contain a body. height=1 + showLabels would otherwise emit
+        // 2 rows and overflow the requested height.
+        $renderLabels = $this->showLabels && $this->height >= 2;
+        $bodyHeight   = $renderLabels ? $this->height - 1 : $this->height;
         $heights = [];
         foreach ($values as $v) {
             $norm = ($v - $min) / ($max - $min);
@@ -101,9 +123,9 @@ final class BarChart
             $rows[] = rtrim($line);
         }
 
-        if ($this->showLabels) {
+        if ($renderLabels) {
             $labelRow = '';
-            foreach ($this->bars as $i => $bar) {
+            foreach ($bars as $i => $bar) {
                 $label = self::truncate($bar->label, $colW);
                 $label = str_pad($label, $colW, ' ', STR_PAD_RIGHT);
                 $labelRow .= $label;
