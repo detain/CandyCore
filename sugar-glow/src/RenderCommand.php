@@ -28,9 +28,13 @@ final class RenderCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('file',  InputArgument::OPTIONAL, 'Markdown file. Default: stdin.')
-            ->addOption('pager', 'p', InputOption::VALUE_NONE,     'Open the rendered output in a fullscreen pager.')
-            ->addOption('theme', null, InputOption::VALUE_REQUIRED, 'ansi | plain', 'ansi');
+            ->addArgument('file',     InputArgument::OPTIONAL, 'Markdown file. Default: stdin.')
+            ->addOption('pager',         'p', InputOption::VALUE_NONE,     'Open the rendered output in a fullscreen pager.')
+            ->addOption('theme',         null, InputOption::VALUE_REQUIRED, 'ansi | plain | dark | light | notty | dracula | tokyo-night | pink', 'ansi')
+            ->addOption('style',         's',  InputOption::VALUE_REQUIRED, 'Alias for --theme (glamour-compat).', null)
+            ->addOption('theme-config',  null, InputOption::VALUE_REQUIRED, 'Load a custom JSON theme file (overrides --theme).', '')
+            ->addOption('width',         'w',  InputOption::VALUE_REQUIRED, 'Wrap text at this column count. 0 = no wrap.', 0)
+            ->addOption('no-hyperlinks', null, InputOption::VALUE_NONE,    'Disable OSC 8 hyperlinks; render links as text + (url) instead.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -41,8 +45,18 @@ final class RenderCommand extends Command
             return Command::FAILURE;
         }
 
-        $theme    = self::pickTheme((string) $input->getOption('theme'));
-        $rendered = (new Renderer($theme))->render($raw);
+        // Theme selection: --theme-config (JSON) wins over --theme/--style.
+        $configPath = (string) $input->getOption('theme-config');
+        $themeName  = (string) ($input->getOption('style') ?? $input->getOption('theme'));
+        $theme      = $configPath !== ''
+            ? Theme::fromJson($configPath)
+            : self::pickTheme($themeName);
+
+        $width      = (int) $input->getOption('width');
+        $renderer   = (new Renderer($theme))
+            ->withWordWrap($width > 0 ? $width : null)
+            ->withHyperlinks(!$input->getOption('no-hyperlinks'));
+        $rendered   = $renderer->render($raw);
 
         if (!$input->getOption('pager')) {
             $output->writeln($rendered);
@@ -63,10 +77,17 @@ final class RenderCommand extends Command
 
     public static function pickTheme(string $name): Theme
     {
-        return match (strtolower($name)) {
-            'ansi'        => Theme::ansi(),
-            'plain', 'no' => Theme::plain(),
-            default       => throw new \InvalidArgumentException("unknown theme: $name"),
+        return match (strtolower(str_replace('_', '-', $name))) {
+            '', 'ansi'         => Theme::ansi(),
+            'plain', 'no'      => Theme::plain(),
+            'dark'             => Theme::dark(),
+            'light'            => Theme::light(),
+            'notty', 'auto-no' => Theme::notty(),
+            'dracula'          => Theme::dracula(),
+            'tokyo-night',
+            'tokyonight'       => Theme::tokyoNight(),
+            'pink'             => Theme::pink(),
+            default            => throw new \InvalidArgumentException("unknown theme: $name"),
         };
     }
 
