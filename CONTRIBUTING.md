@@ -9,7 +9,7 @@ CandyCore is a monorepo of 13 PHP libraries. Each library has its own
 `composer.json` + `vendor/` and is tested independently.
 
 ```sh
-git clone https://github.com/detain/CandyCore.git
+git clone https://github.com/detain/sugarcraft.git
 cd CandyCore
 
 # Install deps + run tests for one library:

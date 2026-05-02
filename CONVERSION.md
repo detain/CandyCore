@@ -835,8 +835,8 @@ into a real product.
 ### Brand + home
 
 - **Org name:** **SugarCraft** — every library moves under
-  `github.com/sugarcraft/<lib>` (current `detain/CandyCore` monorepo is
-  the dev incubator; production repos split out at v1.0 per the
+  `github.com/sugarcraft/<lib>` (current `detain/sugarcraft` monorepo
+  is the dev incubator; production repos split out at v1.0 per the
   existing "Repo split" architecture decision).
 - **Website:** `sugarcraft.github.io` (org Pages, deployed from
   `sugarcraft/sugarcraft.github.io`). Visual inspiration:
