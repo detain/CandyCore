@@ -76,7 +76,7 @@ final class Renderer
         return match (true) {
             $node instanceof Heading       => $this->renderHeading($node),
             $node instanceof Paragraph     => $this->theme->paragraph->render($this->renderChildren($node)) . "\n\n",
-            $node instanceof FencedCode    => $this->theme->codeBlock->render(rtrim($node->getLiteral(), "\n")) . "\n\n",
+            $node instanceof FencedCode    => $this->renderFencedCode($node) . "\n\n",
             $node instanceof IndentedCode  => $this->theme->codeBlock->render(rtrim($node->getLiteral(), "\n")) . "\n\n",
             $node instanceof BlockQuote    => $this->renderBlockQuote($node),
             $node instanceof ListBlock     => $this->renderList($node),
@@ -102,6 +102,19 @@ final class Renderer
             $out .= $this->renderNode($child);
         }
         return $out;
+    }
+
+    private function renderFencedCode(FencedCode $node): string
+    {
+        $body = rtrim($node->getLiteral(), "\n");
+        $lang = trim($node->getInfo() ?? '');
+        // No language hint → emit as plain code-block. With a hint,
+        // route through the syntax highlighter; unknown languages
+        // also fall through to the plain code-block style.
+        if ($lang === '') {
+            return $this->theme->codeBlock->render($body);
+        }
+        return SyntaxHighlighter::highlight($body, $lang, $this->theme);
     }
 
     private function renderHeading(Heading $h): string

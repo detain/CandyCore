@@ -30,6 +30,11 @@ final class Theme
         public readonly Style $blockquote,
         public readonly Style $listMarker,
         public readonly Style $rule,
+        // ---- syntax-highlighting tokens (used inside fenced code blocks) ----
+        public readonly ?Style $keyword = null,
+        public readonly ?Style $string  = null,
+        public readonly ?Style $number  = null,
+        public readonly ?Style $comment = null,
     ) {}
 
     /** Default ANSI theme: bright accents on each heading, coloured code, etc. */
@@ -59,6 +64,10 @@ final class Theme
             blockquote: Style::new()->italic()->foreground($grey),
             listMarker: Style::new()->foreground($accent),
             rule:       Style::new()->foreground($grey),
+            keyword:    Style::new()->bold()->foreground($magenta),
+            string:     Style::new()->foreground($green),
+            number:     Style::new()->foreground($yellow),
+            comment:    Style::new()->italic()->foreground($grey),
         );
     }
 
@@ -72,6 +81,7 @@ final class Theme
             paragraph: $s, bold: $s, italic: $s,
             code: $s, codeBlock: $s, link: $s,
             blockquote: $s, listMarker: $s, rule: $s,
+            keyword: $s, string: $s, number: $s, comment: $s,
         );
     }
 
@@ -119,6 +129,10 @@ final class Theme
             blockquote: $pick('blockquote'),
             listMarker: $pick('listMarker'),
             rule:       $pick('rule'),
+            keyword:    $pick('keyword'),
+            string:     $pick('string'),
+            number:     $pick('number'),
+            comment:    $pick('comment'),
         );
     }
 

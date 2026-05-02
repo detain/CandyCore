@@ -82,4 +82,26 @@ final class ThemeTest extends TestCase
         $this->expectException(\RuntimeException::class);
         Theme::fromJson('/nonexistent/path/' . uniqid());
     }
+
+    public function testAnsiThemeHasSyntaxTokenStyles(): void
+    {
+        $t = Theme::ansi();
+        $this->assertStringContainsString("\x1b[", $t->keyword?->render('if')   ?? '');
+        $this->assertStringContainsString("\x1b[", $t->string?->render('"abc"') ?? '');
+        $this->assertStringContainsString("\x1b[", $t->number?->render('42')    ?? '');
+        $this->assertStringContainsString("\x1b[", $t->comment?->render('// x') ?? '');
+    }
+
+    public function testFromJsonStringParsesTokenStyles(): void
+    {
+        $json = json_encode([
+            'keyword' => ['bold' => true],
+            'string'  => ['foreground' => '#00ff00'],
+        ]);
+        $t = Theme::fromJsonString($json);
+        $this->assertStringContainsString("\x1b[1m",            $t->keyword?->render('if') ?? '');
+        $this->assertStringContainsString('38;2;0;255;0',       $t->string?->render('"x"') ?? '');
+        // Unspecified token styles parse to plain Style::new().
+        $this->assertSame('42', $t->number?->render('42') ?? '');
+    }
 }
