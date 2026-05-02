@@ -1,6 +1,6 @@
 {
     "name": "candycore/candy-tetris",
-    "description": "Tetris clone built on the SugarCraft stack — CandyCore runtime, CandySprinkles styling, HoneyBounce-driven smooth piece previews. Standard SRS rules (7-bag RNG, ghost piece, hard drop, hold, level/speed curve, line-clear scoring). A real demo of the runtime, not a toy.",
+    "description": "Tetris clone built on the SugarCraft stack \u2014 CandyCore runtime, CandySprinkles styling, HoneyBounce-driven smooth piece previews. Standard SRS rules (7-bag RNG, ghost piece, hard drop, hold, level/speed curve, line-clear scoring). A real demo of the runtime, not a toy.",
     "type": "project",
     "license": "MIT",
     "keywords": [
@@ -22,9 +22,11 @@
     "support": {
         "issues": "https://github.com/sugarcraft/candy-tetris/issues",
         "source": "https://github.com/sugarcraft/candy-tetris",
-        "docs":   "https://sugarcraft.github.io/lib/candy-tetris.html"
+        "docs": "https://sugarcraft.github.io/lib/candy-tetris.html"
     },
-    "bin": ["bin/tetris"],
+    "bin": [
+        "bin/tetris"
+    ],
     "require": {
         "php": ">=8.1",
         "candycore/candy-core": "@dev",
@@ -44,8 +46,139 @@
         }
     },
     "repositories": [
-        { "type": "path", "url": "../candy-core",      "options": { "symlink": true } },
-        { "type": "path", "url": "../candy-sprinkles", "options": { "symlink": true } }
+        {
+            "type": "path",
+            "url": "../candy-core",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-sprinkles",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../honey-bounce",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-zone",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-bits",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-charts",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-prompt",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shell",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shine",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-kit",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-freeze",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-glow",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-spark",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-wish",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-wishlist",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-metrics",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-mold",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../super-candy",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-crush",
+            "options": {
+                "symlink": true
+            }
+        }
     ],
     "minimum-stability": "dev",
     "prefer-stable": true

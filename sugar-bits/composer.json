@@ -1,27 +1,41 @@
 {
     "name": "candycore/sugar-bits",
-    "description": "PHP port of charmbracelet/bubbles — 14 pre-built TUI components (text input, list, table, viewport, file picker, progress, spinner, etc.) for CandyCore.",
+    "description": "PHP port of charmbracelet/bubbles \u2014 14 pre-built TUI components (text input, list, table, viewport, file picker, progress, spinner, etc.) for CandyCore.",
     "type": "library",
     "license": "MIT",
     "keywords": [
-        "tui", "terminal", "cli",
-        "components", "widgets",
-        "text-input", "textarea", "list", "table", "viewport",
-        "file-picker", "progress-bar", "spinner",
-        "bubbles", "candycore"
+        "tui",
+        "terminal",
+        "cli",
+        "components",
+        "widgets",
+        "text-input",
+        "textarea",
+        "list",
+        "table",
+        "viewport",
+        "file-picker",
+        "progress-bar",
+        "spinner",
+        "bubbles",
+        "candycore"
     ],
     "homepage": "https://github.com/sugarcraft/sugar-bits",
     "authors": [
-        { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
+        {
+            "name": "Joe Huss",
+            "email": "detain@interserver.net",
+            "role": "Maintainer"
+        }
     ],
     "support": {
         "issues": "https://github.com/sugarcraft/sugar-bits/issues",
         "source": "https://github.com/sugarcraft/sugar-bits",
-        "docs":   "https://sugarcraft.github.io/lib/sugar-bits.html"
+        "docs": "https://sugarcraft.github.io/lib/sugar-bits.html"
     },
     "require": {
         "php": "^8.1",
-        "candycore/candy-core":  "@dev",
+        "candycore/candy-core": "@dev",
         "candycore/candy-sprinkles": "@dev",
         "candycore/honey-bounce": "@dev"
     },
@@ -29,9 +43,139 @@
         "phpunit/phpunit": "^10.5"
     },
     "repositories": [
-        { "type": "path", "url": "../candy-core",  "options": { "symlink": true } },
-        { "type": "path", "url": "../candy-sprinkles", "options": { "symlink": true } },
-        { "type": "path", "url": "../honey-bounce", "options": { "symlink": true } }
+        {
+            "type": "path",
+            "url": "../candy-core",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-sprinkles",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../honey-bounce",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-zone",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-charts",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-prompt",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shell",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shine",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-kit",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-freeze",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-glow",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-spark",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-wish",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-wishlist",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-metrics",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-mold",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-tetris",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../super-candy",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-crush",
+            "options": {
+                "symlink": true
+            }
+        }
     ],
     "autoload": {
         "psr-4": {
