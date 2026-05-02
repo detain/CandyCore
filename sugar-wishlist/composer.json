@@ -13,7 +13,7 @@
         "charm",
         "picker"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/sugar-wishlist",
     "authors": [
         {
             "name": "Joe Huss",
@@ -22,9 +22,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/sugar-wishlist",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/sugar-wishlist/issues",
+        "source": "https://github.com/sugarcraft/sugar-wishlist",
+        "docs":   "https://sugarcraft.github.io/lib/sugar-wishlist.html"
     },
     "bin": ["bin/wishlist"],
     "require": {

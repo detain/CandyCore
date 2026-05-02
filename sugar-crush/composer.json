@@ -15,7 +15,7 @@
         "openai",
         "ollama"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/sugar-crush",
     "authors": [
         {
             "name": "Joe Huss",
@@ -24,9 +24,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/sugar-crush",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/sugar-crush/issues",
+        "source": "https://github.com/sugarcraft/sugar-crush",
+        "docs":   "https://sugarcraft.github.io/lib/sugar-crush.html"
     },
     "bin": ["bin/sugarcrush"],
     "require": {

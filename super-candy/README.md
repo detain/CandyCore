@@ -1,6 +1,6 @@
 # SuperCandy
 
-Dual-pane terminal file manager built on the SugarBuzz stack — port of [`yorukot/superfile`](https://github.com/yorukot/superfile), with the Midnight Commander look.
+Dual-pane terminal file manager built on the SugarCraft stack — port of [`yorukot/superfile`](https://github.com/yorukot/superfile), with the Midnight Commander look.
 
 ```
 ┌────────────────────────────────────┐  ┌────────────────────────────────────┐

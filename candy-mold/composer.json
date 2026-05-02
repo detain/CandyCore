@@ -13,7 +13,7 @@
         "tui",
         "create-project"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/candy-mold",
     "authors": [
         {
             "name": "Joe Huss",
@@ -22,9 +22,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/candy-mold",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/candy-mold/issues",
+        "source": "https://github.com/sugarcraft/candy-mold",
+        "docs":   "https://sugarcraft.github.io/lib/candy-mold.html"
     },
     "bin": ["bin/start"],
     "require": {

@@ -3,10 +3,10 @@
 PHP ports of the [Charmbracelet](https://charm.sh) TUI ecosystem (plus
 [bubblezone](https://github.com/lrstanley/bubblezone),
 [ntcharts](https://github.com/NimbleMarkets/ntcharts), and a small
-SugarBuzz-flavoured sweetshop of original libraries) — composer-installable,
+SugarCraft-flavoured sweetshop of original libraries) — composer-installable,
 PHP 8.1+, async on ReactPHP.
 
-🌐 **Website:** [detain.github.io/CandyCore](https://detain.github.io/CandyCore/) — library matrix, quickstart, comparison page.
+🌐 **Website:** [sugarcraft.github.io](https://sugarcraft.github.io/) — library matrix, quickstart, comparison page.
 
 ```sh
 composer require candycore/candycore

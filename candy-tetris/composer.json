@@ -1,6 +1,6 @@
 {
     "name": "candycore/candy-tetris",
-    "description": "Tetris clone built on the SugarBuzz stack — CandyCore runtime, CandySprinkles styling, HoneyBounce-driven smooth piece previews. Standard SRS rules (7-bag RNG, ghost piece, hard drop, hold, level/speed curve, line-clear scoring). A real demo of the runtime, not a toy.",
+    "description": "Tetris clone built on the SugarCraft stack — CandyCore runtime, CandySprinkles styling, HoneyBounce-driven smooth piece previews. Standard SRS rules (7-bag RNG, ghost piece, hard drop, hold, level/speed curve, line-clear scoring). A real demo of the runtime, not a toy.",
     "type": "project",
     "license": "MIT",
     "keywords": [
@@ -11,7 +11,7 @@
         "demo",
         "example"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/candy-tetris",
     "authors": [
         {
             "name": "Joe Huss",
@@ -20,9 +20,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/candy-tetris",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/candy-tetris/issues",
+        "source": "https://github.com/sugarcraft/candy-tetris",
+        "docs":   "https://sugarcraft.github.io/lib/candy-tetris.html"
     },
     "bin": ["bin/tetris"],
     "require": {

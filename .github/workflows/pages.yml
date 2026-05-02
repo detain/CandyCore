@@ -1,4 +1,4 @@
-name: Deploy SugarBuzz site to Pages
+name: Deploy SugarCraft site to Pages
 
 on:
   push:

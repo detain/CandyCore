@@ -14,7 +14,7 @@
         "remote",
         "openssh"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/candy-wish",
     "authors": [
         {
             "name": "Joe Huss",
@@ -23,9 +23,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/candy-wish",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/candy-wish/issues",
+        "source": "https://github.com/sugarcraft/candy-wish",
+        "docs":   "https://sugarcraft.github.io/lib/candy-wish.html"
     },
     "require": {
         "php": ">=8.1",

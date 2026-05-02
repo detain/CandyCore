@@ -1,6 +1,6 @@
 # CandyTetris
 
-Tetris built on the SugarBuzz stack. CandyCore runtime, CandySprinkles for the rounded borders and per-piece colours, deterministic 7-bag RNG, ghost piece, hard drop, hold, level-driven gravity ramp, line-clear scoring.
+Tetris built on the SugarCraft stack. CandyCore runtime, CandySprinkles for the rounded borders and per-piece colours, deterministic 7-bag RNG, ghost piece, hard drop, hold, level-driven gravity ramp, line-clear scoring.
 
 ## Run it
 
