@@ -16,29 +16,78 @@ enum ColorProfile: int
     case TrueColor = 4;
 
     /**
-     * Detect the active terminal's color profile from environment variables.
+     * Detect the active terminal's color profile.
      *
-     * @param array<string,string>|null $env defaults to $_SERVER + getenv()
+     * Decision order (matches charmbracelet/colorprofile):
+     *   1. `NO_COLOR` set → `Ascii` (overrides everything per no-color.org)
+     *   2. stdout is not a TTY → `NoTty` (unless `CLICOLOR_FORCE`/`FORCE_COLOR`
+     *      tells us to keep going)
+     *   3. `CLICOLOR_FORCE`/`FORCE_COLOR` truthy → `TrueColor`
+     *   4. `COLORTERM` ∈ {truecolor, 24bit} → `TrueColor`
+     *   5. Known `TERM_PROGRAM` values → matched tier
+     *   6. `WT_SESSION` (Windows Terminal) set → `TrueColor`
+     *   7. `TERM` substring match: `*direct*`/`*truecolor*` → `TrueColor`,
+     *      `*256*` → `Ansi256`, `*color*`/xterm/screen/tmux → `Ansi`
+     *   8. CI environment → `Ansi` (most CI logs render 16-color OK)
+     *   9. fallback → `Ascii`
+     *
+     * @param array<string,string>|null $env  defaults to a snapshot of getenv()
+     * @param resource|null             $stdout used to query `stream_isatty`;
+     *                                          pass `null` to skip TTY detection
+     *                                          (downstream code that already
+     *                                          knows the destination is a TTY).
      */
-    public static function detect(?array $env = null): self
+    public static function detect(?array $env = null, $stdout = null): self
     {
         $env ??= self::defaultEnv();
 
         if (self::truthy($env['NO_COLOR'] ?? '')) {
             return self::Ascii;
         }
-        if (self::truthy($env['CLICOLOR_FORCE'] ?? '')) {
+
+        $force = self::truthy($env['CLICOLOR_FORCE'] ?? '')
+              || self::truthy($env['FORCE_COLOR']    ?? '');
+
+        if (!$force && $stdout !== null && is_resource($stdout)) {
+            if (!stream_isatty($stdout)) {
+                return self::NoTty;
+            }
+        }
+
+        if ($force) {
             return self::TrueColor;
         }
 
-        $term     = strtolower($env['TERM']      ?? '');
-        $colorTerm = strtolower($env['COLORTERM'] ?? '');
+        $term      = strtolower($env['TERM']         ?? '');
+        $colorTerm = strtolower($env['COLORTERM']    ?? '');
+        $program   = strtolower($env['TERM_PROGRAM'] ?? '');
 
-        if ($term === '' || $term === 'dumb') {
+        if ($term === 'dumb') {
             return self::Ascii;
         }
 
         if ($colorTerm === 'truecolor' || $colorTerm === '24bit') {
+            return self::TrueColor;
+        }
+
+        if ($program !== '') {
+            $match = match (true) {
+                str_contains($program, 'iterm')         => self::TrueColor,
+                str_contains($program, 'wezterm')       => self::TrueColor,
+                str_contains($program, 'vscode')        => self::TrueColor,
+                str_contains($program, 'kitty')         => self::TrueColor,
+                str_contains($program, 'alacritty')     => self::TrueColor,
+                str_contains($program, 'ghostty')       => self::TrueColor,
+                str_contains($program, 'apple_terminal') => self::Ansi256,
+                str_contains($program, 'hyper')         => self::TrueColor,
+                default                                 => null,
+            };
+            if ($match !== null) {
+                return $match;
+            }
+        }
+
+        if (($env['WT_SESSION'] ?? '') !== '') {
             return self::TrueColor;
         }
 
@@ -54,6 +103,18 @@ enum ColorProfile: int
             return self::Ansi;
         }
 
+        // CI runners usually produce ANSI-coloured logs.
+        if (self::truthy($env['CI']        ?? '')
+         || self::truthy($env['GITHUB_ACTIONS'] ?? '')
+         || self::truthy($env['GITLAB_CI'] ?? '')
+         || self::truthy($env['BUILDKITE'] ?? '')) {
+            return self::Ansi;
+        }
+
+        if ($term === '') {
+            return self::Ascii;
+        }
+
         return self::Ascii;
     }
 
@@ -65,7 +126,12 @@ enum ColorProfile: int
     private static function defaultEnv(): array
     {
         $out = [];
-        foreach (['NO_COLOR', 'CLICOLOR_FORCE', 'TERM', 'COLORTERM'] as $k) {
+        foreach ([
+            'NO_COLOR', 'CLICOLOR_FORCE', 'FORCE_COLOR',
+            'TERM', 'COLORTERM', 'TERM_PROGRAM',
+            'WT_SESSION',
+            'CI', 'GITHUB_ACTIONS', 'GITLAB_CI', 'BUILDKITE',
+        ] as $k) {
             $v = getenv($k);
             if ($v !== false) {
                 $out[$k] = $v;

@@ -90,9 +90,227 @@ final class Color
         return new self($g, $g, $g);
     }
 
+    /**
+     * Construct from HSL values: hue 0-360, saturation 0-1, lightness 0-1.
+     * Translates to RGB via the standard HSL→RGB conversion.
+     */
+    public static function hsl(float $h, float $s, float $l): self
+    {
+        $h = fmod($h, 360.0);
+        if ($h < 0) {
+            $h += 360.0;
+        }
+        $s = max(0.0, min(1.0, $s));
+        $l = max(0.0, min(1.0, $l));
+
+        $c = (1.0 - abs(2.0 * $l - 1.0)) * $s;
+        $x = $c * (1.0 - abs(fmod($h / 60.0, 2.0) - 1.0));
+        $m = $l - $c / 2.0;
+        $rp = 0.0; $gp = 0.0; $bp = 0.0;
+        if    ($h <  60) { $rp = $c; $gp = $x; }
+        elseif ($h < 120) { $rp = $x; $gp = $c; }
+        elseif ($h < 180) { $gp = $c; $bp = $x; }
+        elseif ($h < 240) { $gp = $x; $bp = $c; }
+        elseif ($h < 300) { $rp = $x; $bp = $c; }
+        else              { $rp = $c; $bp = $x; }
+        return new self(
+            (int) round(($rp + $m) * 255.0),
+            (int) round(($gp + $m) * 255.0),
+            (int) round(($bp + $m) * 255.0),
+        );
+    }
+
+    /**
+     * Construct from HSV values: hue 0-360, saturation 0-1, value 0-1.
+     */
+    public static function hsv(float $h, float $s, float $v): self
+    {
+        $h = fmod($h, 360.0);
+        if ($h < 0) {
+            $h += 360.0;
+        }
+        $s = max(0.0, min(1.0, $s));
+        $v = max(0.0, min(1.0, $v));
+
+        $c = $v * $s;
+        $x = $c * (1.0 - abs(fmod($h / 60.0, 2.0) - 1.0));
+        $m = $v - $c;
+        $rp = 0.0; $gp = 0.0; $bp = 0.0;
+        if    ($h <  60) { $rp = $c; $gp = $x; }
+        elseif ($h < 120) { $rp = $x; $gp = $c; }
+        elseif ($h < 180) { $gp = $c; $bp = $x; }
+        elseif ($h < 240) { $gp = $x; $bp = $c; }
+        elseif ($h < 300) { $rp = $x; $bp = $c; }
+        else              { $rp = $c; $bp = $x; }
+        return new self(
+            (int) round(($rp + $m) * 255.0),
+            (int) round(($gp + $m) * 255.0),
+            (int) round(($bp + $m) * 255.0),
+        );
+    }
+
     public function toHex(): string
     {
         return sprintf('#%02x%02x%02x', $this->r, $this->g, $this->b);
+    }
+
+    /**
+     * Decompose to HSL. Returns `[hue 0-360, saturation 0-1, lightness 0-1]`.
+     *
+     * @return array{0:float,1:float,2:float}
+     */
+    public function toHsl(): array
+    {
+        $r = $this->r / 255.0;
+        $g = $this->g / 255.0;
+        $b = $this->b / 255.0;
+        $max = max($r, $g, $b);
+        $min = min($r, $g, $b);
+        $l = ($max + $min) / 2.0;
+        if ($max === $min) {
+            return [0.0, 0.0, $l];
+        }
+        $d = $max - $min;
+        $s = $l > 0.5 ? $d / (2.0 - $max - $min) : $d / ($max + $min);
+        $h = match (true) {
+            $max === $r => ($g - $b) / $d + ($g < $b ? 6.0 : 0.0),
+            $max === $g => ($b - $r) / $d + 2.0,
+            default     => ($r - $g) / $d + 4.0,
+        };
+        return [$h * 60.0, $s, $l];
+    }
+
+    /**
+     * Lighten by `$amount` (0-1) in HSL space. `0.1` = 10% lighter.
+     * Saturation stays put; lightness clamps at 1.0.
+     */
+    public function lighten(float $amount): self
+    {
+        [$h, $s, $l] = $this->toHsl();
+        return self::hsl($h, $s, max(0.0, min(1.0, $l + $amount)));
+    }
+
+    /**
+     * Darken by `$amount` (0-1) in HSL space. `0.1` = 10% darker.
+     */
+    public function darken(float $amount): self
+    {
+        [$h, $s, $l] = $this->toHsl();
+        return self::hsl($h, $s, max(0.0, min(1.0, $l - $amount)));
+    }
+
+    /**
+     * Composite this colour over `$bg` at opacity `$alpha` (0-1).
+     * Standard alpha-over: result = α·this + (1-α)·bg. With `bg=null`
+     * the composite is over solid black.
+     */
+    public function alpha(float $alpha, ?Color $bg = null): self
+    {
+        $alpha = max(0.0, min(1.0, $alpha));
+        $bg ??= self::rgb(0, 0, 0);
+        $inv = 1.0 - $alpha;
+        return new self(
+            (int) round($this->r * $alpha + $bg->r * $inv),
+            (int) round($this->g * $alpha + $bg->g * $inv),
+            (int) round($this->b * $alpha + $bg->b * $inv),
+        );
+    }
+
+    /**
+     * Linearly blend between this colour and `$other`. `$t = 0` returns
+     * this, `$t = 1` returns `$other`. Clamps `$t` to `[0,1]`.
+     */
+    public function blend(Color $other, float $t): self
+    {
+        $t = max(0.0, min(1.0, $t));
+        $inv = 1.0 - $t;
+        return new self(
+            (int) round($this->r * $inv + $other->r * $t),
+            (int) round($this->g * $inv + $other->g * $t),
+            (int) round($this->b * $inv + $other->b * $t),
+        );
+    }
+
+    /**
+     * Build an N-stop linear gradient between this colour and `$other`.
+     * Returns `$steps` colours including endpoints (so `steps=2` yields
+     * `[this, other]`, `steps=3` yields `[this, midpoint, other]`).
+     *
+     * @return list<Color>
+     */
+    public function blend1d(Color $other, int $steps): array
+    {
+        if ($steps <= 0) {
+            return [];
+        }
+        if ($steps === 1) {
+            return [$this];
+        }
+        $out = [];
+        for ($i = 0; $i < $steps; $i++) {
+            $out[] = $this->blend($other, $i / ($steps - 1));
+        }
+        return $out;
+    }
+
+    /**
+     * Build a 2D bilinear gradient as an `$rows × $cols` grid. The four
+     * corners are `[topLeft=this, topRight, bottomLeft, bottomRight]`.
+     *
+     * @return list<list<Color>>  rows top→bottom, cols left→right
+     */
+    public function blend2d(Color $topRight, Color $bottomLeft, Color $bottomRight, int $rows, int $cols): array
+    {
+        if ($rows <= 0 || $cols <= 0) {
+            return [];
+        }
+        $grid = [];
+        for ($r = 0; $r < $rows; $r++) {
+            $tr = $rows === 1 ? 0.0 : $r / ($rows - 1);
+            $rowLeft  = $this->blend($bottomLeft, $tr);
+            $rowRight = $topRight->blend($bottomRight, $tr);
+            $row = [];
+            for ($c = 0; $c < $cols; $c++) {
+                $tc = $cols === 1 ? 0.0 : $c / ($cols - 1);
+                $row[] = $rowLeft->blend($rowRight, $tc);
+            }
+            $grid[] = $row;
+        }
+        return $grid;
+    }
+
+    /**
+     * Hue-rotate by 180° to get the diametrically opposite colour.
+     */
+    public function complementary(): self
+    {
+        [$h, $s, $l] = $this->toHsl();
+        return self::hsl($h + 180.0, $s, $l);
+    }
+
+    /**
+     * Relative luminance per WCAG 2.1 (Y in CIE XYZ on linearised sRGB).
+     * 0 = black, 1 = white. Used by {@see isDark()}.
+     */
+    public function luminance(): float
+    {
+        $linearise = static function (float $c): float {
+            $c /= 255.0;
+            return $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4;
+        };
+        return 0.2126 * $linearise((float) $this->r)
+             + 0.7152 * $linearise((float) $this->g)
+             + 0.0722 * $linearise((float) $this->b);
+    }
+
+    /**
+     * True when this colour is "dark" — luminance below 0.5. Use this to
+     * pick a contrasting foreground when displaying over a sampled
+     * background (`Cmd::requestBackgroundColor()` reply).
+     */
+    public function isDark(): bool
+    {
+        return $this->luminance() < 0.5;
     }
 
     public function toFg(ColorProfile $profile): string

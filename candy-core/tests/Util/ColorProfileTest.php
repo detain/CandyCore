@@ -60,4 +60,67 @@ final class ColorProfileTest extends TestCase
 
         $this->assertFalse(ColorProfile::Ascii->supportsAnsi());
     }
+
+    public function testForceColorOverridesNoTtyGate(): void
+    {
+        // A non-TTY stream that would otherwise return NoTty.
+        $tmp = fopen('php://memory', 'r+');
+        try {
+            $this->assertSame(
+                ColorProfile::TrueColor,
+                ColorProfile::detect(['FORCE_COLOR' => '1', 'TERM' => 'xterm'], $tmp),
+            );
+        } finally {
+            fclose($tmp);
+        }
+    }
+
+    public function testNonTtyStreamYieldsNoTty(): void
+    {
+        $tmp = fopen('php://memory', 'r+');
+        try {
+            $this->assertSame(
+                ColorProfile::NoTty,
+                ColorProfile::detect(['TERM' => 'xterm-256color'], $tmp),
+            );
+        } finally {
+            fclose($tmp);
+        }
+    }
+
+    public function testTermProgramIterm(): void
+    {
+        $this->assertSame(
+            ColorProfile::TrueColor,
+            ColorProfile::detect(['TERM_PROGRAM' => 'iTerm.app', 'TERM' => 'xterm']),
+        );
+    }
+
+    public function testTermProgramAppleTerminalIs256(): void
+    {
+        $this->assertSame(
+            ColorProfile::Ansi256,
+            ColorProfile::detect(['TERM_PROGRAM' => 'Apple_Terminal', 'TERM' => 'xterm-256color']),
+        );
+    }
+
+    public function testWindowsTerminalIsTrueColor(): void
+    {
+        $this->assertSame(
+            ColorProfile::TrueColor,
+            ColorProfile::detect(['WT_SESSION' => 'abcd', 'TERM' => 'xterm']),
+        );
+    }
+
+    public function testCiFallsBackToAnsi(): void
+    {
+        $this->assertSame(
+            ColorProfile::Ansi,
+            ColorProfile::detect(['CI' => 'true']),
+        );
+        $this->assertSame(
+            ColorProfile::Ansi,
+            ColorProfile::detect(['GITHUB_ACTIONS' => 'true']),
+        );
+    }
 }

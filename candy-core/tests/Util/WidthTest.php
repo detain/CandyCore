@@ -76,4 +76,69 @@ final class WidthTest extends TestCase
     {
         $this->assertSame('', Width::truncateAnsi("\x1b[31mhi\x1b[0m", 0));
     }
+
+    public function testPadRight(): void
+    {
+        $this->assertSame('hi   ',   Width::padRight('hi', 5));
+        $this->assertSame('hello',   Width::padRight('hello', 5));
+        $this->assertSame('hello',   Width::padRight('hello', 3));
+        $this->assertSame('hi***',   Width::padRight('hi', 5, '*'));
+    }
+
+    public function testPadLeft(): void
+    {
+        $this->assertSame('   hi',   Width::padLeft('hi', 5));
+        $this->assertSame('00042',   Width::padLeft('42', 5, '0'));
+    }
+
+    public function testPadCenter(): void
+    {
+        $this->assertSame(' hi  ',   Width::padCenter('hi', 5));
+        $this->assertSame('  hi  ',  Width::padCenter('hi', 6));
+    }
+
+    public function testPadIgnoresAnsi(): void
+    {
+        $padded = Width::padRight("\x1b[31mhi\x1b[0m", 5);
+        $this->assertSame("\x1b[31mhi\x1b[0m   ", $padded);
+        $this->assertSame(5, Width::string($padded));
+    }
+
+    public function testWrapShortText(): void
+    {
+        $this->assertSame('hello',           Width::wrap('hello', 10));
+    }
+
+    public function testWrapBreaksOnSpaces(): void
+    {
+        $this->assertSame("hello\nworld",    Width::wrap('hello world', 5));
+    }
+
+    public function testWrapHonorsExistingNewlines(): void
+    {
+        $this->assertSame("a\nb",            Width::wrap("a\nb", 80));
+    }
+
+    public function testWrapBreaksLongWord(): void
+    {
+        $this->assertSame("abcd\nefgh\ni",   Width::wrap('abcdefghi', 4));
+    }
+
+    public function testWrapZeroOrNegativeReturnsInput(): void
+    {
+        $this->assertSame('hello world',     Width::wrap('hello world', 0));
+        $this->assertSame('hello world',     Width::wrap('hello world', -1));
+    }
+
+    public function testWrapMultipleWordsAcrossLines(): void
+    {
+        $out = Width::wrap('the quick brown fox jumps over the lazy dog', 12);
+        $this->assertSame("the quick\nbrown fox\njumps over\nthe lazy dog", $out);
+    }
+
+    public function testWrapAnsiPreservesStyling(): void
+    {
+        $out = Width::wrapAnsi("\x1b[31mhello\x1b[0m world", 5);
+        $this->assertSame("\x1b[31mhello\x1b[0m\nworld", $out);
+    }
 }

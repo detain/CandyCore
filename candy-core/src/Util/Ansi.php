@@ -112,6 +112,124 @@ final class Ansi
     public static function eraseScreen(): string { return self::CSI . '2J'; }
     public static function eraseToEnd(): string  { return self::CSI . '0J'; }
 
+    /** Erase from the cursor to the start of the line (`CSI 1K`). */
+    public static function eraseToLineStart(): string { return self::CSI . '1K'; }
+
+    /** Erase from the cursor to the end of the line (`CSI 0K`). */
+    public static function eraseToLineEnd(): string { return self::CSI . '0K'; }
+
+    /** Erase from the start of the screen to the cursor (`CSI 1J`). */
+    public static function eraseToScreenStart(): string { return self::CSI . '1J'; }
+
+    /**
+     * Set the scrolling region (DECSTBM): rows below the top margin and
+     * above the bottom margin scroll, everything outside is fixed.
+     * Both arguments are 1-based row numbers. Pass `top=1, bottom=0`
+     * to reset to the full screen.
+     */
+    public static function setScrollRegion(int $top, int $bottom): string
+    {
+        if ($top < 1) {
+            $top = 1;
+        }
+        if ($bottom <= 0) {
+            return self::CSI . 'r';
+        }
+        return self::CSI . $top . ';' . $bottom . 'r';
+    }
+
+    /** Reset the scroll region to cover the whole screen. */
+    public static function resetScrollRegion(): string
+    {
+        return self::CSI . 'r';
+    }
+
+    /** Scroll the active region up by `$n` lines (`CSI <n> S`). */
+    public static function scrollUp(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'S';
+    }
+
+    /** Scroll the active region down by `$n` lines (`CSI <n> T`). */
+    public static function scrollDown(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'T';
+    }
+
+    /** Insert `$n` blank lines at the cursor (`CSI <n> L`). */
+    public static function insertLine(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'L';
+    }
+
+    /** Delete `$n` lines starting at the cursor (`CSI <n> M`). */
+    public static function deleteLine(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'M';
+    }
+
+    /** Insert `$n` blank cells at the cursor, shifting right (`CSI <n> @`). */
+    public static function insertChar(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . '@';
+    }
+
+    /** Delete `$n` cells starting at the cursor, shifting left (`CSI <n> P`). */
+    public static function deleteChar(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'P';
+    }
+
+    /** Repeat the previous character `$n` times (`CSI <n> b`). */
+    public static function repeatChar(int $n = 1): string
+    {
+        return self::CSI . max(1, $n) . 'b';
+    }
+
+    /**
+     * Wrap `$text` in an OSC 8 hyperlink so terminals that support it
+     * (iTerm2, WezTerm, Kitty, GNOME Terminal, Windows Terminal) render
+     * `$text` as a clickable link to `$url`. `$id` lets multiple
+     * hyperlinks share the same logical destination — pass an empty
+     * string for one-shot links. The trailing `OSC 8 ; ; ST` closes
+     * the link state so subsequent text isn't underlined.
+     *
+     * Encoding: `\x1b]8;<id>;<url>\x1b\\<text>\x1b]8;;\x1b\\`. ST (the
+     * String Terminator) is preferred over BEL because some terminals
+     * mis-render BEL inside an OSC.
+     */
+    public static function hyperlink(string $url, string $text, string $id = ''): string
+    {
+        $params = $id === '' ? '' : 'id=' . $id;
+        return self::OSC . '8;' . $params . ';' . $url . self::ST
+             . $text
+             . self::OSC . '8;;' . self::ST;
+    }
+
+    /**
+     * Save the cursor position via DECSC (`ESC 7`). Same as
+     * `cursorSave()` — kept as an alias for parity with terminal-control
+     * documentation that uses the SCO/DECSC distinction.
+     */
+    public static function decsc(): string { return self::ESC . '7'; }
+    public static function decrc(): string { return self::ESC . '8'; }
+
+    /** Save the cursor position via SCO `CSI s`. */
+    public static function scoSave(): string { return self::CSI . 's'; }
+    /** Restore the cursor position via SCO `CSI u`. */
+    public static function scoRestore(): string { return self::CSI . 'u'; }
+
+    /** Set a horizontal tab stop at the current column (HTS). */
+    public static function setTabStop(): string { return self::ESC . 'H'; }
+    /** Clear the tab stop at the current column (`CSI 0g`). */
+    public static function clearTabStop(): string { return self::CSI . '0g'; }
+    /** Clear all tab stops (`CSI 3g`). */
+    public static function clearAllTabStops(): string { return self::CSI . '3g'; }
+    /** Move forward to the next tab stop, `$n` times (`CSI <n> I`). */
+    public static function tabForward(int $n = 1): string { return self::CSI . max(1, $n) . 'I'; }
+    /** Move backward to the previous tab stop, `$n` times (`CSI <n> Z`). */
+    public static function tabBackward(int $n = 1): string { return self::CSI . max(1, $n) . 'Z'; }
+
     public static function altScreenEnter(): string { return self::CSI . '?1049h'; }
     public static function altScreenLeave(): string { return self::CSI . '?1049l'; }
 

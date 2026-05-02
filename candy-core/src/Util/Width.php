@@ -54,6 +54,260 @@ final class Width
     }
 
     /**
+     * Pad `$s` on the right with spaces so its visible width reaches
+     * `$width`. ANSI sequences in `$s` are skipped when measuring. If
+     * `$s` already meets or exceeds `$width`, it's returned as-is.
+     */
+    public static function padRight(string $s, int $width, string $pad = ' '): string
+    {
+        $w = self::string($s);
+        if ($w >= $width || $pad === '') {
+            return $s;
+        }
+        return $s . str_repeat($pad, $width - $w);
+    }
+
+    /**
+     * Pad `$s` on the left with spaces so its visible width reaches
+     * `$width`. Useful for right-aligned cells. ANSI sequences in
+     * `$s` are skipped when measuring.
+     */
+    public static function padLeft(string $s, int $width, string $pad = ' '): string
+    {
+        $w = self::string($s);
+        if ($w >= $width || $pad === '') {
+            return $s;
+        }
+        return str_repeat($pad, $width - $w) . $s;
+    }
+
+    /**
+     * Pad `$s` on both sides so its visible width reaches `$width`,
+     * centering the text. Excess goes on the right when the gap is odd.
+     */
+    public static function padCenter(string $s, int $width, string $pad = ' '): string
+    {
+        $w = self::string($s);
+        if ($w >= $width || $pad === '') {
+            return $s;
+        }
+        $gap = $width - $w;
+        $left = intdiv($gap, 2);
+        $right = $gap - $left;
+        return str_repeat($pad, $left) . $s . str_repeat($pad, $right);
+    }
+
+    /**
+     * Soft-wrap `$s` to `$max` cell-columns, breaking on word boundaries
+     * where possible and falling back to mid-grapheme cuts when a single
+     * word exceeds the width. Returns the wrapped text with `\n`
+     * separators. ANSI escape sequences are stripped before wrapping
+     * (use {@see wrapAnsi()} to preserve inline styling).
+     *
+     * Behaviour mirrors lipgloss's wordwrap algorithm: trailing spaces
+     * on a line collapse, but explicit `\n` characters in the input are
+     * honored as hard breaks.
+     */
+    public static function wrap(string $s, int $max): string
+    {
+        if ($max <= 0 || $s === '') {
+            return $s;
+        }
+        $clean = Ansi::strip($s);
+        $out = [];
+        foreach (explode("\n", $clean) as $paragraph) {
+            $out[] = self::wrapParagraph($paragraph, $max);
+        }
+        return implode("\n", $out);
+    }
+
+    /**
+     * ANSI-aware companion to {@see wrap()}. Preserves inline CSI / OSC
+     * sequences across line breaks: a colour set on line N stays active
+     * on line N+1 (no SGR reset is auto-emitted; callers wanting that
+     * should append `Ansi::reset()` themselves).
+     */
+    public static function wrapAnsi(string $s, int $max): string
+    {
+        if ($max <= 0 || $s === '') {
+            return $s;
+        }
+        $len = strlen($s);
+        $i = 0;
+        $line = '';
+        $lineWidth = 0;
+        $word = '';
+        $wordWidth = 0;
+        $lines = [];
+
+        $flushLine = static function () use (&$line, &$lineWidth, &$lines): void {
+            $lines[] = rtrim($line);
+            $line = '';
+            $lineWidth = 0;
+        };
+
+        while ($i < $len) {
+            $b = $s[$i];
+
+            // Pass-through: CSI / OSC pass into the current word so the colour
+            // attaches to the word that ends up on a new line.
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === '[') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    $c = ord($s[$j]);
+                    $j++;
+                    if ($c >= 0x40 && $c <= 0x7e) {
+                        break;
+                    }
+                }
+                $word .= substr($s, $i, $j - $i);
+                $i = $j;
+                continue;
+            }
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === ']') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    if ($s[$j] === "\x07") { $j++; break; }
+                    if ($s[$j] === "\x1b" && ($s[$j + 1] ?? '') === '\\') { $j += 2; break; }
+                    $j++;
+                }
+                $word .= substr($s, $i, $j - $i);
+                $i = $j;
+                continue;
+            }
+
+            if ($b === "\n") {
+                $line .= $word;
+                $lineWidth += $wordWidth;
+                $word = '';
+                $wordWidth = 0;
+                $flushLine();
+                $i++;
+                continue;
+            }
+
+            if ($b === ' ' || $b === "\t") {
+                if ($word !== '') {
+                    if ($lineWidth + $wordWidth > $max && $line !== '') {
+                        $flushLine();
+                    }
+                    $line .= $word;
+                    $lineWidth += $wordWidth;
+                    $word = '';
+                    $wordWidth = 0;
+                }
+                if ($lineWidth + 1 <= $max) {
+                    $line .= $b;
+                    $lineWidth += 1;
+                } else {
+                    $flushLine();
+                }
+                $i++;
+                continue;
+            }
+
+            $cluster = self::nextCluster($s, $i);
+            $cw = self::graphemeWidth($cluster);
+            // If even the running word would overflow, hard-break it.
+            if ($cw > $max) {
+                if ($word !== '') {
+                    $line .= $word;
+                    $lineWidth += $wordWidth;
+                    $word = '';
+                    $wordWidth = 0;
+                }
+                if ($line !== '') {
+                    $flushLine();
+                }
+                $lines[] = $cluster;
+                $i += strlen($cluster);
+                continue;
+            }
+            if ($wordWidth + $cw > $max) {
+                if ($line !== '') {
+                    $flushLine();
+                }
+                $lines[] = rtrim($word);
+                $word = $cluster;
+                $wordWidth = $cw;
+            } else {
+                $word .= $cluster;
+                $wordWidth += $cw;
+            }
+            $i += strlen($cluster);
+        }
+        if ($word !== '') {
+            if ($lineWidth + $wordWidth > $max && $line !== '') {
+                $flushLine();
+            }
+            $line .= $word;
+        }
+        if ($line !== '') {
+            $lines[] = rtrim($line);
+        }
+        return implode("\n", $lines);
+    }
+
+    private static function wrapParagraph(string $s, int $max): string
+    {
+        $words = preg_split('/(\s+)/u', $s, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        $line = '';
+        $lineWidth = 0;
+        $lines = [];
+        foreach ($words as $token) {
+            if ($token === '') {
+                continue;
+            }
+            $w = self::string($token);
+            if (preg_match('/^\s+$/u', $token) === 1) {
+                if ($line === '') {
+                    continue;
+                }
+                if ($lineWidth + $w > $max) {
+                    $lines[] = $line;
+                    $line = '';
+                    $lineWidth = 0;
+                    continue;
+                }
+                $line .= $token;
+                $lineWidth += $w;
+                continue;
+            }
+            // Hard-break a single oversize word.
+            if ($w > $max) {
+                if ($line !== '') {
+                    $lines[] = rtrim($line);
+                    $line = '';
+                    $lineWidth = 0;
+                }
+                $remaining = $token;
+                while (self::string($remaining) > $max) {
+                    $chunk = self::truncate($remaining, $max);
+                    $lines[] = $chunk;
+                    $remaining = substr($remaining, strlen($chunk));
+                }
+                if ($remaining !== '') {
+                    $line = $remaining;
+                    $lineWidth = self::string($remaining);
+                }
+                continue;
+            }
+            if ($lineWidth + $w > $max) {
+                $lines[] = rtrim($line);
+                $line = $token;
+                $lineWidth = $w;
+                continue;
+            }
+            $line .= $token;
+            $lineWidth += $w;
+        }
+        if ($line !== '') {
+            $lines[] = rtrim($line);
+        }
+        return implode("\n", $lines);
+    }
+
+    /**
      * Truncate $s to {@see $max} cells while preserving inline ANSI escape
      * sequences. CSI / OSC sequences pass through with zero width and are
      * never split; visible graphemes accumulate width and the loop stops
