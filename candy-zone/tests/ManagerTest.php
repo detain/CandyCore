@@ -149,6 +149,18 @@ final class ManagerTest extends TestCase
         $this->assertSame(4, $second->startCol);
     }
 
+    public function testZeroWidthGraphemeDoesNotInflateZone(): void
+    {
+        // U+200B (zero-width space) has no visual width; without proper
+        // handling it would push later columns to the right.
+        $m = Manager::newGlobal();
+        $m->scan($m->mark('a', 'X' . "\u{200B}" . 'X') . 'after');
+        $z = $m->get('a');
+        // 'X' + ZWSP + 'X' = 2 visible cells, not 3.
+        $this->assertSame(1, $z->startCol);
+        $this->assertSame(2, $z->endCol);
+    }
+
     public function testEndMarkerWithoutStartIsIgnored(): void
     {
         $m = Manager::newGlobal();

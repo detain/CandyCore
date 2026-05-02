@@ -99,6 +99,16 @@ final class InputReader
         return null;
     }
 
+    /**
+     * True when the parser is holding a single ESC byte awaiting
+     * disambiguation. {@see \CandyCore\Core\Program} polls this so it can
+     * promote the byte to a bare Escape after a short timeout.
+     */
+    public function hasPendingEscape(): bool
+    {
+        return $this->buf === "\x1b";
+    }
+
     private function decodeChar(int $code, bool $alt = false): KeyMsg
     {
         return match (true) {

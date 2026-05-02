@@ -144,36 +144,40 @@ final class Style
     /**
      * Merge {@see $parent} into this style. Any property the child
      * explicitly set wins; everything else is taken from the parent.
+     *
+     * The returned style's propsSet contains only the child's *original*
+     * explicit set — parent props are pulled in for their values but are
+     * not recorded as set on the merged style. That keeps chained
+     * inheritance correct: in `Style::new()->inherit($a)->inherit($b)`,
+     * the second inherit() can supply $b's defaults for fields the
+     * intermediate didn't explicitly set on its own.
      */
     public function inherit(self $parent): self
     {
-        $result = $parent;
-        foreach (array_keys($this->propsSet) as $prop) {
-            $result = match ($prop) {
-                'fg'          => $result->with(fg: $this->fg, fgSet: true, propsAdded: ['fg']),
-                'bg'          => $result->with(bg: $this->bg, bgSet: true, propsAdded: ['bg']),
-                'bold'        => $result->with(bold: $this->bold, propsAdded: ['bold']),
-                'italic'      => $result->with(italic: $this->italic, propsAdded: ['italic']),
-                'underline'   => $result->with(underline: $this->underline, propsAdded: ['underline']),
-                'strike'      => $result->with(strike: $this->strike, propsAdded: ['strike']),
-                'faint'       => $result->with(faint: $this->faint, propsAdded: ['faint']),
-                'blink'       => $result->with(blink: $this->blink, propsAdded: ['blink']),
-                'reverse'     => $result->with(reverse: $this->reverse, propsAdded: ['reverse']),
-                'padding'     => $result->with(padding: $this->padding, propsAdded: ['padding']),
-                'margin'      => $result->with(margin: $this->margin, propsAdded: ['margin']),
-                'width'       => $result->with(width: $this->width, widthSet: true, propsAdded: ['width']),
-                'height'      => $result->with(height: $this->height, heightSet: true, propsAdded: ['height']),
-                'alignH'      => $result->with(alignH: $this->alignH, propsAdded: ['alignH']),
-                'alignV'      => $result->with(alignV: $this->alignV, propsAdded: ['alignV']),
-                'border'      => $result->with(border: $this->border, borderSet: true, propsAdded: ['border']),
-                'borderSides' => $result->with(borderSides: $this->borderSides, propsAdded: ['borderSides']),
-                'borderFg'    => $result->with(borderFg: $this->borderFg, borderFgSet: true, propsAdded: ['borderFg']),
-                'borderBg'    => $result->with(borderBg: $this->borderBg, borderBgSet: true, propsAdded: ['borderBg']),
-                'profile'     => $result->with(profile: $this->profile, propsAdded: ['profile']),
-                default       => $result,
-            };
-        }
-        return $result;
+        $has = fn(string $p): bool => isset($this->propsSet[$p]);
+        return new self(
+            fg:          $has('fg')          ? $this->fg          : $parent->fg,
+            bg:          $has('bg')          ? $this->bg          : $parent->bg,
+            bold:        $has('bold')        ? $this->bold        : $parent->bold,
+            italic:      $has('italic')      ? $this->italic      : $parent->italic,
+            underline:   $has('underline')   ? $this->underline   : $parent->underline,
+            strike:      $has('strike')      ? $this->strike      : $parent->strike,
+            faint:       $has('faint')       ? $this->faint       : $parent->faint,
+            blink:       $has('blink')       ? $this->blink       : $parent->blink,
+            reverse:     $has('reverse')     ? $this->reverse     : $parent->reverse,
+            padding:     $has('padding')     ? $this->padding     : $parent->padding,
+            margin:      $has('margin')      ? $this->margin      : $parent->margin,
+            width:       $has('width')       ? $this->width       : $parent->width,
+            height:      $has('height')      ? $this->height      : $parent->height,
+            alignH:      $has('alignH')      ? $this->alignH      : $parent->alignH,
+            alignV:      $has('alignV')      ? $this->alignV      : $parent->alignV,
+            border:      $has('border')      ? $this->border      : $parent->border,
+            borderSides: $has('borderSides') ? $this->borderSides : $parent->borderSides,
+            borderFg:    $has('borderFg')    ? $this->borderFg    : $parent->borderFg,
+            borderBg:    $has('borderBg')    ? $this->borderBg    : $parent->borderBg,
+            profile:     $has('profile')     ? $this->profile     : $parent->profile,
+            propsSet:    $this->propsSet,
+        );
     }
 
     public function render(string $content): string
@@ -191,7 +195,9 @@ final class Style
         // 2. Inner width: explicit, else max line width.
         if ($this->width !== null) {
             $innerWidth = $this->width;
-            $lines = array_map(static fn(string $l) => Width::truncate($l, $innerWidth), $lines);
+            // Preserve inline ANSI escapes when callers pass pre-styled
+            // content (e.g. another Style's render() output).
+            $lines = array_map(static fn(string $l) => Width::truncateAnsi($l, $innerWidth), $lines);
         } else {
             $innerWidth = 0;
             foreach ($lines as $l) {

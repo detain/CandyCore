@@ -44,10 +44,7 @@ final class FilePicker implements Model
 
     public static function new(?string $cwd = null, int $height = 10): self
     {
-        $cwd = $cwd !== null ? rtrim($cwd, DIRECTORY_SEPARATOR) : (string) getcwd();
-        if ($cwd === '') {
-            $cwd = DIRECTORY_SEPARATOR;
-        }
+        $cwd = self::normalizeCwd($cwd ?? (string) getcwd());
         $self = new self(
             cwd:               $cwd,
             entries:           [],
@@ -146,10 +143,24 @@ final class FilePicker implements Model
     public function setCwd(string $path): self
     {
         return $this->mutate(
-            cwd: rtrim($path, DIRECTORY_SEPARATOR),
+            cwd: self::normalizeCwd($path),
             cursor: 0, offset: 0,
             selected: null, touchSelected: true,
         )->refresh();
+    }
+
+    /**
+     * Trim trailing separators while preserving the root path. Without
+     * this rule, `rtrim('/', '/')` collapses to `''` and `scandir('')`
+     * raises a ValueError on PHP 8+.
+     */
+    private static function normalizeCwd(string $path): string
+    {
+        if ($path === '') {
+            return DIRECTORY_SEPARATOR;
+        }
+        $trimmed = rtrim($path, DIRECTORY_SEPARATOR);
+        return $trimmed === '' ? DIRECTORY_SEPARATOR : $trimmed;
     }
 
     public function refresh(): self

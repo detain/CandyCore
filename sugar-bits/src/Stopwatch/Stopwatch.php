@@ -60,10 +60,17 @@ final class Stopwatch implements Model
     }
 
     /**
-     * @return array{0:self, 1:\Closure}
+     * Idempotent — calling start() while the stopwatch is already running
+     * is a no-op so duplicate start events don't spawn parallel tick
+     * chains and double-count elapsed time.
+     *
+     * @return array{0:self, 1:?\Closure}
      */
     public function start(): array
     {
+        if ($this->running) {
+            return [$this, null];
+        }
         $next = new self($this->elapsed, $this->interval, true, $this->id);
         return [$next, $next->tick()];
     }

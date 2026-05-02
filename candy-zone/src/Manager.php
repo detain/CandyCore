@@ -139,12 +139,14 @@ final class Manager
                 continue;
             }
 
-            // Plain visible character — measure its grapheme width.
+            // Plain visible character — measure its grapheme width and
+            // honour zero-width clusters (ZWJ, combining marks). Clamping
+            // those to 1 cell would inflate zone widths and drift later
+            // zones, breaking inBounds() / pos() calculations.
             $cluster = self::nextGrapheme($rendered, $i);
-            $w = Width::string($cluster);
-            $clean .= $cluster;
-            $col += max(1, $w);
-            $i += strlen($cluster);
+            $col    += Width::string($cluster);
+            $clean  .= $cluster;
+            $i      += strlen($cluster);
         }
 
         return $clean;

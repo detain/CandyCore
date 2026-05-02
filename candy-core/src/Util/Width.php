@@ -53,6 +53,96 @@ final class Width
         return $out;
     }
 
+    /**
+     * Truncate $s to {@see $max} cells while preserving inline ANSI escape
+     * sequences. CSI / OSC sequences pass through with zero width and are
+     * never split; visible graphemes accumulate width and the loop stops
+     * once the budget is consumed. Trailing ANSI sequences after the cut
+     * point are still appended so dangling SGR resets aren't lost.
+     */
+    public static function truncateAnsi(string $s, int $max): string
+    {
+        if ($max <= 0) {
+            return '';
+        }
+        $len = strlen($s);
+        $out = '';
+        $w   = 0;
+        $i   = 0;
+        $budgetReached = false;
+
+        while ($i < $len) {
+            $b = $s[$i];
+
+            // Pass-through: CSI sequences (ESC [ ... final).
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === '[') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    $c = ord($s[$j]);
+                    $j++;
+                    if ($c >= 0x40 && $c <= 0x7e) {
+                        break;
+                    }
+                }
+                $out .= substr($s, $i, $j - $i);
+                $i = $j;
+                continue;
+            }
+            // Pass-through: OSC sequences (ESC ] ... ST/BEL).
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === ']') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    if ($s[$j] === "\x07") { $j++; break; }
+                    if ($s[$j] === "\x1b" && ($s[$j + 1] ?? '') === '\\') { $j += 2; break; }
+                    $j++;
+                }
+                $out .= substr($s, $i, $j - $i);
+                $i = $j;
+                continue;
+            }
+
+            // No more visible budget — keep scanning so trailing ANSI
+            // sequences (e.g. SGR resets) get harvested by the loop above,
+            // but skip visible characters silently.
+            if ($budgetReached) {
+                $cluster = self::nextCluster($s, $i);
+                $i += strlen($cluster);
+                continue;
+            }
+
+            $cluster = self::nextCluster($s, $i);
+            $gw      = self::graphemeWidth($cluster);
+            if ($w + $gw > $max) {
+                $budgetReached = true;
+                continue;
+            }
+            $out .= $cluster;
+            $w   += $gw;
+            $i   += strlen($cluster);
+        }
+        return $out;
+    }
+
+    private static function nextCluster(string $s, int $i): string
+    {
+        if (function_exists('grapheme_extract')) {
+            $next = 0;
+            $cluster = grapheme_extract($s, 1, GRAPHEME_EXTR_COUNT, $i, $next);
+            if (is_string($cluster) && $cluster !== '') {
+                return $cluster;
+            }
+        }
+        $b = ord($s[$i]);
+        $bytes = match (true) {
+            ($b & 0x80) === 0    => 1,
+            ($b & 0xe0) === 0xc0 => 2,
+            ($b & 0xf0) === 0xe0 => 3,
+            ($b & 0xf8) === 0xf0 => 4,
+            default              => 1,
+        };
+        return substr($s, $i, $bytes);
+    }
+
     /** @return list<string> */
     private static function graphemes(string $s): array
     {

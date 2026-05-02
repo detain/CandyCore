@@ -52,6 +52,16 @@ final class TimerTest extends TestCase
         $this->assertInstanceOf(TimeoutMsg::class, $cmd());
     }
 
+    public function testStartIsIdempotentWhenAlreadyRunning(): void
+    {
+        [$a, $cmd1] = Timer::new(5.0)->start();
+        $this->assertNotNull($cmd1);
+
+        [$b, $cmd2] = $a->start();
+        $this->assertSame($a, $b, 'second start() must be a no-op so duplicate tick chains do not run');
+        $this->assertNull($cmd2);
+    }
+
     public function testIgnoresTickForOtherTimer(): void
     {
         [$a, ] = Timer::new(5.0)->start();
