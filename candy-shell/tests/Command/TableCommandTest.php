@@ -27,6 +27,32 @@ final class TableCommandTest extends TestCase
         $this->assertSame([['hello, world', 'ok']], $rows);
     }
 
+    public function testParseRowsHandlesQuotedNewlines(): void
+    {
+        // A quoted field with an embedded newline must stay in one row.
+        $csv = "name,note\n\"Ada\",\"line one\nline two\"\n\"Bob\",\"hi\"";
+        $rows = TableCommand::parseRows($csv, ',');
+        $this->assertSame([
+            ['name', 'note'],
+            ['Ada',  "line one\nline two"],
+            ['Bob',  'hi'],
+        ], $rows);
+    }
+
+    public function testParseRowsHandlesEscapedQuotes(): void
+    {
+        $rows = TableCommand::parseRows('"He said ""hi""",2', ',');
+        $this->assertSame([['He said "hi"', '2']], $rows);
+    }
+
+    public function testMultiCharSeparatorStillSplitsByLine(): void
+    {
+        // Multi-char separators have no quoting convention; each line
+        // is one row, fields split literally.
+        $rows = TableCommand::parseRows("a||b\nc||d", '||');
+        $this->assertSame([['a', 'b'], ['c', 'd']], $rows);
+    }
+
     public function testParseBorderNames(): void
     {
         $this->assertNull(TableCommand::parseBorder('none'));

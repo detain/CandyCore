@@ -68,24 +68,54 @@ final class TableCommand extends Command
     }
 
     /**
+     * Parse a CSV/TSV blob into rows.
+     *
+     * Single-character separators are handled via {@see fgetcsv()} over
+     * an in-memory stream so records with newlines inside quoted fields
+     * stay together (e.g. exported description columns containing line
+     * breaks). Multi-character separators fall back to a literal-split
+     * implementation — there is no quoting convention for those, so each
+     * physical line is one row.
+     *
      * @return list<list<string>>
      */
     public static function parseRows(string $raw, string $separator): array
     {
-        $raw  = rtrim($raw, "\n");
-        $rows = [];
-        foreach (explode("\n", $raw) as $line) {
-            if ($line === '') {
-                continue;
-            }
-            // For single-character separators, str_getcsv handles quoting;
-            // for multi-character separators we fall back to explode.
-            $cells = strlen($separator) === 1
-                ? str_getcsv($line, $separator, '"', '\\')
-                : explode($separator, $line);
-            $rows[] = array_map(static fn($c) => (string) $c, $cells);
+        $raw = rtrim($raw, "\n");
+        if ($raw === '') {
+            return [];
         }
-        return $rows;
+
+        if (strlen($separator) !== 1) {
+            $rows = [];
+            foreach (explode("\n", $raw) as $line) {
+                if ($line === '') {
+                    continue;
+                }
+                $rows[] = explode($separator, $line);
+            }
+            return $rows;
+        }
+
+        $stream = fopen('php://memory', 'r+');
+        if ($stream === false) {
+            return [];
+        }
+        try {
+            fwrite($stream, $raw);
+            rewind($stream);
+            $rows = [];
+            while (($row = fgetcsv($stream, 0, $separator, '"', '\\')) !== false) {
+                if ($row === [null]) {
+                    // fgetcsv returns [null] for blank lines.
+                    continue;
+                }
+                $rows[] = array_map(static fn($c) => (string) ($c ?? ''), $row);
+            }
+            return $rows;
+        } finally {
+            fclose($stream);
+        }
     }
 
     public static function parseBorder(string $name): ?Border
