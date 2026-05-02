@@ -34,6 +34,15 @@ final class StopwatchTest extends TestCase
         $this->assertNotNull($cmd);
     }
 
+    public function testStartIsIdempotentWhenAlreadyRunning(): void
+    {
+        [$s, $cmd1] = Stopwatch::new()->start();
+        $this->assertNotNull($cmd1);
+        [$s2, $cmd2] = $s->start();
+        $this->assertSame($s, $s2);
+        $this->assertNull($cmd2);
+    }
+
     public function testStopHalts(): void
     {
         [$s, ] = Stopwatch::new()->start();

@@ -92,6 +92,16 @@ final class InputReaderTest extends TestCase
         $this->assertSame(KeyType::Escape, $flushed->type);
     }
 
+    public function testHasPendingEscape(): void
+    {
+        $r = new InputReader();
+        $this->assertFalse($r->hasPendingEscape());
+        $r->parse("\x1b");
+        $this->assertTrue($r->hasPendingEscape());
+        $r->flushPending();
+        $this->assertFalse($r->hasPendingEscape());
+    }
+
     public function testSplitCsiAcrossReads(): void
     {
         $r = new InputReader();

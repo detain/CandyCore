@@ -10,6 +10,7 @@ use CandyCore\Core\Util\ColorProfile;
 use CandyCore\Core\Util\Width;
 use PHPUnit\Framework\TestCase;
 
+
 final class ProgressTest extends TestCase
 {
     public function testZeroPercent(): void
@@ -66,6 +67,28 @@ final class ProgressTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         new Progress(width: -1);
+    }
+
+    public function testConstructorClampsPercentAboveOne(): void
+    {
+        $p = new Progress(percent: 1.5, width: 10, showPercent: false);
+        $this->assertSame(1.0, $p->percent);
+        // Should render full bar without crashing on negative str_repeat.
+        $this->assertSame(str_repeat('█', 10), $p->view());
+    }
+
+    public function testConstructorClampsPercentBelowZero(): void
+    {
+        $p = new Progress(percent: -0.5, width: 10, showPercent: false);
+        $this->assertSame(0.0, $p->percent);
+        $this->assertSame(str_repeat('░', 10), $p->view());
+    }
+
+    public function testWidthSmallerThanPercentSuffixDropsSuffix(): void
+    {
+        // width=3 can't fit " 100%" — view() must respect the width budget.
+        $p = Progress::new()->withRunes('#', '.')->withWidth(3)->withPercent(0.5);
+        $this->assertSame(3, Width::string($p->view()));
     }
 
     public function testViewWidthMatchesConfiguredWidth(): void

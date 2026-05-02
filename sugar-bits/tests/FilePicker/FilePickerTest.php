@@ -126,6 +126,23 @@ final class FilePickerTest extends TestCase
         $this->assertStringEndsWith('sub', $p->selected());
     }
 
+    public function testRootSlashCwdIsPreserved(): void
+    {
+        if (DIRECTORY_SEPARATOR !== '/') {
+            $this->markTestSkipped('POSIX-only path test');
+        }
+        // Whether or not the process can read /, setting cwd to it must
+        // not collapse to '' (which would crash scandir on PHP 8+).
+        $p = FilePicker::new('/');
+        $this->assertSame('/', $p->cwd);
+    }
+
+    public function testSetCwdPreservesRoot(): void
+    {
+        $p = FilePicker::new($this->root)->setCwd(DIRECTORY_SEPARATOR);
+        $this->assertSame(DIRECTORY_SEPARATOR, $p->cwd);
+    }
+
     public function testCursorStaysInRange(): void
     {
         $p = $this->focused();

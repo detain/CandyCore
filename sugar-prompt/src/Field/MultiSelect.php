@@ -133,7 +133,19 @@ final class MultiSelect implements Field
     public function getDescription(): string  { return $this->description; }
     public function getError(): ?string       { return $this->error; }
     public function skippable(): bool         { return false; }
-    public function consumes(Msg $msg): bool  { return false; }
+
+    /**
+     * Up / Down move the inner cursor; without claiming them the form
+     * would steal the keys for between-field navigation, leaving the
+     * checkbox cursor unreachable except via j/k.
+     */
+    public function consumes(Msg $msg): bool
+    {
+        if (!$this->focused || !$msg instanceof KeyMsg) {
+            return false;
+        }
+        return $msg->type === KeyType::Up || $msg->type === KeyType::Down;
+    }
 
     private function moveCursor(int $idx): self
     {

@@ -356,4 +356,34 @@ final class StyleTest extends TestCase
         $expected = "┌────┐\n│ hi │\n└────┘";
         $this->assertSame($expected, $merged->render('hi'));
     }
+
+    public function testChainedInheritLetsLaterParentSupplyDefaults(): void
+    {
+        // First inherit pulls bold + red from $a; that should leave the
+        // intermediate's *explicit* propsSet empty, so the second inherit
+        // can fully replace those values with $b's.
+        $a = Style::new()->bold()->foreground(Color::hex('#ff0000'));
+        $b = Style::new()->italic()->foreground(Color::hex('#00ff00'));
+
+        $merged = Style::new()->inherit($a)->inherit($b);
+
+        // $b's italic + green fg now apply; $a's bold should NOT linger.
+        $this->assertSame("\x1b[3m\x1b[38;2;0;255;0mhi\x1b[0m", $merged->render('hi'));
+    }
+
+    public function testForegroundNullClearsColor(): void
+    {
+        $s = Style::new()
+            ->foreground(Color::hex('#ff0000'))
+            ->foreground(null);
+        $this->assertSame('hi', $s->render('hi'));
+    }
+
+    public function testWidthPreservesInlineAnsi(): void
+    {
+        // Truncating styled content via width() must keep the inline SGR
+        // codes — the user's red 'hello' should still be red, just clipped.
+        $out = Style::new()->width(3)->render("\x1b[31mhello\x1b[0m");
+        $this->assertSame("\x1b[31mhel\x1b[0m", $out);
+    }
 }

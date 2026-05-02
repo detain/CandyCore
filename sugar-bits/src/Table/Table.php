@@ -175,19 +175,30 @@ final class Table implements Model
                 $widths[$i] = max($widths[$i], Width::string($cell));
             }
         }
-        // If a total width is constrained, scale down by truncating from the
-        // rightmost columns first. Single-space gutter between columns.
+        // If a total width is constrained, shrink columns round-robin
+        // (right-to-left) so every line of output fits the budget. The
+        // earlier "always trim the rightmost column" rule could still
+        // overflow once that column hit zero.
         if ($this->width > 0) {
             $gutter = $cols - 1;
             $budget = max(0, $this->width - $gutter);
             $total  = array_sum($widths);
-            while ($total > $budget && $total > 0) {
-                $i = (int) array_key_last($widths);
-                if ($widths[$i] <= 0) {
+            while ($total > $budget) {
+                $shrunk = false;
+                for ($i = $cols - 1; $i >= 0; $i--) {
+                    if ($widths[$i] > 0) {
+                        $widths[$i]--;
+                        $total--;
+                        $shrunk = true;
+                        if ($total <= $budget) {
+                            break;
+                        }
+                    }
+                }
+                if (!$shrunk) {
+                    // Every column already at zero — nothing more to do.
                     break;
                 }
-                $widths[$i]--;
-                $total--;
             }
         }
         return $widths;

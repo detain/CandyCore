@@ -84,4 +84,20 @@ final class ColorTest extends TestCase
         $this->assertSame(0,   $c->g);
         $this->assertSame(0,   $c->b);
     }
+
+    public function testNeutralGrayPrefersGrayscaleRamp(): void
+    {
+        // 128/128/128 is closer to gray index 244 (138/138/138) than any
+        // 6×6×6 cube colour. Without the grayscale ramp the downsampler
+        // mapped this to a less accurate cube value.
+        $sgr = Color::rgb(128, 128, 128)->toFg(ColorProfile::Ansi256);
+        $this->assertSame("\x1b[38;5;244m", $sgr);
+    }
+
+    public function testSaturatedColorStillUsesCube(): void
+    {
+        // Pure red has no grayscale equivalent — must stay in the cube.
+        $sgr = Color::rgb(255, 0, 0)->toFg(ColorProfile::Ansi256);
+        $this->assertSame("\x1b[38;5;196m", $sgr);
+    }
 }

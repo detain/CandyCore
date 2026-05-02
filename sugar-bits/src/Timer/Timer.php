@@ -72,12 +72,17 @@ final class Timer implements Model
     }
 
     /**
-     * Set running=true and schedule the first tick.
+     * Set running=true and schedule the first tick. Idempotent — calling
+     * start() while the timer is already running is a no-op so duplicate
+     * start events don't spawn parallel tick chains.
      *
-     * @return array{0:self, 1:\Closure}
+     * @return array{0:self, 1:?\Closure}
      */
     public function start(): array
     {
+        if ($this->running) {
+            return [$this, null];
+        }
         if ($this->remaining <= 0.0) {
             return [$this, Cmd::send(new TimeoutMsg($this->id))];
         }

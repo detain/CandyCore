@@ -36,6 +36,7 @@ final class Program
     private readonly Renderer $renderer;
     private readonly Tty $tty;
     private bool $dirty = true;
+    private bool $escapeFlushPending = false;
     private bool $running = false;
     /** @var list<Msg> */
     private array $pending = [];
@@ -86,6 +87,11 @@ final class Program
         $this->loop->addReadStream($this->input, function ($stream): void {
             $bytes = @fread($stream, 4096);
             if ($bytes === false || $bytes === '') {
+                // Real EOF: drop the watcher so the loop doesn't spin
+                // delivering readable notifications for a closed pipe.
+                if (feof($stream)) {
+                    $this->loop->removeReadStream($stream);
+                }
                 return;
             }
             foreach ($this->reader->parse($bytes) as $msg) {
@@ -93,6 +99,12 @@ final class Program
                 if (!$this->running) {
                     return;
                 }
+            }
+            // A lone ESC byte is buffered for disambiguation (could be a
+            // CSI / Alt-key prefix). Promote it to a standalone Escape
+            // after a brief delay if no follow-up arrives.
+            if ($this->reader->hasPendingEscape()) {
+                $this->scheduleEscapeFlush();
             }
         });
 
@@ -166,6 +178,27 @@ final class Program
         if ($cmd !== null) {
             $this->scheduleCmd($cmd);
         }
+    }
+
+    /**
+     * Promote a buffered lone-ESC byte to a {@see KeyMsg} after a short
+     * settling window. If a follow-up byte arrives in time and resolves
+     * the buffer (e.g. a CSI sequence), {@see InputReader::flushPending()}
+     * returns null and nothing is dispatched.
+     */
+    private function scheduleEscapeFlush(): void
+    {
+        if ($this->escapeFlushPending) {
+            return;
+        }
+        $this->escapeFlushPending = true;
+        $this->loop->addTimer(0.05, function (): void {
+            $this->escapeFlushPending = false;
+            $msg = $this->reader->flushPending();
+            if ($msg !== null) {
+                $this->dispatch($msg);
+            }
+        });
     }
 
     private function scheduleCmd(\Closure $cmd): void

@@ -82,7 +82,8 @@ final class FilePicker implements Field
 
     /**
      * Enter (descend / select) and Backspace (ascend) are owned by the
-     * picker; the form must not absorb them.
+     * picker; the form must not absorb them. Up / Down move the cursor
+     * between entries and must not be stolen for between-field nav.
      */
     public function consumes(Msg $msg): bool
     {
@@ -90,7 +91,9 @@ final class FilePicker implements Field
             return false;
         }
         return $msg->type === \CandyCore\Core\KeyType::Enter
-            || $msg->type === \CandyCore\Core\KeyType::Backspace;
+            || $msg->type === \CandyCore\Core\KeyType::Backspace
+            || $msg->type === \CandyCore\Core\KeyType::Up
+            || $msg->type === \CandyCore\Core\KeyType::Down;
     }
 
     private function mutate(?PickerWidget $picker = null, ?string $title = null, ?string $description = null): self

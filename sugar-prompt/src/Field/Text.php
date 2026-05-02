@@ -92,14 +92,17 @@ final class Text implements Field
 
     /**
      * Enter inside a Text field inserts a newline rather than advancing
-     * the form.
+     * the form. Up / Down move the inner cursor between lines and must
+     * not be hijacked by the form's between-field navigation.
      */
     public function consumes(Msg $msg): bool
     {
         if (!$this->area->focused || !$msg instanceof \CandyCore\Core\Msg\KeyMsg) {
             return false;
         }
-        return $msg->type === \CandyCore\Core\KeyType::Enter;
+        return $msg->type === \CandyCore\Core\KeyType::Enter
+            || $msg->type === \CandyCore\Core\KeyType::Up
+            || $msg->type === \CandyCore\Core\KeyType::Down;
     }
 
     private function validate(): self

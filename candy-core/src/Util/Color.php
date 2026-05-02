@@ -127,12 +127,33 @@ final class Color
 
     private function nearest256(): int
     {
+        // Cube candidate (indices 16-231).
         $q = static fn(int $v): int => match (true) {
             $v < 48  => 0,
             $v < 115 => 1,
             default  => intdiv($v - 35, 40),
         };
-        return 16 + 36 * $q($this->r) + 6 * $q($this->g) + $q($this->b);
+        $cubeIdx = 16 + 36 * $q($this->r) + 6 * $q($this->g) + $q($this->b);
+
+        // Grayscale candidate (indices 232-255). Levels: 8, 18, ..., 238.
+        $avg     = ($this->r + $this->g + $this->b) / 3.0;
+        $grayBin = (int) round(($avg - 8.0) / 10.0);
+        $grayBin = max(0, min(23, $grayBin));
+        $grayIdx = 232 + $grayBin;
+
+        return self::distToIndex($cubeIdx) <= self::distToIndex($grayIdx)
+            ? $cubeIdx
+            : $grayIdx;
+    }
+
+    /** Squared RGB distance from this color to the palette color at $idx. */
+    private function distToIndex(int $idx): int
+    {
+        $c  = self::ansi256($idx);
+        $dr = $c->r - $this->r;
+        $dg = $c->g - $this->g;
+        $db = $c->b - $this->b;
+        return $dr * $dr + $dg * $dg + $db * $db;
     }
 
     private function nearestAnsi16(): int

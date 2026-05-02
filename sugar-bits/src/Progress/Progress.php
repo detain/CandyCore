@@ -25,8 +25,10 @@ use CandyCore\Core\Util\Width;
  */
 final class Progress
 {
+    public readonly float $percent;
+
     public function __construct(
-        public readonly float $percent = 0.0,
+        float $percent = 0.0,
         public readonly int $width = 40,
         public readonly string $fullChar  = '█',
         public readonly string $emptyChar = '░',
@@ -38,6 +40,10 @@ final class Progress
         if ($width < 0) {
             throw new \InvalidArgumentException('progress width must be >= 0');
         }
+        // Clamp at construction time so direct `new Progress(...)` callers
+        // can't smuggle in an out-of-range value that later turns into a
+        // negative str_repeat() count and crashes view().
+        $this->percent = max(0.0, min(1.0, $percent));
     }
 
     public static function new(): self
@@ -104,10 +110,11 @@ final class Progress
 
     public function view(): string
     {
-        $barWidth = $this->width;
-        if ($this->showPercent) {
-            $barWidth = max(0, $this->width - 5); // " 100%"
-        }
+        // The percent suffix " 100%" needs 5 cells. If the configured
+        // width can't fit it, drop the suffix entirely so view() never
+        // exceeds the requested width.
+        $showSuffix = $this->showPercent && $this->width >= 5;
+        $barWidth   = $showSuffix ? $this->width - 5 : $this->width;
 
         $filledCells = (int) round($this->percent * $barWidth);
         $emptyCells  = $barWidth - $filledCells;
@@ -123,7 +130,7 @@ final class Progress
         }
 
         $bar = $full . $empty;
-        if (!$this->showPercent) {
+        if (!$showSuffix) {
             return $bar;
         }
         $pctText = sprintf('%3d%%', (int) round($this->percent * 100));

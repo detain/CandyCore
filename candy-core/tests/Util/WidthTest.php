@@ -58,4 +58,22 @@ final class WidthTest extends TestCase
     {
         $this->assertSame('', Width::truncate('hello', 0));
     }
+
+    public function testTruncateAnsiPreservesEscapes(): void
+    {
+        $out = Width::truncateAnsi("\x1b[31mhello\x1b[0m", 3);
+        $this->assertSame("\x1b[31mhel\x1b[0m", $out);
+    }
+
+    public function testTruncateAnsiRespectsWideChars(): void
+    {
+        $out = Width::truncateAnsi("\x1b[31m日本\x1b[0m", 3);
+        // '日' uses 2 cells; '本' would need 4 → drop, keep trailing ANSI.
+        $this->assertSame("\x1b[31m日\x1b[0m", $out);
+    }
+
+    public function testTruncateAnsiZero(): void
+    {
+        $this->assertSame('', Width::truncateAnsi("\x1b[31mhi\x1b[0m", 0));
+    }
 }

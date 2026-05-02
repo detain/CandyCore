@@ -81,14 +81,22 @@ final class Select implements Field
     /**
      * In filter mode the inner ItemList uses Enter to leave the filter
      * and Escape to clear it; both must be consumed locally so the Form
-     * doesn't advance/abort while the user is filtering.
+     * doesn't advance/abort while the user is filtering. Up / Down also
+     * belong to the list — without consuming them the form would steal
+     * arrow keys for between-field navigation.
      */
     public function consumes(Msg $msg): bool
     {
-        if (!$this->list->isFiltering() || !$msg instanceof KeyMsg) {
+        if (!$this->list->focused || !$msg instanceof KeyMsg) {
             return false;
         }
-        return $msg->type === KeyType::Enter || $msg->type === KeyType::Escape;
+        if ($msg->type === KeyType::Up || $msg->type === KeyType::Down) {
+            return true;
+        }
+        if ($this->list->isFiltering()) {
+            return $msg->type === KeyType::Enter || $msg->type === KeyType::Escape;
+        }
+        return false;
     }
 
     private function mutate(?ItemList $list = null, ?string $title = null, ?string $description = null): self
