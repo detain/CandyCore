@@ -597,4 +597,108 @@ final class ProgramTest extends TestCase
         fclose($in);
         fclose($out);
     }
+
+    public function testFilterDropsMsgs(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $model = new RecordingModel(quitAfter: 5);
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: false,
+            framerate: 240.0,
+            input: $in,
+            output: $out,
+            loop: $loop,
+            // Drop every WindowSizeMsg (and any other Msg if you wanted).
+            filter: static fn(Model $m, Msg $msg): ?Msg
+                => $msg instanceof WindowSizeMsg ? null : $msg,
+        );
+        $program = new Program($model, $opts);
+        // Inject a few extra non-WindowSize messages.
+        $loop->addTimer(0.02, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'a')));
+        $loop->addTimer(0.04, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'b')));
+        $loop->addTimer(0.06, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'c')));
+        $loop->addTimer(0.08, static fn() => $program->quit());
+        $loop->addTimer(2.0,  static fn() => $loop->stop());
+        $finalModel = $program->run();
+
+        $this->assertInstanceOf(RecordingModel::class, $finalModel);
+        // Filter dropped WindowSizeMsg, so the model never saw it.
+        foreach ($finalModel->log as $msg) {
+            $this->assertNotInstanceOf(WindowSizeMsg::class, $msg);
+        }
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testWithoutRendererSkipsOutput(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $model = new RecordingModel(quitAfter: 1);
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: false,
+            hideCursor: false,
+            framerate: 240.0,
+            input: $in,
+            output: $out,
+            loop: $loop,
+            withoutRenderer: true,
+        );
+        $program = new Program($model, $opts);
+        $loop->addTimer(0.05, static fn() => $program->quit());
+        $loop->addTimer(2.0,  static fn() => $loop->stop());
+        $program->run();
+
+        rewind($out);
+        $written = (string) stream_get_contents($out);
+        // Renderer-emitted body content should be absent.
+        $this->assertStringNotContainsString('frames:', $written);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testSequenceCmdDispatchesInOrder(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $marker1 = new class implements Msg {};
+        $marker2 = new class implements Msg {};
+        $marker3 = new class implements Msg {};
+
+        $cmd = Cmd::sequence(
+            Cmd::send($marker1),
+            Cmd::send($marker2),
+            Cmd::send($marker3),
+        );
+        $model = new RecordingModel(quitAfter: 6, initCmd: $cmd);
+        $opts = $this->makeOptions($in, $out, $loop);
+        $program = new Program($model, $opts);
+        $loop->addTimer(0.5, static fn() => $program->quit());
+        $loop->addTimer(2.0, static fn() => $loop->stop());
+        $finalModel = $program->run();
+        $this->assertInstanceOf(RecordingModel::class, $finalModel);
+        // Find the marker indices.
+        $idx1 = -1; $idx2 = -1; $idx3 = -1;
+        foreach ($finalModel->log as $i => $m) {
+            if ($m === $marker1) $idx1 = $i;
+            if ($m === $marker2) $idx2 = $i;
+            if ($m === $marker3) $idx3 = $i;
+        }
+        $this->assertGreaterThanOrEqual(0, $idx1);
+        $this->assertGreaterThan($idx1, $idx2);
+        $this->assertGreaterThan($idx2, $idx3);
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
 }

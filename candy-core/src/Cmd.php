@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace CandyCore\Core;
 
+use CandyCore\Core\Msg\InterruptMsg;
 use CandyCore\Core\Msg\QuitMsg;
+use CandyCore\Core\Msg\SuspendMsg;
 use CandyCore\Core\Util\Ansi;
 
 /**
@@ -21,6 +23,27 @@ final class Cmd
     }
 
     /**
+     * Suspend the program (Ctrl-Z / SIGTSTP semantics). Tears down
+     * the terminal, re-raises SIGTSTP on the process group, and on
+     * SIGCONT restores the terminal and dispatches a `ResumeMsg`.
+     * Mirrors Bubble Tea's `tea.Suspend`.
+     */
+    public static function suspend(): \Closure
+    {
+        return static fn(): Msg => new SuspendMsg();
+    }
+
+    /**
+     * Quit cleanly with SIGINT-style "interrupt" semantics — same
+     * teardown path as Ctrl-C but distinguishable from a graceful
+     * `quit()` for downstream tooling. Mirrors `tea.Interrupt`.
+     */
+    public static function interrupt(): \Closure
+    {
+        return static fn(): Msg => new InterruptMsg();
+    }
+
+    /**
      * Combine several Cmds into one. The runtime executes them concurrently;
      * each returned Msg is dispatched independently. `null` entries are
      * silently dropped so callers can write `Cmd::batch($maybeCmd, $other)`.
@@ -33,6 +56,47 @@ final class Cmd
             // The Program inspects this sentinel and explodes it into
             // separate dispatches. See Program::runCmd().
             return new BatchMsg($filtered);
+        };
+    }
+
+    /**
+     * Run Cmds strictly in order: each returned Msg is dispatched (and
+     * processed by the model's `update()`) before the next Cmd starts.
+     * Use this when ordering matters — a `setForegroundColor()` should
+     * land before the colour-dependent render that follows it.
+     *
+     * Mirrors Bubble Tea's `tea.Sequence`.
+     */
+    public static function sequence(?\Closure ...$cmds): \Closure
+    {
+        /** @var list<\Closure> $filtered */
+        $filtered = array_values(array_filter($cmds, static fn($c) => $c !== null));
+        return static fn(): Msg => new SequenceMsg($filtered);
+    }
+
+    /**
+     * Wall-clock-aligned periodic tick. Unlike {@see tick()} which
+     * uses an independent clock per Cmd, `every($d)` aligns to wall-
+     * clock multiples of `$d` seconds — multiple `every($d, ...)`
+     * Cmds with the same period share a single tick. Useful for
+     * synchronised animations across components.
+     *
+     * @param \Closure(\DateTimeImmutable): ?Msg $produce
+     */
+    public static function every(float $seconds, \Closure $produce): \Closure
+    {
+        return static function () use ($seconds, $produce): Msg {
+            // Compute the delay until the next wall-clock alignment.
+            $now = microtime(true);
+            $period = max(1e-3, $seconds);
+            $next = ceil($now / $period) * $period;
+            $delay = max(0.0, $next - $now);
+            $deliver = static function () use ($produce): ?Msg {
+                /** @var \DateTimeImmutable $now */
+                $now = (new \DateTimeImmutable())->setTimestamp((int) microtime(true));
+                return $produce($now);
+            };
+            return new TickRequest($delay, $deliver);
         };
     }
 
@@ -79,6 +143,45 @@ final class Cmd
     public static function println(string $text): \Closure
     {
         return static fn(): Msg => new PrintMsg($text);
+    }
+
+    /**
+     * `printf`-style companion to {@see println()} — formats `$fmt`
+     * with `$args` and prints the result above the program region.
+     * Mirrors `tea.Printf`.
+     */
+    public static function printf(string $fmt, mixed ...$args): \Closure
+    {
+        $text = sprintf($fmt, ...$args);
+        return static fn(): Msg => new PrintMsg($text);
+    }
+
+    /**
+     * Run an external command with the TTY released, then resume the
+     * program. The runtime tears down raw mode + alt screen + cursor
+     * hide before launching the child, and restores them once it
+     * exits. The result is dispatched to the model as
+     * {@see \CandyCore\Core\Msg\ExecMsg}.
+     *
+     * `$command` may be a string (executed via the shell) or an argv
+     * list (no shell, safer when arguments come from user input).
+     * `$captureOutput=true` collects stdout / stderr; pass `false`
+     * (default) to inherit the parent TTY so the user can interact
+     * with `vi`, `less`, etc.
+     *
+     * `$onComplete` (optional) receives `(int $exit, string $out,
+     * string $err, ?\Throwable $error)` and may return a Msg to
+     * dispatch in place of (or after) the default ExecMsg.
+     *
+     * @param string|list<string> $command
+     * @param ?\Closure(int, string, string, ?\Throwable): ?Msg $onComplete
+     */
+    public static function exec(
+        string|array $command,
+        bool $captureOutput = false,
+        ?\Closure $onComplete = null,
+    ): \Closure {
+        return static fn(): Msg => new ExecRequest($command, $captureOutput, $onComplete);
     }
 
     /**
@@ -219,6 +322,128 @@ final class Cmd
     public static function requestKittyKeyboard(): \Closure
     {
         return static fn(): Msg => new RawMsg(Ansi::requestKittyKeyboard());
+    }
+
+    // ─── Stateful Cmd helpers ──────────────────────────────────────────
+    //
+    // Each of these emits an Ansi escape via RawMsg without touching the
+    // renderer's diff state. Use them for one-shot terminal state
+    // transitions outside the View-driven side-channel (which is the
+    // preferred path for per-frame state).
+
+    /** Switch into the alt screen (`CSI ?1049h`). */
+    public static function enterAltScreen(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::altScreenEnter());
+    }
+
+    /** Leave the alt screen (`CSI ?1049l`). */
+    public static function exitAltScreen(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::altScreenLeave());
+    }
+
+    /** Erase the entire screen and home the cursor. */
+    public static function clearScreen(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::eraseScreen() . Ansi::cursorTo(1, 1));
+    }
+
+    /** Show the cursor (`CSI ?25h`). */
+    public static function showCursor(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::cursorShow());
+    }
+
+    /** Hide the cursor (`CSI ?25l`). */
+    public static function hideCursor(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::cursorHide());
+    }
+
+    /** Enable cell-motion mouse tracking (button-only motion + SGR encoding). */
+    public static function enableMouseCellMotion(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::mouseCellMotionOn());
+    }
+
+    /** Enable all-motion mouse tracking (every move regardless of button state). */
+    public static function enableMouseAllMotion(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::mouseAllMotionOn());
+    }
+
+    /**
+     * Disable mouse tracking — clears both cell-motion and all-motion
+     * modes. Safe to call when no tracking is active.
+     */
+    public static function disableMouse(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::mouseAllMotionOff() . Ansi::mouseCellMotionOff());
+    }
+
+    /** Enable focus-in/out reporting (`CSI ?1004h`). */
+    public static function enableReportFocus(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::focusReportingOn());
+    }
+
+    public static function disableReportFocus(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::focusReportingOff());
+    }
+
+    /** Enable bracketed paste mode (`CSI ?2004h`). */
+    public static function enableBracketedPaste(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::bracketedPasteOn());
+    }
+
+    public static function disableBracketedPaste(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::bracketedPasteOff());
+    }
+
+    /** Scroll the active region up `$n` lines. */
+    public static function scrollUp(int $n = 1): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::scrollUp($n));
+    }
+
+    /** Scroll the active region down `$n` lines. */
+    public static function scrollDown(int $n = 1): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::scrollDown($n));
+    }
+
+    /**
+     * Set the terminal's default foreground colour (OSC 10). Persists
+     * for the rest of the program — terminals don't auto-restore on
+     * exit. Pair with {@see resetForegroundColor()} on teardown if
+     * you need to roll back.
+     */
+    public static function setForegroundColor(int $r, int $g, int $b): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::setForegroundColor($r, $g, $b));
+    }
+
+    public static function setBackgroundColor(int $r, int $g, int $b): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::setBackgroundColor($r, $g, $b));
+    }
+
+    /**
+     * Reset the terminal's default foreground to whatever the user's
+     * profile dictates (`OSC 110`).
+     */
+    public static function resetForegroundColor(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::OSC . '110' . Ansi::ST);
+    }
+
+    public static function resetBackgroundColor(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::OSC . '111' . Ansi::ST);
     }
 
     private function __construct() {}

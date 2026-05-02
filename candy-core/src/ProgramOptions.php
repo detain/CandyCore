@@ -70,5 +70,30 @@ final class ProgramOptions
          * specific tier instead of inferring from `TERM` / `COLORTERM`.
          */
         public readonly ?ColorProfile $colorProfile = null,
+        /**
+         * Catch fatal PHP errors / uncaught exceptions during the
+         * program run so the runtime gets a chance to restore the
+         * terminal before the process dies. Defaults to true. Pass
+         * `catchPanics: false` (mirrors Bubble Tea's
+         * `WithoutCatchPanics`) when you want raw stack traces or are
+         * already running under a debugger that does its own state
+         * capture.
+         */
+        public readonly bool $catchPanics = true,
+        /**
+         * Skip rendering entirely. Useful for headless tests that just
+         * want to drive `update()` without painting any output.
+         * Mirrors `WithoutRenderer`.
+         */
+        public readonly bool $withoutRenderer = false,
+        /**
+         * Pre-process every Msg before it reaches `update()`. The
+         * filter receives the current model + the candidate Msg and
+         * returns either the Msg (or a replacement) to dispatch, or
+         * null to drop it. Mirrors `WithFilter`.
+         *
+         * @var ?\Closure(Model, Msg): ?Msg
+         */
+        public readonly ?\Closure $filter = null,
     ) {}
 }
