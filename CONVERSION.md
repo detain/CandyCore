@@ -485,11 +485,11 @@ Status legend per feature:
 
 | v2 feature | Status | Notes |
 |---|---|---|
-| `View()` returns `tea.View` struct (not `string`) | 🟡 | `Model::view()` returns `string\|View`. The `View` value object now carries `body` + `cursor` + `windowTitle` + `progressBar` + `foregroundColor` + `backgroundColor`. Existing models that return `string` keep working unchanged (covariance). Remaining fields (alt screen / mouse mode / focus / colour profile) still live on `ProgramOptions` and will migrate one-by-one in follow-ups. |
+| `View()` returns `tea.View` struct (not `string`) | 🟢 | `Model::view()` returns `string\|View`. The `View` value object carries `body` + `cursor` + `windowTitle` + `progressBar` + `foregroundColor` + `backgroundColor` + `mouseMode` + `reportFocus` + `bracketedPaste`. Existing models that return `string` keep working unchanged (covariance). Alt-screen stays on `ProgramOptions` (it's a startup decision, not a per-frame choice). |
 | `Cursor` struct (position, shape, blink, colour, nullable to hide) | ✅ | `Core\Cursor(row, col, shape, blink, color)` carried on the `View`. `Core\CursorShape` enum (`Block` / `Underline` / `Bar`); `Ansi::cursorShape()` emits DECSCUSR. A null `View::$cursor` hides the cursor; switching back from null re-shows it. |
 | `WindowTitle` field — set via OSC 0/2 each frame | ✅ | `View::$windowTitle` — emitted via OSC 2 only when it changes between frames. `Cmd::setWindowTitle()` is still available for the imperative path. |
 | Declarative `BackgroundColor` / `ForegroundColor` per frame | ✅ | `View::$foregroundColor` / `View::$backgroundColor` (`Color`) — emitted as `OSC 10` / `OSC 11` only when the value differs from the previously-emitted one. |
-| `MouseMode` declared on the View instead of one-shot setup flag | 🟡 | We toggle in setup/teardown. Move into per-View when we adopt the View struct. |
+| `MouseMode` declared on the View instead of one-shot setup flag | ✅ | `View::$mouseMode` (`MouseMode` enum). Runtime emits the matching DEC private-mode pair only when the value differs from what's currently active; teardown disables whatever was last active rather than what `ProgramOptions` declared. `View::$reportFocus` and `View::$bracketedPaste` shipped alongside with the same semantics. |
 | `ProgressBar` field — terminal native progress (OSC 9;4) | ✅ | `View::$progressBar` (`Progress` value object with `state` + `percent`) — emitted only when state-or-percent change between frames. The imperative `Cmd::setProgressBar()` is still available for non-View flows. |
 
 #### Keys
