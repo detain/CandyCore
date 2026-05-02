@@ -101,4 +101,29 @@ final class TtyTest extends TestCase
         fclose($in);
         fclose($out);
     }
+
+    public function testOnResizeNoOpWithoutPcntl(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $this->assertFalse(Tty::onResize(static fn() => null));
+            return;
+        }
+        if (!function_exists('pcntl_signal')) {
+            $this->assertFalse(Tty::onResize(static fn() => null));
+            return;
+        }
+        // On posix with pcntl available, the install should succeed.
+        $installed = Tty::onResize(static fn() => null);
+        $this->assertTrue($installed);
+        // Restore default handler so the test doesn't leak a closure.
+        if (defined('SIGWINCH')) {
+            \pcntl_signal(SIGWINCH, SIG_DFL);
+        }
+    }
+
+    public function testDrainSignalsReturnsBool(): void
+    {
+        $result = Tty::drainSignals();
+        $this->assertIsBool($result);
+    }
 }

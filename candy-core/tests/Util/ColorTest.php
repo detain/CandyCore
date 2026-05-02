@@ -100,4 +100,132 @@ final class ColorTest extends TestCase
         $sgr = Color::rgb(255, 0, 0)->toFg(ColorProfile::Ansi256);
         $this->assertSame("\x1b[38;5;196m", $sgr);
     }
+
+    public function testHsl(): void
+    {
+        // Pure red: hue=0, sat=1, lightness=0.5
+        $c = Color::hsl(0.0, 1.0, 0.5);
+        $this->assertSame(255, $c->r);
+        $this->assertSame(0,   $c->g);
+        $this->assertSame(0,   $c->b);
+        // Pure white
+        $w = Color::hsl(0.0, 0.0, 1.0);
+        $this->assertSame(255, $w->r);
+        $this->assertSame(255, $w->g);
+        $this->assertSame(255, $w->b);
+    }
+
+    public function testHsv(): void
+    {
+        // Pure green: hue=120, sat=1, value=1
+        $c = Color::hsv(120.0, 1.0, 1.0);
+        $this->assertSame(0,   $c->r);
+        $this->assertSame(255, $c->g);
+        $this->assertSame(0,   $c->b);
+    }
+
+    public function testToHslRoundTrip(): void
+    {
+        $orig = Color::rgb(128, 200, 50);
+        [$h, $s, $l] = $orig->toHsl();
+        $back = Color::hsl($h, $s, $l);
+        $this->assertEqualsWithDelta(128, $back->r, 1.0);
+        $this->assertEqualsWithDelta(200, $back->g, 1.0);
+        $this->assertEqualsWithDelta(50,  $back->b, 1.0);
+    }
+
+    public function testLighten(): void
+    {
+        $c = Color::hex('#808080')->lighten(0.2);
+        $this->assertGreaterThan(128, $c->r);
+        // Stays grey.
+        $this->assertSame($c->r, $c->g);
+        $this->assertSame($c->g, $c->b);
+    }
+
+    public function testDarken(): void
+    {
+        $c = Color::hex('#808080')->darken(0.2);
+        $this->assertLessThan(128, $c->r);
+    }
+
+    public function testAlphaOverBlack(): void
+    {
+        $c = Color::rgb(255, 255, 255)->alpha(0.5);
+        $this->assertEqualsWithDelta(128, $c->r, 1.0);
+        $this->assertEqualsWithDelta(128, $c->g, 1.0);
+        $this->assertEqualsWithDelta(128, $c->b, 1.0);
+    }
+
+    public function testAlphaOverColour(): void
+    {
+        $fg = Color::rgb(255, 0, 0);
+        $bg = Color::rgb(0, 0, 255);
+        $c = $fg->alpha(0.5, $bg);
+        $this->assertEqualsWithDelta(128, $c->r, 1.0);
+        $this->assertSame(0, $c->g);
+        $this->assertEqualsWithDelta(128, $c->b, 1.0);
+    }
+
+    public function testBlend(): void
+    {
+        $a = Color::rgb(0, 0, 0);
+        $b = Color::rgb(100, 100, 100);
+        $mid = $a->blend($b, 0.5);
+        $this->assertSame(50, $mid->r);
+        $start = $a->blend($b, 0.0);
+        $this->assertSame(0,   $start->r);
+        $end = $a->blend($b, 1.0);
+        $this->assertSame(100, $end->r);
+    }
+
+    public function testBlend1dEndpoints(): void
+    {
+        $a = Color::rgb(0, 0, 0);
+        $b = Color::rgb(255, 255, 255);
+        $stops = $a->blend1d($b, 5);
+        $this->assertCount(5, $stops);
+        $this->assertSame(0,   $stops[0]->r);
+        $this->assertSame(255, $stops[4]->r);
+    }
+
+    public function testBlend2d(): void
+    {
+        $tl = Color::rgb(0, 0, 0);
+        $tr = Color::rgb(255, 0, 0);
+        $bl = Color::rgb(0, 0, 255);
+        $br = Color::rgb(255, 0, 255);
+        $grid = $tl->blend2d($tr, $bl, $br, 3, 3);
+        $this->assertCount(3, $grid);
+        $this->assertCount(3, $grid[0]);
+        $this->assertSame(0,   $grid[0][0]->r);
+        $this->assertSame(255, $grid[0][2]->r);
+        $this->assertSame(0,   $grid[2][0]->r);
+        $this->assertSame(255, $grid[2][2]->r);
+    }
+
+    public function testComplementary(): void
+    {
+        // Red → cyan
+        $c = Color::rgb(255, 0, 0)->complementary();
+        $this->assertSame(0,   $c->r);
+        $this->assertEqualsWithDelta(255, $c->g, 1.0);
+        $this->assertEqualsWithDelta(255, $c->b, 1.0);
+    }
+
+    public function testIsDark(): void
+    {
+        $this->assertTrue(Color::hex('#000000')->isDark());
+        $this->assertFalse(Color::hex('#ffffff')->isDark());
+        // Mid-gray (#888) gamma-decodes to ~0.25 luminance — "dark".
+        $this->assertTrue(Color::hex('#888888')->isDark());
+        // Lighter gray crosses the 0.5 threshold.
+        $this->assertFalse(Color::hex('#cccccc')->isDark());
+    }
+
+    public function testLuminanceBlackWhite(): void
+    {
+        $this->assertSame(0.0, Color::rgb(0, 0, 0)->luminance());
+        $this->assertEqualsWithDelta(1.0, Color::rgb(255, 255, 255)->luminance(), 1e-9);
+    }
 }

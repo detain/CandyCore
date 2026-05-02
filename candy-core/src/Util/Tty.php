@@ -107,6 +107,47 @@ final class Tty
         $this->restore();
     }
 
+    /**
+     * Install a SIGWINCH handler that calls `$onResize($cols, $rows)`
+     * whenever the terminal is resized. Returns `true` if the handler
+     * was installed (requires the `pcntl` extension and a POSIX
+     * platform), `false` otherwise. The signal handler does NOT call
+     * the closure synchronously — it sets a flag that a downstream
+     * event loop should drain via {@see drainResize()}.
+     *
+     * Use this when you have your own dispatch loop. Bubble Tea-style
+     * programs can rely on `Program` to wire SIGWINCH directly into
+     * the runtime; this helper is for callers that need terminal-size
+     * tracking outside the Program.
+     */
+    public static function onResize(\Closure $onResize): bool
+    {
+        if (DIRECTORY_SEPARATOR === '\\' || !function_exists('pcntl_signal')) {
+            return false;
+        }
+        // SIGWINCH = 28 on Linux, but we look it up portably.
+        $sig = defined('SIGWINCH') ? SIGWINCH : 28;
+        $tty = new self();
+        return @\pcntl_signal($sig, static function () use ($tty, $onResize): void {
+            $size = $tty->size();
+            $onResize($size['cols'], $size['rows']);
+        });
+    }
+
+    /**
+     * Drain pending SIGWINCH (and other) signals into their installed
+     * handlers. Call once per event-loop tick so resize callbacks
+     * actually fire. No-op without pcntl. Returns `true` if at least
+     * one signal was dispatched.
+     */
+    public static function drainSignals(): bool
+    {
+        if (!function_exists('pcntl_signal_dispatch')) {
+            return false;
+        }
+        return @\pcntl_signal_dispatch();
+    }
+
     private static function hasStty(): bool
     {
         static $cached = null;

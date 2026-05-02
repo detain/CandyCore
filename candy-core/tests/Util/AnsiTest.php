@@ -75,4 +75,65 @@ final class AnsiTest extends TestCase
         $this->assertSame("\x1b[?2004h",                  Ansi::bracketedPasteOn());
         $this->assertSame("\x1b[?1000h\x1b[?1006h",       Ansi::mouseAllOn());
     }
+
+    public function testEraseHelpers(): void
+    {
+        $this->assertSame("\x1b[1K", Ansi::eraseToLineStart());
+        $this->assertSame("\x1b[0K", Ansi::eraseToLineEnd());
+        $this->assertSame("\x1b[1J", Ansi::eraseToScreenStart());
+    }
+
+    public function testScrollRegion(): void
+    {
+        $this->assertSame("\x1b[2;10r", Ansi::setScrollRegion(2, 10));
+        $this->assertSame("\x1b[r",     Ansi::setScrollRegion(2, 0));
+        $this->assertSame("\x1b[r",     Ansi::resetScrollRegion());
+        $this->assertSame("\x1b[1;5r",  Ansi::setScrollRegion(0, 5));
+    }
+
+    public function testScrollUpDown(): void
+    {
+        $this->assertSame("\x1b[1S", Ansi::scrollUp());
+        $this->assertSame("\x1b[3S", Ansi::scrollUp(3));
+        $this->assertSame("\x1b[1T", Ansi::scrollDown(0));
+        $this->assertSame("\x1b[5T", Ansi::scrollDown(5));
+    }
+
+    public function testInsertDelete(): void
+    {
+        $this->assertSame("\x1b[1L", Ansi::insertLine());
+        $this->assertSame("\x1b[3L", Ansi::insertLine(3));
+        $this->assertSame("\x1b[2M", Ansi::deleteLine(2));
+        $this->assertSame("\x1b[1@", Ansi::insertChar());
+        $this->assertSame("\x1b[5@", Ansi::insertChar(5));
+        $this->assertSame("\x1b[3P", Ansi::deleteChar(3));
+        $this->assertSame("\x1b[4b", Ansi::repeatChar(4));
+    }
+
+    public function testHyperlink(): void
+    {
+        $expect = "\x1b]8;;https://example.com\x1b\\click me\x1b]8;;\x1b\\";
+        $this->assertSame($expect, Ansi::hyperlink('https://example.com', 'click me'));
+
+        $withId = "\x1b]8;id=42;https://example.com\x1b\\click me\x1b]8;;\x1b\\";
+        $this->assertSame($withId, Ansi::hyperlink('https://example.com', 'click me', '42'));
+    }
+
+    public function testTabStops(): void
+    {
+        $this->assertSame("\x1b[1I",    Ansi::tabForward());
+        $this->assertSame("\x1b[3I",    Ansi::tabForward(3));
+        $this->assertSame("\x1b[2Z",    Ansi::tabBackward(2));
+        $this->assertSame("\x1bH",      Ansi::setTabStop());
+        $this->assertSame("\x1b[0g",    Ansi::clearTabStop());
+        $this->assertSame("\x1b[3g",    Ansi::clearAllTabStops());
+    }
+
+    public function testScoCursorSave(): void
+    {
+        $this->assertSame("\x1b[s",  Ansi::scoSave());
+        $this->assertSame("\x1b[u",  Ansi::scoRestore());
+        $this->assertSame("\x1b7",   Ansi::decsc());
+        $this->assertSame("\x1b8",   Ansi::decrc());
+    }
 }
