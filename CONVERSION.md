@@ -496,13 +496,13 @@ Status legend per feature:
 
 | v2 feature | Status | Notes |
 |---|---|---|
-| Split `KeyMsg` into `KeyPressMsg` / `KeyReleaseMsg` (both still match `KeyMsg` interface) | 🟡 | Add `KeyPressMsg` + `KeyReleaseMsg` extending the existing `KeyMsg`. Default behaviour unchanged unless the runtime is in Kitty mode. |
+| Split `KeyMsg` into `KeyPressMsg` / `KeyReleaseMsg` (both still match `KeyMsg` interface) | ✅ | `KeyMsg` is no longer `final`; `KeyPressMsg`, `KeyReleaseMsg`, `KeyRepeatMsg` are empty marker subclasses. The Kitty per-key parser dispatches by event type (1 = press, 2 = repeat, 3 = release). Legacy CSI / SS3 keys still come through as plain `KeyMsg` so existing handlers are unchanged. |
 | `Key::Code` (logical key) + `Key::Text` (typed text) — replaces `rune` | ✅ | `KeyMsg::text()` aliases `$rune` (empty for named keys); `KeyMsg::code()` aliases `$type`. `BaseCode` is unnecessary in PHP since named keys already use the enum and printable text uses Char. |
 | `Key::Mod` unified bitfield instead of separate `alt` / `ctrl` booleans | ✅ | `KeyMsg::modifiers()` returns a `Modifiers` value object with `shift`/`alt`/`ctrl` plus `toBitfield()` (`SHIFT`/`ALT`/`CTRL` bit constants). The original `alt`/`ctrl` booleans remain for back-compat; `shift` is now also a constructor field. `Modifiers::fromXtermMod(int)` decodes the standard `1 + (1·shift + 2·alt + 4·ctrl)` byte. |
-| `IsRepeat` flag | 🔴 | Auto-repeat detection — needs the Kitty keyboard protocol to surface reliably. |
+| `IsRepeat` flag | ✅ | Surfaced as `KeyRepeatMsg` (extending `KeyMsg`) when the Kitty parser sees event type 2. Match via `instanceof KeyRepeatMsg`. |
 | `Key::Keystroke()` — string like `"ctrl+shift+a"` | ✅ | We already ship `KeyMsg::string()`. |
 | Space returns `"space"` (not `" "`) from `Keystroke()` | ✅ | Already does. |
-| Kitty progressive keyboard protocol — disambiguates `ctrl+m` vs Enter, etc. | 🟡 | `Cmd::pushKittyKeyboard($flags)` / `popKittyKeyboard($n=1)` / `requestKittyKeyboard()` ship the handshake. The reply (`CSI ? <flags> u`) parses into `KeyboardEnhancementsMsg` (with `DISAMBIGUATE` / `REPORT_EVENT_TYPES` / `REPORT_ALTERNATES` / `REPORT_ALL_AS_ESC` / `REPORT_ASSOCIATED` constants and a `has(mask)` helper). Per-key Kitty event format (which gates `IsRepeat` and `KeyReleaseMsg`) is the next follow-up. |
+| Kitty progressive keyboard protocol — disambiguates `ctrl+m` vs Enter, etc. | ✅ | Handshake: `Cmd::pushKittyKeyboard($flags)` / `popKittyKeyboard($n=1)` / `requestKittyKeyboard()`. Reply `CSI ? <flags> u` → `KeyboardEnhancementsMsg` (with `DISAMBIGUATE` / `REPORT_EVENT_TYPES` / `REPORT_ALTERNATES` / `REPORT_ALL_AS_ESC` / `REPORT_ASSOCIATED` constants). Per-key event format `CSI <code>[;<mod>[:<event>]][;<text>] u` parses into `KeyPressMsg` / `KeyRepeatMsg` / `KeyReleaseMsg` with `Modifiers` populated and the typed-text leg used as the rune when present. |
 
 #### Mouse + paste
 

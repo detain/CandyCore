@@ -19,6 +19,9 @@ use CandyCore\Core\Msg\FocusMsg;
 use CandyCore\Core\Msg\ForegroundColorMsg;
 use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
 use CandyCore\Core\Msg\KeyMsg;
+use CandyCore\Core\Msg\KeyPressMsg;
+use CandyCore\Core\Msg\KeyReleaseMsg;
+use CandyCore\Core\Msg\KeyRepeatMsg;
 use CandyCore\Core\Msg\PasteEndMsg;
 use CandyCore\Core\Msg\PasteStartMsg;
 use CandyCore\Core\Msg\ModeReportMsg;
@@ -685,5 +688,69 @@ final class InputReaderTest extends TestCase
         $this->assertCount(1, $msgs);
         $this->assertSame(0, $msgs[0]->flags);
         $this->assertFalse($msgs[0]->has(KeyboardEnhancementsMsg::DISAMBIGUATE));
+    }
+
+    // ---- Kitty per-key event format --------------------------------------
+
+    public function testKittyPlainPrintablePress(): void
+    {
+        // CSI 97 u → 'a' press.
+        $msgs = (new InputReader())->parse("\x1b[97u");
+        $this->assertCount(1, $msgs);
+        $this->assertInstanceOf(KeyPressMsg::class, $msgs[0]);
+        $this->assertSame(KeyType::Char, $msgs[0]->type);
+        $this->assertSame('a', $msgs[0]->rune);
+    }
+
+    public function testKittyKeyRelease(): void
+    {
+        // CSI 97;1:3 u → 'a' release.
+        $msgs = (new InputReader())->parse("\x1b[97;1:3u");
+        $this->assertCount(1, $msgs);
+        $this->assertInstanceOf(KeyReleaseMsg::class, $msgs[0]);
+        $this->assertSame('a', $msgs[0]->rune);
+    }
+
+    public function testKittyKeyRepeat(): void
+    {
+        // CSI 97;1:2 u → 'a' repeat.
+        $msgs = (new InputReader())->parse("\x1b[97;1:2u");
+        $this->assertInstanceOf(KeyRepeatMsg::class, $msgs[0]);
+    }
+
+    public function testKittyCtrlShiftA(): void
+    {
+        // mod 6 = shift+ctrl, event implicit press, no text section.
+        $msgs = (new InputReader())->parse("\x1b[97;6u");
+        $this->assertInstanceOf(KeyPressMsg::class, $msgs[0]);
+        $this->assertTrue($msgs[0]->ctrl);
+        $this->assertTrue($msgs[0]->shift);
+    }
+
+    public function testKittyTextSectionPreferredForRune(): void
+    {
+        // Code 65 ('A') with text section 97 ('a') — terminal is
+        // reporting the typed character via the text leg; we should
+        // use it as the rune.
+        $msgs = (new InputReader())->parse("\x1b[65;1;97u");
+        $this->assertSame('a', $msgs[0]->rune);
+    }
+
+    public function testKittyNamedKey(): void
+    {
+        // CSI 13 u → Enter.
+        $msgs = (new InputReader())->parse("\x1b[13u");
+        $this->assertSame(KeyType::Enter, $msgs[0]->type);
+
+        // CSI 27 u → Escape.
+        $msgs = (new InputReader())->parse("\x1b[27u");
+        $this->assertSame(KeyType::Escape, $msgs[0]->type);
+    }
+
+    public function testKittyMsgsAreStillKeyMsg(): void
+    {
+        // Existing instanceof KeyMsg checks should keep working.
+        $msgs = (new InputReader())->parse("\x1b[97u");
+        $this->assertInstanceOf(KeyMsg::class, $msgs[0]);
     }
 }
