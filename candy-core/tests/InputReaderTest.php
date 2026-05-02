@@ -17,6 +17,7 @@ use CandyCore\Core\Msg\CursorColorMsg;
 use CandyCore\Core\Msg\CursorPositionMsg;
 use CandyCore\Core\Msg\FocusMsg;
 use CandyCore\Core\Msg\ForegroundColorMsg;
+use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Msg\PasteEndMsg;
 use CandyCore\Core\Msg\PasteStartMsg;
@@ -661,5 +662,28 @@ final class InputReaderTest extends TestCase
     {
         $msgs = (new InputReader())->parse("\x1b]52;c;!!!notbase64\x07");
         $this->assertCount(0, $msgs);
+    }
+
+    // ---- Kitty keyboard flag report --------------------------------------
+
+    public function testKittyKeyboardFlagsReply(): void
+    {
+        // CSI ? 11 u → flags 1 (DISAMBIGUATE) + 2 (REPORT_EVENT_TYPES) + 8.
+        $msgs = (new InputReader())->parse("\x1b[?11u");
+        $this->assertCount(1, $msgs);
+        $this->assertInstanceOf(KeyboardEnhancementsMsg::class, $msgs[0]);
+        $this->assertSame(11, $msgs[0]->flags);
+        $this->assertTrue($msgs[0]->has(KeyboardEnhancementsMsg::DISAMBIGUATE));
+        $this->assertTrue($msgs[0]->has(KeyboardEnhancementsMsg::REPORT_EVENT_TYPES));
+        $this->assertFalse($msgs[0]->has(KeyboardEnhancementsMsg::REPORT_ALTERNATES));
+        $this->assertTrue($msgs[0]->has(KeyboardEnhancementsMsg::REPORT_ALL_AS_ESC));
+    }
+
+    public function testKittyKeyboardFlagsReplyZero(): void
+    {
+        $msgs = (new InputReader())->parse("\x1b[?0u");
+        $this->assertCount(1, $msgs);
+        $this->assertSame(0, $msgs[0]->flags);
+        $this->assertFalse($msgs[0]->has(KeyboardEnhancementsMsg::DISAMBIGUATE));
     }
 }

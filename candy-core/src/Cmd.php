@@ -193,5 +193,33 @@ final class Cmd
         return static fn(): Msg => new RawMsg(Ansi::setProgressBar($state, $percent));
     }
 
+    /**
+     * Push a Kitty progressive-keyboard flag layer. Use the bit
+     * constants on `Msg\KeyboardEnhancementsMsg` (DISAMBIGUATE,
+     * REPORT_EVENT_TYPES, REPORT_ALTERNATES, REPORT_ALL_AS_ESC,
+     * REPORT_ASSOCIATED). Pair with {@see popKittyKeyboard()} on
+     * teardown.
+     */
+    public static function pushKittyKeyboard(int $flags): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::pushKittyKeyboard($flags));
+    }
+
+    /** Pop `$n` Kitty keyboard flag layers. */
+    public static function popKittyKeyboard(int $n = 1): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::popKittyKeyboard($n));
+    }
+
+    /**
+     * Ask the terminal for the currently active Kitty keyboard
+     * flags. The reply becomes a
+     * {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     */
+    public static function requestKittyKeyboard(): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::requestKittyKeyboard());
+    }
+
     private function __construct() {}
 }

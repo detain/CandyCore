@@ -502,7 +502,7 @@ Status legend per feature:
 | `IsRepeat` flag | 🔴 | Auto-repeat detection — needs the Kitty keyboard protocol to surface reliably. |
 | `Key::Keystroke()` — string like `"ctrl+shift+a"` | ✅ | We already ship `KeyMsg::string()`. |
 | Space returns `"space"` (not `" "`) from `Keystroke()` | ✅ | Already does. |
-| Kitty progressive keyboard protocol — disambiguates `ctrl+m` vs Enter, etc. | 🔴 | Niche but increasingly common. New `KeyboardEnhancementsMsg` + `View.KeyboardEnhancements` field gates it. Gates `IsRepeat` and `KeyReleaseMsg`. |
+| Kitty progressive keyboard protocol — disambiguates `ctrl+m` vs Enter, etc. | 🟡 | `Cmd::pushKittyKeyboard($flags)` / `popKittyKeyboard($n=1)` / `requestKittyKeyboard()` ship the handshake. The reply (`CSI ? <flags> u`) parses into `KeyboardEnhancementsMsg` (with `DISAMBIGUATE` / `REPORT_EVENT_TYPES` / `REPORT_ALTERNATES` / `REPORT_ALL_AS_ESC` / `REPORT_ASSOCIATED` constants and a `has(mask)` helper). Per-key Kitty event format (which gates `IsRepeat` and `KeyReleaseMsg`) is the next follow-up. |
 
 #### Mouse + paste
 
