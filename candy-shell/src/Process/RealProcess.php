@@ -15,6 +15,7 @@ final class RealProcess implements Process
     /** @var resource */
     private $handle;
     private ?int $cachedExit = null;
+    private bool $closed = false;
 
     /**
      * @param list<string>|string $command
@@ -45,6 +46,9 @@ final class RealProcess implements Process
         if ($this->cachedExit !== null) {
             return $this->cachedExit;
         }
+        if ($this->closed) {
+            return $this->cachedExit;
+        }
         $status = proc_get_status($this->handle);
         if ($status['running']) {
             return null;
@@ -55,19 +59,28 @@ final class RealProcess implements Process
 
     public function terminate(): void
     {
-        if ($this->cachedExit !== null) {
+        if ($this->closed || $this->cachedExit !== null) {
             return;
         }
         @proc_terminate($this->handle);
     }
 
+    /**
+     * Reap the OS process handle. Always calls `proc_close()` exactly
+     * once even after `exitCode()` has cached the status — without that,
+     * long-running PHP processes accumulated zombie entries because the
+     * proc_open handle was never explicitly released.
+     */
     public function close(): int
     {
-        if ($this->cachedExit !== null) {
-            return $this->cachedExit;
+        if ($this->closed) {
+            return $this->cachedExit ?? 0;
         }
         $code = @proc_close($this->handle);
-        $this->cachedExit = $code === false ? -1 : (int) $code;
+        $this->closed = true;
+        if ($this->cachedExit === null) {
+            $this->cachedExit = is_int($code) && $code >= 0 ? $code : 0;
+        }
         return $this->cachedExit;
     }
 }

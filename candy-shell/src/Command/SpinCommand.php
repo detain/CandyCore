@@ -39,6 +39,8 @@ final class SpinCommand extends Command
                 'Spinner style: line | dot | minidot | points | pulse | globe | meter.', 'dot');
     }
 
+    public const EXIT_INTERRUPTED = 130; // 128 + SIGINT(2)
+
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var list<string> $argv */
@@ -58,8 +60,18 @@ final class SpinCommand extends Command
         $final = $program->run();
 
         $code = $final->exitCode();
+        // The Program installs a SIGINT handler that stops the loop
+        // *before* dispatching a KeyMsg, so a Ctrl-C run never reaches
+        // SpinModel::update() and exitCode stays null. Treat any
+        // non-completed run as cancellation: terminate the child and
+        // surface 130 (the conventional SIGINT exit code) so calling
+        // scripts can detect interruption.
+        if ($code === null) {
+            $process->terminate();
+            $code = self::EXIT_INTERRUPTED;
+        }
         $process->close();
-        return $code ?? 0;
+        return $code;
     }
 
     public static function pickStyle(string $name): SpinStyle

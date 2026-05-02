@@ -27,4 +27,11 @@ final class SpinCommandTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         SpinCommand::pickStyle('whirl');
     }
+
+    public function testInterruptedExitCodeIs130(): void
+    {
+        // Conventional SIGINT-exit code: scripts use this to detect a
+        // user-cancelled spin run.
+        $this->assertSame(130, SpinCommand::EXIT_INTERRUPTED);
+    }
 }
