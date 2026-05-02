@@ -47,9 +47,10 @@ jobs:
         run: |
           set -euo pipefail
           all=(
-            candy-core candy-sprinkles sugar-bits sugar-charts
-            sugar-prompt candy-shell candy-shine candy-kit
-            candy-freeze sugar-glow sugar-spark sugar-wishlist
+            candy-core candy-sprinkles honey-bounce
+            sugar-bits sugar-charts sugar-prompt
+            candy-shell candy-shine candy-kit candy-freeze
+            sugar-glow sugar-spark sugar-wishlist
             candy-mold candy-tetris super-candy sugar-crush
           )
           # Render-all triggers: manual dispatch, or a workflow-file
