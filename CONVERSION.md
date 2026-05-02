@@ -237,16 +237,502 @@ Update this table as work proceeds. Status legend:
 
 | Phase | Library | Status | % | Notes |
 |------:|---|:---:|---:|---|
-| 0 | Foundation utilities (ansi / color / width / tty) | 🟢 | 100% | `Ansi`, `Color`, `ColorProfile`, `Width`, `Tty` under `candy-core/src/Util`. Stable. |
-| 1 | CandySprinkles | 🟢 | 100% | `Style` (attrs, fg/bg, padding, margin, width/height, horizontal + **vertical** align, **`inherit()` with propsSet tracking**, profile-aware downsampling) + `Border` (with middle runes for tables) + `Table` + `ItemList` + `Tree`. Public surface complete for v1. |
-| 2 | HoneyBounce | 🟢 | 100% | `Spring` (under-/critically-/over-damped) + `Spring::fps()`. Pure math, ready for downstream use. |
-| 3 | CandyCore (runtime) | 🟢 | 95% | **ReactPHP/event-loop chosen.** `Model`, `Msg`, `Cmd`, `KeyType` (now incl. F1-F12), `Program`, `ProgramOptions`, `Renderer` (line-diff), `InputReader`. Built-in messages: `KeyMsg`, `MouseMsg`, `FocusMsg`, `BlurMsg`, `WindowSizeMsg`, `QuitMsg`, **`PasteMsg`**. Input parsing covers ASCII, ctrl, alt-prefix, arrows, Home/End/Delete/PgUp/PgDn, SGR mouse, focus in/out, **F1-F12 (SS3 + CSI~ encodings), bracketed paste (CSI 200~/201~ envelope, split-across-reads safe)**. Only Kitty keyboard protocol remains as a niche extension. |
-| 4 | CandyZone | 🟢 | 100% | `Manager` (newGlobal/mark/scan/get/clear/all) + `Zone` (inBounds/pos/width/height). APC-based zero-width markers, ANSI/OSC pass-through, multi-byte + CJK width handling, multi-row spans. |
-| 5 | SugarBits | 🟢 | 100% | All 14 components landed: `Key`, `Help`, `Spinner` (+ 7 styles), `Progress`, `Timer`, `Stopwatch`, `Cursor`, `TextInput`, `TextArea`, `Viewport`, `Paginator`, `ItemList` (filterable selection list with `Item` interface + `StringItem`), `Table` (interactive selectable, scrolling, header underline), `FilePicker` (cwd nav, hidden filter, allowed extensions, dir/file gates). |
-| 6 | SugarCharts | 🟡 | 75% | Six chart types: `Canvas\Canvas` (cell grid with optional Sprinkles styling), `Sparkline\Sparkline` (8-glyph Unicode bar chart, sliding window), `BarChart\BarChart` (labelled vertical bars), `LineChart\LineChart` (single-series + connectors), **`Heatmap\Heatmap`** (2D grid, linear RGB interpolation between cold and hot colors, configurable rune), **`Scatter\Scatter`** (auto-ranged X/Y plot, no connectors). Remaining: OHLC, streamline, time series, picture (Sixel/Kitty). |
-| 7 | SugarPrompt | 🟢 | 100% | All 7 field types landed: `Note` (skippable), `Input` (TextInput wrap + validator), `Confirm` (y/n with custom labels), `Select` (ItemList wrap, filter consumes Enter/Esc), `MultiSelect` (checkbox grid with min/max), `Text` (TextArea wrap, consumes Enter for newlines), `FilePicker` (wraps Bits FilePicker, consumes Enter/Backspace). `Form` container with Tab nav, Enter-submit, Esc/Ctrl-C abort, `Field::consumes(Msg)` for inner-key ownership, `init()` propagating first focused field's Cmd. Remaining (post-v1): `Group` for multi-page forms, theming. |
-| 8 | CandyShell | 🟢 | 100% | Bin script + Symfony Console application + all 13 subcommands: `style`, `choose`, `input`, `confirm`, `join`, `log`, `table`, `filter`, `write`, `file`, `pager`, `spin`, **`format`** (Markdown → ANSI via CandyShine, `--theme ansi|plain`). |
-| 9 | CandyShine (glamour) | 🟢 | 100% | New library `candycore/candy-shine` (`CandyCore\Shine`). `Theme` (19 per-element Style slots — 15 markdown elements + 4 syntax tokens; `ansi()` / `plain()` factories, `fromJson($path)` / `fromJsonString($json)` for custom themes) + `Renderer` walking `league/commonmark` AST. Supports headings 1-6, paragraphs, strong/em, inline code, fenced + indented code blocks (**fenced blocks now syntax-highlight via `SyntaxHighlighter` for php / js / ts / json / python / go / bash / sql**), bulleted + ordered lists, links (with URL appended), block quotes (▎-prefixed), horizontal rules, GFM tables (rendered via Sprinkles\Table with rounded border), task list checkboxes (☑ / ☐). |
+| 0 | Foundation utilities (ansi / color / width / tty) | 🟡 | 80% | `Ansi`, `Color`, `ColorProfile`, `Width`, `Tty` under `candy-core/src/Util`. Core paths stable but no `Parser.php` to consume the OSC/DCS replies the rest of the stack queries for; missing OSC 8 hyperlinks, scroll-region (DECSTBM), CSI S/T scroll, insert/delete line, OSC 4 palette, DECSET save/restore. See [§ Phase audit (2026-05-02)](#phase-audit-2026-05-02). |
+| 1 | CandySprinkles | 🟡 | 75% | `Style` covers attrs / fg-bg / padding / margin / width-height / align / inherit-with-propsSet / profile-aware downsampling + `Border` + `Table` + `ItemList` + `Tree`. Missing top-level layout helpers (`Place`, `JoinHorizontal`, `JoinVertical`), color helpers (`Darken`/`Lighten`/`Alpha`/`Blend`/`HasDarkBackground`), `MaxWidth`/`MaxHeight`, `Inline`, `Transform`, `MarginBackground`, `TabWidth`, per-side border colors, `Unset*` resetters, `StyleFunc` for tables. See [§ Phase audit (2026-05-02)](#phase-audit-2026-05-02). |
+| 2 | HoneyBounce | 🟡 | 85% | `Spring` (under-/critically-/over-damped) + `Spring::fps()`. **Missing the entire `Projectile` package** (`Projectile`, `Point`, `Vector`, `Gravity`, `TerminalGravity` constants) — ~150 LOC to close. |
+| 3 | CandyCore (runtime) | 🟡 | 85% | `Model`, `Msg`, `Cmd`, `KeyType`, `Program`, `ProgramOptions`, `Renderer` (line-diff), `InputReader`. Built-in messages: `Key*Msg`, `Mouse*Msg` (4 subtypes), `FocusMsg`, `BlurMsg`, `WindowSizeMsg`, `QuitMsg`, `Paste*Msg`, `EnvMsg`, `ColorProfileMsg`, `KeyboardEnhancementsMsg`, terminal-query reply Msgs, `ClipboardMsg`. **Missing**: `Sequence`, `Every`, `Suspend`/`Interrupt`/`Resume` Cmds + Msgs + SIGTSTP/SIGCONT, `Exec`/`ExecProcess` (no `$EDITOR` integration), `Printf`, stateful Cmds (`EnterAltScreen`/`ExitAltScreen`/`ClearScreen`/`ShowCursor`/`HideCursor`/mouse-mode toggles/focus-report toggles/bracketed-paste toggles/scroll), color-set/reset Cmds, options `WithoutCatchPanics` / `WithFilter` / `WithContext` / `WithoutRenderer`. See [§ Phase audit (2026-05-02)](#phase-audit-2026-05-02). |
+| 4 | CandyZone | 🟡 | 90% | `Manager` (newGlobal/mark/scan/get/clear/all) + `Zone` (inBounds/pos/width/height). APC-based zero-width markers, ANSI/OSC pass-through, multi-byte + CJK width, multi-row spans. **Missing**: `Manager::newPrefix()` (id namespacing — composability blocker), `Manager::setEnabled(bool)` toggle, custom marker prefix. |
+| 5 | SugarBits | 🟡 | 55% | All 14 components have skeletons + basic interaction loops, but the consumer-visible polish surface is largely absent. Notable holes: TextInput autocomplete + validation, TextArea line numbers + soft-wrap, ItemList status messages + delegate styling + status bar, animated/gradient Progress, full Spinner library (5 of 12 styles missing), Table `Column` struct + Styles + nav methods, FilePicker icons + sort + size column, Viewport mouse-wheel + scrollbar. See [§ Phase audit (2026-05-02)](#phase-audit-2026-05-02). |
+| 6 | SugarCharts | 🟡 | 75% | Six chart types: `Canvas`, `Sparkline`, `BarChart`, `LineChart`, `Heatmap`, `Scatter`. **Missing the entire `canvas/graph` package** (`drawHLine`/`VLine`/`XYAxis`/`XYAxisLabel`/`Braille`/`drawColumns`/`Candlestick`) — every chart needs these. LineChart has no axes/labels/multi-series, BarChart has no horizontal mode and no real axis (the README example shows a `┤` axis the code never draws), Heatmap has no legend / multi-stop palette / streaming `Push`. Missing chart types: TimeSeries, Streamline, Waveline, OHLC. Picture (Sixel/Kitty) explicitly deferred. |
+| 7 | SugarPrompt | 🟡 | 70% | 7 field types + single-page Form. **Missing entirely**: `Group` class for multi-page forms (huh's headline composition primitive), `Theme` system with Charm/Dracula/Catppuccin/Base16/ANSI presets, `withHideFunc` runtime visibility predicate on every field, `Form::withAccessible()` screen-reader fallback, prompt-style `Spinner` runner (`huh.NewSpinner().Title().Action(fn).Run()`). Per-field gaps: `withEchoMode` (password masking) on Input, `withSuggestions` on Input, `withEditor` on Text, `withLimit`/`withFiltering`/`withValue`/`withHeight` on Select+MultiSelect. |
+| 8 | CandyShell | 🟡 | 60%* | All 13 subcommands ship (`style`, `choose`, `input`, `confirm`, `join`, `log`, `table`, `filter`, `write`, `file`, `pager`, `spin`, `format`). Flag coverage averages ~25-40% per command — gum scripts will not port verbatim. Headline gaps: multi-select on `choose`/`filter` (no `--limit`/`--no-limit`/`--ordered`/`--selected`), `--header`/`--prompt`/`--value`/`--char-limit`/`--width` across input/write/filter/choose, structured logging on `log` (`--structured`/`--formatter`/`--prefix`/`--time`/`--file`), `--show-output`/`--show-error` on `spin`, `--border` on `style`, every per-element style sub-flag (`--cursor.foreground`, `--header.bold`, etc.) is absent. \*60% is "subcommand presence weighted with flag coverage" — pure subcommand coverage is 100%. |
+| 9 | CandyShine (glamour) | 🟡 | 70% | `Theme` (19 slots) + `Renderer` over `league/commonmark` AST. Handles headings 1-6, paragraph, strong/em, inline + fenced + indented code (with syntax highlighting for 8 langs), bullet/ordered lists, links, blockquote, hr, GFM tables, task lists. **Missing**: word-wrap (`WithWordWrap` — every glamour theme assumes it), OSC 8 hyperlinks (`renderLink` only appends ` (url)`), strikethrough (StrikethroughExtension not loaded — `~~foo~~` silently dropped), stock theme presets beyond `ansi()`/`plain()` (Dark, Light, Notty, Dracula, TokyoNight, Pink), element slots for `link_text`/`image`/`image_text`/definition lists/`html_block`/`html_span`/`auto_link`. |
+
+---
+
+## Phase audit (2026-05-02)
+
+A line-by-line comparison of every PHP port against its Go counterpart. Each
+phase that was previously listed as 🟢 100% turned out to have material gaps
+once compared against the upstream source. This section is the authoritative
+backlog — if a feature is listed under "Missing" or "Partial" here, it is
+**not** v1-complete regardless of what an older note in this file claims.
+
+Format: per phase, a `Done` paragraph (what genuinely works), a `Missing`
+list (what's absent or stubbed), and a `Top priorities` list (the 2-3 items
+to close first to actually claim parity). Items marked `[defer]` are
+intentionally out of v1 scope.
+
+### Phase 0 — Foundation utilities (`candy-core/src/Util/`)
+
+**Done.** SGR (16/256/RGB), CSI cursor moves + DECSCUSR, erase line/screen,
+alt-screen 1049, sync 2026, unicode 2027, bracketed paste 2004, mouse
+1000/1002/1003 + SGR 1006, focus 1004, OSC 7/10/11/12/52(read+write)/2/9;4,
+DCS XTVERSION, DECRQM, kitty keyboard push/pop/request, `Ansi::strip()`.
+ColorProfile detects `NO_COLOR`, `CLICOLOR_FORCE`, `TERM`, `COLORTERM`. Color
+covers RGB/hex/ansi/ansi256 with profile-aware downsampling and squared-RGB
+nearest-neighbour. Width handles graphemes (with `grapheme_str_split`
+fallback), strips ANSI before measuring, basic East-Asian-wide ranges,
+truncation. Tty: `isTty`, `openTty(/dev/tty)`, `size()` via
+COLUMNS/LINES/`stty size`, raw mode via `stty -g` + `-icanon -echo`.
+
+**Missing.**
+- **Input parser (no `Util/Parser.php`).** `Ansi.php` emits OSC/DCS query
+  sequences (cursor pos, fg/bg/cursor color, clipboard read, kitty
+  keyboard, mode reports) but nothing centralises parsing the replies
+  back. `InputReader` rolls its own ad-hoc parsing inline. Factor out a
+  proper tokenising parser so every consumer reads the same byte stream.
+- **OSC 8 hyperlinks** (`\x1b]8;;URL\x1b\\`). Required by CandyShine.
+- **Scrolling region** (DECSTBM `CSI r`), scroll up/down (`CSI S`/`T`),
+  insert/delete line/character (`CSI L`/`M`/`@`/`P`), tab stops
+  (`HTS`/`TBC`). Required for any pager/log-tailer.
+- **OSC 4** palette set/query, **DECSET save/restore** (`CSI ?…s`/`r`).
+- `ColorProfile::detect()` doesn't consult `Tty::isTty()`, so the `NoTty`
+  enum case is unreachable when stdout is piped. Fix: gate to `NoTty`
+  before consulting `TERM` if `!isTty(STDOUT)`.
+- `ColorProfile`: no `CI`/`FORCE_COLOR`/`TERM_PROGRAM`/`WT_SESSION` checks,
+  no Windows ConHost/ANSICON detection, no terminfo lookup.
+- `Color`: no HSL/HSV constructors, no perceptual distance (CIE Lab/Oklab),
+  no `Lighten`/`Darken`/`Alpha`/`Complementary`/`Blend1D`/`Blend2D`.
+- `Width`: no `wrap()` (lipgloss-style word/grapheme wrap), no
+  `padLeft`/`padRight`/`pad`, incomplete Unicode 15+ ZWJ-sequence
+  collapsing (a flag-of-Scotland or family ZWJ sequence will count each
+  cluster's width naively), no Variation Selector-16 narrow→wide
+  promotion, no ambiguous-width East-Asian toggle.
+- `Tty`: no SIGWINCH handler / resize event hook, no Windows VT-mode
+  toggle (defer), no FFI termios fast path.
+
+**Top priorities.**
+1. `Util\Parser` — tokenising input parser. Unblocks reliable consumption
+   of every reply CandyCore queries for.
+2. `Ansi::hyperlink()` (OSC 8) + scroll region / scroll / insert-delete
+   line. Unblocks CandyShine + a real Viewport / Pager.
+3. `Width::wrap()` — needed by CandyShine and any text-heavy SugarBits
+   component.
+
+### Phase 1 — CandySprinkles (`candy-sprinkles/`)
+
+**Done.** `Style` covers all SGR attributes, fg/bg with Adaptive / Complete /
+CompleteAdaptive resolution, padding + margin (1/2/4-arg shorthand + per-side),
+width/height with horizontal + vertical alignment, border with per-side bools
++ borderForeground/borderBackground, `colorProfile()`, `inherit()` with
+explicit-set tracking, `render()`/`sprint()`/`printfSprint()`/`print()`/
+`println()`/`fprint()`/`__invoke()`. Width-truncation preserves inline ANSI.
+`Border` ships rounded / normal / thick / double / hidden / block + per-side
+middle runes for Table. `Listing` (dash / bullet / asterisk / arabic /
+spreadsheet-alphabet / none enumerators). `Tree` recursive nesting with
+last-branch space prefix. `Table` with header/body, per-row align, jagged
+row padding, +2 cell padding, separator row.
+
+**Missing.**
+- **Top-level layout helpers (high impact).** `Place()` /
+  `PlaceHorizontal()` / `PlaceVertical()`, `JoinHorizontal()` /
+  `JoinVertical()`, `Width()` / `Height()` / `Size()` measurement helpers,
+  compositor / `NewCanvas` / layered rendering. Status bars, two-column
+  splits, dashboards all need these.
+- **Color helpers.** `Darken` / `Lighten` / `Alpha` / `Complementary` /
+  `Blend1D` / `Blend2D` / `HasDarkBackground`. Position constants
+  (Top/Bottom/Center/Left/Right) as float positioning.
+- **`Style` gaps.** `MaxWidth` / `MaxHeight`, `Inline()`, `TabWidth()`,
+  `Transform()` (callback rewrite of rendered string), `MarginBackground()`,
+  per-side `BorderTopForeground` / `BorderRightForeground` / etc.,
+  `ColorWhitespace()`, `Copy()`, `String()` / `SetString()` / `Value()`,
+  `Unset*()` resetters for every prop, `GetForeground()` and other getters,
+  no `noStyle` short-circuit when nothing is set.
+- **Listing.** No roman / decimal-dotted enumerators, no
+  `ItemStyle`/`EnumeratorStyle` style hooks, no nested sublists (an
+  ItemList can't contain another ItemList), no `Filter`.
+- **Tree.** No `Enumerator` swap (rounded vs. ascii box-draw), no
+  `RootStyle`/`ItemStyle`/`EnumeratorStyle`, no `Indenter` override, no
+  `Hide()` of root.
+- **Table.** `StyleFunc(row, col) => Style` for per-cell style, `Filter`,
+  `Border()` per-side toggles, individual `BorderTop`/`BorderHeader`/
+  `BorderRow`/`BorderColumn` flags, `Wrap()` overflow mode, `Width()`
+  constraint, `Offset`, `Data` interface for dynamic row fetch.
+
+**Top priorities.**
+1. `JoinHorizontal` / `JoinVertical` / `Place` — every nontrivial lipgloss
+   layout uses these.
+2. `Style::inline()` + `MaxWidth/MaxHeight` + `Transform()` +
+   `MarginBackground()` — heavily used by lipgloss's own list/table.
+3. `Table::styleFunc()` — without it, the canonical lipgloss table demo
+   (header in a different colour than body) cannot be reproduced.
+
+### Phase 2 — HoneyBounce (`honey-bounce/`)
+
+**Done.** `Spring` constructor, `update($pos, $vel, $target): [pos, vel]`,
+`Spring::fps(int)`. All three damping branches faithful to Ryan-Juckett's
+algorithm. Tests cover identity, at-target, critical, under-damped overshoot,
+over-damped, negative-damping clamp, and a frame-30 fixture matching Go.
+
+**Missing.**
+- **Entire `projectile` package.** `Projectile`, `Point`, `Vector`,
+  `NewProjectile`, `Update`/`Position`/`Velocity`/`Acceleration`, `Gravity`
+  + `TerminalGravity` constants. ~150 LOC + a fixture test brings the port
+  to genuine 100%.
+
+**Top priority.** Add `Projectile.php` + `Point.php`/`Vector.php` + the two
+gravity constants + a `ProjectileTest` against Go reference values. One
+sitting.
+
+### Phase 3 — CandyCore runtime (`candy-core/`)
+
+**Done.** Options: `WithAltScreen`, `WithoutSignalHandler`, `WithFPS`,
+`WithReportFocus`, `WithBracketedPaste`, `WithInput`, `WithOutput`,
+`WithEnvironment`, `WithWindowSize`, `WithColorProfile`, `OpenTTY`,
+`InlineMode`, mouse modes via `MouseMode` enum. Cmds: `Quit`, `Batch`,
+`Tick`, `Raw`, `Println`, the terminal-query family
+(`RequestCursorPosition`/`RequestForegroundColor`/`RequestBackgroundColor`/
+`RequestCursorColor`/`RequestTerminalVersion`/`RequestMode`),
+`SetClipboard`/`ReadClipboard`, `SetWindowTitle`, `SetWorkingDirectory`,
+`SetProgressBar`, kitty-keyboard push/pop/request. Built-in Msgs:
+`KeyMsg`/`KeyPressMsg`/`KeyReleaseMsg`/`KeyRepeatMsg`,
+`MouseMsg`+`MouseClick`/`Release`/`Motion`/`Wheel` markers,
+`WindowSizeMsg`, `Focus`/`BlurMsg`, `Paste`/`PasteStart`/`PasteEndMsg`,
+`QuitMsg`, `EnvMsg`, `ColorProfileMsg`, `KeyboardEnhancementsMsg`,
+`CursorPositionMsg`, `TerminalVersionMsg`, `ModeReportMsg`,
+`Foreground`/`Background`/`CursorColorMsg`, `ClipboardMsg`, `BatchMsg`.
+`View` struct with body/cursor/windowTitle/progressBar/fg+bg colour/
+mouseMode/reportFocus/bracketedPaste.
+
+**Missing.**
+- **Suspend / Interrupt / Resume** Cmd + Msg + SIGTSTP/SIGCONT handler.
+  Required for any real-world app (Ctrl-Z to background editor). The
+  Program currently only catches SIGINT and SIGWINCH.
+- **`Exec` / `ExecProcess` + `ExecMsg`.** No `$EDITOR` integration. Several
+  Bubbles components (TextArea, List delegate actions) rely on this.
+  Implementation: `proc_open` with TTY save/restore around the child.
+- **`Sequence`.** Ordering between Cmds is sometimes load-bearing
+  (`Batch` runs concurrently; `Sequence` runs one-at-a-time, gating each
+  Msg dispatch on the previous Cmd completing).
+- **`Every`.** Wall-clock-aligned tick (vs. `Tick`'s independent clock).
+- **`Printf`.** Companion to `Println` — emit formatted text above the
+  program region.
+- **Stateful Cmd helpers.** `EnterAltScreen` / `ExitAltScreen` /
+  `ClearScreen` / `ShowCursor` / `HideCursor` /
+  `EnableMouseCellMotion`/`EnableMouseAllMotion`/`DisableMouse` /
+  `EnableReportFocus`/`DisableReportFocus` /
+  `EnableBracketedPaste`/`DisableBracketedPaste` /
+  `ScrollSync`/`ScrollUp`/`ScrollDown`. Some are reachable via `View`
+  (mouseMode/reportFocus/bracketedPaste/altScreen) but library users
+  expect Cmd factories.
+- **`SetForegroundColor`/`SetBackgroundColor` /
+  `ResetForegroundColor`/`ResetBackgroundColor`** Cmds (one-shot OSC
+  10/11 emission). The `View` field handles per-frame setting; these
+  cover the imperative path.
+- **Options:** `WithoutCatchPanics`, `WithFilter` (Msg pre-processor),
+  `WithContext` (cancellation handle), `WithoutRenderer` (headless).
+
+**Top priorities.**
+1. **Suspend/Interrupt/Resume + SIGTSTP/SIGCONT.** Biggest functional hole
+   for real-world apps.
+2. **`Exec`/`ExecProcess`.** Required by Bubbles components and any
+   `$EDITOR` workflow.
+3. **`Sequence` + `Every` + the stateful Cmd helpers.** Each is small but
+   collectively block sample programs from porting verbatim.
+
+### Phase 4 — CandyZone (`candy-zone/`)
+
+**Done.** `Manager::newGlobal()`, `mark()`, `scan()`, `get()`, `clear()`,
+`all()`. `Zone::inBounds()`, `pos()` (returns `[col, row]` 0-based),
+`width()`, `height()`. Multi-line zones, ANSI/CSI/OSC pass-through, wide
+CJK (2 cells), zero-width graphemes. APC marker scheme
+(`ESC _ candyzone:S/E:<id> ESC \`) — terminals ignore it cleanly. 14 tests
+including ANSI styling, CJK, ZWSP, dangling end-marker, rescan-replaces.
+
+**Missing.**
+- **`Manager::newPrefix()`** — composability blocker. Without it, two
+  CandyZone-aware components in one program can collide on id `"item-0"`.
+  Go uses an atomic counter to namespace zones across composed
+  components.
+- **`Manager::setEnabled(bool)`** — gates `mark()` / `scan()` to no-op in
+  non-interactive output. Trivial.
+- **`AnyInBounds` / `AnyInBoundsAndUpdate`** helper Cmds (minor).
+- **Custom marker prefix** (cosmetic).
+
+**Top priority.** `newPrefix()` + `setEnabled()` — both are <30 LOC and
+unblock proper composition in larger programs.
+
+### Phase 5 — SugarBits (`sugar-bits/`) — most affected by audit
+
+The 14 components are present as skeletons but the **consumer-visible polish
+surface is largely absent.** Real coverage is closer to **50-60%** of the Go
+public API by line-count. The headline gaps below are the ones that show
+up immediately when porting any Bubbles tutorial.
+
+**TextInput.**
+- Missing: autocomplete (`ShowSuggestions`/`SetSuggestions`/
+  `AvailableSuggestions`/`MatchedSuggestions`/`CurrentSuggestion`/
+  `CurrentSuggestionIndex`), validator + `Err` field, `SetCursor`/
+  `Position`/`CursorStart`/`CursorEnd`, `Paste()` Cmd helper, configurable
+  `KeyMap`, `Styles`/`SetStyles`.
+
+**TextArea.**
+- Missing: `ShowLineNumbers`, `MaxHeight`/`MaxWidth`, `EndOfBufferCharacter`,
+  `Prompt`, `LineInfo`, `Word`, `InsertString`/`InsertRune`,
+  `SetCursorColumn`, `KeyMap`, `Err`, soft-wrap.
+
+**ItemList (List).**
+- Missing: `NewStatusMessage` toast + `StatusMessageLifetime`, embedded
+  `Paginator`, dedicated `FilterInput` (PHP rolls its own raw string),
+  `ShowStatusBar`/`ShowPagination`/`ShowHelp`/`ShowFilter` toggles,
+  `AdditionalShortHelpKeys`/`AdditionalFullHelpKeys`, `InfiniteScrolling`,
+  `Styles` struct, `DefaultDelegate` rendering pattern, spinner
+  integration, custom `Filter` function. Description rendering hardcoded.
+
+**Spinner.**
+- Only 7 of 12 named styles. Missing: **Jump, Moon, Monkey, Hamburger,
+  Ellipsis**.
+
+**Progress.**
+- Missing: animated transitions (`SetPercent`/`IncrPercent`/`DecrPercent`
+  returning Cmds), `IsAnimating`, `SetSpringOptions`, gradient fill
+  (`WithGradient`/`WithSolidFill`/`WithDefaultGradient`/`WithScaledGradient`),
+  `PercentFormat`, `PercentageStyle`, `ViewAs`. Source even self-flags:
+  "Spring-physics interpolation … lands in a follow-up."
+
+**Table.**
+- Missing: `Column{Title, Width}` struct (PHP uses bare `list<string>` so
+  per-column widths can't be set), `Styles{Header, Cell, Selected}`,
+  `GotoTop`/`GotoBottom`/`MoveUp`/`MoveDown`, `KeyMap`, `HelpView`.
+
+**FilePicker.**
+- Missing: error messages, file-type icons, file-size column, sort
+  (name/size/modtime), `Styles`, `AllowedTypes`, `KeyMap`. Currently
+  hardcoded "directories first, alpha within group" + a single
+  `Ansi::REVERSE` highlight.
+
+**Viewport.**
+- Missing: mouse-wheel scroll handler, rendered scrollbar, `SetYOffset`,
+  `MouseWheelEnabled`, `KeyMap`, `Style`, soft-wrap, high-performance
+  rendering hooks. `gotoTop`/`gotoBottom`/`scrollPercent` present.
+
+**Paginator.**
+- Missing: `KeyMap`, `UsePgUpPgDownKeys`/`UseLeftRightKeys`,
+  `ItemsOnPage(totalItems)`, `SetTotalPages`.
+
+**Help / Cursor / Key / Timer / Stopwatch.**
+- Help: no `Width` truncation, no `ShowAll` toggle, no configurable
+  `Styles`. Cursor: no `Style`/`TextStyle` (only REVERSE highlight). Key:
+  lacks `SetKeys`/`SetHelp`/`Keys()` accessor; `KeyMap` is a 2-method
+  interface vs Go's richer pattern. Stopwatch: `StartStopMsg.php` exists
+  but `update()` doesn't dispatch on it.
+
+**Top priorities.**
+1. **List polish: status messages, status bar, configurable styles +
+   delegate.** ItemList is the most-used Bubbles component; without these
+   it's only half the original.
+2. **TextInput suggestions + validator.** Required by SugarPrompt's `Input`
+   and any login/search flow.
+3. **Progress animation + Spinner styles.** Two visible-on-screen polish
+   items the user notices first.
+4. **Table `Column` struct + `Styles`.** Required to render anything that
+   looks like the lipgloss table demo.
+
+### Phase 6 — SugarCharts (`sugar-charts/`)
+
+**Done.** `Canvas` (cell grid + Sprinkles styling), `Sparkline` (8-glyph
+sliding window), `BarChart` (vertical bars + labels + auto/manual range +
+gap auto-sizing), `LineChart` (single series + connectors), `Heatmap`
+(2D RGB lerp), `Scatter` (auto-ranged X/Y, no connectors). Six tests.
+
+**Missing.**
+- **Entire `canvas/graph` package.** `drawHLine` / `drawVLine` /
+  `drawXYAxis` / `drawXYAxisLabel` / `drawLine` / `drawBraille` /
+  `drawColumns` / `drawCandlestick` / `getLinePoints` / `getCirclePoints`.
+  Every other ntcharts chart leans on these. **Nothing else in this list
+  can be properly closed without these primitives.**
+- **Canvas API.** `setLines` / `setLinesWithStyle` / `setString` /
+  `setRunes`, `fill` / `fillLine`, `shiftUp`/`Down`/`Left`/`Right`,
+  `resize`, `cursor`, `setStyle` bulk apply.
+- **BarChart.** `setHorizontal` (the README example shows a `┤` axis the
+  code doesn't draw), `setShowAxis`, `setBarWidth`, `setBarGap`,
+  `Push`/`PushAll` streaming API, multi-value `BarData` (stacked/grouped
+  bars).
+- **LineChart.** X/Y axis rendering + labels, X/Y step config, named
+  datasets / multi-series, `viewRange` vs data-range, line-style enum
+  (thin/thick/double — Go `runes.LineStyle`), Braille high-resolution
+  drawing, `autoAdjustRange`. No `DrawXYAxisAndLabel()` equivalent.
+- **Heatmap.** Legend / scale bar, multi-stop named gradient palette
+  (`SetDefaultColorScale`), `Push(HeatPoint)` streaming, `SetXYRange`,
+  axis rendering.
+- **Sparkline.** `Style` / foreground colour (Go has `Style lipgloss.Style`),
+  `Push`/`PushAll` streaming, `setMax`, Braille variant, height>1
+  multi-row sparkline.
+- **Missing chart types.** `TimeSeries` LineChart, `Streamline` LineChart,
+  `Waveline` LineChart, `OHLC` / Candlestick. `Picture` (Sixel/Kitty)
+  remains explicitly deferred.
+
+**Top priorities.**
+1. **`Canvas\Graph`** — port the graph primitives. Unblocks every other
+   chart's axis rendering.
+2. **LineChart axes + multi-series.** Without axes, LineChart is half what
+   users expect.
+3. **BarChart `withHorizontal()` + `withShowAxis()`** — trivial scope, high
+   user-visible value.
+4. **TimeSeriesLineChart.** Most-requested ntcharts variant; small surface
+   once LineChart axes exist.
+
+### Phase 7 — SugarPrompt (`sugar-prompt/`)
+
+**Done.** All 7 huh field types: `Note` (skippable), `Input` (TextInput +
+validator), `Confirm` (custom labels), `Select` (ItemList wrap, filter),
+`MultiSelect` (checkbox grid + min/max), `Text` (TextArea wrap), `FilePicker`
+(wraps Bits FilePicker). `Form` container with Tab/Down/Up/Shift+Tab nav,
+Enter-submit, Esc/Ctrl-C abort, focus delegation, `Field::consumes(Msg)` for
+inner-key ownership, `init()` Cmd propagation, `values()` collector.
+
+**Missing.**
+- **`Group` class entirely.** No multi-page navigation, no per-group
+  titles/descriptions, no `Form::nextGroup()`/`prevGroup()`, no
+  `Group::withHide()`. `Form::new` takes flat `Field ...$fields`. This is
+  huh's headline composition primitive.
+- **`Theme` system entirely.** No `Theme` class, no Charm/Dracula/
+  Catppuccin/Base16/Base/ANSI presets, no `Form::withTheme()`. Rendering
+  uses ad-hoc inline `Ansi::sgr(Ansi::REVERSE)` calls.
+- **`withHideFunc(\Closure(): bool)`** runtime visibility predicate on
+  every field. `skippable()` is a static boolean (only `Note` returns
+  true), not a runtime predicate.
+- **`Form::withAccessible(bool)`** — no screen-reader fallback. huh
+  degrades to plain stdin/readline-style prompts when set.
+- **Standalone prompt `Spinner` runner.** No
+  `Prompt\Spinner::new()->title()->action(\Closure)->run()` (huh's
+  `huh.NewSpinner()` blocking helper). Bits `Spinner` exists but is
+  Cmd-driven only.
+- **Per-field option gaps.**
+  - `Input`: `withEchoMode` (password masking with `*`), `withSuggestions`.
+  - `Text`: `withEditor` (external `$EDITOR` shell-out — depends on
+    CandyCore `Exec`).
+  - `Select`/`MultiSelect`: `withValue`, `withTitleFunc`, `withOptionsFunc`,
+    `withFiltering` toggle (filter is always-on).
+  - `MultiSelect`: `withLimit` (combined cap), `withHeight`.
+- Validators currently only on `Input`/`Text`. No hooks on `Select`,
+  `Confirm`, `FilePicker`.
+
+**Top priorities.**
+1. **`Group` class + multi-page `Form`.** Biggest functional gap. Already
+   acknowledged as post-v1 in the per-library section.
+2. **`Theme` system.** `Prompt\Theme` with Style slots + factories
+   (`charm()`/`dracula()`/`catppuccin()`/`base16()`/`base()`/`ansi()`),
+   `Form::withTheme()`, per-field `theme()` accessor. Replace inline
+   Ansi calls.
+3. **`withHideFunc` + accessibility + Spinner runner.**
+
+### Phase 8 — CandyShell (`candy-shell/`)
+
+**Done.** Bin script + Symfony Console application + all 13 subcommands:
+`style`, `choose`, `input`, `confirm`, `join`, `log`, `table`, `filter`,
+`write`, `file`, `pager`, `spin`, `format`. Subcommand presence is 100%.
+
+**Missing — flag coverage averages 25-40% per command.** A `gum` script
+will not port verbatim. Per-command headline gaps:
+
+| Subcommand | Missing flags (most user-visible only) |
+|---|---|
+| **choose**   | `--limit`, `--no-limit`, `--ordered`, `--cursor`, `--header`, `--cursor-prefix`, `--selected-prefix`, `--unselected-prefix`, `--selected`, `--select-if-one`, `--input-delimiter`, `--output-delimiter`, `--label-delimiter`, `--strip-ansi`, `--timeout`, `--show-help`, `--padding` |
+| **confirm**  | `--show-output`, `--affirmative`, `--negative`, `--prompt`, `--timeout`, `--show-help`, `--padding` (+ surface mismatch: PHP uses `--default-yes`, gum uses `--default=yes/no`) |
+| **file**     | `-c/--cursor`, `-a/--all`, `-p/--permissions`, `-s/--size`, `--file`, `--directory`, `--header`, `--timeout`, `--show-help`, `--padding` |
+| **filter**   | `--indicator`, `--limit`, `--no-limit`, `--select-if-one`, `--selected`, `--strict`, `--selected-prefix`, `--unselected-prefix`, `--header`, `--placeholder`, `--prompt`, `--width`, `--value`, `--reverse`, `--fuzzy`, `--fuzzy-sort`, `--timeout`, `--input-delimiter`, `--output-delimiter`, `--strip-ansi`, `--show-help`, `--padding` |
+| **format**   | `--language/-l`, `--strip-ansi`, `--type/-t` (markdown/template/code/emoji), env-var support |
+| **input**    | `--prompt`, `--value`, `--char-limit`, `--width`, `--header`, `--cursor.mode`, `--timeout`, `--strip-ansi`, `--show-help`, `--padding` |
+| **join**     | `--align` (left/center/right/top/middle/bottom). Note: `--separator` is a candy-shell extension — gum has none. |
+| **log**      | `-o/--file`, `-f/--format` (printf), `--formatter` (json/logfmt/text), `--prefix`, `-s/--structured`, `-t/--time`, `--min-level` |
+| **pager**    | `--show-line-numbers`, `--line-number-foreground`, `--soft-wrap`, `--match-foreground`, `--match-bold`, `--match-highlight-foreground`, `--match-highlight-background`, `--match-highlight-bold`, `--timeout` |
+| **spin**     | `--show-output`, `--show-error`, `--show-stdout`, `--show-stderr`, `--align/-a`, `--timeout`, `--padding`. PHP names the flag `--style`, gum uses `--spinner/-s`. Missing styles: `jump`, `moon`, `monkey`, `hamburger`. |
+| **style**    | `--border`, `--border-foreground`, `--border-background`, `--height`, `--trim`, `--strip-ansi` |
+| **table**    | `-c/--columns`, `-w/--widths`, `--height`, `-p/--print`, `--hide-count`, `--lazy-quotes`, `--fields-per-record`, `-r/--return-column`, `--timeout`, `--padding`, `--show-help`. Semantic mismatch: gum's `--header` doesn't exist as a bool — it auto-uses `--columns`; PHP `--header` (bool) treats first row as header. |
+| **write**    | `--header`, `--prompt`, `--show-cursor-line`, `--show-line-numbers`, `--value`, `--char-limit`, `--max-lines`, `--cursor.mode`, `--timeout`, `--strip-ansi`, `--show-help`, `--padding` |
+
+**Globally absent** across every command: per-element style sub-flags
+(`--cursor.foreground`, `--header.bold`, `--match.background`,
+`--prompt.italic`, …), `--timeout`, `--show-help`, `--padding`,
+`--strip-ansi`, environment-variable defaults (`GUM_*`).
+
+**Top priorities.**
+1. **Multi-select on `choose`/`filter`** — `--limit`/`--no-limit`/
+   `--ordered`/`--selected`. Headline gum feature; scripts that read
+   multiple selections silently break (PHP returns one line).
+2. **`--header`/`--prompt`/`--value`** across input/write/filter/choose
+   — nearly universal in real gum scripts (`gum input --header "Email"
+   --value "$LAST"`).
+3. **Structured `log` output** — `--structured`/`--formatter`/`--prefix`/
+   `--time`/`--file`. Plus `spin --show-output`/`--show-error` for CI
+   scripts.
+4. **Per-element style sub-flags.** Big surface, but the most common ones
+   (`--header.foreground`, `--cursor.foreground`, `--prompt.foreground`)
+   are reachable via a small generic plumbing helper rather than 200
+   one-off options.
+
+### Phase 9 — CandyShine (`candy-shine/`)
+
+**Done.** AST walk via `league/commonmark` for: headings 1-6, paragraph,
+strong/em, inline code, fenced + indented code (with regex syntax
+highlighting for php / js / ts / json / python / go / bash / sql),
+blockquote (`▎`), bullet/ordered lists (with nested indent), GFM tables
+(rounded `Sprinkles\Table`), thematic break, links, **task lists**
+(`☑`/`☐`). `Theme` with 19 slots + `ansi()`/`plain()` factories +
+`fromJson` / `fromJsonString` (hex / `ansi:N` / `ansi256:N` colour, all
+SGR flags, partial overrides fall through to `Style::new()`).
+
+**Missing.**
+- **Word-wrap.** No `WithWordWrap(int $cols)`, no width tracking, no
+  `BlockPrefix`/`BlockSuffix`. Long paragraphs render unwrapped at
+  terminal width. Every glamour theme assumes wrap.
+- **Stock theme presets beyond `ansi`/`plain`.** Glamour ships `Dark`,
+  `Light`, `ASCII`/`Notty`, `Pink`, `Dracula`, `TokyoNight`, `Auto`. PHP
+  has only `ansi` + `plain`. `Notty` is special — glamour auto-selects it
+  when stdout isn't a TTY.
+- **OSC 8 hyperlinks.** `renderLink()` only emits styled text + ` (url)`.
+  No `\x1b]8;;URL\x1b\\` wrapping, no FNV-32 link IDs, no
+  terminal-capability gate. Depends on Phase 0 `Ansi::hyperlink()`.
+- **Strikethrough silently dropped.** `StrikethroughExtension` isn't even
+  loaded on the parser, so `~~foo~~` parses as plain text.
+- **Element selectors.** Missing `link_text` (separate from `link`),
+  `image`, `image_text`, `definition_list` / `definition_term` /
+  `definition_description`, `html_block`, `html_span`, `strikethrough`
+  (Style + AST handler), `text` (Pink theme has it), `auto_link`,
+  `emoji`, `code_block.theme`/`chroma` block. Glamour exposes 28 elements;
+  PHP exposes 15.
+- **AST coverage.** Strikethrough, definition lists, front-matter
+  (YAML/TOML), autolinks-as-distinct, footnotes, emoji shortcodes — none
+  handled. The default branch silently calls `renderChildren()`.
+- **Public API.** No `WithEnvironmentConfig` / `GLAMOUR_STYLE` env-var,
+  no `ChromaConfig`, no `WithStyles($json)` on the renderer, no
+  `WithStandardStyle('dark')` selector.
+
+**Top priorities.**
+1. **Word-wrap.** Wrap paragraph/blockquote/list bodies on `WithWordWrap`.
+2. **Stock theme presets.** Ship `dark()` / `light()` / `notty()` at
+   minimum (notty auto-selects on non-TTY) — ideally `dracula()` /
+   `tokyoNight()` / `pink()` too.
+3. **OSC 8 hyperlinks + strikethrough + missing element slots.**
+   Strikethrough is a one-liner (load extension, add Theme slot, add
+   handler). OSC 8 is one helper. Element slots are ~10 readonly Style
+   properties.
+
+---
+
+## Cross-cutting follow-ups surfaced by the audit
+
+These don't belong to any single phase; they showed up across multiple.
+
+- **Input parser as a shared lib (`Util\Parser`).** CandyCore's
+  `InputReader` rolls its own parsing; CandyShine and any future pager
+  need OSC reply parsing. Promote to a single tokeniser in
+  `candy-core/src/Util/Parser.php` and have everyone consume it.
+- **`Util\Width::wrap()` and `Util\Width::pad()`** are needed by
+  CandyShine (word-wrap), every SugarBits text component (soft-wrap),
+  and CandySprinkles (`MaxWidth`).
+- **OSC 8 hyperlinks** are needed by CandyShine *and* any SugarBits log
+  / list / textarea that ought to render clickable URLs.
+- **`Exec`/`ExecProcess` in CandyCore** is the foundation that
+  `SugarPrompt::withEditor` and several SugarBits actions depend on.
+  Schedule before SugarPrompt theming.
+- **Theme abstraction.** Both CandyShine and SugarPrompt want a Theme
+  system; CandyShell wants per-element style overrides. Worth
+  considering a single `CandyCore\Theme` value object with named
+  Style slots that all three consume, instead of three independent
+  parallel implementations.
 
 ---
 
