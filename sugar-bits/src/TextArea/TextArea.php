@@ -1,0 +1,374 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Bits\TextArea;
+
+use CandyCore\Bits\Cursor\BlinkMsg;
+use CandyCore\Bits\Cursor\Cursor;
+use CandyCore\Core\KeyType;
+use CandyCore\Core\Model;
+use CandyCore\Core\Msg;
+use CandyCore\Core\Msg\KeyMsg;
+
+/**
+ * Multi-line text input. Holds a list of lines and a (row, col) cursor.
+ * Enter splits the current line; Backspace at the start of a line merges
+ * with the previous one. All edits are multibyte-safe (`mb_substr` /
+ * `mb_strlen`), so wide characters (`日本`) navigate as single graphemes.
+ *
+ * Column / row navigation: ←→↑↓, Home/End (line), Ctrl+Home / Ctrl+End
+ * (document), Ctrl+A / Ctrl+E (line), Ctrl+U (delete to start of line),
+ * Ctrl+K (delete to end of line). Tab inserts four spaces.
+ *
+ * Embeds a {@see Cursor} for the visual caret. The parent Model decides
+ * what to do with `Enter` when no insertion is desired (this component
+ * always inserts a newline on Enter).
+ */
+final class TextArea implements Model
+{
+    /** @param list<string> $lines */
+    private function __construct(
+        public readonly array $lines,
+        public readonly int $row,
+        public readonly int $col,
+        public readonly string $placeholder,
+        public readonly int $charLimit,
+        public readonly int $width,
+        public readonly int $height,
+        public readonly bool $focused,
+        public readonly Cursor $cursor,
+        public readonly int $rowOffset,
+    ) {}
+
+    public static function new(): self
+    {
+        return new self(
+            lines: [''],
+            row: 0,
+            col: 0,
+            placeholder: '',
+            charLimit: 0,
+            width: 0,
+            height: 0,
+            focused: false,
+            cursor: Cursor::new(),
+            rowOffset: 0,
+        );
+    }
+
+    public function init(): ?\Closure
+    {
+        return null;
+    }
+
+    /**
+     * @return array{0:Model, 1:?\Closure}
+     */
+    public function update(Msg $msg): array
+    {
+        if ($msg instanceof BlinkMsg) {
+            [$cursor, $cmd] = $this->cursor->update($msg);
+            return [$this->mutate(cursor: $cursor), $cmd];
+        }
+        if (!$msg instanceof KeyMsg || !$this->focused) {
+            return [$this, null];
+        }
+
+        if ($msg->ctrl) {
+            return match ($msg->rune) {
+                'a'     => [$this->moveCursor($this->row, 0), null],
+                'e'     => [$this->moveCursor($this->row, $this->lineLen($this->row)), null],
+                'u'     => [$this->deleteToLineStart(), null],
+                'k'     => [$this->deleteToLineEnd(), null],
+                default => [$this, null],
+            };
+        }
+
+        return match ($msg->type) {
+            KeyType::Up        => [$this->moveCursor($this->row - 1, $this->col), null],
+            KeyType::Down      => [$this->moveCursor($this->row + 1, $this->col), null],
+            KeyType::Left      => [$this->moveLeft(), null],
+            KeyType::Right     => [$this->moveRight(), null],
+            KeyType::Home      => [$this->moveCursor($this->row, 0), null],
+            KeyType::End       => [$this->moveCursor($this->row, $this->lineLen($this->row)), null],
+            KeyType::Backspace => [$this->backspace(), null],
+            KeyType::Delete    => [$this->deleteForward(), null],
+            KeyType::Enter     => [$this->insertNewline(), null],
+            KeyType::Tab       => [$this->insert('    '), null],
+            KeyType::Space     => [$this->insert(' '), null],
+            KeyType::Char      => [$this->insert($msg->rune), null],
+            default            => [$this, null],
+        };
+    }
+
+    public function view(): string
+    {
+        // Empty + unfocused with placeholder.
+        if ($this->totalLength() === 0 && !$this->focused && $this->placeholder !== '') {
+            return $this->placeholder;
+        }
+
+        // Slice rows by height (height = 0 means show all).
+        $start = max(0, $this->rowOffset);
+        $rows  = $this->height > 0
+            ? array_slice($this->lines, $start, $this->height)
+            : $this->lines;
+
+        if (!$this->focused) {
+            return implode("\n", $rows);
+        }
+
+        // Render with the embedded cursor at (row, col).
+        $relRow = $this->row - $start;
+        $out = [];
+        foreach ($rows as $i => $line) {
+            if ($i !== $relRow) {
+                $out[] = $line;
+                continue;
+            }
+            $out[] = $this->renderCursorLine($line);
+        }
+        return implode("\n", $out);
+    }
+
+    // ---- focus + setters --------------------------------------------
+
+    /**
+     * @return array{0:self, 1:?\Closure}
+     */
+    public function focus(): array
+    {
+        [$cursor, $cmd] = $this->cursor->focus();
+        return [$this->mutate(cursor: $cursor, focused: true), $cmd];
+    }
+
+    public function blur(): self
+    {
+        return $this->mutate(cursor: $this->cursor->blur(), focused: false);
+    }
+
+    public function setValue(string $v): self
+    {
+        $lines = $v === '' ? [''] : explode("\n", $v);
+        if ($this->charLimit > 0) {
+            $remaining = $this->charLimit;
+            $clamped   = [];
+            foreach ($lines as $line) {
+                $len = mb_strlen($line, 'UTF-8');
+                if ($len <= $remaining) {
+                    $clamped[]  = $line;
+                    $remaining -= $len;
+                    continue;
+                }
+                $clamped[] = mb_substr($line, 0, $remaining, 'UTF-8');
+                $remaining = 0;
+                break;
+            }
+            $lines = $clamped === [] ? [''] : $clamped;
+        }
+        $lastRow = count($lines) - 1;
+        return $this->mutate(
+            lines: $lines,
+            row: $lastRow,
+            col: mb_strlen($lines[$lastRow], 'UTF-8'),
+        );
+    }
+
+    public function value(): string
+    {
+        return implode("\n", $this->lines);
+    }
+
+    public function reset(): self
+    {
+        return $this->mutate(lines: [''], row: 0, col: 0, rowOffset: 0);
+    }
+
+    public function withPlaceholder(string $p): self { return $this->mutate(placeholder: $p); }
+    public function withCharLimit(int $n): self      { return $this->mutate(charLimit: max(0, $n)); }
+    public function withWidth(int $w): self          { return $this->mutate(width: max(0, $w)); }
+    public function withHeight(int $h): self         { return $this->mutate(height: max(0, $h)); }
+
+    public function lineCount(): int { return count($this->lines); }
+
+    // ---- editing primitives -----------------------------------------
+
+    private function insert(string $rune): self
+    {
+        if ($this->charLimit > 0 && $this->totalLength() >= $this->charLimit) {
+            return $this;
+        }
+        $line   = $this->lines[$this->row];
+        $before = mb_substr($line, 0, $this->col, 'UTF-8');
+        $after  = mb_substr($line, $this->col, null, 'UTF-8');
+        $newLines           = $this->lines;
+        $newLines[$this->row] = $before . $rune . $after;
+        return $this->mutate(
+            lines: $newLines,
+            col: $this->col + mb_strlen($rune, 'UTF-8'),
+        );
+    }
+
+    private function insertNewline(): self
+    {
+        if ($this->charLimit > 0 && $this->totalLength() >= $this->charLimit) {
+            return $this;
+        }
+        $line   = $this->lines[$this->row];
+        $before = mb_substr($line, 0, $this->col, 'UTF-8');
+        $after  = mb_substr($line, $this->col, null, 'UTF-8');
+
+        $newLines = $this->lines;
+        array_splice($newLines, $this->row, 1, [$before, $after]);
+
+        return $this->mutate(lines: $newLines, row: $this->row + 1, col: 0);
+    }
+
+    private function backspace(): self
+    {
+        if ($this->col > 0) {
+            $line   = $this->lines[$this->row];
+            $before = mb_substr($line, 0, $this->col - 1, 'UTF-8');
+            $after  = mb_substr($line, $this->col, null, 'UTF-8');
+            $newLines           = $this->lines;
+            $newLines[$this->row] = $before . $after;
+            return $this->mutate(lines: $newLines, col: $this->col - 1);
+        }
+        if ($this->row === 0) {
+            return $this;
+        }
+        // Merge with previous line.
+        $prev   = $this->lines[$this->row - 1];
+        $newCol = mb_strlen($prev, 'UTF-8');
+        $merged = $prev . $this->lines[$this->row];
+        $newLines = $this->lines;
+        $newLines[$this->row - 1] = $merged;
+        array_splice($newLines, $this->row, 1);
+        return $this->mutate(lines: $newLines, row: $this->row - 1, col: $newCol);
+    }
+
+    private function deleteForward(): self
+    {
+        $line = $this->lines[$this->row];
+        $len  = mb_strlen($line, 'UTF-8');
+        if ($this->col < $len) {
+            $before = mb_substr($line, 0, $this->col, 'UTF-8');
+            $after  = mb_substr($line, $this->col + 1, null, 'UTF-8');
+            $newLines = $this->lines;
+            $newLines[$this->row] = $before . $after;
+            return $this->mutate(lines: $newLines);
+        }
+        if ($this->row >= count($this->lines) - 1) {
+            return $this;
+        }
+        // Merge next line into this one.
+        $merged = $line . $this->lines[$this->row + 1];
+        $newLines = $this->lines;
+        $newLines[$this->row] = $merged;
+        array_splice($newLines, $this->row + 1, 1);
+        return $this->mutate(lines: $newLines);
+    }
+
+    private function deleteToLineStart(): self
+    {
+        $line   = $this->lines[$this->row];
+        $after  = mb_substr($line, $this->col, null, 'UTF-8');
+        $newLines = $this->lines;
+        $newLines[$this->row] = $after;
+        return $this->mutate(lines: $newLines, col: 0);
+    }
+
+    private function deleteToLineEnd(): self
+    {
+        $line   = $this->lines[$this->row];
+        $before = mb_substr($line, 0, $this->col, 'UTF-8');
+        $newLines = $this->lines;
+        $newLines[$this->row] = $before;
+        return $this->mutate(lines: $newLines);
+    }
+
+    private function moveLeft(): self
+    {
+        if ($this->col > 0) {
+            return $this->mutate(col: $this->col - 1);
+        }
+        if ($this->row > 0) {
+            $prevLen = $this->lineLen($this->row - 1);
+            return $this->mutate(row: $this->row - 1, col: $prevLen);
+        }
+        return $this;
+    }
+
+    private function moveRight(): self
+    {
+        $lineLen = $this->lineLen($this->row);
+        if ($this->col < $lineLen) {
+            return $this->mutate(col: $this->col + 1);
+        }
+        if ($this->row < count($this->lines) - 1) {
+            return $this->mutate(row: $this->row + 1, col: 0);
+        }
+        return $this;
+    }
+
+    private function moveCursor(int $row, int $col): self
+    {
+        $row = max(0, min(count($this->lines) - 1, $row));
+        $col = max(0, min($this->lineLen($row), $col));
+        return $this->mutate(row: $row, col: $col);
+    }
+
+    private function lineLen(int $row): int
+    {
+        return mb_strlen($this->lines[$row] ?? '', 'UTF-8');
+    }
+
+    private function totalLength(): int
+    {
+        $sum = 0;
+        foreach ($this->lines as $l) {
+            $sum += mb_strlen($l, 'UTF-8');
+        }
+        $sum += max(0, count($this->lines) - 1); // newlines
+        return $sum;
+    }
+
+    private function renderCursorLine(string $line): string
+    {
+        $lineLen = mb_strlen($line, 'UTF-8');
+        $before  = mb_substr($line, 0, $this->col, 'UTF-8');
+        $charAt  = $this->col < $lineLen ? mb_substr($line, $this->col, 1, 'UTF-8') : ' ';
+        $after   = $this->col < $lineLen ? mb_substr($line, $this->col + 1, null, 'UTF-8') : '';
+        return $before . $this->cursor->setChar($charAt)->view() . $after;
+    }
+
+    /**
+     * @param list<string>|null $lines
+     */
+    private function mutate(
+        ?array $lines = null,
+        ?int $row = null,
+        ?int $col = null,
+        ?string $placeholder = null,
+        ?int $charLimit = null,
+        ?int $width = null,
+        ?int $height = null,
+        ?bool $focused = null,
+        ?Cursor $cursor = null,
+        ?int $rowOffset = null,
+    ): self {
+        return new self(
+            lines:       $lines       ?? $this->lines,
+            row:         $row         ?? $this->row,
+            col:         $col         ?? $this->col,
+            placeholder: $placeholder ?? $this->placeholder,
+            charLimit:   $charLimit   ?? $this->charLimit,
+            width:       $width       ?? $this->width,
+            height:      $height      ?? $this->height,
+            focused:     $focused     ?? $this->focused,
+            cursor:      $cursor      ?? $this->cursor,
+            rowOffset:   $rowOffset   ?? $this->rowOffset,
+        );
+    }
+}
