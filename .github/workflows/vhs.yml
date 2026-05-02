@@ -17,10 +17,13 @@ on:
       - '.github/workflows/vhs.yml'
   workflow_dispatch:
 
-# Don't pile on concurrent renders — let the latest push win.
+# Queue concurrent renders rather than cancelling them. Each push
+# may target a different lib; cancelling the in-flight render to
+# start a new one would discard rendered-but-not-yet-committed
+# GIFs. Slower but no lost work.
 concurrency:
   group: vhs-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   # Decide which libs need re-rendering. VHS encoding is
