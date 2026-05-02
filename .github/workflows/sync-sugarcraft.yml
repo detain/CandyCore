@@ -7,6 +7,11 @@ name: Sync to sugarcraft org
 # Auth: SUGARCRAFT_SYNC_TOKEN secret — a PAT with `repo` scope on
 # the sugarcraft org. Without it, all push steps will 403.
 
+env:
+  # Silence the Node.js 20 deprecation warning on actions/checkout
+  # until that action ships a Node 24 release.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 on:
   push:
     branches: [master]
