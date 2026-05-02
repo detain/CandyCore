@@ -43,4 +43,13 @@ interface Field
 
     /** Notes / separators / hidden fields skip Tab navigation. */
     public function skippable(): bool;
+
+    /**
+     * True if the field is in a state where the given Msg has internal
+     * meaning that should override Form-level handling. The Form checks
+     * this for keys it would otherwise capture (Enter / Escape) so that
+     * inner widgets can consume them — e.g. an `ItemList` in filter mode
+     * uses Enter to leave filter mode and Escape to clear it.
+     */
+    public function consumes(Msg $msg): bool;
 }

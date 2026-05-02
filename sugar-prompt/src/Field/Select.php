@@ -6,7 +6,9 @@ namespace CandyCore\Prompt\Field;
 
 use CandyCore\Bits\ItemList\ItemList;
 use CandyCore\Bits\ItemList\StringItem;
+use CandyCore\Core\KeyType;
 use CandyCore\Core\Msg;
+use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Prompt\Field;
 
 /**
@@ -75,6 +77,19 @@ final class Select implements Field
     public function getDescription(): string  { return $this->description; }
     public function getError(): ?string       { return null; }
     public function skippable(): bool         { return false; }
+
+    /**
+     * In filter mode the inner ItemList uses Enter to leave the filter
+     * and Escape to clear it; both must be consumed locally so the Form
+     * doesn't advance/abort while the user is filtering.
+     */
+    public function consumes(Msg $msg): bool
+    {
+        if (!$this->list->isFiltering() || !$msg instanceof KeyMsg) {
+            return false;
+        }
+        return $msg->type === KeyType::Enter || $msg->type === KeyType::Escape;
+    }
 
     private function mutate(?ItemList $list = null, ?string $title = null, ?string $description = null): self
     {

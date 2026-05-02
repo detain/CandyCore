@@ -11,6 +11,7 @@ use CandyCore\Prompt\Field\Input;
 use CandyCore\Prompt\Field\Note;
 use CandyCore\Prompt\Field\Select;
 use CandyCore\Prompt\Form;
+use CandyCore\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class FormTest extends TestCase
@@ -137,5 +138,61 @@ final class FormTest extends TestCase
             if ($f->isFocused()) $focusedCount++;
         }
         $this->assertSame(1, $focusedCount);
+    }
+
+    public function testInitReturnsFirstFieldFocusCmd(): void
+    {
+        $form = Form::new(
+            Note::new('intro'),     // skippable
+            Input::new('name'),     // first interactive field
+        );
+        $cmd = $form->init();
+        $this->assertNotNull($cmd, 'Form::init() must propagate the first focused field\'s Cmd so the cursor blink starts immediately');
+        $this->assertInstanceOf(TickRequest::class, $cmd());
+    }
+
+    public function testInitIsNullWhenNoInteractiveFields(): void
+    {
+        $form = Form::new(Note::new('only'));
+        $this->assertNull($form->init());
+    }
+
+    public function testEnterInsideSelectFilterDoesNotAdvanceForm(): void
+    {
+        $form = Form::new(
+            Select::new('lang')->withOptions('PHP', 'Go', 'Rust'),
+            Input::new('name'),
+        );
+        $this->assertSame(0, $form->focusedIndex);
+
+        // Enter filter mode and type something inside Select.
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, '/'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, 'g'));
+
+        // Pre-condition: Select's wrapped ItemList is in filter mode.
+        $this->assertTrue($form->fields[0]->consumes(new KeyMsg(KeyType::Enter)));
+
+        // Enter should be consumed by Select (leaves filter mode), not by
+        // the Form (which would otherwise advance focus).
+        [$form, ] = $form->update(new KeyMsg(KeyType::Enter));
+        $this->assertSame(0, $form->focusedIndex);
+        $this->assertFalse($form->isSubmitted());
+    }
+
+    public function testEscInsideSelectFilterDoesNotAbortForm(): void
+    {
+        $form = Form::new(Select::new('lang')->withOptions('PHP', 'Go'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, '/'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Char, 'g'));
+
+        [$form, ] = $form->update(new KeyMsg(KeyType::Escape));
+        $this->assertFalse($form->isAborted());
+    }
+
+    public function testEscOutsideFilterStillAborts(): void
+    {
+        $form = Form::new(Select::new('lang')->withOptions('PHP', 'Go'));
+        [$form, ] = $form->update(new KeyMsg(KeyType::Escape));
+        $this->assertTrue($form->isAborted());
     }
 }

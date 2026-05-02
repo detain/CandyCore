@@ -84,6 +84,7 @@ final class Confirm implements Field
     public function getDescription(): string  { return $this->description; }
     public function getError(): ?string       { return null; }
     public function skippable(): bool         { return false; }
+    public function consumes(Msg $msg): bool  { return false; }
 
     private function mutate(
         ?bool $value = null,
