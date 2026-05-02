@@ -29,27 +29,31 @@ final class Form implements Model
         public readonly int $focusedIndex,
         public readonly bool $submitted,
         public readonly bool $aborted,
+        private readonly ?\Closure $initCmd = null,
     ) {}
 
     public static function new(Field ...$fields): self
     {
-        $list  = array_values($fields);
-        $first = self::firstNonSkippable($list, 0, +1);
+        $list    = array_values($fields);
+        $first   = self::firstNonSkippable($list, 0, +1);
+        $initCmd = null;
         if ($first !== null) {
-            [$focused, $_] = $list[$first]->focus();
+            [$focused, $cmd] = $list[$first]->focus();
             $list[$first] = $focused;
+            $initCmd      = $cmd;
         }
         return new self(
             fields:       $list,
             focusedIndex: $first ?? 0,
             submitted:    false,
             aborted:      false,
+            initCmd:      $initCmd,
         );
     }
 
     public function init(): ?\Closure
     {
-        return null;
+        return $this->initCmd;
     }
 
     /**
@@ -59,6 +63,16 @@ final class Form implements Model
     {
         if ($this->submitted || $this->aborted) {
             return [$this, null];
+        }
+
+        $idx           = $this->focusedIndex;
+        $focusedField  = $this->fields[$idx] ?? null;
+
+        // Let the focused field eat keys it claims to consume (e.g. Select
+        // in filter mode wants Enter / Escape) before applying form-level
+        // navigation, submit, or abort.
+        if ($focusedField !== null && $focusedField->consumes($msg)) {
+            return $this->forward($msg);
         }
 
         if ($msg instanceof KeyMsg) {
@@ -95,15 +109,7 @@ final class Form implements Model
             }
         }
 
-        // Forward to the focused field.
-        $idx = $this->focusedIndex;
-        if (!isset($this->fields[$idx])) {
-            return [$this, null];
-        }
-        [$updated, $cmd] = $this->fields[$idx]->update($msg);
-        $newFields = $this->fields;
-        $newFields[$idx] = $updated;
-        return [$this->mutate(fields: $newFields), $cmd];
+        return $this->forward($msg);
     }
 
     public function view(): string
@@ -140,6 +146,23 @@ final class Form implements Model
     public function focusedField(): ?Field
     {
         return $this->fields[$this->focusedIndex] ?? null;
+    }
+
+    /**
+     * Forward a Msg to the focused field and return the resulting Form.
+     *
+     * @return array{0:self, 1:?\Closure}
+     */
+    private function forward(Msg $msg): array
+    {
+        $idx = $this->focusedIndex;
+        if (!isset($this->fields[$idx])) {
+            return [$this, null];
+        }
+        [$updated, $cmd] = $this->fields[$idx]->update($msg);
+        $newFields = $this->fields;
+        $newFields[$idx] = $updated;
+        return [$this->mutate(fields: $newFields), $cmd];
     }
 
     /**
@@ -181,11 +204,14 @@ final class Form implements Model
         ?bool $submitted = null,
         ?bool $aborted = null,
     ): self {
+        // initCmd is one-shot — it only applies to the first init() call,
+        // so it does not propagate through subsequent mutations.
         return new self(
             fields:       $fields       ?? $this->fields,
             focusedIndex: $focusedIndex ?? $this->focusedIndex,
             submitted:    $submitted    ?? $this->submitted,
             aborted:      $aborted      ?? $this->aborted,
+            initCmd:      null,
         );
     }
 }
