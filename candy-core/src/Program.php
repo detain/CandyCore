@@ -43,6 +43,9 @@ final class Program
     private bool $running = false;
     /** @var list<Msg> */
     private array $pending = [];
+    private ?string $lastWindowTitle = null;
+    private ?Cursor $lastCursor = null;
+    private bool $lastCursorHidden = false;
 
     public function __construct(
         Model $initialModel,
@@ -120,7 +123,7 @@ final class Program
                 pcntl_signal_dispatch();
             }
             if ($this->dirty) {
-                $this->renderer->render($this->model->view());
+                $this->renderFrame();
                 $this->dirty = false;
             }
         });
@@ -293,6 +296,58 @@ final class Program
         if ($this->options->useAltScreen) {
             fwrite($this->output, Ansi::altScreenLeave());
         }
+    }
+
+    /**
+     * Render one frame. If the model returned a {@see View}, emit
+     * any side-effect escapes (window title, cursor shape) that
+     * differ from the previously-emitted set, then paint the body.
+     */
+    private function renderFrame(): void
+    {
+        $rendered = $this->model->view();
+        if ($rendered instanceof View) {
+            $this->applyViewSideEffects($rendered);
+            $body = $rendered->body;
+        } else {
+            $body = $rendered;
+        }
+        $this->renderer->render($body);
+    }
+
+    private function applyViewSideEffects(View $view): void
+    {
+        if ($view->windowTitle !== null && $view->windowTitle !== $this->lastWindowTitle) {
+            fwrite($this->output, Ansi::setWindowTitle($view->windowTitle));
+            $this->lastWindowTitle = $view->windowTitle;
+        }
+
+        if ($view->cursor === null) {
+            // null cursor → hide.
+            if (!$this->lastCursorHidden) {
+                fwrite($this->output, Ansi::cursorHide());
+                $this->lastCursorHidden = true;
+            }
+            return;
+        }
+
+        // Show cursor if it was hidden.
+        if ($this->lastCursorHidden) {
+            fwrite($this->output, Ansi::cursorShow());
+            $this->lastCursorHidden = false;
+        }
+
+        $cur  = $view->cursor;
+        $prev = $this->lastCursor;
+        if ($prev === null
+            || $prev->shape !== $cur->shape
+            || $prev->blink !== $cur->blink) {
+            fwrite($this->output, Ansi::cursorShape($cur->shape, $cur->blink));
+        }
+        if ($cur->row !== null && $cur->col !== null) {
+            fwrite($this->output, Ansi::cursorTo($cur->row, $cur->col));
+        }
+        $this->lastCursor = $cur;
     }
 
     /**

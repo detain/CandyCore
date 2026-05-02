@@ -89,6 +89,22 @@ final class Ansi
     }
     public static function cursorHide(): string { return self::CSI . '?25l'; }
     public static function cursorShow(): string { return self::CSI . '?25h'; }
+
+    /**
+     * Emit DECSCUSR to set the cursor shape (block / underline /
+     * bar). Each shape has a steady and blinking variant; pass
+     * `$blink: true` for the blinking version. Pass shape `null`
+     * (`CSI 0 q`) to restore the terminal default.
+     */
+    public static function cursorShape(?\CandyCore\Core\CursorShape $shape, bool $blink = false): string
+    {
+        if ($shape === null) {
+            return self::CSI . '0 q';
+        }
+        // The DECSCUSR codes are paired: even = steady, odd = blink.
+        $code = $blink ? $shape->value - 1 : $shape->value;
+        return self::CSI . $code . ' q';
+    }
     public static function cursorSave(): string    { return self::ESC . '7'; }
     public static function cursorRestore(): string { return self::ESC . '8'; }
 

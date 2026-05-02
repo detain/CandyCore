@@ -12,11 +12,14 @@ use CandyCore\Core\Msg\EnvMsg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Msg\QuitMsg;
 use CandyCore\Core\Msg\WindowSizeMsg;
+use CandyCore\Core\Cursor;
+use CandyCore\Core\CursorShape;
 use CandyCore\Core\PrintMsg;
 use CandyCore\Core\Program;
 use CandyCore\Core\ProgramOptions;
 use CandyCore\Core\RawMsg;
 use CandyCore\Core\Util\Ansi;
+use CandyCore\Core\View;
 use PHPUnit\Framework\TestCase;
 use React\EventLoop\StreamSelectLoop;
 
@@ -331,6 +334,86 @@ final class ProgramTest extends TestCase
         $msg = $final->log[2];
         $this->assertInstanceOf(ColorProfileMsg::class, $msg);
         $this->assertInstanceOf(\CandyCore\Core\Util\ColorProfile::class, $msg->profile);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testViewStructEmitsTitleAndCursorEscapes(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $view = new View(
+            body: 'hello',
+            cursor: new Cursor(row: 5, col: 7, shape: CursorShape::Bar, blink: true),
+            windowTitle: 'demo',
+        );
+        $model = new class($view) implements \CandyCore\Core\Model {
+            public function __construct(private readonly View $v) {}
+            public function init(): ?\Closure { return null; }
+            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function view(): View { return $this->v; }
+        };
+
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: false,
+            hideCursor: false,
+            framerate: 240.0,
+            input: $in,
+            output: $out,
+            loop: $loop,
+        );
+        $program = new Program($model, $opts);
+        $loop->addTimer(0.05, static fn() => $program->quit());
+        $loop->addTimer(2.0,  static fn() => $loop->stop());
+        $program->run();
+
+        rewind($out);
+        $written = (string) stream_get_contents($out);
+        $this->assertStringContainsString(Ansi::setWindowTitle('demo'), $written);
+        // Bar shape, blinking: DECSCUSR code 5 ("CSI 5 q").
+        $this->assertStringContainsString("\x1b[5 q", $written);
+        $this->assertStringContainsString(Ansi::cursorTo(5, 7), $written);
+        $this->assertStringContainsString('hello', $written);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testViewWithNullCursorHides(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $view = new View(body: 'x', cursor: null);
+        $model = new class($view) implements \CandyCore\Core\Model {
+            public function __construct(private readonly View $v) {}
+            public function init(): ?\Closure { return null; }
+            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function view(): View { return $this->v; }
+        };
+
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: false,
+            hideCursor: false, // Don't pre-hide so we can observe the View doing it.
+            framerate: 240.0,
+            input: $in,
+            output: $out,
+            loop: $loop,
+        );
+        $program = new Program($model, $opts);
+        $loop->addTimer(0.05, static fn() => $program->quit());
+        $loop->addTimer(2.0,  static fn() => $loop->stop());
+        $program->run();
+
+        rewind($out);
+        $written = (string) stream_get_contents($out);
+        $this->assertStringContainsString(Ansi::cursorHide(), $written);
 
         fclose($writer);
         fclose($in);

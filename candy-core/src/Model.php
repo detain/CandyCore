@@ -33,5 +33,13 @@ interface Model
      */
     public function update(Msg $msg): array;
 
-    public function view(): string;
+    /**
+     * Render the model. Return a plain `string` for the common case,
+     * or a {@see View} when you need per-frame control over cursor
+     * shape / position, window title, etc. — matches Bubble Tea v2's
+     * `tea.View` struct.
+     *
+     * @return string|View
+     */
+    public function view(): string|View;
 }
