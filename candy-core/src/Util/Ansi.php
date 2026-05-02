@@ -220,6 +220,33 @@ final class Ansi
     }
 
     /**
+     * Tell the terminal what the shell's current working directory is
+     * via OSC 7. Used by iTerm2 / Terminal.app / WezTerm for "new tab
+     * with same cwd" and split-pane clone semantics. `$host` is
+     * optional and defaults to the local hostname (or empty if it
+     * can't be determined).
+     */
+    public static function setWorkingDirectory(string $path, string $host = ''): string
+    {
+        if ($host === '') {
+            $host = gethostname() ?: '';
+        }
+        $encoded = str_replace('%2F', '/', rawurlencode($path));
+        return self::OSC . '7;file://' . $host . $encoded . self::BEL;
+    }
+
+    /**
+     * Set the terminal's taskbar-progress indicator (OSC 9;4 — the
+     * ConEmu / WezTerm / Windows-Terminal protocol). `$percent` is
+     * only meaningful for the Normal / Error / Warning states.
+     */
+    public static function setProgressBar(\CandyCore\Core\ProgressBarState $state, int $percent = 0): string
+    {
+        $percent = max(0, min(100, $percent));
+        return self::OSC . '9;4;' . $state->value . ';' . $percent . self::BEL;
+    }
+
+    /**
      * Strip every ANSI escape sequence from the input.
      *
      * Handles CSI (ESC[...), OSC (ESC]...ST|BEL), single-char ESC sequences,

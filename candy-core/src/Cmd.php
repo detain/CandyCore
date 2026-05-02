@@ -172,5 +172,26 @@ final class Cmd
         return static fn(): Msg => new RawMsg(Ansi::setWindowTitle($title, $icon));
     }
 
+    /**
+     * Tell the terminal the shell's current working directory via
+     * OSC 7. Used by iTerm2 / Terminal.app / WezTerm for new-tab and
+     * split-pane "same cwd" semantics.
+     */
+    public static function setWorkingDirectory(string $path, string $host = ''): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::setWorkingDirectory($path, $host));
+    }
+
+    /**
+     * Set the terminal's taskbar-progress indicator (OSC 9;4). Pass
+     * {@see ProgressBarState::Remove} to clear it. `$percent` is
+     * clamped to 0-100 and only meaningful for Normal / Error /
+     * Warning states.
+     */
+    public static function setProgressBar(ProgressBarState $state, int $percent = 0): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::setProgressBar($state, $percent));
+    }
+
     private function __construct() {}
 }

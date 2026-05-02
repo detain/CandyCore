@@ -9,6 +9,7 @@ use CandyCore\Core\Cmd;
 use CandyCore\Core\Msg;
 use CandyCore\Core\Msg\QuitMsg;
 use CandyCore\Core\PrintMsg;
+use CandyCore\Core\ProgressBarState;
 use CandyCore\Core\RawMsg;
 use PHPUnit\Framework\TestCase;
 
@@ -148,5 +149,46 @@ final class CmdTest extends TestCase
     {
         $msg = (Cmd::setWindowTitle('hello', icon: true))();
         $this->assertSame("\x1b]0;hello\x07", $msg->bytes);
+    }
+
+    public function testSetWorkingDirectoryEmitsOsc7(): void
+    {
+        $msg = (Cmd::setWorkingDirectory('/home/foo', host: 'pluto'))();
+        $this->assertInstanceOf(RawMsg::class, $msg);
+        $this->assertSame("\x1b]7;file://pluto/home/foo\x07", $msg->bytes);
+    }
+
+    public function testSetWorkingDirectoryEncodesSpecialChars(): void
+    {
+        // Spaces and unicode get percent-escaped; '/' stays literal.
+        $msg = (Cmd::setWorkingDirectory('/tmp/with space', host: 'h'))();
+        $this->assertSame("\x1b]7;file://h/tmp/with%20space\x07", $msg->bytes);
+    }
+
+    public function testSetProgressBarNormal(): void
+    {
+        $msg = (Cmd::setProgressBar(ProgressBarState::Normal, 42))();
+        $this->assertInstanceOf(RawMsg::class, $msg);
+        $this->assertSame("\x1b]9;4;1;42\x07", $msg->bytes);
+    }
+
+    public function testSetProgressBarRemoveIgnoresPercent(): void
+    {
+        $msg = (Cmd::setProgressBar(ProgressBarState::Remove))();
+        $this->assertSame("\x1b]9;4;0;0\x07", $msg->bytes);
+    }
+
+    public function testSetProgressBarClampsPercent(): void
+    {
+        $msgHigh = (Cmd::setProgressBar(ProgressBarState::Normal, 999))();
+        $msgLow  = (Cmd::setProgressBar(ProgressBarState::Normal, -5))();
+        $this->assertSame("\x1b]9;4;1;100\x07", $msgHigh->bytes);
+        $this->assertSame("\x1b]9;4;1;0\x07",   $msgLow->bytes);
+    }
+
+    public function testSetProgressBarIndeterminate(): void
+    {
+        $msg = (Cmd::setProgressBar(ProgressBarState::Indeterminate))();
+        $this->assertSame("\x1b]9;4;3;0\x07", $msg->bytes);
     }
 }

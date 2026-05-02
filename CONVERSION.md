@@ -490,7 +490,7 @@ Status legend per feature:
 | `WindowTitle` field — set via OSC 0/2 each frame | 🟡 | `Cmd::setWindowTitle($title, icon: false)` ships now (`Ansi::setWindowTitle()` emits OSC 0 / 2). Per-frame field semantics still pending — that lands with the View struct rework. |
 | Declarative `BackgroundColor` / `ForegroundColor` per frame | 🔴 | Use OSC 10/11. |
 | `MouseMode` declared on the View instead of one-shot setup flag | 🟡 | We toggle in setup/teardown. Move into per-View when we adopt the View struct. |
-| `ProgressBar` field — terminal native progress (OSC 9;4) | 🔴 | iTerm2 / WezTerm taskbar progress. Light-touch addition. |
+| `ProgressBar` field — terminal native progress (OSC 9;4) | 🟡 | `Cmd::setProgressBar(ProgressBarState, $percent)` ships now (`Remove` / `Normal` / `Error` / `Indeterminate` / `Warning` states; percent clamped to 0-100). Per-frame "ProgressBar" field semantics still pending — that lands with the View struct rework. |
 
 #### Keys
 
