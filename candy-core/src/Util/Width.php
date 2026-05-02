@@ -377,6 +377,103 @@ final class Width
         return $out;
     }
 
+    /**
+     * Drop the first `$skip` visible cells from `$s` and return the
+     * remainder (with all ANSI escape sequences from the dropped
+     * region preserved at the start so the leftover text picks up
+     * the correct SGR state).
+     *
+     * Cell-aware complement to {@see truncateAnsi()}: where
+     * `truncateAnsi` returns "first N cells", `dropAnsi` returns
+     * "everything after the first N cells". Together they let
+     * callers slice an ANSI-coloured row at arbitrary cell columns —
+     * the primitive {@see \CandyCore\Sprinkles\Canvas} uses to
+     * paste overlay layers over a base view at exact positions.
+     *
+     * If `$skip` lands inside a wide grapheme, that whole cluster is
+     * consumed (the partial half-cell is dropped) so the result
+     * starts at a clean cell boundary.
+     */
+    public static function dropAnsi(string $s, int $skip): string
+    {
+        if ($skip <= 0) {
+            return $s;
+        }
+        $len = strlen($s);
+        $prefix = '';
+        $tail   = '';
+        $w = 0;
+        $i = 0;
+        $reachedTail = false;
+
+        while ($i < $len) {
+            $b = $s[$i];
+
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === '[') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    $c = ord($s[$j]);
+                    $j++;
+                    if ($c >= 0x40 && $c <= 0x7e) {
+                        break;
+                    }
+                }
+                $seq = substr($s, $i, $j - $i);
+                if ($reachedTail) {
+                    $tail .= $seq;
+                } else {
+                    $prefix .= $seq;
+                }
+                $i = $j;
+                continue;
+            }
+            if ($b === "\x1b" && ($s[$i + 1] ?? '') === ']') {
+                $j = $i + 2;
+                while ($j < $len) {
+                    if ($s[$j] === "\x07") { $j++; break; }
+                    if ($s[$j] === "\x1b" && ($s[$j + 1] ?? '') === '\\') { $j += 2; break; }
+                    $j++;
+                }
+                $seq = substr($s, $i, $j - $i);
+                if ($reachedTail) {
+                    $tail .= $seq;
+                } else {
+                    $prefix .= $seq;
+                }
+                $i = $j;
+                continue;
+            }
+
+            $cluster = self::nextCluster($s, $i);
+            if ($reachedTail) {
+                $tail .= $cluster;
+                $i += strlen($cluster);
+                continue;
+            }
+            $gw = self::graphemeWidth($cluster);
+            if ($w >= $skip) {
+                // We're already past the skip budget — this cluster
+                // belongs to the tail.
+                $reachedTail = true;
+                $tail .= $cluster;
+                $w += $gw;
+                $i += strlen($cluster);
+                continue;
+            }
+            if ($w + $gw > $skip) {
+                // Wide cluster straddles the boundary — drop it
+                // entirely so the result starts at a clean cell.
+                $reachedTail = true;
+                $w += $gw;
+                $i += strlen($cluster);
+                continue;
+            }
+            $w += $gw;
+            $i += strlen($cluster);
+        }
+        return $prefix . $tail;
+    }
+
     private static function nextCluster(string $s, int $i): string
     {
         if (function_exists('grapheme_extract')) {
