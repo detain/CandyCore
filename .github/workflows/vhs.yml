@@ -30,6 +30,11 @@ jobs:
           - candy-freeze
           - sugar-glow
           - sugar-spark
+          - sugar-wishlist
+          - candy-mold
+          - candy-tetris
+          - super-candy
+          - sugar-crush
     steps:
       - uses: actions/checkout@v4
 

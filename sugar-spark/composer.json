@@ -1,23 +1,34 @@
 {
     "name": "candycore/sugar-spark",
-    "description": "PHP port of charmbracelet/sequin — ANSI escape-sequence inspector. Decodes SGR / CSI / OSC / DCS / APC / SS3 sequences into human-readable labels.",
+    "description": "PHP port of charmbracelet/sequin \u2014 ANSI escape-sequence inspector. Decodes SGR / CSI / OSC / DCS / APC / SS3 sequences into human-readable labels.",
     "type": "library",
     "license": "MIT",
     "keywords": [
-        "ansi", "escape", "inspector", "debug",
-        "sequin", "tui", "terminal",
+        "ansi",
+        "escape",
+        "inspector",
+        "debug",
+        "sequin",
+        "tui",
+        "terminal",
         "candycore"
     ],
     "homepage": "https://github.com/sugarcraft/sugar-spark",
     "authors": [
-        { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
+        {
+            "name": "Joe Huss",
+            "email": "detain@interserver.net",
+            "role": "Maintainer"
+        }
     ],
     "support": {
         "issues": "https://github.com/sugarcraft/sugar-spark/issues",
         "source": "https://github.com/sugarcraft/sugar-spark",
-        "docs":   "https://sugarcraft.github.io/lib/sugar-spark.html"
+        "docs": "https://sugarcraft.github.io/lib/sugar-spark.html"
     },
-    "bin": ["bin/sugarspark"],
+    "bin": [
+        "bin/sugarspark"
+    ],
     "require": {
         "php": "^8.1",
         "candycore/candy-core": "@dev"
@@ -26,7 +37,139 @@
         "phpunit/phpunit": "^10.5"
     },
     "repositories": [
-        { "type": "path", "url": "../candy-core", "options": { "symlink": true } }
+        {
+            "type": "path",
+            "url": "../candy-core",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-sprinkles",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../honey-bounce",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-zone",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-bits",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-charts",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-prompt",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shell",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-shine",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-kit",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-freeze",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-glow",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-wish",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-wishlist",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-metrics",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-mold",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../candy-tetris",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../super-candy",
+            "options": {
+                "symlink": true
+            }
+        },
+        {
+            "type": "path",
+            "url": "../sugar-crush",
+            "options": {
+                "symlink": true
+            }
+        }
     ],
     "autoload": {
         "psr-4": {
