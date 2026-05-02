@@ -7,7 +7,7 @@
         "tui", "terminal", "cli", "console",
         "bubbletea", "lipgloss", "bubbles", "huh", "gum",
         "glamour", "glow", "freeze", "harmonica", "ntcharts",
-        "wish", "ssh",
+        "wish", "wishlist", "ssh",
         "candycore"
     ],
     "homepage": "https://github.com/detain/CandyCore",
@@ -34,7 +34,8 @@
         "candycore/sugar-charts":    "@dev",
         "candycore/sugar-glow":      "@dev",
         "candycore/sugar-prompt":    "@dev",
-        "candycore/sugar-spark":     "@dev"
+        "candycore/sugar-spark":     "@dev",
+        "candycore/sugar-wishlist":  "@dev"
     },
     "repositories": [
         { "type": "path", "url": "candy-core",      "options": { "symlink": true } },
@@ -50,7 +51,8 @@
         { "type": "path", "url": "sugar-charts",    "options": { "symlink": true } },
         { "type": "path", "url": "sugar-glow",      "options": { "symlink": true } },
         { "type": "path", "url": "sugar-prompt",    "options": { "symlink": true } },
-        { "type": "path", "url": "sugar-spark",     "options": { "symlink": true } }
+        { "type": "path", "url": "sugar-spark",     "options": { "symlink": true } },
+        { "type": "path", "url": "sugar-wishlist",  "options": { "symlink": true } }
     ],
     "minimum-stability": "dev",
     "prefer-stable": true
