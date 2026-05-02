@@ -9,6 +9,7 @@ use CandyCore\Core\Util\ColorProfile;
 use CandyCore\Sprinkles\AdaptiveColor;
 use CandyCore\Sprinkles\Align;
 use CandyCore\Sprinkles\Border;
+use CandyCore\Sprinkles\CompleteColor;
 use CandyCore\Sprinkles\LightDark;
 use CandyCore\Sprinkles\Style;
 use CandyCore\Sprinkles\VAlign;
@@ -468,5 +469,76 @@ final class StyleTest extends TestCase
         $light = Color::hex('#aaaaaa');
         $dark  = Color::hex('#222222');
         $this->assertSame($dark, $pick($light, $dark));
+    }
+
+    // ---- CompleteColor (profile-aware fill) ------------------------------
+
+    public function testCompleteColorPicksTrueColor(): void
+    {
+        $true   = Color::hex('#aabbcc');
+        $a256   = Color::hex('#aabbcc');
+        $ansi   = Color::ansi(4);
+        $c = new CompleteColor($true, $a256, $ansi);
+        $this->assertSame($true, $c->pick(ColorProfile::TrueColor));
+    }
+
+    public function testCompleteColorPicksAnsi256ForMidTier(): void
+    {
+        $true   = Color::hex('#aabbcc');
+        $a256   = Color::ansi256(67);
+        $ansi   = Color::ansi(4);
+        $c = new CompleteColor($true, $a256, $ansi);
+        $this->assertSame($a256, $c->pick(ColorProfile::Ansi256));
+    }
+
+    public function testCompleteColorPicksAnsiForBasicTier(): void
+    {
+        $true   = Color::hex('#aabbcc');
+        $a256   = Color::ansi256(67);
+        $ansi   = Color::ansi(4);
+        $c = new CompleteColor($true, $a256, $ansi);
+        $this->assertSame($ansi, $c->pick(ColorProfile::Ansi));
+    }
+
+    public function testForegroundCompleteResolvesByProfile(): void
+    {
+        // 256-tier picks the second leg of the triple.
+        $s = Style::new()
+            ->colorProfile(ColorProfile::Ansi256)
+            ->foregroundComplete(
+                Color::hex('#ff0000'),
+                Color::ansi256(202),
+                Color::ansi(1),
+            )
+            ->resolveProfile();
+        // SGR 38;5;202 from ansi256.
+        $this->assertSame("\x1b[38;5;202mhi\x1b[0m", $s->render('hi'));
+    }
+
+    public function testExplicitForegroundWinsOverComplete(): void
+    {
+        $s = Style::new()
+            ->foreground(Color::hex('#00ff00'))
+            ->foregroundComplete(
+                Color::hex('#ff0000'),
+                Color::ansi256(202),
+                Color::ansi(1),
+            )
+            ->resolveProfile();
+        $this->assertSame("\x1b[38;2;0;255;0mhi\x1b[0m", $s->render('hi'));
+    }
+
+    public function testInheritPropagatesCompleteColor(): void
+    {
+        $parent = Style::new()->foregroundComplete(
+            Color::hex('#0000ff'),
+            Color::ansi256(21),
+            Color::ansi(4),
+        );
+        $child  = Style::new()->bold();
+        $merged = $child->inherit($parent)
+            ->colorProfile(ColorProfile::TrueColor)
+            ->resolveProfile();
+        $this->assertSame("\x1b[1m\x1b[38;2;0;0;255mhi\x1b[0m", $merged->render('hi'));
     }
 }

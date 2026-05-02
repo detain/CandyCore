@@ -520,8 +520,8 @@ Status legend per feature:
 | `RequestTerminalVersion` + `TerminalVersionMsg` | ✅ | `Cmd::requestTerminalVersion()` emits `CSI > 0 q` (XTVERSION). The input reader parses the DCS reply (`ESC P > | <text> ESC \`) into `TerminalVersionMsg`; DCS detection is narrowly gated on the `>` marker so `Alt-P` keypresses are unaffected. |
 | `RequestCapability(name)` + `ModeReportMsg` | 🔴 | DECRQM. |
 | `RequestForegroundColor` / `RequestBackgroundColor` / `RequestCursorColor` | ✅ | All three shipped — `Cmd::requestForegroundColor()` / `requestBackgroundColor()` / `requestCursorColor()` emit OSC 10/11/12 `?` queries; input reader parses `rgb:RRRR/GGGG/BBBB` replies into `ForegroundColorMsg` / `BackgroundColorMsg` / `CursorColorMsg`. Each colour Msg exposes `hex()`; fg/bg additionally expose `isDark()` for theme picking. |
-| Auto `EnvMsg` on startup, with `Getenv()` helper for SSH contexts | 🔴 | Send a `EnvMsg` from `Program::run()` so models can react to the originating environment without poking `getenv()` themselves. |
-| Auto `ColorProfileMsg` on startup | 🟡 | We already detect via `ColorProfile::detect()`; emit it as a Msg too so models can react. |
+| Auto `EnvMsg` on startup, with `Getenv()` helper for SSH contexts | ✅ | `Program::run()` snapshots `getenv()` and dispatches an `EnvMsg` to the model. `EnvMsg::get(key, default)` provides the convenience accessor. |
+| Auto `ColorProfileMsg` on startup | ✅ | `Program::run()` detects via `ColorProfile::detect()` and dispatches a `ColorProfileMsg` right after `EnvMsg`. |
 
 #### Clipboard
 
@@ -545,7 +545,7 @@ Status legend per feature:
 | `lipgloss.Println` / `Printf` / `Sprint` / `Fprint` writers | 🟡 | Could add `Sprinkles\Style::println($content)` writing to `STDOUT` for non-TUI scripts. Optional. |
 | `HasDarkBackground(stdin, stdout)` | ✅ | `BackgroundColorMsg::isDark()` (relative-luminance Y < 0.5) on the OSC 11 reply parsed by CandyCore. Models call `Cmd::requestBackgroundColor()` from `init()` and check the reply. |
 | `LightDark(isDark)` helper returning the right colour | ✅ | `Sprinkles\LightDark::pick(isDark, light, dark)` and `LightDark::picker(isDark)` (curried). Plus `Sprinkles\AdaptiveColor` value object and `Style::foregroundAdaptive()` / `backgroundAdaptive()` that resolve via `Style::resolveAdaptive(bool)` — explicit `foreground()` always wins, matching lipgloss precedence. |
-| `Complete(profile)` colour completion | 🔴 | Profile-aware colour filling — useful for theme builders. |
+| `Complete(profile)` colour completion | ✅ | `Sprinkles\CompleteColor` value object holding a TrueColor / ANSI256 / ANSI triple with `pick(ColorProfile)`. `Style::foregroundComplete()` / `backgroundComplete()` setters store it; `Style::resolveProfile()` collapses to concrete fg/bg using the live `colorProfile()`. Explicit colours win, mirroring lipgloss precedence. |
 | `compat.AdaptiveColor` / `CompleteColor` / `CompleteAdaptiveColor` | 🟡 | Add an `AdaptiveColor` value object that picks light vs dark based on detected background. |
 | `EnableLegacyWindowsANSI()` | ⚪ | PHP doesn't ship a Windows console wrapper; fall through to Win10+ VT mode (which our `Tty` already assumes). |
 | Determinism: same input → same output, regardless of detected terminal capabilities | ✅ | We already pass profile explicitly. |
@@ -573,9 +573,9 @@ The v2 parity work is **medium-term**, not urgent. Recommended order:
    updates, ✅ unicode mode, ✅ `Println` / `Printf` Cmds, ✅ `Raw`
    escape hatch, ✅ mouse subtype markers, ✅ terminal queries (cursor
    pos, fg/bg/cursor colour, terminal version), ✅ `AdaptiveColor` +
-   `LightDark` — all shipped. Still pending: `Complete()` profile-aware
-   colour fill, `RequestCapability` (DECRQM), env / colour-profile
-   startup msgs.
+   `LightDark`, ✅ `CompleteColor`, ✅ `EnvMsg` + `ColorProfileMsg`
+   on startup — all shipped. Only `RequestCapability` (DECRQM)
+   remains on the cheap-wins list.
 2. **Inline mode polish**: shrink the `Renderer` so non-alt-screen
    programs only own their own rows, leaving everything above
    intact. Pair with `Cmd::println` so messages can flow above the
