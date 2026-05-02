@@ -6,7 +6,11 @@ namespace CandyCore\Core;
 
 use CandyCore\Core\Msg\ColorProfileMsg;
 use CandyCore\Core\Msg\EnvMsg;
+use CandyCore\Core\Msg\ExecMsg;
+use CandyCore\Core\Msg\InterruptMsg;
 use CandyCore\Core\Msg\QuitMsg;
+use CandyCore\Core\Msg\ResumeMsg;
+use CandyCore\Core\Msg\SuspendMsg;
 use CandyCore\Core\Msg\WindowSizeMsg;
 use CandyCore\Core\Util\Ansi;
 use CandyCore\Core\Util\ColorProfile;
@@ -183,6 +187,10 @@ final class Program
             }
             return;
         }
+        if ($msg instanceof SequenceMsg) {
+            $this->scheduleSequence($msg->cmds);
+            return;
+        }
         if ($msg instanceof TickRequest) {
             $this->loop->addTimer($msg->seconds, function () use ($msg): void {
                 $produced = ($msg->produce)();
@@ -207,10 +215,32 @@ final class Program
             $this->dirty = true;
             return;
         }
+        if ($msg instanceof ExecRequest) {
+            $this->runExec($msg);
+            return;
+        }
+        if ($msg instanceof SuspendMsg) {
+            $this->suspendProgram();
+            return;
+        }
+        if ($msg instanceof InterruptMsg) {
+            $this->running = false;
+            $this->loop->stop();
+            return;
+        }
         if ($msg instanceof QuitMsg) {
             $this->running = false;
             $this->loop->stop();
             return;
+        }
+
+        // WithFilter pre-processor.
+        if ($this->options->filter !== null) {
+            $filtered = ($this->options->filter)($this->model, $msg);
+            if ($filtered === null) {
+                return;
+            }
+            $msg = $filtered;
         }
 
         [$nextModel, $cmd] = $this->model->update($msg);
@@ -219,6 +249,123 @@ final class Program
         if ($cmd !== null) {
             $this->scheduleCmd($cmd);
         }
+    }
+
+    /**
+     * Run the supplied Cmds one at a time — wait for each Cmd's Msg
+     * to be dispatched (and processed by update()) before starting
+     * the next.
+     *
+     * @param list<\Closure> $cmds
+     */
+    private function scheduleSequence(array $cmds): void
+    {
+        if ($cmds === []) {
+            return;
+        }
+        $remaining = $cmds;
+        $runNext = null;
+        $runNext = function () use (&$remaining, &$runNext): void {
+            if ($remaining === []) {
+                return;
+            }
+            $cmd = array_shift($remaining);
+            $msg = $cmd();
+            if ($msg !== null) {
+                $this->dispatch($msg);
+            }
+            // Schedule the next one on a future tick so any update()
+            // triggered by $msg has a chance to run first.
+            $this->loop->futureTick($runNext);
+        };
+        $this->loop->futureTick($runNext);
+    }
+
+    /**
+     * Run an external command with the TTY released. Tears down
+     * terminal state, runs the child, restores state, then dispatches
+     * the result as `ExecMsg` (and optionally a model-shaped follow-up
+     * via the `$onComplete` callback).
+     */
+    private function runExec(ExecRequest $req): void
+    {
+        $this->teardownTerminal();
+        $err = null;
+        $exit = -1;
+        $stdout = '';
+        $stderr = '';
+
+        try {
+            $descriptors = $req->captureOutput
+                ? [0 => STDIN, 1 => ['pipe', 'w'], 2 => ['pipe', 'w']]
+                : [0 => STDIN, 1 => STDOUT, 2 => STDERR];
+            $cmd = is_array($req->command) ? $req->command : (string) $req->command;
+            $proc = @proc_open($cmd, $descriptors, $pipes);
+            if (!is_resource($proc)) {
+                throw new \RuntimeException('proc_open failed for: ' . (is_array($cmd) ? implode(' ', $cmd) : $cmd));
+            }
+            if ($req->captureOutput) {
+                $stdout = is_resource($pipes[1]) ? (string) stream_get_contents($pipes[1]) : '';
+                $stderr = is_resource($pipes[2]) ? (string) stream_get_contents($pipes[2]) : '';
+                if (is_resource($pipes[1])) fclose($pipes[1]);
+                if (is_resource($pipes[2])) fclose($pipes[2]);
+            }
+            $exit = proc_close($proc);
+        } catch (\Throwable $t) {
+            $err = $t;
+        }
+        $this->setupTerminal();
+        $this->renderer->reset();
+        $this->dirty = true;
+
+        $produced = $req->onComplete !== null
+            ? ($req->onComplete)($exit, $stdout, $stderr, $err)
+            : null;
+        $this->dispatch(new ExecMsg($exit, $err, $stdout, $stderr));
+        if ($produced !== null) {
+            $this->dispatch($produced);
+        }
+    }
+
+    /**
+     * Implement Ctrl-Z semantics: tear down, deliver SuspendMsg, raise
+     * SIGTSTP on this process group with the default handler so the
+     * process actually stops, then on SIGCONT restore terminal state
+     * and dispatch ResumeMsg.
+     */
+    private function suspendProgram(): void
+    {
+        // Notify the model first so it can stash any state it cares about.
+        if ($this->options->filter === null) {
+            [$nextModel, $cmd] = $this->model->update(new SuspendMsg());
+            $this->model = $nextModel;
+            if ($cmd !== null) {
+                $this->scheduleCmd($cmd);
+            }
+        }
+
+        if (!function_exists('pcntl_signal') || !defined('SIGTSTP') || !defined('SIGCONT')) {
+            // Without pcntl we can't actually suspend; emit Resume
+            // immediately so the model knows nothing happened.
+            $this->dispatch(new ResumeMsg());
+            return;
+        }
+
+        $this->teardownTerminal();
+        // Reset SIGTSTP to default and re-raise it on this process.
+        pcntl_signal(SIGTSTP, SIG_DFL);
+        if (function_exists('posix_getpid')) {
+            posix_kill(posix_getpid(), SIGTSTP);
+        }
+        // When the process resumes (SIGCONT) it picks back up here.
+        // Reinstall handlers + terminal state.
+        pcntl_signal(SIGTSTP, function (): void {
+            $this->send(new SuspendMsg());
+        });
+        $this->setupTerminal();
+        $this->renderer->reset();
+        $this->dirty = true;
+        $this->dispatch(new ResumeMsg());
     }
 
     /**
@@ -326,6 +473,13 @@ final class Program
      */
     private function renderFrame(): void
     {
+        if ($this->options->withoutRenderer) {
+            // Headless mode: still call view() so the model's
+            // computation runs (and any errors surface) but skip
+            // emitting any output.
+            $this->model->view();
+            return;
+        }
         $rendered = $this->model->view();
         if ($rendered instanceof View) {
             $this->applyViewSideEffects($rendered);
@@ -462,6 +616,21 @@ final class Program
             pcntl_signal(SIGWINCH, function (): void {
                 $size = $this->tty->size();
                 $this->send(new WindowSizeMsg($size['cols'], $size['rows']));
+            });
+        }
+        // Ctrl-Z (SIGTSTP) → emit SuspendMsg via send() so the
+        // dispatcher runs the actual suspend/resume cycle inside the
+        // event loop.
+        if (defined('SIGTSTP')) {
+            pcntl_signal(SIGTSTP, function (): void {
+                $this->send(new SuspendMsg());
+            });
+        }
+        // SIGCONT can fire spuriously (kill -CONT $$) — turn it into a
+        // ResumeMsg so models that care can re-emit state.
+        if (defined('SIGCONT')) {
+            pcntl_signal(SIGCONT, function (): void {
+                $this->send(new ResumeMsg());
             });
         }
     }

@@ -6,11 +6,16 @@ namespace CandyCore\Core\Tests;
 
 use CandyCore\Core\BatchMsg;
 use CandyCore\Core\Cmd;
+use CandyCore\Core\ExecRequest;
 use CandyCore\Core\Msg;
+use CandyCore\Core\Msg\InterruptMsg;
 use CandyCore\Core\Msg\QuitMsg;
+use CandyCore\Core\Msg\SuspendMsg;
 use CandyCore\Core\PrintMsg;
 use CandyCore\Core\ProgressBarState;
 use CandyCore\Core\RawMsg;
+use CandyCore\Core\SequenceMsg;
+use CandyCore\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class CmdTest extends TestCase
@@ -215,5 +220,115 @@ final class CmdTest extends TestCase
     {
         $msg = (Cmd::requestKittyKeyboard())();
         $this->assertSame("\x1b[?u", $msg->bytes);
+    }
+
+    public function testSuspendReturnsSuspendMsg(): void
+    {
+        $this->assertInstanceOf(SuspendMsg::class, (Cmd::suspend())());
+    }
+
+    public function testInterruptReturnsInterruptMsg(): void
+    {
+        $this->assertInstanceOf(InterruptMsg::class, (Cmd::interrupt())());
+    }
+
+    public function testSequenceReturnsSequenceMsg(): void
+    {
+        $a = static fn() => null;
+        $b = static fn() => null;
+        $msg = (Cmd::sequence($a, $b, null))();
+        $this->assertInstanceOf(SequenceMsg::class, $msg);
+        $this->assertCount(2, $msg->cmds);
+    }
+
+    public function testEveryReturnsTickRequest(): void
+    {
+        $msg = (Cmd::every(1.0, static fn() => null))();
+        $this->assertInstanceOf(TickRequest::class, $msg);
+        // delay should be <= 1 second (alignment to wall-clock).
+        $this->assertLessThanOrEqual(1.0, $msg->seconds);
+        $this->assertGreaterThanOrEqual(0.0, $msg->seconds);
+    }
+
+    public function testPrintfReturnsPrintMsg(): void
+    {
+        $msg = (Cmd::printf('hello %s %d', 'world', 42))();
+        $this->assertInstanceOf(PrintMsg::class, $msg);
+        $this->assertSame('hello world 42', $msg->text);
+    }
+
+    public function testExecReturnsExecRequest(): void
+    {
+        $cmd = Cmd::exec(['/bin/echo', 'hi'], captureOutput: true);
+        $msg = $cmd();
+        $this->assertInstanceOf(ExecRequest::class, $msg);
+        $this->assertSame(['/bin/echo', 'hi'], $msg->command);
+        $this->assertTrue($msg->captureOutput);
+    }
+
+    public function testEnterAltScreenEmitsAnsi(): void
+    {
+        $msg = (Cmd::enterAltScreen())();
+        $this->assertInstanceOf(RawMsg::class, $msg);
+        $this->assertSame("\x1b[?1049h", $msg->bytes);
+    }
+
+    public function testExitAltScreenEmitsAnsi(): void
+    {
+        $msg = (Cmd::exitAltScreen())();
+        $this->assertSame("\x1b[?1049l", $msg->bytes);
+    }
+
+    public function testClearScreenEmitsHomeAndErase(): void
+    {
+        $msg = (Cmd::clearScreen())();
+        $this->assertSame("\x1b[2J\x1b[1;1H", $msg->bytes);
+    }
+
+    public function testShowAndHideCursor(): void
+    {
+        $this->assertSame("\x1b[?25h", (Cmd::showCursor())()->bytes);
+        $this->assertSame("\x1b[?25l", (Cmd::hideCursor())()->bytes);
+    }
+
+    public function testEnableMouseModes(): void
+    {
+        $cm = (Cmd::enableMouseCellMotion())();
+        $this->assertStringContainsString("?1002h", $cm->bytes);
+        $am = (Cmd::enableMouseAllMotion())();
+        $this->assertStringContainsString("?1003h", $am->bytes);
+        $off = (Cmd::disableMouse())();
+        $this->assertStringContainsString("?1003l", $off->bytes);
+        $this->assertStringContainsString("?1002l", $off->bytes);
+    }
+
+    public function testFocusReportingToggles(): void
+    {
+        $this->assertSame("\x1b[?1004h", (Cmd::enableReportFocus())()->bytes);
+        $this->assertSame("\x1b[?1004l", (Cmd::disableReportFocus())()->bytes);
+    }
+
+    public function testBracketedPasteToggles(): void
+    {
+        $this->assertSame("\x1b[?2004h", (Cmd::enableBracketedPaste())()->bytes);
+        $this->assertSame("\x1b[?2004l", (Cmd::disableBracketedPaste())()->bytes);
+    }
+
+    public function testScrollUpDownEmits(): void
+    {
+        $this->assertSame("\x1b[3S", (Cmd::scrollUp(3))()->bytes);
+        $this->assertSame("\x1b[2T", (Cmd::scrollDown(2))()->bytes);
+    }
+
+    public function testSetForegroundColorEmitsOsc(): void
+    {
+        $msg = (Cmd::setForegroundColor(255, 128, 0))();
+        $this->assertSame("\x1b]10;rgb:ff/80/00\x07", $msg->bytes);
+    }
+
+    public function testResetForegroundEmitsOsc110(): void
+    {
+        $this->assertSame("\x1b]110\x1b\\", (Cmd::resetForegroundColor())()->bytes);
+        $this->assertSame("\x1b]111\x1b\\", (Cmd::resetBackgroundColor())()->bytes);
     }
 }
