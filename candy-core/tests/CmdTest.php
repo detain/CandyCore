@@ -191,4 +191,29 @@ final class CmdTest extends TestCase
         $msg = (Cmd::setProgressBar(ProgressBarState::Indeterminate))();
         $this->assertSame("\x1b]9;4;3;0\x07", $msg->bytes);
     }
+
+    public function testPushKittyKeyboardEmitsCsi(): void
+    {
+        $msg = (Cmd::pushKittyKeyboard(11))();
+        $this->assertInstanceOf(RawMsg::class, $msg);
+        $this->assertSame("\x1b[>11u", $msg->bytes);
+    }
+
+    public function testPopKittyKeyboardDefaultOne(): void
+    {
+        $msg = (Cmd::popKittyKeyboard())();
+        $this->assertSame("\x1b[<1u", $msg->bytes);
+    }
+
+    public function testPopKittyKeyboardClampsBelowOne(): void
+    {
+        $msg = (Cmd::popKittyKeyboard(0))();
+        $this->assertSame("\x1b[<1u", $msg->bytes);
+    }
+
+    public function testRequestKittyKeyboardEmitsQuery(): void
+    {
+        $msg = (Cmd::requestKittyKeyboard())();
+        $this->assertSame("\x1b[?u", $msg->bytes);
+    }
 }

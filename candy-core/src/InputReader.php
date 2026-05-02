@@ -11,6 +11,7 @@ use CandyCore\Core\Msg\CursorColorMsg;
 use CandyCore\Core\Msg\CursorPositionMsg;
 use CandyCore\Core\Msg\FocusMsg;
 use CandyCore\Core\Msg\ForegroundColorMsg;
+use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Msg\ModeReportMsg;
 use CandyCore\Core\Msg\TerminalVersionMsg;
@@ -229,6 +230,12 @@ final class InputReader
         // tells the two apart.
         if ($final === 'R' && $params !== '' && preg_match('/^(\d+);(\d+)$/', $params, $m) === 1) {
             return new CursorPositionMsg((int) $m[1], (int) $m[2]);
+        }
+
+        // Kitty keyboard flag report (reply to `CSI ? u`): CSI ? <flags> u.
+        if ($final === 'u' && isset($params[0]) && $params[0] === '?'
+            && preg_match('/^\?(\d+)$/', $params, $m) === 1) {
+            return new KeyboardEnhancementsMsg((int) $m[1]);
         }
 
         // DECRPM mode report (reply to DECRQM): CSI [?] <mode> ; <state> $ y.

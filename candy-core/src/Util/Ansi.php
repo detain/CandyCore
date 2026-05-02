@@ -247,6 +247,36 @@ final class Ansi
     }
 
     /**
+     * Push a new layer onto the Kitty progressive-keyboard flag stack
+     * (`CSI > <flags> u`). Use the bit constants on
+     * {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     */
+    public static function pushKittyKeyboard(int $flags): string
+    {
+        return self::CSI . '>' . $flags . 'u';
+    }
+
+    /**
+     * Pop `$n` layers off the Kitty keyboard flag stack
+     * (`CSI < <n> u`). Mirrors the entry from `pushKittyKeyboard()`
+     * one-for-one — typically called from teardown.
+     */
+    public static function popKittyKeyboard(int $n = 1): string
+    {
+        return self::CSI . '<' . max(1, $n) . 'u';
+    }
+
+    /**
+     * Ask the terminal which Kitty keyboard flags are currently
+     * active (`CSI ? u`). Reply arrives as `CSI ? <flags> u` and is
+     * parsed into {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     */
+    public static function requestKittyKeyboard(): string
+    {
+        return self::CSI . '?u';
+    }
+
+    /**
      * Strip every ANSI escape sequence from the input.
      *
      * Handles CSI (ESC[...), OSC (ESC]...ST|BEL), single-char ESC sequences,
