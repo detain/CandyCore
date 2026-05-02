@@ -1,0 +1,161 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Bits\Tests\ItemList;
+
+use CandyCore\Bits\ItemList\ItemList;
+use CandyCore\Bits\ItemList\StringItem;
+use CandyCore\Core\KeyType;
+use CandyCore\Core\Msg\KeyMsg;
+use PHPUnit\Framework\TestCase;
+
+final class ItemListTest extends TestCase
+{
+    /** @return list<StringItem> */
+    private function items(): array
+    {
+        return [
+            new StringItem('apple'),
+            new StringItem('banana'),
+            new StringItem('cherry'),
+            new StringItem('date'),
+        ];
+    }
+
+    private function focused(): ItemList
+    {
+        $l = ItemList::new($this->items(), 60, 5);
+        [$l, ] = $l->focus();
+        return $l;
+    }
+
+    public function testInitialState(): void
+    {
+        $l = ItemList::new($this->items());
+        $this->assertSame(0, $l->index());
+        $this->assertSame('apple', $l->selectedItem()->title());
+    }
+
+    public function testIgnoresKeysWhenUnfocused(): void
+    {
+        $l = ItemList::new($this->items());
+        [$l, ] = $l->update(new KeyMsg(KeyType::Down));
+        $this->assertSame(0, $l->index());
+    }
+
+    public function testArrowDownAdvances(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Down));
+        $this->assertSame('banana', $l->selectedItem()->title());
+    }
+
+    public function testVimJK(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'j'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'j'));
+        $this->assertSame(2, $l->index());
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'k'));
+        $this->assertSame(1, $l->index());
+    }
+
+    public function testHomeAndEnd(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'G'));
+        $this->assertSame(3, $l->index());
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'g'));
+        $this->assertSame(0, $l->index());
+    }
+
+    public function testCannotMoveBelowZeroOrPastEnd(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Up));
+        $this->assertSame(0, $l->index());
+        for ($i = 0; $i < 10; $i++) {
+            [$l, ] = $l->update(new KeyMsg(KeyType::Down));
+        }
+        $this->assertSame(3, $l->index());
+    }
+
+    public function testFilteringMatchesSubstring(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        $this->assertTrue($l->isFiltering());
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'n'));
+        $titles = array_map(static fn($i) => $i->title(), $l->visibleItems());
+        $this->assertSame(['banana'], $titles);
+    }
+
+    public function testFilteringIsCaseInsensitive(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'A'));
+        $titles = array_map(static fn($i) => $i->title(), $l->visibleItems());
+        $this->assertSame(['apple', 'banana', 'date'], $titles);
+    }
+
+    public function testFilterEnterExitsFilteringKeepsResults(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Enter));
+        $this->assertFalse($l->isFiltering());
+        $this->assertSame(3, count($l->visibleItems()));
+    }
+
+    public function testFilterEscapeClears(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Escape));
+        $this->assertFalse($l->isFiltering());
+        $this->assertSame(4, count($l->visibleItems()));
+    }
+
+    public function testFilterBackspace(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'n'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Backspace));
+        $this->assertSame(3, count($l->visibleItems()));
+    }
+
+    public function testFilterScrollScrollsCursorIntoView(): void
+    {
+        $items = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $items[] = new StringItem("item$i");
+        }
+        $l = ItemList::new($items, 60, 5);
+        [$l, ] = $l->focus();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'G'));
+        $this->assertSame(19, $l->index());
+        $this->assertSame(15, $l->offset);
+    }
+
+    public function testSetItemsResetsCursor(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Down));
+        $l = $l->setItems([new StringItem('x')]);
+        $this->assertSame(0, $l->index());
+        $this->assertSame('x', $l->selectedItem()->title());
+    }
+
+    public function testEmptyListSelectedReturnsNull(): void
+    {
+        $l = ItemList::new([]);
+        $this->assertNull($l->selectedItem());
+    }
+}
