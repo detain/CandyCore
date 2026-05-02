@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SugarBuzz vs. Symfony Console vs. Go bubbletea</title>
+    <meta name="description" content="When to pick SugarBuzz over Symfony Console, raw readline, or Go bubbletea.">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a class="brand" href="./"><span class="logo-mark"></span>SugarBuzz</a>
+        <div class="nav-links">
+            <a href="./#libraries">Libraries</a>
+            <a href="./#quickstart">Quickstart</a>
+            <a href="compare.html">Compare</a>
+            <a href="https://github.com/detain/CandyCore" class="btn btn-ghost">GitHub →</a>
+        </div>
+    </div>
+</nav>
+
+<section class="section">
+    <div class="container">
+        <h2>SugarBuzz vs. the alternatives.</h2>
+        <p class="lede">
+            Honest, side-by-side. SugarBuzz isn't the right tool for every
+            terminal program — but for the things it's built for, the
+            alternatives don't really compete.
+        </p>
+
+        <h3 style="margin-top: 32px;">vs. Symfony Console</h3>
+        <p>
+            <strong>Symfony Console</strong> is the de-facto standard for PHP
+            command-line tools. It's excellent for one-shot commands —
+            <code>php artisan migrate</code>, <code>composer install</code>,
+            <code>php bin/console cache:clear</code>. Argv parsing, I/O
+            helpers, an option / argument DSL.
+        </p>
+        <p>
+            What it isn't built for: <em>persistent</em> terminal UIs. Once
+            your program needs a render loop — a dashboard with a ticking
+            clock, a wizard with form validation as you type, a log tailer
+            that keeps a header pinned at the top — Symfony Console doesn't
+            give you the primitives. You'd be hand-rolling the same fixes
+            CandyCore already ships: cell-aware diff rendering, raw-mode
+            input, signal handling, alt-screen lifecycle.
+        </p>
+        <p>
+            <strong>Pick Symfony Console for</strong>: argument parsers, one-
+            shot scripts, pipeline tools, anything that exits cleanly after
+            printing a result.
+        </p>
+        <p>
+            <strong>Pick SugarBuzz for</strong>: anything with a render loop.
+        </p>
+        <p>
+            <strong>The two compose nicely.</strong> The pattern we like:
+            Symfony Console for the outer CLI surface (<code>php app foo
+            --bar=baz</code>), and CandyCore <code>Program::run()</code>
+            inside one of the commands when you need a TUI.
+        </p>
+
+        <h3 style="margin-top: 48px;">vs. raw <code>readline</code> / <code>fread(STDIN)</code></h3>
+        <p>
+            For the simplest interactive prompts — <code>readline("y/N: ")</code>,
+            <code>fgets(STDIN)</code>, a "press any key" pause — raw stdio is
+            fine and zero deps.
+        </p>
+        <p>
+            But you hit a wall fast. Arrow keys, function keys, bracketed
+            paste, mouse, alt-screen, signal-driven resizes, terminfo capability
+            detection, true-color support, OSC 8 hyperlinks — every step
+            past "single line of text" pulls in a stack of escape-sequence
+            grammar that CandyCore already implements correctly.
+        </p>
+        <p>
+            <strong>Pick raw I/O for</strong>: a single password prompt, a
+            yes/no, scripts where adding a Composer dependency feels heavier
+            than the script itself.
+        </p>
+        <p>
+            <strong>Pick SugarBuzz for</strong>: the moment you write a second
+            <code>echo "\033["</code>.
+        </p>
+
+        <h3 style="margin-top: 48px;">vs. Go <a href="https://github.com/charmbracelet/bubbletea">bubbletea</a></h3>
+        <p>
+            Genuinely the same architecture; SugarBuzz is the deliberate PHP
+            port of bubbletea + the Charm ecosystem on top of it. If you
+            already write Go and your TUI lives next to a Go server, just
+            use bubbletea — it's the reference implementation.
+        </p>
+        <p>
+            <strong>Pick bubbletea for</strong>: existing Go codebases, any
+            project where binary distribution is part of the story.
+        </p>
+        <p>
+            <strong>Pick SugarBuzz for</strong>: PHP-native shops, Composer-
+            installable distribution, drop-in to existing Symfony / Laravel
+            / Yii / WordPress tooling. The mental model carries over —
+            blog posts and tutorials about bubbletea translate almost line-
+            for-line, and CONVERSION.md has the per-feature mapping.
+        </p>
+
+        <h3 style="margin-top: 48px;">Architecture decisions worth noting</h3>
+        <ul>
+            <li>
+                <strong>Cursed cell-diff renderer</strong> (Bubble Tea v2's
+                headline feature) is a first-class option in CandyCore via
+                <code>cellDiffRenderer: true</code>. Verified ≥15% bandwidth
+                savings on a 50-tick counter test — the kind of win that
+                matters when your TUI is served over SSH.
+            </li>
+            <li>
+                <strong>CandyWish leans on OpenSSH</strong>. Rather than
+                re-implementing the SSH wire protocol, CandyWish runs as a
+                <code>ForceCommand</code> entry; sshd handles authentication,
+                ciphers, host keys, fail2ban, audit logs. You get a battle-
+                tested SSH stack and a clean middleware programming model.
+            </li>
+            <li>
+                <strong>No build step.</strong> Every library is pure PHP,
+                installable via <code>composer require</code>, no native
+                extensions required for the base flow. <code>ext-pcntl</code>,
+                <code>ext-gd</code>, <code>ext-ssh2</code> are optional for
+                specific advanced features (signal handling, PNG → Sixel,
+                outbound SSH from inside a session).
+            </li>
+            <li>
+                <strong>Sixteen libraries, sixteen Composer packages.</strong>
+                Pull just what you need. The umbrella <code>candycore/candycore</code>
+                metapackage brings the whole stack at once, but a tiny CLI
+                that only wants colours can grab <code>candycore/candy-sprinkles</code>
+                in isolation.
+            </li>
+        </ul>
+
+        <p style="margin-top: 48px;">
+            <a href="./#quickstart" class="btn btn-primary">Try the quickstart →</a>
+        </p>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarBuzz</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/detain/CandyCore">GitHub</a> ·
+            <a href="https://github.com/detain/CandyCore/blob/master/CONVERSION.md">Architecture</a> ·
+            <a href="https://github.com/detain/CandyCore/issues">Issues</a>
+        </div>
+    </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

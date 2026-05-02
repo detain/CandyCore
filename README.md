@@ -6,6 +6,8 @@ PHP ports of the [Charmbracelet](https://charm.sh) TUI ecosystem (plus
 SugarBuzz-flavoured sweetshop of original libraries) — composer-installable,
 PHP 8.1+, async on ReactPHP.
 
+🌐 **Website:** [detain.github.io/CandyCore](https://detain.github.io/CandyCore/) — library matrix, quickstart, comparison page.
+
 ```sh
 composer require candycore/candycore
 ```
