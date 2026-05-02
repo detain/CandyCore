@@ -13,6 +13,9 @@ use CandyCore\Core\Msg\FocusMsg;
 use CandyCore\Core\Msg\ForegroundColorMsg;
 use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
 use CandyCore\Core\Msg\KeyMsg;
+use CandyCore\Core\Msg\KeyPressMsg;
+use CandyCore\Core\Msg\KeyReleaseMsg;
+use CandyCore\Core\Msg\KeyRepeatMsg;
 use CandyCore\Core\Msg\ModeReportMsg;
 use CandyCore\Core\Msg\TerminalVersionMsg;
 use CandyCore\Core\Msg\MouseClickMsg;
@@ -238,6 +241,15 @@ final class InputReader
             return new KeyboardEnhancementsMsg((int) $m[1]);
         }
 
+        // Kitty per-key event format: CSI <code>[;<mod>[:<event>]][;<text>] u.
+        // Press is the default; event 2 = repeat, 3 = release. We dispatch
+        // to KeyPressMsg / KeyRepeatMsg / KeyReleaseMsg so handlers can
+        // pattern match on instanceof, while still satisfying the
+        // existing `instanceof KeyMsg` checks.
+        if ($final === 'u' && $params !== '' && ctype_digit($params[0])) {
+            return $this->decodeKittyKey($params);
+        }
+
         // DECRPM mode report (reply to DECRQM): CSI [?] <mode> ; <state> $ y.
         // The intermediate `$` is collected into params by the CSI loop,
         // so params ends in `$` and final is `y`.
@@ -329,6 +341,71 @@ final class InputReader
             }
         }
         return null;
+    }
+
+    /**
+     * Decode a Kitty progressive-keyboard per-key event payload (the
+     * params of a `CSI ... u` sequence). Format:
+     *
+     *     <code>[:<alt-code>:<base-code>][;<modifiers>[:<event>]][;<text>...]
+     *
+     * `<event>`: 1 (press, default), 2 (repeat), 3 (release).
+     * Returns one of {@see KeyPressMsg} / {@see KeyRepeatMsg} /
+     * {@see KeyReleaseMsg}.
+     */
+    private function decodeKittyKey(string $params): ?KeyMsg
+    {
+        // Split into the three semicolon-separated sections; each
+        // section may contain colon sub-fields.
+        $sections = explode(';', $params);
+        $codePart = $sections[0] ?? '';
+        $modPart  = $sections[1] ?? '1';
+        $textPart = $sections[2] ?? '';
+
+        // Primary code is the first colon-sub-field of section 0.
+        $code = (int) explode(':', $codePart)[0];
+
+        // Section 1 carries `<modifiers>:<event>`; both default to 1.
+        $modBits = explode(':', $modPart);
+        $modByte = (int) ($modBits[0] === '' ? '1' : $modBits[0]);
+        $event   = (int) ($modBits[1] ?? '1');
+        $mods    = Modifiers::fromXtermMod($modByte);
+
+        // Optional text section is colon-separated decimal codepoints.
+        $text = '';
+        if ($textPart !== '') {
+            foreach (explode(':', $textPart) as $cp) {
+                if ($cp !== '' && ctype_digit($cp)) {
+                    $text .= mb_chr((int) $cp, 'UTF-8');
+                }
+            }
+        }
+
+        // Map well-known codepoints to KeyType; otherwise treat as
+        // printable Char with the rune from `$text` (preferred) or the
+        // codepoint itself.
+        [$type, $rune] = match (true) {
+            $code === 9   => [KeyType::Tab,       ''],
+            $code === 13  => [KeyType::Enter,     ''],
+            $code === 27  => [KeyType::Escape,    ''],
+            $code === 32  => [KeyType::Space,     ' '],
+            $code === 127 => [KeyType::Backspace, ''],
+            default       => [KeyType::Char, $text !== '' ? $text : mb_chr($code, 'UTF-8')],
+        };
+
+        $cls = match ($event) {
+            3       => KeyReleaseMsg::class,
+            2       => KeyRepeatMsg::class,
+            default => KeyPressMsg::class,
+        };
+
+        return new $cls(
+            $type,
+            (string) $rune,
+            alt:   $mods->alt,
+            ctrl:  $mods->ctrl,
+            shift: $mods->shift,
+        );
     }
 
     /**

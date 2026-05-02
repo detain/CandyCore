@@ -18,7 +18,7 @@ use CandyCore\Core\Msg;
  * {@see Modifiers} value, or {@see text()} / {@see code()} as
  * v2-style aliases for `$rune` / `$type`.
  */
-final class KeyMsg implements Msg
+class KeyMsg implements Msg
 {
     public function __construct(
         public readonly KeyType $type,
