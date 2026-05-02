@@ -119,4 +119,40 @@ final class RendererTest extends TestCase
         $out = $this->plain()->render("one\n\ntwo");
         $this->assertSame("one\n\ntwo", $out);
     }
+
+    public function testNestedBulletedListIndents(): void
+    {
+        $md = "- parent\n  - child\n  - sibling\n- top";
+        $out = $this->plain()->render($md);
+        $expected = "• parent\n  • child\n  • sibling\n• top";
+        $this->assertSame($expected, $out);
+    }
+
+    public function testNestedOrderedInsideBulletedIndents(): void
+    {
+        $md = "- parent\n  1. one\n  2. two";
+        $out = $this->plain()->render($md);
+        $expected = "• parent\n  1. one\n  2. two";
+        $this->assertSame($expected, $out);
+    }
+
+    public function testOrderedNestedInsideOrderedAlignsToMarkerWidth(): void
+    {
+        // The outer marker "1." is 2 cells, so the nested "1." starts at
+        // column 3 (one space + marker width).
+        $md = "1. parent\n   1. child\n   2. sibling\n2. next";
+        $out = $this->plain()->render($md);
+        $expected = "1. parent\n   1. child\n   2. sibling\n2. next";
+        $this->assertSame($expected, $out);
+    }
+
+    public function testMultiLineParagraphInListItemKeepsIndent(): void
+    {
+        // CommonMark turns a soft line-break inside a list-item paragraph
+        // into a single newline; the renderer must indent continuation
+        // lines so they line up under the first character of the body.
+        $md = "- first line\n  second line";
+        $out = $this->plain()->render($md);
+        $this->assertSame("• first line\n  second line", $out);
+    }
 }

@@ -127,7 +127,23 @@ final class Renderer
         foreach ($list->children() as $item) {
             $bullet = $ordered ? sprintf('%d.', $i) : '•';
             $body   = rtrim($this->renderChildren($item), "\n");
-            $out   .= $marker->render($bullet) . ' ' . $body . "\n";
+            // Paragraphs inside list items emit a trailing blank line for
+            // top-level separation; collapse those runs so nested lists
+            // sit directly under their parent rather than after a gap.
+            $body = (string) preg_replace('/\n{2,}/', "\n", $body);
+
+            $lines  = explode("\n", $body);
+            $first  = array_shift($lines) ?? '';
+            $indent = str_repeat(' ', mb_strlen($bullet, 'UTF-8') + 1);
+
+            // CommonMark softbreaks leave trailing whitespace on the
+            // preceding Text node; rtrim every emitted line so item
+            // bodies don't accumulate stray spaces.
+            $out .= $marker->render($bullet) . ' ' . rtrim($first) . "\n";
+            foreach ($lines as $line) {
+                $line = rtrim($line);
+                $out .= ($line === '' ? '' : $indent . $line) . "\n";
+            }
             $i++;
         }
         return $out . "\n";
