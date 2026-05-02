@@ -1,5 +1,7 @@
 # SugarWishlist
 
+![demo](.vhs/picker.gif)
+
 PHP port of [`charmbracelet/wishlist`](https://github.com/charmbracelet/wishlist) — a TUI directory of SSH endpoints. Launch `wishlist`, pick a host, hit Enter, and the current process is replaced with `ssh` connecting to it.
 
 ```

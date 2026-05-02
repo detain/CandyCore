@@ -1,5 +1,7 @@
 # SugarCharts
 
+![demo](.vhs/heatmap.gif)
+
 PHP port of [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) —
 terminal charts for CandyCore. v0 ships the canvas foundation plus three
 self-contained chart types.

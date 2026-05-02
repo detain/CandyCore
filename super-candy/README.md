@@ -1,5 +1,7 @@
 # SuperCandy
 
+![demo](.vhs/navigate.gif)
+
 Dual-pane terminal file manager built on the SugarCraft stack — port of [`yorukot/superfile`](https://github.com/yorukot/superfile), with the Midnight Commander look.
 
 ```

@@ -1,5 +1,7 @@
 # CandyShine
 
+![demo](.vhs/render.gif)
+
 PHP port of [charmbracelet/glamour](https://github.com/charmbracelet/glamour) —
 Markdown → ANSI renderer built on `league/commonmark` and CandySprinkles.
 

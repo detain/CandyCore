@@ -1,5 +1,7 @@
 # SugarCrush
 
+![demo](.vhs/chat.gif)
+
 Chat-shell TUI for AI coding assistants — port of [`charmbracelet/crush`](https://github.com/charmbracelet/crush). Pluggable backends (ship your own Anthropic / OpenAI / Ollama / shell-out adapter), Markdown rendering of replies via CandyShine, scrollback above a fixed input box.
 
 ```

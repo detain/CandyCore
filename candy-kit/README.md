@@ -1,5 +1,7 @@
 # CandyKit
 
+![demo](.vhs/cli-page.gif)
+
 PHP port of [charmbracelet/fang](https://github.com/charmbracelet/fang) —
 opinionated **CLI presentation helpers** that turn ordinary command-
 line output into something that matches the rest of the CandyCore
