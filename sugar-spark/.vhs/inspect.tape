@@ -1,0 +1,12 @@
+# Pipe a few interesting escape sequences through sugarspark and
+# show how they get labelled.
+Output sugar-spark/.vhs/inspect.gif
+
+Set FontSize 14
+Set Width 900
+Set Height 360
+Set Theme "Tokyo Night"
+
+Type "./examples/inspect.sh"
+Enter
+Sleep 4s
