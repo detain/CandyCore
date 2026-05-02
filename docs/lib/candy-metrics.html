@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CandyMetrics — SugarBuzz</title>
+<meta name="description" content="CandyMetrics: Telemetry primitives. Port of promwish.">
+<link rel="icon" type="image/svg+xml" href="../img/favicon.svg">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner"><a class="brand" href="../"><span class="logo-mark"></span>SugarBuzz</a><div class="nav-links"><a href="../#libraries">Libraries</a><a href="../#quickstart">Quickstart</a><a href="../compare.html">Compare</a><a href="https://github.com/detain/CandyCore" class="btn btn-ghost">GitHub →</a></div></div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 8px 0;"><a href="../#libraries">← All libraries</a></p>
+    <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 8px;">
+      <div style="font-size: 3.2rem;">📈</div>
+      <div><h2 style="margin: 0;">CandyMetrics</h2><p style="margin: 4px 0 0 0; color: var(--ink-2);">Telemetry primitives</p></div>
+    </div>
+    <p class="lede" style="margin-top: 24px;">Counter / Gauge / Histogram with pluggable backends — InMemory, JSON stream, StatsD UDP (etsy + DogStatsD), Prometheus textfile (atomic .prom rewrite), MultiBackend fanout. SessionMetrics middleware for CandyWish records connect / duration / error per session.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/candy-metrics</code></pre>
+
+    <h3 style="margin-top: 32px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/detain/CandyCore/tree/master/candy-metrics">Source on GitHub</a></li>
+      <li><a href="https://github.com/detain/CandyCore/blob/master/candy-metrics/README.md">Full README</a></li>
+      <li><a href="https://github.com/detain/CandyCore/tree/master/candy-metrics/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/charmbracelet/promwish">promwish</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer"><div class="container"><div><span class="logo-mark"></span> <strong>SugarBuzz</strong> · MIT-licensed · PHP 8.1+</div><div><a href="https://github.com/detain/CandyCore">GitHub</a> · <a href="https://github.com/detain/CandyCore/blob/master/CONVERSION.md">Architecture</a> · <a href="https://github.com/detain/CandyCore/issues">Issues</a></div></div></footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

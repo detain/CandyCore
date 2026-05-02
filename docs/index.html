@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SugarBuzz — terminal UIs for PHP</title>
+    <meta name="description" content="SugarBuzz is the PHP port of the Charmbracelet TUI ecosystem — sixteen libraries for building beautiful, fast, fiber-driven terminal user interfaces in PHP 8.1+.">
+    <meta property="og:title" content="SugarBuzz — terminal UIs for PHP">
+    <meta property="og:description" content="Sixteen PHP libraries for building beautiful terminal user interfaces. Composer-installable. PHP 8.1+. Async on ReactPHP.">
+    <meta property="og:type" content="website">
+    <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+    <div class="nav-inner">
+        <a class="brand" href="./"><span class="logo-mark"></span>SugarBuzz</a>
+        <div class="nav-links">
+            <a href="#libraries">Libraries</a>
+            <a href="#quickstart">Quickstart</a>
+            <a href="compare.html">Compare</a>
+            <a href="https://github.com/detain/CandyCore" class="btn btn-ghost">GitHub →</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero">
+    <div class="container">
+        <h1>Terminal UIs that taste like candy.</h1>
+        <p class="tag">
+            SugarBuzz is the PHP port of the
+            <a href="https://charm.sh">Charmbracelet</a> TUI ecosystem.
+            Sixteen composer-installable libraries. Elm-architecture runtime,
+            declarative styling, animation, charts, forms, SSH-served apps,
+            telemetry. PHP 8.1+, fibers, ReactPHP.
+        </p>
+
+        <div class="cta-row">
+            <a href="#quickstart" class="btn btn-primary">Quickstart →</a>
+            <a href="https://github.com/detain/CandyCore" class="btn btn-ghost">View on GitHub</a>
+        </div>
+
+        <div class="glyph-row" aria-hidden="true">
+            <span class="glyph">🍬</span>
+            <span class="glyph">🌟</span>
+            <span class="glyph">✨</span>
+            <span class="glyph">🎨</span>
+            <span class="glyph">🍭</span>
+        </div>
+    </div>
+</header>
+
+<section class="section" id="libraries">
+    <div class="container">
+        <h2>Sixteen libraries, one ecosystem.</h2>
+        <p class="lede">
+            Each library has its own composer package, README, examples,
+            and PHPUnit suite. Pull just the ones you need — or grab the
+            umbrella metapackage.
+        </p>
+
+        <div class="lib-grid">
+
+            <a class="lib-card" href="lib/candy-core.html">
+                <div class="glyph-tag">🍬</div>
+                <h3>CandyCore</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/bubbletea">bubbletea</a></div>
+                <p class="summary">Elm-architecture runtime — Model / Msg / Cmd / Program. Cursed cell-diff renderer for SSH bandwidth.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-core">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-core/examples/counter.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-sprinkles.html">
+                <div class="glyph-tag">✨</div>
+                <h3>CandySprinkles</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/lipgloss">lipgloss</a></div>
+                <p class="summary">Declarative styling + layout. Style, Border, Table, List, Tree, Layout::join/Place, multi-layer Canvas.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-sprinkles">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-sprinkles/examples/dashboard.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/honey-bounce.html">
+                <div class="glyph-tag">🐝</div>
+                <h3>HoneyBounce</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/harmonica">harmonica</a></div>
+                <p class="summary">Damped spring physics + Newtonian projectile sim. The animation engine behind every smooth scroll in the stack.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/honey-bounce">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/honey-bounce/examples/spring.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-zone.html">
+                <div class="glyph-tag">🎯</div>
+                <h3>CandyZone</h3>
+                <div class="lib-source">port of <a href="https://github.com/lrstanley/bubblezone">bubblezone</a></div>
+                <p class="summary">Mouse-zone tracker. Wrap rendered chunks, get back bounding boxes — clickable regions without coordinate math.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-zone">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-zone/examples/buttons.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-bits.html">
+                <div class="glyph-tag">🧁</div>
+                <h3>SugarBits</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/bubbles">bubbles</a></div>
+                <p class="summary">Fourteen components: TextInput, TextArea, ItemList, Table, Viewport, FilePicker, Progress, Spinner, Cursor, Help, Key, Paginator, Stopwatch, Timer.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-bits">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-bits/examples/spinner.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-charts.html">
+                <div class="glyph-tag">📊</div>
+                <h3>SugarCharts</h3>
+                <div class="lib-source">port of <a href="https://github.com/NimbleMarkets/ntcharts">ntcharts</a></div>
+                <p class="summary">Sparkline, Bar, Line, Heatmap, Scatter, TimeSeries, Streamline, Waveline, OHLC, plus Sixel / Kitty / iTerm2 image rendering.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-charts">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-charts/examples/sparkline.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-prompt.html">
+                <div class="glyph-tag">💬</div>
+                <h3>SugarPrompt</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/huh">huh</a></div>
+                <p class="summary">Form library — Note, Input, Confirm, Select, MultiSelect, Text, FilePicker, multi-page Groups, six themes.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-prompt">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-prompt/examples/multi-page-form.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-shell.html">
+                <div class="glyph-tag">🐚</div>
+                <h3>CandyShell</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/gum">gum</a></div>
+                <p class="summary">Composer-installable CLI of thirteen subcommands — choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-shell">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-shell/examples/setup-script.sh">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-shine.html">
+                <div class="glyph-tag">🌟</div>
+                <h3>CandyShine</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/glamour">glamour</a></div>
+                <p class="summary">Markdown → ANSI renderer. Word-wrap, OSC 8 hyperlinks, syntax highlighting, eight themes, custom themes via JSON.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-shine">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-shine/examples/render.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-kit.html">
+                <div class="glyph-tag">🎁</div>
+                <h3>CandyKit</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/fang">fang</a></div>
+                <p class="summary">CLI presentation helpers — StatusLine, Banner, Section, Stage, HelpText. Library-only, no Symfony Console requirement.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-kit">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-kit/examples/cli-page.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-freeze.html">
+                <div class="glyph-tag">📸</div>
+                <h3>CandyFreeze</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/freeze">freeze</a></div>
+                <p class="summary">Code → SVG screenshot. Traffic-light window controls, drop shadow, gutter line numbers, ANSI SGR parsing. No GD / Imagick.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-freeze">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-freeze/examples/screenshot.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-glow.html">
+                <div class="glyph-tag">📖</div>
+                <h3>SugarGlow</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/glow">glow</a></div>
+                <p class="summary">Markdown CLI viewer. Renders to stdout or opens a fullscreen pager. Eight themes, custom JSON themes, OSC 8 toggle.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-glow">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-glow/examples/render-readme.sh">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-spark.html">
+                <div class="glyph-tag">🔍</div>
+                <h3>SugarSpark</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/sequin">sequin</a></div>
+                <p class="summary">ANSI escape-sequence inspector. Labels SGR / CSI / OSC / DCS / APC / SS3 — feed it stdin, get a human-readable annotation back.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-spark">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-spark/examples/inspect.sh">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-wish.html">
+                <div class="glyph-tag">🔐</div>
+                <h3>CandyWish</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/wish">wish</a></div>
+                <p class="summary">SSH server middleware framework. Logger, Auth, RateLimit, BubbleTea — leans on OpenSSH ForceCommand for the wire protocol.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-wish">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-wish/examples/hello-server.php">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/sugar-wishlist.html">
+                <div class="glyph-tag">🎫</div>
+                <h3>SugarWishlist</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/wishlist">wishlist</a></div>
+                <p class="summary">SSH endpoint launcher. YAML / JSON directory of `ssh user@host` shortcuts, interactive picker, pcntl_exec into the chosen ssh.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/sugar-wishlist">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/sugar-wishlist/examples/sample-wishlist.yml">Example</a>
+                </div>
+            </a>
+
+            <a class="lib-card" href="lib/candy-metrics.html">
+                <div class="glyph-tag">📈</div>
+                <h3>CandyMetrics</h3>
+                <div class="lib-source">port of <a href="https://github.com/charmbracelet/promwish">promwish</a></div>
+                <p class="summary">Telemetry primitives. Counter / Gauge / Histogram, four backends (InMemory, JSON, StatsD, Prometheus textfile), CandyWish session middleware.</p>
+                <div class="links">
+                    <a href="https://github.com/detain/CandyCore/tree/master/candy-metrics">GitHub</a>
+                    <a href="https://github.com/detain/CandyCore/blob/master/candy-metrics/examples/wish-with-metrics.php">Example</a>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</section>
+
+<section class="section" id="quickstart" style="background: var(--card); border-block: 1px solid var(--line);">
+    <div class="container">
+        <h2>From <code>composer require</code> to a working counter in ten lines.</h2>
+        <p class="lede">
+            Install the umbrella, drop the snippet below into a file,
+            <code>php counter.php</code>. ↑ ↓ to count, <code>q</code> to quit.
+        </p>
+
+        <div class="quickstart">
+            <h3>1. Install</h3>
+            <div class="install">
+<pre class="code"><code>composer require candycore/candycore</code></pre>
+            </div>
+
+            <h3>2. Write the model</h3>
+<pre class="code"><code><span class="kw">use</span> <span class="cls">CandyCore\Core\</span>{<span class="cls">Cmd</span>, <span class="cls">KeyType</span>, <span class="cls">Model</span>, <span class="cls">Msg</span>, <span class="cls">Program</span>};
+<span class="kw">use</span> <span class="cls">CandyCore\Core\Msg\KeyMsg</span>;
+
+<span class="kw">final class</span> <span class="cls">Counter</span> <span class="kw">implements</span> <span class="cls">Model</span> {
+    <span class="kw">public function</span> <span class="fn">__construct</span>(<span class="kw">public readonly int</span> $n = <span class="num">0</span>) {}
+    <span class="kw">public function</span> <span class="fn">init</span>(): ?\Closure { <span class="kw">return null</span>; }
+
+    <span class="kw">public function</span> <span class="fn">update</span>(<span class="cls">Msg</span> $msg): <span class="kw">array</span> {
+        <span class="kw">if</span> ($msg <span class="kw">instanceof</span> <span class="cls">KeyMsg</span> &amp;&amp; $msg-&gt;rune === <span class="str">'q'</span>) <span class="kw">return</span> [$<span class="kw">this</span>, <span class="cls">Cmd</span>::<span class="fn">quit</span>()];
+        <span class="kw">return</span> [<span class="kw">match</span> (<span class="kw">true</span>) {
+            $msg <span class="kw">instanceof</span> <span class="cls">KeyMsg</span> &amp;&amp; $msg-&gt;type === <span class="cls">KeyType</span>::Up   =&gt; <span class="kw">new self</span>($<span class="kw">this</span>-&gt;n + <span class="num">1</span>),
+            $msg <span class="kw">instanceof</span> <span class="cls">KeyMsg</span> &amp;&amp; $msg-&gt;type === <span class="cls">KeyType</span>::Down =&gt; <span class="kw">new self</span>($<span class="kw">this</span>-&gt;n - <span class="num">1</span>),
+            <span class="kw">default</span> =&gt; $<span class="kw">this</span>,
+        }, <span class="kw">null</span>];
+    }
+
+    <span class="kw">public function</span> <span class="fn">view</span>(): <span class="kw">string</span> { <span class="kw">return</span> <span class="str">"n = {$this->n}\n↑ ↓ to count, q to quit\n"</span>; }
+}
+
+(<span class="kw">new</span> <span class="cls">Program</span>(<span class="kw">new</span> <span class="cls">Counter</span>()))-&gt;<span class="fn">run</span>();
+</code></pre>
+
+            <h3>3. Run it</h3>
+            <div class="install">
+<pre class="code"><code>php counter.php</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2>Why pick SugarBuzz?</h2>
+        <p class="lede">
+            Three flavours of "build a TUI in PHP" — pick the row that matches
+            your project's needs.
+        </p>
+        <table class="compare">
+            <thead>
+                <tr>
+                    <th>Capability</th>
+                    <th>SugarBuzz</th>
+                    <th>Symfony Console</th>
+                    <th><code>readline</code> / raw</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Elm-architecture runtime (Model / Msg / Cmd)</td>
+                    <td class="yes">✓</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Async event loop (fibers + ReactPHP)</td>
+                    <td class="yes">✓</td>
+                    <td class="no">partial</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Declarative styling (CSS-like flexbox / borders)</td>
+                    <td class="yes">✓</td>
+                    <td class="no">manual</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Composable form library</td>
+                    <td class="yes">✓ (SugarPrompt)</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Mouse + key bindings</td>
+                    <td class="yes">✓</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>SSH-served apps (multi-tenant)</td>
+                    <td class="yes">✓ (CandyWish)</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Charts / sparklines / heatmaps</td>
+                    <td class="yes">✓ (SugarCharts)</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>One-shot CLI prompts (gum-style)</td>
+                    <td class="yes">✓ (CandyShell)</td>
+                    <td class="no">primitive</td>
+                    <td class="no">—</td>
+                </tr>
+                <tr>
+                    <td>Markdown → ANSI rendering</td>
+                    <td class="yes">✓ (CandyShine)</td>
+                    <td class="no">—</td>
+                    <td class="no">—</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div>
+            <span class="logo-mark"></span>
+            <strong>SugarBuzz</strong> · MIT-licensed · PHP 8.1+
+        </div>
+        <div>
+            <a href="https://github.com/detain/CandyCore">GitHub</a> ·
+            <a href="https://github.com/detain/CandyCore/blob/master/CONVERSION.md">Architecture</a> ·
+            <a href="https://github.com/detain/CandyCore/blob/master/CONTRIBUTING.md">Contributing</a> ·
+            <a href="https://github.com/detain/CandyCore/issues">Issues</a>
+        </div>
+    </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
