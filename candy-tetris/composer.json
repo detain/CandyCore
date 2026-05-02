@@ -1,0 +1,52 @@
+{
+    "name": "candycore/candy-tetris",
+    "description": "Tetris clone built on the SugarBuzz stack — CandyCore runtime, CandySprinkles styling, HoneyBounce-driven smooth piece previews. Standard SRS rules (7-bag RNG, ghost piece, hard drop, hold, level/speed curve, line-clear scoring). A real demo of the runtime, not a toy.",
+    "type": "project",
+    "license": "MIT",
+    "keywords": [
+        "candycore",
+        "tetris",
+        "game",
+        "tui",
+        "demo",
+        "example"
+    ],
+    "homepage": "https://github.com/detain/CandyCore",
+    "authors": [
+        {
+            "name": "Joe Huss",
+            "email": "detain@interserver.net",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/detain/CandyCore/issues",
+        "source": "https://github.com/detain/CandyCore/tree/master/candy-tetris",
+        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+    },
+    "bin": ["bin/tetris"],
+    "require": {
+        "php": ">=8.1",
+        "candycore/candy-core": "@dev",
+        "candycore/candy-sprinkles": "@dev"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "CandyCore\\Tetris\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CandyCore\\Tetris\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        { "type": "path", "url": "../candy-core",      "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-sprinkles", "options": { "symlink": true } }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
