@@ -1,6 +1,6 @@
 {
     "name": "candycore/super-candy",
-    "description": "Dual-pane terminal file manager built on the SugarBuzz stack. Inspired by superfile and Midnight Commander. Navigate two directories side-by-side, sort by name / mtime / size, multi-select, delete with confirmation, swap focus with Tab.",
+    "description": "Dual-pane terminal file manager built on the SugarCraft stack. Inspired by superfile and Midnight Commander. Navigate two directories side-by-side, sort by name / mtime / size, multi-select, delete with confirmation, swap focus with Tab.",
     "type": "project",
     "license": "MIT",
     "keywords": [
@@ -12,7 +12,7 @@
         "dual-pane",
         "midnight-commander"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/super-candy",
     "authors": [
         {
             "name": "Joe Huss",
@@ -21,9 +21,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/super-candy",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/super-candy/issues",
+        "source": "https://github.com/sugarcraft/super-candy",
+        "docs":   "https://sugarcraft.github.io/lib/super-candy.html"
     },
     "bin": ["bin/supercandy"],
     "require": {

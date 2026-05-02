@@ -826,7 +826,7 @@ and the dependencies on phases 0–8.
 
 ---
 
-## Phase 10 — Polish & public launch (SugarBuzz)
+## Phase 10 — Polish & public launch (SugarCraft)
 
 Runs **after** every functional phase (0–9 + Phase 9+ ports) is at v1.
 This phase is presentation and distribution: turn the library set
@@ -834,13 +834,15 @@ into a real product.
 
 ### Brand + home
 
-- **Org name:** **SugarBuzz** — every library moves under
-  `github.com/sugarbuzz/<lib>` (current `detain/CandyCore` monorepo is
+- **Org name:** **SugarCraft** — every library moves under
+  `github.com/sugarcraft/<lib>` (current `detain/CandyCore` monorepo is
   the dev incubator; production repos split out at v1.0 per the
   existing "Repo split" architecture decision).
-- **Website:** `sugarbuzz.dev` (or similar — TBD). Visual inspiration:
+- **Website:** `sugarcraft.github.io` (org Pages, deployed from
+  `sugarcraft/sugarcraft.github.io`). Visual inspiration:
   [charm.land](https://charm.land/#enterprise) — big, bubbly, colourful,
-  rounded corners, cheerful gradients. Powerful but playful.
+  rounded corners, cheerful gradients. Powerful but playful. A custom
+  domain (`sugarcraft.dev` or similar) is TBD.
 - **Tone:** every library README opens with a one-line tagline + a
   prominent VHS-recorded GIF demo. Emojis used freely (🍬 🌟 ✨ 🎨 🍭
   🎀 🧁 🍰 🌈 🎈) but never to the point of clutter.
@@ -851,7 +853,7 @@ Each shipped library gets the same treatment:
 
 - [ ] **README.md** rewritten to mirror the original Go counterpart's
       structure, with PHP-specific install + usage:
-      `composer require sugarbuzz/<package>` ➜ minimal example ➜
+      `composer require sugarcraft/<package>` ➜ minimal example ➜
       feature list ➜ links to advanced docs.
 - [ ] **VHS demo** at the top of the README (animated GIF). Recorded
       with [charmbracelet/vhs](https://github.com/charmbracelet/vhs)
@@ -863,7 +865,7 @@ Each shipped library gets the same treatment:
       - `description` — playful, descriptive sentence.
       - `keywords` — generous tag list (`tui`, `cli`, `terminal`,
         `bubble-tea`, `php8`, plus library-specific tags).
-      - `homepage` — sugarbuzz.dev/<lib>.
+      - `homepage` — sugarcraft.github.io/lib/<slug>.html.
       - `support` (issues, source, docs URLs).
       - `funding` block (if applicable).
       - `authors` — Joe Huss + contributors.
@@ -880,10 +882,10 @@ Each shipped library gets the same treatment:
       - Releases tagged with semver from v1.0.0 onward.
       - Discussions enabled.
 - [ ] **Packagist publish** (after split-out from monorepo): all libs
-      under the `sugarbuzz/` vendor namespace once available, otherwise
+      under the `sugarcraft/` vendor namespace once available, otherwise
       `candycore/` until then.
 
-### Website — sugarbuzz.dev
+### Website — sugarcraft.github.io
 
 - [ ] **Hero**: big animated banner showing CandyShell + SugarBits +
       SugarPrompt running side-by-side via VHS recordings.
@@ -921,14 +923,14 @@ Each shipped library gets the same treatment:
 
 ### Sequencing inside Phase 10
 
-1. Pick the visual palette + a SugarBuzz logo (one-shot design pass).
+1. Pick the visual palette + a SugarCraft logo (one-shot design pass).
 2. Build the website skeleton (static, deployable to any CDN — GitHub
    Pages, Netlify, Vercel; whichever needs least ops).
 3. Wire up the VHS workflow on **CandyCore** first (most-watched repo;
    sets the precedent for the rest).
 4. Roll the polish checklist library-by-library, easiest first
    (CandySprinkles, HoneyBounce — both pure-PHP, no I/O).
-5. Move the production repos under the SugarBuzz org once at least
+5. Move the production repos under the SugarCraft org once at least
    half the libs are polished. Detain remains the dev / incubator
    namespace.
 6. Announce: blog post, charm community Discord/Slack, /r/PHP,

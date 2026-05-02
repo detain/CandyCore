@@ -8,7 +8,7 @@
 
 ### ⚠️ Decent but situational
 
-* **SugarBuzz** → energetic, but vague (better for async/events than core libs)
+* **SugarCraft** → energetic, but vague (better for async/events than core libs)
 * **SweetShop** → sounds like a marketplace, not a library (could confuse users)
 * **CookiePress** → implies HTTP/cookies or WordPress-like tooling, not TUI
 * **CutieMarks** → very niche reference, might not age well or be universally understood

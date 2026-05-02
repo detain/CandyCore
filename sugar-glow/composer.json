@@ -8,14 +8,14 @@
         "glow", "ansi", "tui",
         "candycore"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/sugar-glow",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore",
-        "docs":   "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/sugar-glow/issues",
+        "source": "https://github.com/sugarcraft/sugar-glow",
+        "docs":   "https://sugarcraft.github.io/lib/sugar-glow.html"
     },
     "bin": ["bin/sugarglow"],
     "require": {

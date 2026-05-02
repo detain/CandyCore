@@ -15,7 +15,7 @@
         "ssh",
         "wish"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/candy-metrics",
     "authors": [
         {
             "name": "Joe Huss",
@@ -24,9 +24,9 @@
         }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore/tree/master/candy-metrics",
-        "docs": "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/candy-metrics/issues",
+        "source": "https://github.com/sugarcraft/candy-metrics",
+        "docs":   "https://sugarcraft.github.io/lib/candy-metrics.html"
     },
     "require": {
         "php": ">=8.1"

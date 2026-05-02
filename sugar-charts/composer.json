@@ -9,14 +9,14 @@
         "scatter", "time-series", "ohlc", "candlestick",
         "ntcharts", "candycore"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/sugar-charts",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore",
-        "docs":   "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/sugar-charts/issues",
+        "source": "https://github.com/sugarcraft/sugar-charts",
+        "docs":   "https://sugarcraft.github.io/lib/sugar-charts.html"
     },
     "require": {
         "php": "^8.1",

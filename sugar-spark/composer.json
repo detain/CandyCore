@@ -8,14 +8,14 @@
         "sequin", "tui", "terminal",
         "candycore"
     ],
-    "homepage": "https://github.com/detain/CandyCore",
+    "homepage": "https://github.com/sugarcraft/sugar-spark",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
     ],
     "support": {
-        "issues": "https://github.com/detain/CandyCore/issues",
-        "source": "https://github.com/detain/CandyCore",
-        "docs":   "https://github.com/detain/CandyCore/blob/master/CONVERSION.md"
+        "issues": "https://github.com/sugarcraft/sugar-spark/issues",
+        "source": "https://github.com/sugarcraft/sugar-spark",
+        "docs":   "https://sugarcraft.github.io/lib/sugar-spark.html"
     },
     "bin": ["bin/sugarspark"],
     "require": {
