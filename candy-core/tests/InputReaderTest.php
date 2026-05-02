@@ -18,6 +18,8 @@ use CandyCore\Core\Msg\CursorPositionMsg;
 use CandyCore\Core\Msg\FocusMsg;
 use CandyCore\Core\Msg\ForegroundColorMsg;
 use CandyCore\Core\Msg\KeyMsg;
+use CandyCore\Core\Msg\PasteEndMsg;
+use CandyCore\Core\Msg\PasteStartMsg;
 use CandyCore\Core\Msg\ModeReportMsg;
 use CandyCore\Core\Msg\TerminalVersionMsg;
 use CandyCore\Core\Msg\MouseClickMsg;
@@ -317,9 +319,11 @@ final class InputReaderTest extends TestCase
     public function testBracketedPasteSingleFrame(): void
     {
         $msgs = (new InputReader())->parse("\x1b[200~hello world\x1b[201~");
-        $this->assertCount(1, $msgs);
-        $this->assertInstanceOf(PasteMsg::class, $msgs[0]);
-        $this->assertSame('hello world', $msgs[0]->content);
+        $this->assertCount(3, $msgs);
+        $this->assertInstanceOf(PasteStartMsg::class, $msgs[0]);
+        $this->assertInstanceOf(PasteEndMsg::class,   $msgs[1]);
+        $this->assertInstanceOf(PasteMsg::class,      $msgs[2]);
+        $this->assertSame('hello world', $msgs[2]->content);
     }
 
     public function testBracketedPastePreservesNewlinesAndControl(): void
@@ -328,28 +332,38 @@ final class InputReaderTest extends TestCase
         // be parsed as keys — the whole envelope is one PasteMsg.
         $payload = "line1\nline2\x1b[31mred\x1b[0m";
         $msgs    = (new InputReader())->parse("\x1b[200~" . $payload . "\x1b[201~");
-        $this->assertCount(1, $msgs);
-        $this->assertInstanceOf(PasteMsg::class, $msgs[0]);
-        $this->assertSame($payload, $msgs[0]->content);
+        $this->assertCount(3, $msgs);
+        $this->assertInstanceOf(PasteStartMsg::class, $msgs[0]);
+        $this->assertInstanceOf(PasteEndMsg::class,   $msgs[1]);
+        $this->assertInstanceOf(PasteMsg::class,      $msgs[2]);
+        $this->assertSame($payload, $msgs[2]->content);
     }
 
     public function testBracketedPasteSplitAcrossReads(): void
     {
         $r = new InputReader();
-        $this->assertSame([], $r->parse("\x1b[200~hel"));
+        // First parse sees the start marker → emits PasteStartMsg.
+        $startMsgs = $r->parse("\x1b[200~hel");
+        $this->assertCount(1, $startMsgs);
+        $this->assertInstanceOf(PasteStartMsg::class, $startMsgs[0]);
         $this->assertSame([], $r->parse('lo'));
         $msgs = $r->parse(" world\x1b[201~");
-        $this->assertCount(1, $msgs);
-        $this->assertSame('hello world', $msgs[0]->content);
+        $this->assertCount(2, $msgs);
+        $this->assertInstanceOf(PasteEndMsg::class, $msgs[0]);
+        $this->assertInstanceOf(PasteMsg::class,    $msgs[1]);
+        $this->assertSame('hello world', $msgs[1]->content);
     }
 
     public function testBracketedPasteFollowedByKey(): void
     {
         $msgs = (new InputReader())->parse("\x1b[200~paste\x1b[201~q");
-        $this->assertCount(2, $msgs);
-        $this->assertInstanceOf(PasteMsg::class, $msgs[0]);
-        $this->assertSame('paste', $msgs[0]->content);
-        $this->assertSame('q', $msgs[1]->rune);
+        $this->assertCount(4, $msgs);
+        $this->assertInstanceOf(PasteStartMsg::class, $msgs[0]);
+        $this->assertInstanceOf(PasteEndMsg::class,   $msgs[1]);
+        $this->assertInstanceOf(PasteMsg::class,      $msgs[2]);
+        $this->assertSame('paste', $msgs[2]->content);
+        $this->assertInstanceOf(KeyMsg::class, $msgs[3]);
+        $this->assertSame('q', $msgs[3]->rune);
     }
 
     public function testKeyMsgStringForFunctionKeys(): void

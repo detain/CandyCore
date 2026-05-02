@@ -136,4 +136,17 @@ final class CmdTest extends TestCase
         $msg = (Cmd::readClipboard())();
         $this->assertSame("\x1b]52;c;?\x07", $msg->bytes);
     }
+
+    public function testSetWindowTitleEmitsOsc2(): void
+    {
+        $msg = (Cmd::setWindowTitle('hello'))();
+        $this->assertInstanceOf(RawMsg::class, $msg);
+        $this->assertSame("\x1b]2;hello\x07", $msg->bytes);
+    }
+
+    public function testSetWindowTitleIconFormEmitsOsc0(): void
+    {
+        $msg = (Cmd::setWindowTitle('hello', icon: true))();
+        $this->assertSame("\x1b]0;hello\x07", $msg->bytes);
+    }
 }

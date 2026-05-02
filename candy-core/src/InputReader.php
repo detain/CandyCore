@@ -19,7 +19,9 @@ use CandyCore\Core\Msg\MouseMotionMsg;
 use CandyCore\Core\Msg\MouseMsg;
 use CandyCore\Core\Msg\MouseReleaseMsg;
 use CandyCore\Core\Msg\MouseWheelMsg;
+use CandyCore\Core\Msg\PasteEndMsg;
 use CandyCore\Core\Msg\PasteMsg;
+use CandyCore\Core\Msg\PasteStartMsg;
 
 /**
  * Stateful byte-stream parser. Feed it raw bytes via {@see parse()};
@@ -62,6 +64,7 @@ final class InputReader
                     break;
                 }
                 $this->pasteBuf .= substr($this->buf, $i, $end - $i);
+                $msgs[]         = new PasteEndMsg();
                 $msgs[]         = new PasteMsg($this->pasteBuf);
                 $this->pasteBuf = '';
                 $this->pasting  = false;
@@ -96,6 +99,7 @@ final class InputReader
                             if ($final === '~' && $params === '200') {
                                 $this->pasting  = true;
                                 $this->pasteBuf = '';
+                                $msgs[]         = new PasteStartMsg();
                                 $i = $j;
                                 continue 2;
                             }
