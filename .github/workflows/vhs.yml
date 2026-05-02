@@ -1,5 +1,11 @@
 name: VHS demos
 
+env:
+  # Suppress Node.js 20 deprecation warnings on actions/cache,
+  # actions/checkout, actions/upload-artifact, etc. until those
+  # actions release a v4+ that targets Node.js 24.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 on:
   push:
     branches: [master]
@@ -121,14 +127,16 @@ jobs:
             echo "▶ rendering $tape"
             vhs "$tape"
           done
+          echo "rendered files in $(pwd):"
+          find .vhs -type f | sort
 
       - name: Upload rendered GIFs as artifact
-        if: hashFiles(format('{0}/.vhs/*.gif', matrix.lib)) != ''
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
         uses: actions/upload-artifact@v4
         with:
           name: gifs-${{ matrix.lib }}
           path: ${{ matrix.lib }}/.vhs/*.gif
-          if-no-files-found: ignore
+          if-no-files-found: warn
           retention-days: 1
 
   # Single aggregate-commit job. Runs once after every render finishes.
