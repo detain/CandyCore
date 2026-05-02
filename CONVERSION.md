@@ -487,7 +487,7 @@ Status legend per feature:
 |---|---|---|
 | `View()` returns `tea.View` struct (not `string`) | 🔴 | **Architectural shift.** Move per-frame terminal config (alt screen / mouse mode / focus / cursor / window title / progress bar / colour profile) out of `ProgressOptions` and into a `View` value-object the model returns each tick. Bigger BC break — schedule for a 2.0 of CandyCore. |
 | `Cursor` struct (position, shape, blink, colour, nullable to hide) | 🔴 | Pairs with the new View shape. Today we just expose `hideCursor` boolean. |
-| `WindowTitle` field — set via OSC 0/2 each frame | 🔴 | Terminals that support it; OSC 0/2 emission already in `Ansi`. |
+| `WindowTitle` field — set via OSC 0/2 each frame | 🟡 | `Cmd::setWindowTitle($title, icon: false)` ships now (`Ansi::setWindowTitle()` emits OSC 0 / 2). Per-frame field semantics still pending — that lands with the View struct rework. |
 | Declarative `BackgroundColor` / `ForegroundColor` per frame | 🔴 | Use OSC 10/11. |
 | `MouseMode` declared on the View instead of one-shot setup flag | 🟡 | We toggle in setup/teardown. Move into per-View when we adopt the View struct. |
 | `ProgressBar` field — terminal native progress (OSC 9;4) | 🔴 | iTerm2 / WezTerm taskbar progress. Light-touch addition. |
@@ -510,7 +510,7 @@ Status legend per feature:
 |---|---|---|
 | Split `MouseMsg` into `MouseClickMsg` / `MouseReleaseMsg` / `MouseWheelMsg` / `MouseMotionMsg` | ✅ | `MouseMsg` is no longer `final`; four empty marker subclasses live under `Msg/`. `InputReader::decodeSgrMouse()` instantiates the right one from the SGR byte. The `action` enum stays for callers that prefer enum-based dispatch. |
 | `PasteMsg::content` (we already match) | ✅ | Done. |
-| `PasteStartMsg` / `PasteEndMsg` for *streaming* paste rendering | 🔴 | Useful for very large pastes where you want a progress indicator. |
+| `PasteStartMsg` / `PasteEndMsg` for *streaming* paste rendering | ✅ | `InputReader` emits `PasteStartMsg` as soon as `CSI 200 ~` is seen and `PasteEndMsg` immediately before the buffered `PasteMsg`. Models can flip a "paste in progress" flag, throttle validation, etc. without losing the existing single-shot `PasteMsg` API. |
 
 #### Terminal queries
 

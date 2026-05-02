@@ -162,5 +162,15 @@ final class Cmd
         return static fn(): Msg => new RawMsg(Ansi::readClipboard($selection));
     }
 
+    /**
+     * Set the terminal window title via OSC 2. Pass `$icon: true` to
+     * emit OSC 0 instead, which sets icon name + window title in
+     * terminals that distinguish them (xterm, iTerm2).
+     */
+    public static function setWindowTitle(string $title, bool $icon = false): \Closure
+    {
+        return static fn(): Msg => new RawMsg(Ansi::setWindowTitle($title, $icon));
+    }
+
     private function __construct() {}
 }

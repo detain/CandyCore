@@ -209,6 +209,17 @@ final class Ansi
     }
 
     /**
+     * Set the terminal window title (and icon name when `$icon` is
+     * true). Uses OSC 2 by default; pass `$icon: true` to additionally
+     * emit OSC 1 / OSC 0 for terminals that distinguish icon vs title.
+     */
+    public static function setWindowTitle(string $title, bool $icon = false): string
+    {
+        $out = self::OSC . ($icon ? '0' : '2') . ';' . $title . self::BEL;
+        return $out;
+    }
+
+    /**
      * Strip every ANSI escape sequence from the input.
      *
      * Handles CSI (ESC[...), OSC (ESC]...ST|BEL), single-char ESC sequences,
