@@ -1,0 +1,86 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+/**
+ * `wishlist` — SSH endpoint picker.
+ *
+ *   wishlist [--config <path>] [--ssh <ssh-binary>]
+ *
+ * Defaults to `~/.config/wishlist.yml` (also tries `wishlist.yml`
+ * and `wishlist.json` in the current directory). On Enter, replaces
+ * the current process with `ssh` connecting to the chosen entry.
+ */
+
+(static function (array $argv): void {
+    foreach (['vendor/autoload.php', __DIR__ . '/../vendor/autoload.php', __DIR__ . '/../../../autoload.php'] as $candidate) {
+        $path = str_starts_with($candidate, '/') ? $candidate : __DIR__ . '/../' . $candidate;
+        if (is_file($path)) {
+            require $path;
+            return;
+        }
+    }
+    fwrite(STDERR, "wishlist: cannot find composer autoload.php\n");
+    exit(1);
+})($argv);
+
+use CandyCore\Wishlist\Config;
+use CandyCore\Wishlist\Launcher;
+use CandyCore\Wishlist\Picker;
+
+$cfgPath = null;
+$sshBin  = '/usr/bin/ssh';
+for ($i = 1; $i < $argc; $i++) {
+    switch ($argv[$i]) {
+        case '--config':
+        case '-c':
+            $cfgPath = $argv[++$i] ?? null;
+            break;
+        case '--ssh':
+            $sshBin = $argv[++$i] ?? '/usr/bin/ssh';
+            break;
+        case '--help':
+        case '-h':
+            fwrite(STDOUT, "Usage: wishlist [--config <path>] [--ssh <ssh-binary>]\n");
+            exit(0);
+        default:
+            fwrite(STDERR, "wishlist: unknown arg: {$argv[$i]}\n");
+            exit(2);
+    }
+}
+
+if ($cfgPath === null) {
+    foreach ([
+        getenv('HOME') . '/.config/wishlist.yml',
+        getenv('HOME') . '/.config/wishlist.yaml',
+        getenv('HOME') . '/.config/wishlist.json',
+        'wishlist.yml',
+        'wishlist.yaml',
+        'wishlist.json',
+    ] as $candidate) {
+        if (is_file($candidate)) {
+            $cfgPath = $candidate;
+            break;
+        }
+    }
+}
+if ($cfgPath === null || !is_file($cfgPath)) {
+    fwrite(STDERR, "wishlist: no config found. Pass --config <path>.\n");
+    exit(1);
+}
+
+try {
+    $endpoints = Config::load($cfgPath);
+} catch (\Throwable $e) {
+    fwrite(STDERR, "wishlist: " . $e->getMessage() . "\n");
+    exit(1);
+}
+
+$pick = (new Picker())->pick($endpoints);
+if ($pick === null) {
+    fwrite(STDERR, "wishlist: cancelled.\n");
+    exit(130);
+}
+
+(new Launcher())->dispatch($pick, $sshBin);

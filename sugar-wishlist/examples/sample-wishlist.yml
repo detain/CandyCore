@@ -1,0 +1,23 @@
+# Sample wishlist directory. Copy to ~/.config/wishlist.yml and edit.
+
+- name: production
+  host: prod.example.com
+  port: 2222
+  user: deploy
+  identity_file: ~/.ssh/prod-deploy
+  description: Live customer-facing app servers
+
+- name: staging
+  host: stage.example.com
+  user: deploy
+  description: Pre-prod mirror — safe to break
+
+- name: dev
+  host: dev.example.com
+  user: dev
+
+- name: jumpbox
+  host: bastion.example.com
+  options:
+    - ServerAliveInterval=30
+    - ServerAliveCountMax=3
