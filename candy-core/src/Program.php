@@ -49,6 +49,9 @@ final class Program
     private ?Progress $lastProgress = null;
     private ?Util\Color $lastForegroundColor = null;
     private ?Util\Color $lastBackgroundColor = null;
+    private ?MouseMode $activeMouseMode = null;
+    private ?bool $activeFocusReporting = null;
+    private ?bool $activeBracketedPaste = null;
 
     public function __construct(
         Model $initialModel,
@@ -267,28 +270,31 @@ final class Program
             MouseMode::AllMotion  => fwrite($this->output, Ansi::mouseAllMotionOn()),
             MouseMode::Off        => null,
         };
+        $this->activeMouseMode = $this->options->mouseMode;
         if ($this->options->reportFocus) {
             fwrite($this->output, Ansi::focusReportingOn());
         }
+        $this->activeFocusReporting = $this->options->reportFocus;
         if ($this->options->bracketedPaste) {
             fwrite($this->output, Ansi::bracketedPasteOn());
         }
+        $this->activeBracketedPaste = $this->options->bracketedPaste;
         $this->tty->enableRawMode();
     }
 
     private function teardownTerminal(): void
     {
         $this->tty->restore();
-        if ($this->options->bracketedPaste) {
+        if ($this->activeBracketedPaste) {
             fwrite($this->output, Ansi::bracketedPasteOff());
         }
-        if ($this->options->reportFocus) {
+        if ($this->activeFocusReporting) {
             fwrite($this->output, Ansi::focusReportingOff());
         }
-        match ($this->options->mouseMode) {
+        match ($this->activeMouseMode) {
             MouseMode::CellMotion => fwrite($this->output, Ansi::mouseCellMotionOff()),
             MouseMode::AllMotion  => fwrite($this->output, Ansi::mouseAllMotionOff()),
-            MouseMode::Off        => null,
+            MouseMode::Off, null  => null,
         };
         if ($this->options->unicodeMode) {
             fwrite($this->output, Ansi::unicodeOff());
@@ -320,6 +326,36 @@ final class Program
 
     private function applyViewSideEffects(View $view): void
     {
+        if ($view->mouseMode !== null && $view->mouseMode !== $this->activeMouseMode) {
+            // Turn the previous mode off, then the new one on. Both
+            // pairs happily no-op when fed back to themselves.
+            match ($this->activeMouseMode) {
+                MouseMode::CellMotion => fwrite($this->output, Ansi::mouseCellMotionOff()),
+                MouseMode::AllMotion  => fwrite($this->output, Ansi::mouseAllMotionOff()),
+                MouseMode::Off, null  => null,
+            };
+            match ($view->mouseMode) {
+                MouseMode::CellMotion => fwrite($this->output, Ansi::mouseCellMotionOn()),
+                MouseMode::AllMotion  => fwrite($this->output, Ansi::mouseAllMotionOn()),
+                MouseMode::Off        => null,
+            };
+            $this->activeMouseMode = $view->mouseMode;
+        }
+
+        if ($view->reportFocus !== null && $view->reportFocus !== $this->activeFocusReporting) {
+            fwrite($this->output, $view->reportFocus
+                ? Ansi::focusReportingOn()
+                : Ansi::focusReportingOff());
+            $this->activeFocusReporting = $view->reportFocus;
+        }
+
+        if ($view->bracketedPaste !== null && $view->bracketedPaste !== $this->activeBracketedPaste) {
+            fwrite($this->output, $view->bracketedPaste
+                ? Ansi::bracketedPasteOn()
+                : Ansi::bracketedPasteOff());
+            $this->activeBracketedPaste = $view->bracketedPaste;
+        }
+
         if ($view->windowTitle !== null && $view->windowTitle !== $this->lastWindowTitle) {
             fwrite($this->output, Ansi::setWindowTitle($view->windowTitle));
             $this->lastWindowTitle = $view->windowTitle;

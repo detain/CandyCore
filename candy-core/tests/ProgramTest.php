@@ -14,6 +14,7 @@ use CandyCore\Core\Msg\QuitMsg;
 use CandyCore\Core\Msg\WindowSizeMsg;
 use CandyCore\Core\Cursor;
 use CandyCore\Core\CursorShape;
+use CandyCore\Core\MouseMode;
 use CandyCore\Core\PrintMsg;
 use CandyCore\Core\Progress;
 use CandyCore\Core\Program;
@@ -424,6 +425,53 @@ final class ProgramTest extends TestCase
         $this->assertStringContainsString("\x1b]9;4;1;33\x07",     $written);
         $this->assertStringContainsString("\x1b]10;rgb:ff/00/00\x07", $written);
         $this->assertStringContainsString("\x1b]11;rgb:00/ff/00\x07", $written);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
+
+    public function testViewActivatesMouseFocusAndPaste(): void
+    {
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $view = new View(
+            body: 'x',
+            mouseMode: MouseMode::CellMotion,
+            reportFocus: true,
+            bracketedPaste: true,
+        );
+        $model = new class($view) implements \CandyCore\Core\Model {
+            public function __construct(private readonly View $v) {}
+            public function init(): ?\Closure { return null; }
+            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function view(): View { return $this->v; }
+        };
+
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: false,
+            hideCursor: false,
+            framerate: 240.0,
+            input: $in,
+            output: $out,
+            loop: $loop,
+        );
+        $program = new Program($model, $opts);
+        $loop->addTimer(0.05, static fn() => $program->quit());
+        $loop->addTimer(2.0,  static fn() => $loop->stop());
+        $program->run();
+
+        rewind($out);
+        $written = (string) stream_get_contents($out);
+        $this->assertStringContainsString(Ansi::mouseCellMotionOn(),   $written);
+        $this->assertStringContainsString(Ansi::focusReportingOn(),    $written);
+        $this->assertStringContainsString(Ansi::bracketedPasteOn(),    $written);
+        // Teardown should disable everything we activated.
+        $this->assertStringContainsString(Ansi::mouseCellMotionOff(),  $written);
+        $this->assertStringContainsString(Ansi::focusReportingOff(),   $written);
+        $this->assertStringContainsString(Ansi::bracketedPasteOff(),   $written);
 
         fclose($writer);
         fclose($in);

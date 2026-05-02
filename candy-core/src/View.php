@@ -41,5 +41,23 @@ final class View
         public readonly ?Color $foregroundColor = null,
         /** Mirror of {@see $foregroundColor} for the background (OSC 11). */
         public readonly ?Color $backgroundColor = null,
+        /**
+         * Per-frame mouse-tracking mode. Pass `null` to leave the
+         * current setting untouched, {@see MouseMode::Off} to disable
+         * tracking, or one of the on values to activate it. The
+         * runtime emits the matching DEC private-mode pair only when
+         * the value differs from the current mode.
+         */
+        public readonly ?MouseMode $mouseMode = null,
+        /**
+         * Per-frame focus reporting (DEC ?1004). `null` leaves the
+         * current state alone; `true` / `false` toggle.
+         */
+        public readonly ?bool $reportFocus = null,
+        /**
+         * Per-frame bracketed-paste (DEC ?2004). `null` leaves the
+         * current state alone.
+         */
+        public readonly ?bool $bracketedPaste = null,
     ) {}
 }
