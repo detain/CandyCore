@@ -485,9 +485,9 @@ Status legend per feature:
 
 | v2 feature | Status | Notes |
 |---|---|---|
-| `View()` returns `tea.View` struct (not `string`) | 🔴 | **Architectural shift.** Move per-frame terminal config (alt screen / mouse mode / focus / cursor / window title / progress bar / colour profile) out of `ProgressOptions` and into a `View` value-object the model returns each tick. Bigger BC break — schedule for a 2.0 of CandyCore. |
-| `Cursor` struct (position, shape, blink, colour, nullable to hide) | 🔴 | Pairs with the new View shape. Today we just expose `hideCursor` boolean. |
-| `WindowTitle` field — set via OSC 0/2 each frame | 🟡 | `Cmd::setWindowTitle($title, icon: false)` ships now (`Ansi::setWindowTitle()` emits OSC 0 / 2). Per-frame field semantics still pending — that lands with the View struct rework. |
+| `View()` returns `tea.View` struct (not `string`) | 🟡 | `Model::view()` now returns `string\|View`. The new `View` value object carries `body` plus optional `cursor` and `windowTitle` fields. Existing models that return `string` keep working unchanged (covariance). The runtime emits side-effect escapes only when fields differ from the previously-emitted set. Remaining fields (alt screen / mouse mode / focus / progress bar / colour profile) still live on `ProgramOptions` and will migrate one-by-one in follow-ups. |
+| `Cursor` struct (position, shape, blink, colour, nullable to hide) | ✅ | `Core\Cursor(row, col, shape, blink, color)` carried on the `View`. `Core\CursorShape` enum (`Block` / `Underline` / `Bar`); `Ansi::cursorShape()` emits DECSCUSR. A null `View::$cursor` hides the cursor; switching back from null re-shows it. |
+| `WindowTitle` field — set via OSC 0/2 each frame | ✅ | `View::$windowTitle` — emitted via OSC 2 only when it changes between frames. `Cmd::setWindowTitle()` is still available for the imperative path. |
 | Declarative `BackgroundColor` / `ForegroundColor` per frame | 🔴 | Use OSC 10/11. |
 | `MouseMode` declared on the View instead of one-shot setup flag | 🟡 | We toggle in setup/teardown. Move into per-View when we adopt the View struct. |
 | `ProgressBar` field — terminal native progress (OSC 9;4) | 🟡 | `Cmd::setProgressBar(ProgressBarState, $percent)` ships now (`Remove` / `Normal` / `Error` / `Indeterminate` / `Warning` states; percent clamped to 0-100). Per-frame "ProgressBar" field semantics still pending — that lands with the View struct rework. |
@@ -602,11 +602,14 @@ The v2 parity work is **medium-term**, not urgent. Recommended order:
 6. **Inline image protocols**: schedule with the `Charts\Picture`
    slot in Phase 6. Sixel first (widest support), Kitty + iTerm2 as
    capability detection improves.
-7. **View struct + advanced compositing (the big one)**: schedule for
-   a CandyCore 2.0. Coordinate with a v2 of every consumer (SugarBits
-   / SugarPrompt / CandyShell / SugarGlow / SugarCharts) since the
-   `Model::view()` return type changes. Until then, keep the v1
-   `string` shape.
+7. **View struct + advanced compositing (the big one)**: 🟡 in progress.
+   `Model::view()` now accepts `string\|View` (covariant — existing
+   models keep returning string unchanged). Initial `View` carries
+   `body` + `cursor` + `windowTitle` and the runtime only emits
+   side-effect escapes on change. Remaining per-frame fields
+   (alt screen / mouse mode / focus / progress bar / colour profile)
+   migrate one-by-one in follow-ups. Advanced compositing (layered
+   pop-overs) still scheduled for a CandyCore 2.0.
 8. **Kitty keyboard protocol**: nice-to-have. Ship after the View
    struct so `KeyboardEnhancements` lives on the View where v2 puts
    it.
