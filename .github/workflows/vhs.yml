@@ -8,13 +8,19 @@ on:
       - '*/examples/**'
       - '*/src/**'
       - '*/bin/**'
+      - '.github/workflows/vhs.yml'
   workflow_dispatch:
+
+# Don't pile on concurrent renders — let the latest push win.
+concurrency:
+  group: vhs-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   render:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -50,23 +56,38 @@ jobs:
         working-directory: ${{ matrix.lib }}
         run: composer install --prefer-dist --no-progress
 
-      # vhs-action@v2's bundled ffmpeg install has been failing in
-      # CI ("Failed to install ffmpeg" — every job, every run). Skip
-      # the action and install vhs + ttyd + ffmpeg directly: ffmpeg
-      # via apt, vhs and ttyd from GitHub releases.
-      - name: Install vhs + ttyd + ffmpeg
+      # Cache the vhs + ttyd binaries by their resolved upstream
+      # version. Saves ~30 seconds of API + tarball + extract per job.
+      # ffmpeg is fast enough via apt that caching it isn't worth it.
+      - name: Resolve vhs / ttyd versions
+        id: tools
         if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
         run: |
           set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          vhs_tag=$(curl -sSL https://api.github.com/repos/charmbracelet/vhs/releases/latest | jq -r .tag_name)
+          ttyd_tag=$(curl -sSL https://api.github.com/repos/tsl0922/ttyd/releases/latest | jq -r .tag_name)
+          echo "vhs=$vhs_tag"   >> "$GITHUB_OUTPUT"
+          echo "ttyd=$ttyd_tag" >> "$GITHUB_OUTPUT"
+          echo "vhs $vhs_tag · ttyd $ttyd_tag"
 
-          # vhs release assets embed the version in the filename
-          # (vhs_<version>_Linux_x86_64.tar.gz), so resolve latest first.
+      - name: Restore cached vhs + ttyd
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
+        id: cache-bins
+        uses: actions/cache@v4
+        with:
+          path: |
+            /usr/local/bin/vhs
+            /usr/local/bin/ttyd
+          key: vhs-${{ steps.tools.outputs.vhs }}-ttyd-${{ steps.tools.outputs.ttyd }}-linux-amd64
+
+      - name: Install vhs + ttyd (cache miss)
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != '' && steps.cache-bins.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          # vhs asset name embeds the version
           vhs_url=$(curl -sSL "https://api.github.com/repos/charmbracelet/vhs/releases/latest" \
             | jq -r '.assets[] | select(.name | endswith("Linux_x86_64.tar.gz")) | .browser_download_url' \
             | head -1)
-          echo "vhs tarball: $vhs_url"
           curl -sSL "$vhs_url" \
             | sudo tar -xz -C /usr/local/bin --strip-components=1 --wildcards '*/vhs'
           sudo chmod +x /usr/local/bin/vhs
@@ -74,6 +95,19 @@ jobs:
           curl -sSL -o /tmp/ttyd "https://github.com/tsl0922/ttyd/releases/latest/download/ttyd.x86_64"
           sudo install -m 0755 /tmp/ttyd /usr/local/bin/ttyd
 
+      - name: Install ffmpeg
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
+        run: |
+          set -euo pipefail
+          # Skip the slow PPA refreshes — ffmpeg is in the default
+          # ubuntu archive which the runner image already has indexed.
+          # Fall back to a full update if the direct install fails.
+          sudo apt-get install -y --no-install-recommends ffmpeg \
+            || (sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg)
+
+      - name: Verify tools
+        if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
+        run: |
           vhs --version
           ttyd --version
           ffmpeg -version | head -1
@@ -88,13 +122,54 @@ jobs:
             vhs "$tape"
           done
 
-      - name: Commit rendered GIFs
+      - name: Upload rendered GIFs as artifact
         if: hashFiles(format('{0}/.vhs/*.gif', matrix.lib)) != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: gifs-${{ matrix.lib }}
+          path: ${{ matrix.lib }}/.vhs/*.gif
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Single aggregate-commit job. Runs once after every render finishes.
+  # Replaces the per-job push that race-collided when 16 parallel jobs
+  # each tried to push to master at the same time.
+  commit:
+    needs: render
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all GIF artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/gifs
+          pattern: gifs-*
+
+      - name: Move GIFs into their lib's .vhs/ dir
         run: |
+          set -euo pipefail
+          shopt -s nullglob
+          for d in /tmp/gifs/gifs-*; do
+            lib="${d#/tmp/gifs/gifs-}"
+            mkdir -p "$lib/.vhs"
+            cp -v "$d"/*.gif "$lib/.vhs/" || true
+          done
+
+      - name: Commit + push
+        run: |
+          set -euo pipefail
           git config user.name  'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add ${{ matrix.lib }}/.vhs/*.gif
-          if ! git diff --cached --quiet; then
-            git commit -m "vhs: regenerate ${{ matrix.lib }} demo GIFs"
-            git push
+          git add */.vhs/*.gif
+          if git diff --cached --quiet; then
+            echo "no GIF changes — skipping commit"
+            exit 0
           fi
+          git commit -m "vhs: regenerate demo GIFs"
+          # Single push — no concurrent jobs means no race. If something
+          # else pushed during this run, rebase + retry once.
+          git push || (git pull --rebase origin master && git push)

@@ -5,6 +5,17 @@
 
 set -euo pipefail
 
+# Use the local bin if sugarspark isn't on $PATH (i.e. when running
+# from a checkout instead of a global composer install).
+sugarspark() {
+    if command -v sugarspark >/dev/null 2>&1; then
+        command sugarspark "$@"
+    else
+        ./bin/sugarspark "$@"
+    fi
+}
+export -f sugarspark
+
 echo "── SGR (foreground colours) ────────────────────"
 printf '\e[31mred\e[32m green\e[34m blue\e[0m default\n' | sugarspark
 echo
