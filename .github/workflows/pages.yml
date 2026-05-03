@@ -18,8 +18,11 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  # Opt every JavaScript action into the Node 24 runtime — silences the
-  # "Node 20 actions are deprecated" warnings on the GitHub Actions runner.
+  # Belt-and-suspenders: every action below is already pinned to its
+  # Node-24-native major (checkout@v5, configure-pages@v5,
+  # upload-pages-artifact@v5, deploy-pages@v5), but this flag keeps any
+  # transitively-loaded JavaScript action that still defaults to Node 20
+  # from generating deprecation warnings.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 jobs:
@@ -29,16 +32,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: docs
 
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
