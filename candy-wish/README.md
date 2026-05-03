@@ -2,6 +2,15 @@
 
 # CandyWish
 
+<!-- BADGES:BEGIN -->
+[![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-wish)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-wish)
+[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-wish?label=packagist)](https://packagist.org/packages/candycore/candy-wish)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
+<!-- BADGES:END -->
+
+
 PHP port of [`charmbracelet/wish`](https://github.com/charmbracelet/wish) — an SSH server middleware framework that lets you build TUIs anyone can `ssh user@host` to run.
 
 ## Architecture

@@ -2,6 +2,15 @@
 
 # CandyKit
 
+<!-- BADGES:BEGIN -->
+[![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-kit)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-kit)
+[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-kit?label=packagist)](https://packagist.org/packages/candycore/candy-kit)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
+<!-- BADGES:END -->
+
+
 ![demo](.vhs/cli-page.gif)
 
 PHP port of [charmbracelet/fang](https://github.com/charmbracelet/fang) —

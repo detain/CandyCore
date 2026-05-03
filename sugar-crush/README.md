@@ -2,6 +2,15 @@
 
 # SugarCrush
 
+<!-- BADGES:BEGIN -->
+[![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-crush)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-crush)
+[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-crush?label=packagist)](https://packagist.org/packages/candycore/sugar-crush)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
+<!-- BADGES:END -->
+
+
 ![demo](.vhs/chat.gif)
 
 Chat-shell TUI for AI coding assistants — port of [`charmbracelet/crush`](https://github.com/charmbracelet/crush). Pluggable backends (ship your own Anthropic / OpenAI / Ollama / shell-out adapter), Markdown rendering of replies via CandyShine, scrollback above a fixed input box.

@@ -1,0 +1,81 @@
+# Codecov config — one flag per lib so each package has its own
+# badge + per-PR coverage diff in the SugarCraft monorepo.
+#
+# Coverage is reported by the `coverage:` job in .github/workflows/ci.yml,
+# which iterates the same lib list and uploads `<lib>/coverage.xml` with
+# `flags: <lib>`.
+
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: 80%
+        threshold: 1%
+
+# Don't comment on every PR — the per-flag badges in each lib's README
+# are the primary surface; PR comments would just clutter.
+comment: false
+
+# Carryforward keeps a flag's last reported coverage across pushes
+# that don't touch that lib — otherwise touching only `candy-core`
+# would zero out the badges for every other package.
+flag_management:
+  default_rules:
+    carryforward: true
+  individual_flags:
+    - name: candy-core
+      paths: ["candy-core/src/**"]
+    - name: candy-sprinkles
+      paths: ["candy-sprinkles/src/**"]
+    - name: honey-bounce
+      paths: ["honey-bounce/src/**"]
+    - name: candy-zone
+      paths: ["candy-zone/src/**"]
+    - name: sugar-bits
+      paths: ["sugar-bits/src/**"]
+    - name: sugar-charts
+      paths: ["sugar-charts/src/**"]
+    - name: sugar-prompt
+      paths: ["sugar-prompt/src/**"]
+    - name: candy-shell
+      paths: ["candy-shell/src/**"]
+    - name: candy-shine
+      paths: ["candy-shine/src/**"]
+    - name: candy-kit
+      paths: ["candy-kit/src/**"]
+    - name: candy-freeze
+      paths: ["candy-freeze/src/**"]
+    - name: sugar-glow
+      paths: ["sugar-glow/src/**"]
+    - name: sugar-spark
+      paths: ["sugar-spark/src/**"]
+    - name: candy-wish
+      paths: ["candy-wish/src/**"]
+    - name: sugar-wishlist
+      paths: ["sugar-wishlist/src/**"]
+    - name: candy-metrics
+      paths: ["candy-metrics/src/**"]
+    - name: candy-mold
+      paths: ["candy-mold/src/**"]
+    - name: candy-tetris
+      paths: ["candy-tetris/src/**"]
+    - name: super-candy
+      paths: ["super-candy/src/**"]
+    - name: sugar-crush
+      paths: ["sugar-crush/src/**"]
+    - name: sugar-stash
+      paths: ["sugar-stash/src/**"]
+    - name: candy-query
+      paths: ["candy-query/src/**"]
+    - name: sugar-tick
+      paths: ["sugar-tick/src/**"]
+    - name: candy-mines
+      paths: ["candy-mines/src/**"]
+    - name: candy-flip
+      paths: ["candy-flip/src/**"]
+    - name: honey-flap
+      paths: ["honey-flap/src/**"]

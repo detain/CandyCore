@@ -81,3 +81,78 @@ jobs:
       - name: Run tests
         working-directory: ${{ matrix.lib }}
         run: vendor/bin/phpunit --colors=never
+
+  # Coverage report — runs once on PHP 8.3 + pcov for every lib in the
+  # matrix, uploads a per-lib clover XML to codecov with the lib slug
+  # as a flag. Codecov uses the flag to surface a separate badge per
+  # package on the README.
+  coverage:
+    name: 'Coverage · ${{ matrix.lib }}'
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    strategy:
+      fail-fast: false
+      matrix:
+        lib:
+          - candy-core
+          - candy-sprinkles
+          - honey-bounce
+          - candy-zone
+          - sugar-bits
+          - sugar-charts
+          - sugar-prompt
+          - candy-shell
+          - candy-shine
+          - candy-kit
+          - candy-freeze
+          - sugar-glow
+          - sugar-spark
+          - candy-wish
+          - sugar-wishlist
+          - candy-metrics
+          - candy-mold
+          - candy-tetris
+          - super-candy
+          - sugar-crush
+          - sugar-stash
+          - candy-query
+          - sugar-tick
+          - candy-mines
+          - candy-flip
+          - honey-flap
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup PHP (with pcov)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, intl, pcntl, pdo_sqlite, gd
+          tools: composer:v2
+          coverage: pcov
+
+      - name: Cache composer downloads
+        uses: actions/cache@v5
+        with:
+          path: ~/.composer/cache/files
+          key: composer-cov-${{ hashFiles('**/composer.json') }}
+          restore-keys: |
+            composer-cov-
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.lib }}
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run tests with coverage
+        working-directory: ${{ matrix.lib }}
+        run: vendor/bin/phpunit --colors=never --coverage-clover=coverage.xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ${{ matrix.lib }}/coverage.xml
+          flags: ${{ matrix.lib }}
+          name: ${{ matrix.lib }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
