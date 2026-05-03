@@ -8,8 +8,10 @@ name: Sync to sugarcraft org
 # the sugarcraft org. Without it, all push steps will 403.
 
 env:
-  # Silence the Node.js 20 deprecation warning on actions/checkout
-  # until that action ships a Node 24 release.
+  # Belt-and-suspenders: actions/checkout is now pinned to v5 (Node 24
+  # native), but this flag keeps any transitively-loaded JavaScript
+  # action that still defaults to Node 20 from generating deprecation
+  # warnings.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 on:
@@ -29,7 +31,7 @@ jobs:
     name: Subtree-push 20 lib/app subdirs to sugarcraft/<lib>
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0   # git subtree split needs full history
 
@@ -71,7 +73,7 @@ jobs:
     name: Push docs/ to sugarcraft/sugarcraft.github.io
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Mirror docs/ → sugarcraft.github.io main
         env:

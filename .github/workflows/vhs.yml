@@ -1,9 +1,11 @@
 name: VHS demos
 
 env:
-  # Suppress Node.js 20 deprecation warnings on actions/cache,
-  # actions/checkout, actions/upload-artifact, etc. until those
-  # actions release a v4+ that targets Node.js 24.
+  # Belt-and-suspenders: every action below is already pinned to its
+  # Node-24-native major (checkout@v5, cache@v5, upload-artifact@v5,
+  # download-artifact@v5), but this flag keeps any transitively-loaded
+  # JavaScript action that still defaults to Node 20 from generating
+  # deprecation warnings. Requires Actions Runner ≥ 2.327.1.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
 
 on:
@@ -39,7 +41,7 @@ jobs:
     outputs:
       libs: ${{ steps.compute.outputs.libs }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2   # need HEAD~1 for the diff
 
@@ -94,7 +96,7 @@ jobs:
       matrix:
         lib: ${{ fromJSON(needs.changed.outputs.libs) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -125,7 +127,7 @@ jobs:
       - name: Restore cached vhs + ttyd
         if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
         id: cache-bins
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             /usr/local/bin/vhs
@@ -178,7 +180,7 @@ jobs:
 
       - name: Upload rendered GIFs as artifact
         if: hashFiles(format('{0}/.vhs/*.tape', matrix.lib)) != ''
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: gifs-${{ matrix.lib }}
           path: ${{ matrix.lib }}/.vhs/*.gif
@@ -198,10 +200,10 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Download all GIF artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: /tmp/gifs
           pattern: gifs-*

@@ -108,16 +108,27 @@ code, pre, .mono {
     letter-spacing: -0.01em;
 }
 
-.brand .logo-mark {
+/* The lollipop site mark — used in the top-left brand link and in
+   the footer. Forced to an explicit pixel size so the underlying
+   500×500 PNG renders crisply on hi-DPI without bleeding into the
+   surrounding text. */
+.logo-mark {
     display: inline-block;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: var(--gradient-hero);
-    margin-right: 8px;
+    background-image: url('../img/profile.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-color: var(--card);
+    margin-right: 10px;
     vertical-align: middle;
     box-shadow: var(--shadow-sm);
 }
+
+.brand .logo-mark { width: 32px; height: 32px; }
+.footer .logo-mark { width: 28px; height: 28px; margin-right: 8px; }
 
 .nav-links {
     margin-left: auto;
