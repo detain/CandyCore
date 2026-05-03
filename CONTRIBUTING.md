@@ -120,13 +120,17 @@ missing repos (one-shot, idempotent — already-existing repos are
 skipped):
 
 ```bash
-gh auth login                          # as a user with admin on the sugarcraft org
-./scripts/bootstrap-org-repos.sh       # creates every repo + topics + settings
+gh auth login                              # as a user with admin on the sugarcraft org
+./scripts/bootstrap-org-repos.sh           # 1. creates every repo + topics + settings
 gh workflow run sync-sugarcraft.yml -R detain/sugarcraft
+                                           # 2. wait for sync to push the master branches
+./scripts/set-org-default-master.sh        # 3. flip every default branch from main → master
 ```
 
 Extend the script's inline `DESCRIPTIONS` map whenever you add a new
-lib to the monorepo.
+lib to the monorepo. To make step 3 unnecessary for *future* repos,
+set the org-wide default-branch name to `master` in
+<https://github.com/organizations/sugarcraft/settings/repository-defaults>.
 
 ## License
 

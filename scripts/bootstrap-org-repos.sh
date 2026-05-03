@@ -77,3 +77,11 @@ done
 echo
 echo "all done. now run the sync workflow once to push initial contents:"
 echo "  gh workflow run sync-sugarcraft.yml -R detain/sugarcraft"
+echo
+echo "after the first sync push lands, normalise default branches"
+echo "(main → master) so they match the monorepo:"
+echo "  ./scripts/set-org-default-master.sh"
+echo
+echo "tip: set the org-wide default-branch name to 'master' in"
+echo "  https://github.com/organizations/$ORG/settings/repository-defaults"
+echo "to make this automatic for future repos."
