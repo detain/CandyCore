@@ -5,6 +5,11 @@ on:
     branches: [master]
   pull_request:
 
+env:
+  # Opt every JavaScript action into the Node 24 runtime — silences the
+  # "Node 20 actions are deprecated" warnings on the GitHub Actions runner.
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   test:
     name: 'Test PHP ${{ matrix.php }} · ${{ matrix.lib }}'

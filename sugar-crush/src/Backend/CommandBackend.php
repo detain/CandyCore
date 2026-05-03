@@ -76,7 +76,7 @@ final class CommandBackend implements Backend
         if ($exit !== 0) {
             $tail = trim($stderr);
             $hint = $tail === '' ? '' : "\n\n```\n{$tail}\n```";
-            return Message::assistant("_[backend exited {$exit}]_{$hint}");
+            return Message::assistant("_[error: backend exited {$exit}]_{$hint}");
         }
         return Message::assistant(trim($stdout));
     }
