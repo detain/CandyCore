@@ -95,6 +95,39 @@ CandyCore is also happy to host PHP ports of additional Charmbracelet
 5. Wire it into the root `composer.json` `require` + `repositories`.
 6. Submit the PR.
 
+## Coverage tracking
+
+Coverage is reported per-library to [Codecov](https://codecov.io/gh/detain/sugarcraft).
+The `coverage:` job in `.github/workflows/ci.yml` runs once per push to
+master (after the test matrix is green), generates a Clover XML for
+each lib via `phpunit --coverage-clover=coverage.xml`, and uploads it
+with `flags: <lib>`. Each lib's README has a per-flag badge wired up.
+
+To run coverage locally you need pcov (or xdebug):
+
+```bash
+pecl install pcov
+echo 'extension=pcov.so' | sudo tee /etc/php/8.3/cli/conf.d/20-pcov.ini
+echo 'pcov.enabled=1'    | sudo tee -a /etc/php/8.3/cli/conf.d/20-pcov.ini
+cd candy-core && vendor/bin/phpunit --coverage-text
+```
+
+## Bootstrapping the sugarcraft org repos
+
+The `sync-sugarcraft.yml` workflow assumes a repo at `sugarcraft/<lib>`
+exists for every monorepo subdirectory it pushes. To create the
+missing repos (one-shot, idempotent — already-existing repos are
+skipped):
+
+```bash
+gh auth login                          # as a user with admin on the sugarcraft org
+./scripts/bootstrap-org-repos.sh       # creates every repo + topics + settings
+gh workflow run sync-sugarcraft.yml -R detain/sugarcraft
+```
+
+Extend the script's inline `DESCRIPTIONS` map whenever you add a new
+lib to the monorepo.
+
 ## License
 
 By submitting a contribution, you agree to license it under the

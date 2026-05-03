@@ -4,6 +4,14 @@
   <img src="media/social-preview.png" alt="SugarCraft — sweet to build, fun to use" width="720">
 </p>
 
+<!-- BADGES:BEGIN -->
+[![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg)](https://app.codecov.io/gh/detain/sugarcraft)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-ff5f87.svg)](CONTRIBUTING.md)
+<!-- BADGES:END -->
+
 PHP ports of the [Charmbracelet](https://charm.sh) TUI ecosystem (plus
 [bubblezone](https://github.com/lrstanley/bubblezone),
 [ntcharts](https://github.com/NimbleMarkets/ntcharts), and a small
