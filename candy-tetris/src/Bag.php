@@ -31,7 +31,11 @@ final class Bag
      */
     public function __construct(?\Closure $rand = null)
     {
-        $this->rand = $rand ?? \Closure::fromCallable('random_int');
+        // Default rand: pick a uniformly-random int in [0, $max].
+        // Wrapping `random_int` directly with Closure::fromCallable would
+        // give us `random_int($max)` — and `random_int` requires both
+        // arguments — so spell the closure out instead.
+        $this->rand = $rand ?? static fn(int $max): int => random_int(0, $max);
     }
 
     public function next(): Tetromino

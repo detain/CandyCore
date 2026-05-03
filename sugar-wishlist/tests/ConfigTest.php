@@ -87,6 +87,40 @@ final class ConfigTest extends TestCase
         $this->assertSame('/tmp/key2', $endpoints[1]->identityFile);
     }
 
+    public function testYamlNestedOptionsList(): void
+    {
+        // Nested string lists under a value-less key are the only
+        // shape of nested mapping the wishlist schema needs — the
+        // sample-wishlist.yml exercises this for `options:` so the
+        // jumpbox entry can carry through `ProxyJump=...` etc.
+        $raw = <<<YAML
+        - name: jumpbox
+          host: bastion.example.com
+          options:
+            - ServerAliveInterval=30
+            - ProxyJump=gw.example.com
+        YAML;
+        $endpoints = Config::parse($raw, 'wishlist.yml');
+        $this->assertCount(1, $endpoints);
+        $this->assertSame(
+            ['ServerAliveInterval=30', 'ProxyJump=gw.example.com'],
+            $endpoints[0]->options,
+        );
+    }
+
+    public function testYamlSampleConfigParses(): void
+    {
+        // End-to-end: the bundled sample-wishlist.yml — which the
+        // VHS picker recording uses — must parse cleanly.
+        $raw = file_get_contents(__DIR__ . '/../examples/sample-wishlist.yml');
+        $this->assertNotFalse($raw);
+        $endpoints = Config::parse($raw, 'sample-wishlist.yml');
+        $this->assertCount(4, $endpoints);
+        $this->assertSame('production', $endpoints[0]->name);
+        $this->assertSame('jumpbox',    $endpoints[3]->name);
+        $this->assertNotEmpty($endpoints[3]->options);
+    }
+
     public function testRejectsTopLevelObjectInJson(): void
     {
         $this->expectException(\RuntimeException::class);

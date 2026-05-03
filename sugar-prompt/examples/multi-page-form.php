@@ -36,7 +36,7 @@ $form = Form::groups(
     Group::new(
         Select::new('frequency')
             ->withTitle('How often?')
-            ->withOptions(['Weekly', 'Monthly', 'Never']),
+            ->withOptions('Weekly', 'Monthly', 'Never'),
     )
         ->withTitle('Step 2 — Newsletter')
         ->withHideFunc(static fn(array $values): bool

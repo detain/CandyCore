@@ -358,12 +358,18 @@ code, pre, .mono {
 }
 
 .demo-card img {
+    /* Show the GIF in full — VHS recordings come in a mix of 4:3,
+       16:9 and 5:3 aspect ratios, and `cover` was cropping the
+       sides off the wider ones. `contain` keeps every frame
+       visible inside the same card footprint; the dark TokyoNight
+       background colour blends cleanly with the recording theme
+       so any letterbox bars read as part of the gif. */
     display: block;
     width: 100%;
     height: auto;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    background: #1f162d;
+    max-height: 360px;
+    object-fit: contain;
+    background: #1a1b26;   /* TokyoNight bg — matches the .tape theme */
     border-bottom: 1px solid var(--line);
 }
 
