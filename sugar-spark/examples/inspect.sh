@@ -5,15 +5,24 @@
 
 set -euo pipefail
 
-# Use the local bin if sugarspark isn't on $PATH (i.e. when running
-# from a checkout instead of a global composer install).
-sugarspark() {
-    if command -v sugarspark >/dev/null 2>&1; then
-        command sugarspark "$@"
-    else
-        ./bin/sugarspark "$@"
+# Resolve which `sugarspark` to use ONCE up-front. Using `command -v`
+# inside the function would match the shell function we're about to
+# define and recurse / fall through to `command sugarspark`, which
+# then tries to look up a binary by that name — fails when the user
+# is running from a checkout without a global composer install
+# (`sugarspark: command not found`). Picking a concrete path now and
+# stashing it in a variable side-steps the whole mess.
+if [ -x "$(dirname "${BASH_SOURCE[0]}")/../bin/sugarspark" ]; then
+    SUGARSPARK_BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/bin/sugarspark"
+else
+    SUGARSPARK_BIN="$(type -P sugarspark || true)"
+    if [ -z "$SUGARSPARK_BIN" ]; then
+        echo "sugarspark: not found on PATH and ./bin/sugarspark missing" >&2
+        exit 1
     fi
-}
+fi
+export SUGARSPARK_BIN
+sugarspark() { "$SUGARSPARK_BIN" "$@"; }
 export -f sugarspark
 
 echo "── SGR (foreground colours) ────────────────────"

@@ -84,10 +84,12 @@ final class Config
     /**
      * Tiny YAML-flat-list parser. Supports the subset documented
      * in the class doc — one `- key: value` block per endpoint,
-     * optional 2-space-indented continuation keys, `#` line
-     * comments. Anything more sophisticated (anchors, multi-doc,
-     * nested mappings) belongs in a real YAML lib; we don't need
-     * it for a hosts directory.
+     * optional 2-space-indented continuation keys, optional
+     * 4-space-indented `- value` items under a value-less key
+     * (used for `options:` lists), and `#` line comments.
+     * Anything more sophisticated (anchors, multi-doc, nested
+     * mappings) belongs in a real YAML lib; we don't need it for
+     * a hosts directory.
      *
      * @return list<array<string,mixed>>
      */
@@ -95,24 +97,50 @@ final class Config
     {
         $rows = [];
         $current = null;
+        // Tracks the most recent value-less key whose nested `- item`
+        // lines should append into a list. Reset whenever we hit
+        // anything else (a new entry header, a non-empty key:value, etc.).
+        $listKey = null;
         foreach (explode("\n", $raw) as $rawLine) {
             $line = preg_replace('/\s+#.*$/', '', $rawLine) ?? $rawLine;
             if (preg_match('/^\s*(?:#.*)?$/', $line)) {
                 continue;
             }
+            // Nested string list under the active $listKey:
+            // `    - ServerAliveInterval=30`
+            if ($listKey !== null && $current !== null
+                && preg_match('/^\s{2,}-\s+(\S.*?)\s*$/', $line, $m)) {
+                /** @var list<mixed> $bucket */
+                $bucket = is_array($current[$listKey] ?? null) ? $current[$listKey] : [];
+                $bucket[] = self::yamlScalar($m[1]);
+                $current[$listKey] = $bucket;
+                continue;
+            }
+            // Any other line ends list-collection mode.
+            $listKey = null;
             if (preg_match('/^-\s+(\w+):\s*(.*)$/', $line, $m)) {
                 if ($current !== null) {
                     $rows[] = $current;
                 }
                 $current = [];
-                $current[$m[1]] = self::yamlScalar($m[2]);
+                if ($m[2] === '') {
+                    $current[$m[1]] = [];
+                    $listKey = $m[1];
+                } else {
+                    $current[$m[1]] = self::yamlScalar($m[2]);
+                }
                 continue;
             }
             if (preg_match('/^\s+(\w+):\s*(.*)$/', $line, $m)) {
                 if ($current === null) {
                     throw new \RuntimeException("wishlist yaml: continuation before any '- name:' block");
                 }
-                $current[$m[1]] = self::yamlScalar($m[2]);
+                if ($m[2] === '') {
+                    $current[$m[1]] = [];
+                    $listKey = $m[1];
+                } else {
+                    $current[$m[1]] = self::yamlScalar($m[2]);
+                }
                 continue;
             }
             throw new \RuntimeException("wishlist yaml: unparseable line: {$rawLine}");
