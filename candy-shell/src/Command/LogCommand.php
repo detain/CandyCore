@@ -32,7 +32,9 @@ final class LogCommand extends Command
             ->addOption('file',      'o',   InputOption::VALUE_REQUIRED, 'Append output to this file instead of stdout.', '')
             ->addOption('format',    'f',   InputOption::VALUE_REQUIRED, 'printf format for the message; "%s" is the text.', '')
             ->addOption('formatter', null,  InputOption::VALUE_REQUIRED, 'Output formatter: text (default) | json | logfmt.', 'text')
-            ->addOption('structured', 's',  InputOption::VALUE_NONE,    'Alias for --formatter logfmt.');
+            ->addOption('structured', 's',  InputOption::VALUE_NONE,    'Alias for --formatter logfmt.')
+            ->addOption('show-help',  null, InputOption::VALUE_NONE,    'Alias for --help (gum compat).')
+            ->addOption('timeout',    null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none, no-op for non-interactive log).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

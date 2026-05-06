@@ -42,7 +42,9 @@ final class SpinCommand extends Command
             ->addOption('show-error',  null, InputOption::VALUE_NONE,    'Print captured stderr after the command exits.')
             ->addOption('show-stdout', null, InputOption::VALUE_NONE,    'Alias for --show-output.')
             ->addOption('show-stderr', null, InputOption::VALUE_NONE,    'Alias for --show-error.')
-            ->addOption('align',       'a',  InputOption::VALUE_REQUIRED, 'Title position relative to the spinner: left | right.', 'left');
+            ->addOption('align',       'a',  InputOption::VALUE_REQUIRED, 'Title position relative to the spinner: left | right.', 'left')
+            ->addOption('show-help',   null, InputOption::VALUE_NONE,     'Alias for --help (gum compat).')
+            ->addOption('timeout',     null, InputOption::VALUE_REQUIRED, 'Kill the spawned command after N seconds (0 = no limit).', 0);
     }
 
     public const EXIT_INTERRUPTED = 130; // 128 + SIGINT(2)

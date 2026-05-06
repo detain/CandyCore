@@ -28,7 +28,10 @@ final class PagerCommand extends Command
             ->addOption('width',              null, InputOption::VALUE_REQUIRED, 'Pager width.',  80)
             ->addOption('height',             null, InputOption::VALUE_REQUIRED, 'Pager height.', 20)
             ->addOption('show-line-numbers',  null, InputOption::VALUE_NONE,     'Prefix every line with a 1-based line number.')
-            ->addOption('match',              null, InputOption::VALUE_REQUIRED, 'Highlight every case-insensitive occurrence of the substring.', '');
+            ->addOption('match',              null, InputOption::VALUE_REQUIRED, 'Highlight every case-insensitive occurrence of the substring.', '')
+            ->addOption('soft-wrap',          null, InputOption::VALUE_NONE,     'Wrap long lines at the pager width instead of clipping.')
+            ->addOption('show-help',          null, InputOption::VALUE_NONE,     'Alias for --help (gum compat).')
+            ->addOption('timeout',            null, InputOption::VALUE_REQUIRED, 'Auto-exit after N seconds (0 = none).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -39,6 +42,14 @@ final class PagerCommand extends Command
             : self::readStdin();
         if (!is_string($raw)) {
             return Command::FAILURE;
+        }
+
+        // --soft-wrap pre-wraps lines at the pager width before
+        // feeding the viewport, so long source lines stay visible
+        // without horizontal scroll.
+        if ((bool) $input->getOption('soft-wrap')) {
+            $width = (int) $input->getOption('width');
+            $raw = \CandyCore\Core\Util\Width::wrap($raw, max(1, $width));
         }
 
         $model   = PagerModel::fromContent(

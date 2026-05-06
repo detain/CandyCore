@@ -36,6 +36,8 @@ final class ChooseCommand extends Command
             ->addOption('cursor', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before the highlighted item.', '> ')
             ->addOption('cursor-prefix', null, InputOption::VALUE_REQUIRED, 'Alias for --cursor.', null)
             ->addOption('unselected-prefix', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before non-cursor items.', null)
+            ->addOption('show-help', null, InputOption::VALUE_NONE,    'Alias for --help (gum compat).')
+            ->addOption('timeout',   null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none).', 0)
             ->addOption('style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Per-element style: '<elem>.<prop>=<value>' (gum-compat).\n"
               . "Elements: cursor, header, selected, unselected.\n"

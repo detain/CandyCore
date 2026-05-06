@@ -40,6 +40,12 @@ final class FilterCommand extends Command
             ->addOption('cursor', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before the highlighted item.', '> ')
             ->addOption('indicator', null, InputOption::VALUE_REQUIRED, 'Alias for --cursor.', null)
             ->addOption('unselected-prefix', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before non-cursor items.', null)
+            ->addOption('strict', null, InputOption::VALUE_NONE, 'Substring-only match (the default — flag accepted for gum compat).')
+            ->addOption('fuzzy', null, InputOption::VALUE_NONE, 'Fuzzy match (currently a no-op alias for --strict — gum compat).')
+            ->addOption('no-fuzzy', null, InputOption::VALUE_NONE, 'Disable fuzzy matching (default — gum compat).')
+            ->addOption('width', null, InputOption::VALUE_REQUIRED, 'Cap rendered width in cells (0 = auto).', 0)
+            ->addOption('show-help', null, InputOption::VALUE_NONE, 'Alias for --help (gum compat).')
+            ->addOption('timeout',   null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none).', 0)
             ->addOption('style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Per-element style: '<elem>.<prop>=<value>'. Elements: cursor, header, prompt, indicator, match, selected, unselected.",
                 []
