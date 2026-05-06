@@ -104,4 +104,58 @@ final class ThemeTest extends TestCase
         // Unspecified token styles parse to plain Style::new().
         $this->assertSame('42', $t->number?->render('42') ?? '');
     }
+
+    public function testAsciiThemeIsMonochromeButPreservesEmphasis(): void
+    {
+        $t = Theme::ascii();
+        // Bold / italic / underline still emit, but no SGR colours.
+        $this->assertStringContainsString("\x1b[1m",  $t->bold->render('hi'));
+        $this->assertStringContainsString("\x1b[3m",  $t->italic->render('hi'));
+        $this->assertStringContainsString("\x1b[4m",  $t->link->render('hi'));
+        // No 38;2; truecolor or 38;5; 256-colour.
+        $rendered = $t->heading1->render('Hello');
+        $this->assertStringNotContainsString('38;2;', $rendered);
+        $this->assertStringNotContainsString('38;5;', $rendered);
+        // Code blocks don't add colour — just pass-through.
+        $this->assertSame('return 42;', $t->codeBlock->render('return 42;'));
+    }
+
+    public function testByNameDispatchesAllPresets(): void
+    {
+        $expected = ['ansi', 'plain', 'notty', 'ascii', 'dark', 'light', 'dracula', 'tokyo-night', 'pink'];
+        foreach ($expected as $name) {
+            $this->assertInstanceOf(Theme::class, Theme::byName($name), $name);
+        }
+        // Hyphen / underscore / case insensitivity.
+        $this->assertInstanceOf(Theme::class, Theme::byName('TOKYO_NIGHT'));
+        $this->assertInstanceOf(Theme::class, Theme::byName('TokyoNight'));
+        $this->assertNull(Theme::byName('does-not-exist'));
+    }
+
+    public function testFromEnvironmentReadsGlamourStyleEnv(): void
+    {
+        putenv('GLAMOUR_STYLE=dracula');
+        try {
+            $t = Theme::fromEnvironment();
+            $this->assertEquals(Theme::dracula(), $t);
+        } finally {
+            putenv('GLAMOUR_STYLE');
+        }
+    }
+
+    public function testFromEnvironmentFallsBackOnUnknown(): void
+    {
+        putenv('GLAMOUR_STYLE=not-a-theme');
+        try {
+            $this->assertEquals(Theme::ansi(), Theme::fromEnvironment());
+        } finally {
+            putenv('GLAMOUR_STYLE');
+        }
+    }
+
+    public function testFromEnvironmentHonoursDefault(): void
+    {
+        putenv('GLAMOUR_STYLE');
+        $this->assertEquals(Theme::plain(), Theme::fromEnvironment(Theme::plain()));
+    }
 }

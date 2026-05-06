@@ -118,6 +118,102 @@ final class Theme
     }
 
     /**
+     * Monochrome ASCII theme — every Style emits at most bold / italic
+     * / underline (no colour). Distinct from {@see plain()} (which is a
+     * total no-op) and {@see notty()} (an alias of plain). Use this
+     * when you want emphasis to survive a colour-less terminal but not
+     * a totally bare one — e.g. printer-friendly logs, accessibility
+     * output, or test fixtures that should still differentiate
+     * headings from body text.
+     *
+     * Mirrors glamour's `ASCII` preset.
+     */
+    public static function ascii(): self
+    {
+        $bold   = Style::new()->bold();
+        $italic = Style::new()->italic();
+        $under  = Style::new()->underline();
+        $plain  = Style::new();
+        return new self(
+            heading1: $bold, heading2: $bold, heading3: $bold,
+            heading4: $bold, heading5: $bold, heading6: $bold,
+            paragraph:  $plain,
+            bold:       $bold,
+            italic:     $italic,
+            code:       $plain,
+            codeBlock:  $plain,
+            link:       $under,
+            blockquote: $italic,
+            listMarker: $plain,
+            rule:       $plain,
+            keyword:    $bold,
+            string:     $plain,
+            number:     $plain,
+            comment:    $italic,
+            strike:     Style::new()->strikethrough(),
+            linkText:   $under,
+            image:      $italic,
+            htmlBlock:  $plain,
+            htmlSpan:   $plain,
+            text:       $plain,
+            autolink:   $under,
+        );
+    }
+
+    /**
+     * Look up a built-in theme by glamour-compatible name. Returns
+     * null for unknown names so callers can fall back to their own
+     * default rather than receiving a surprising one. Names mirror the
+     * upstream glamour preset slugs (case-insensitive, hyphens
+     * normalised to none).
+     *
+     *   ansi / plain / notty / ascii / dark / light /
+     *   dracula / tokyo-night | tokyonight / pink
+     */
+    public static function byName(string $name): ?self
+    {
+        $key = strtolower(str_replace(['-', '_', ' '], '', trim($name)));
+        return match ($key) {
+            'ansi'                  => self::ansi(),
+            'plain'                 => self::plain(),
+            'notty', 'no-tty'       => self::notty(),
+            'ascii'                 => self::ascii(),
+            'dark'                  => self::dark(),
+            'light'                 => self::light(),
+            'dracula'               => self::dracula(),
+            'tokyonight'            => self::tokyoNight(),
+            'pink'                  => self::pink(),
+            default                 => null,
+        };
+    }
+
+    /**
+     * Glamour-compatible env-var auto-selection. Reads the
+     * `GLAMOUR_STYLE` environment variable; if set to a known preset
+     * name, returns it. The literal string `auto` (matching glamour's
+     * convention) returns {@see notty()} when STDOUT is not a TTY and
+     * {@see dark()} otherwise. Falls back to `$default` (default
+     * `ansi()`) when the env var is missing or unrecognised.
+     */
+    public static function fromEnvironment(?self $default = null): self
+    {
+        $env = getenv('GLAMOUR_STYLE');
+        if ($env !== false && $env !== '') {
+            if (strtolower($env) === 'auto') {
+                $isTty = function_exists('stream_isatty')
+                    ? @stream_isatty(STDOUT)
+                    : posix_isatty(STDOUT);
+                return $isTty ? self::dark() : self::notty();
+            }
+            $named = self::byName($env);
+            if ($named !== null) {
+                return $named;
+            }
+        }
+        return $default ?? self::ansi();
+    }
+
+    /**
      * Dark-background optimized theme. Bright accents for headings,
      * faint code backdrop, blue underlined links — matches glamour's
      * `Dark` preset visually.
