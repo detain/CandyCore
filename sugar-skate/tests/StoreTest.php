@@ -198,4 +198,50 @@ final class StoreTest extends TestCase
         $this->assertNotNull($entry->createdAt);
         $this->assertNotNull($entry->modifiedAt);
     }
+
+    public function testDeleteByKey(): void
+    {
+        $this->store->set('tmp-key', 'temp-value');
+        $this->assertSame(1, $this->store->delete('tmp-key'));
+        $this->assertSame('', $this->store->get('tmp-key'));
+    }
+
+    public function testDeleteNonExistentReturnsZero(): void
+    {
+        $this->assertSame(0, $this->store->delete('does-not-exist'));
+    }
+
+    public function testDeleteWithGlobPattern(): void
+    {
+        $this->store->set('user-alice', 'alice-data');
+        $this->store->set('user-bob', 'bob-data');
+        $this->store->set('user-carol', 'carol-data');
+        $this->store->set('config-x', 'x');
+        $deleted = $this->store->delete('user-*');
+        $this->assertSame(3, $deleted);
+        $this->assertSame('', $this->store->get('user-alice'));
+        $this->assertSame('', $this->store->get('user-bob'));
+        $this->assertSame('x', $this->store->get('config-x'));
+    }
+
+    public function testDeleteDatabaseNonExistentReturnsFalse(): void
+    {
+        $this->assertFalse($this->store->deleteDatabase('nonexistent-db'));
+    }
+
+    public function testSetBinaryAndRetrieve(): void
+    {
+        $this->store->set('bin', "\x00\xff\xfe\xfd", true);
+        $entry = $this->store->entry('bin');
+        $this->assertTrue($entry->binary);
+        $this->assertSame("\x00\xff\xfe\xfd", $entry->rawValue());
+    }
+
+    public function testSetBinaryNonBase64Decoded(): void
+    {
+        $this->store->set('txt', 'plain-text', false);
+        $entry = $this->store->entry('txt');
+        $this->assertFalse($entry->binary);
+        $this->assertSame('plain-text', $entry->value);
+    }
 }

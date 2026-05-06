@@ -55,10 +55,10 @@ final class ConfirmationPrompt
         return match ($key) {
             'left', 'up', 'h', 'k' => $this->selectConfirm(),
             'right', 'down', 'l', 'j' => $this->selectCancel(),
-            'enter' => $this->confirm(),
+            'enter' => $this->finalizeConfirm(),
             'y', 'Y' => $this->selectConfirm()->confirm(),
             'n', 'N' => $this->selectCancel()->confirm(),
-            'esc', 'ctrl_c' => $this->cancel(),
+            'esc', 'ctrl_c' => $this->finalizeCancel(),
             default => $this,
         };
     }
@@ -112,12 +112,12 @@ final class ConfirmationPrompt
         return $clone;
     }
 
-    private function confirm(): self
+    private function finalizeConfirm(): self
     {
         return $this->Confirm();
     }
 
-    private function cancel(): self
+    private function finalizeCancel(): self
     {
         return $this->Cancel();
     }

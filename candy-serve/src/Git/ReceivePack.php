@@ -32,7 +32,8 @@ final class ReceivePack
         $ac = AccessControl::getInstance();
 
         if (!$ac->canWrite($this->user, $this->repo)) {
-            \fwrite(\STDERR, "Access denied: {$this->user?->username ?? 'anonymous'} cannot push to {$this->repo->name}\n");
+            $viewer = $this->user?->username ?? 'anonymous';
+            \fwrite(\STDERR, "Access denied: {$viewer} cannot push to {$this->repo->name}\n");
             return 1;
         }
 

@@ -143,9 +143,9 @@ final class TextPrompt
             'home'  => $this->moveCursorToStart(),
             'end'   => $this->moveCursorToEnd(),
             'tab'   => $this->applyCompletion(),
-            'enter' => $this->confirm(),
-            'esc'   => $this->cancel(),
-            'ctrl_c' => $this->cancel(),
+            'enter' => $this->finalizeConfirm(),
+            'esc'   => $this->finalizeCancel(),
+            'ctrl_c' => $this->finalizeCancel(),
             default => $this,
         };
     }
@@ -293,12 +293,12 @@ final class TextPrompt
         return $clone;
     }
 
-    private function confirm(): self
+    private function finalizeConfirm(): self
     {
         return $this->Confirm();
     }
 
-    private function cancel(): self
+    private function finalizeCancel(): self
     {
         return $this->Cancel();
     }

@@ -85,14 +85,14 @@ final class SmtpTransport implements Transport
         $this->readResponse(220);
 
         // Identify with EHLO
-        $this->send("EHLO {$this->getHeloHost()}\r\n");
+        $this->sendRaw("EHLO {$this->getHeloHost()}\r\n");
         $this->readResponse(250);
     }
 
     private function startTlsIfNeeded(): void
     {
         if ($this->tls || $this->hasExtension('STARTTLS')) {
-            $this->send("STARTTLS\r\n");
+            $this->sendRaw("STARTTLS\r\n");
             $this->readResponse(220);
 
             /** @var array<resource> $context */
@@ -109,7 +109,7 @@ final class SmtpTransport implements Transport
             }
 
             // Re-EHLO after TLS
-            $this->send("EHLO {$this->getHeloHost()}\r\n");
+            $this->sendRaw("EHLO {$this->getHeloHost()}\r\n");
             $this->readResponse(250);
         }
     }
@@ -124,13 +124,13 @@ final class SmtpTransport implements Transport
             return; // No auth available; try anyway without
         }
 
-        $this->send("AUTH LOGIN\r\n");
+        $this->sendRaw("AUTH LOGIN\r\n");
         $this->readResponse(334); // Username prompt (base64 "Username:")
 
-        $this->send(\base64_encode($this->username) . "\r\n");
+        $this->sendRaw(\base64_encode($this->username) . "\r\n");
         $this->readResponse(334); // Password prompt (base64 "Password:")
 
-        $this->send(\base64_encode($this->password) . "\r\n");
+        $this->sendRaw(\base64_encode($this->password) . "\r\n");
         $this->readResponse(235); // Authentication successful
     }
 
@@ -147,7 +147,7 @@ final class SmtpTransport implements Transport
         if ($this->socket === null) {
             return;
         }
-        $this->send("QUIT\r\n");
+        $this->sendRaw("QUIT\r\n");
         @$this->readResponse(221);
         $this->disconnect();
     }
@@ -158,29 +158,29 @@ final class SmtpTransport implements Transport
 
     private function helo(): void
     {
-        $this->send("HELO {$this->getHeloHost()}\r\n");
+        $this->sendRaw("HELO {$this->getHeloHost()}\r\n");
         $this->readResponse(250);
     }
 
     private function sendMailFrom(string $address): void
     {
-        $this->send("MAIL FROM:<{$address}>\r\n");
+        $this->sendRaw("MAIL FROM:<{$address}>\r\n");
         $this->readResponse(250);
     }
 
     private function sendRcptTo(string $address): void
     {
-        $this->send("RCPT TO:<{$address}>\r\n");
+        $this->sendRaw("RCPT TO:<{$address}>\r\n");
         $this->readResponse(250);
     }
 
     private function sendData(Email $email): void
     {
-        $this->send("DATA\r\n");
+        $this->sendRaw("DATA\r\n");
         $this->readResponse(354);
 
         $mime = $this->buildMimeMessage($email);
-        $this->send($mime . "\r\n.\r\n");
+        $this->sendRaw($mime . "\r\n.\r\n");
         $this->readResponse(250);
     }
 
@@ -277,7 +277,7 @@ final class SmtpTransport implements Transport
     // I/O helpers
     // -------------------------------------------------------------------------
 
-    private function send(string $data): void
+    private function sendRaw(string $data): void
     {
         if ($this->socket === null) {
             throw new \RuntimeException('Not connected');

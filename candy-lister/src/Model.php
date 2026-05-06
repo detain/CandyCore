@@ -38,11 +38,11 @@ final class Model
     public int $lineOffset = 5;    // how many lines before cursor to show
     public int $wrap = 0;          // max lines per item (0 = unlimited)
 
-    /** @var callable(\Stringable, \Stringable): int|null */
-    public ?callable $lessFunc = null;
+    /** @var \Closure(\Stringable, \Stringable): int|null */
+    public ?\Closure $lessFunc = null;
 
-    /** @var callable(\Stringable, \Stringable): bool|null */
-    public ?callable $equalsFunc = null;
+    /** @var \Closure(\Stringable, \Stringable): bool|null */
+    public ?\Closure $equalsFunc = null;
 
     public ?Prefixer $prefixer = null;
     public ?Suffixer $suffixer = null;

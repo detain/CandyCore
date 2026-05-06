@@ -31,8 +31,8 @@ final class Hermit
 
     private string $prompt = '> ';
 
-    /** @var callable(string $item, bool $isSelected): string */
-    private callable $itemFormatter;
+    /** @var \Closure(string $item, bool $isSelected): string */
+    private \Closure $itemFormatter;
 
     /** Match highlight style (ANSI SGR codes, e.g. "\e[33m"). */
     private string $matchStyle = '';
@@ -51,7 +51,7 @@ final class Hermit
 
     public function __construct(
         array $items = [],
-        ?callable $itemFormatter = null,
+        ?\Closure $itemFormatter = null,
     ) {
         $this->allItems     = \array_values(\array_map('strval', $items));
         $this->filteredItems = $this->allItems;
@@ -64,7 +64,7 @@ final class Hermit
     // Factory
     // -------------------------------------------------------------------------
 
-    public static function new(array $items = [], ?callable $itemFormatter = null): self
+    public static function new(array $items = [], ?\Closure $itemFormatter = null): self
     {
         return new self($items, $itemFormatter);
     }
@@ -118,7 +118,7 @@ final class Hermit
         return $clone;
     }
 
-    public function setItemFormatter(callable $fn): self
+    public function setItemFormatter(\Closure $fn): self
     {
         $clone = clone $this;
         $clone->itemFormatter = $fn;

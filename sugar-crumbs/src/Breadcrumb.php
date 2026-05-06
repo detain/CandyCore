@@ -21,8 +21,8 @@ final class Breadcrumb
     private string $truncator  = '… ';
     private int    $maxWidth   = 0;  // 0 = no limit
 
-    /** @var callable(NavigationItem, int): string|null */
-    private ?callable $itemRenderer = null;
+    /** @var \Closure(NavigationItem, int): string|null */
+    private ?\Closure $itemRenderer = null;
 
     public function setSeparator(string $s): self
     {
@@ -46,7 +46,7 @@ final class Breadcrumb
      * Custom per-item renderer: fn(NavigationItem $item, int $index): ?string
      * Return null to use the default title-based rendering.
      */
-    public function setItemRenderer(callable $fn): self
+    public function setItemRenderer(\Closure $fn): self
     {
         $this->itemRenderer = $fn;
         return $this;

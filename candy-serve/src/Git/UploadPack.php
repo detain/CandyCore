@@ -39,7 +39,8 @@ final class UploadPack
         $ac = AccessControl::getInstance();
 
         if (!$ac->canRead($this->user, $this->repo)) {
-            \fwrite(\STDERR, "Access denied: {$this->user?->username ?? 'anonymous'} cannot read {$this->repo->name}\n");
+            $viewer = $this->user?->username ?? 'anonymous';
+            \fwrite(\STDERR, "Access denied: {$viewer} cannot read {$this->repo->name}\n");
             return 1;
         }
 

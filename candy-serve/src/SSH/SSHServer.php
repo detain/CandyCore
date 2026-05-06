@@ -188,7 +188,8 @@ final class SSHServer
     {
         $ac = AccessControl::getInstance();
         if (!$ac->canCreateRepos($user)) {
-            throw new \RuntimeException("User {$user?->username} cannot create repos");
+            $viewer = $user?->username;
+            throw new \RuntimeException("User {$viewer} cannot create repos");
         }
 
         $path = $this->config->reposPath() . '/' . $name;

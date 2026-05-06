@@ -115,9 +115,9 @@ final class SelectionPrompt
             'pagedown'  => $this->nextPage(),
             'home'      => $this->moveCursorToStart(),
             'end'       => $this->moveCursorToEnd(),
-            'enter'     => $this->confirm(),
+            'enter'     => $this->finalizeConfirm(),
             'space'     => $this->toggleSelect(),
-            'esc', 'ctrl_c' => $this->cancel(),
+            'esc', 'ctrl_c' => $this->finalizeCancel(),
             default     => $this,
         };
     }
@@ -323,12 +323,12 @@ final class SelectionPrompt
         return $clone;
     }
 
-    private function confirm(): self
+    private function finalizeConfirm(): self
     {
         return $this->Confirm();
     }
 
-    private function cancel(): self
+    private function finalizeCancel(): self
     {
         return $this->Cancel();
     }

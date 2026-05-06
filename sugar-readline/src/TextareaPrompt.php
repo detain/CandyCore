@@ -74,7 +74,7 @@ final class TextareaPrompt
             'end'       => $this->moveColToEnd(),
             'enter'     => $this->insertNewline(),
             'backspace' => $this->handleBackspace(),
-            'ctrl_c', 'esc' => $this->cancel(),
+            'ctrl_c', 'esc' => $this->finalizeCancel(),
             default     => $this,
         };
     }
@@ -211,7 +211,7 @@ final class TextareaPrompt
         return $this;
     }
 
-    private function cancel(): self
+    private function finalizeCancel(): self
     {
         return $this->Cancel();
     }

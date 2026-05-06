@@ -112,8 +112,8 @@ final class MultiSelectPrompt
             'home'          => $this->moveCursorToStart(),
             'end'           => $this->moveCursorToEnd(),
             'space'         => $this->toggleSelect(),
-            'enter'         => $this->confirm(),
-            'esc', 'ctrl_c' => $this->cancel(),
+            'enter'         => $this->finalizeConfirm(),
+            'esc', 'ctrl_c' => $this->finalizeCancel(),
             default         => $this,
         };
     }
@@ -160,7 +160,7 @@ final class MultiSelectPrompt
 
     public function CanConfirm(): bool
     {
-        return $this->selectionCount() >= $this->minSelections;
+        $this->getSelectionCount() >= $this->minSelections;
     }
 
     /**
@@ -332,18 +332,18 @@ final class MultiSelectPrompt
         return $clone;
     }
 
-    private function confirm(): self
+    private function finalizeConfirm(): self
     {
         if (!$this->CanConfirm()) return $this;
         return $this->Confirm();
     }
 
-    private function cancel(): self
+    private function finalizeCancel(): self
     {
         return $this->Cancel();
     }
 
-    private function selectionCount(): int
+    private function getSelectionCount(): int
     {
         return \count($this->selected);
     }

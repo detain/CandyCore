@@ -287,7 +287,8 @@ final class FlexBox
     private function measureWidth(FlexItem $item): int
     {
         $lines = \explode("\n", $item->content);
-        return \max(...\array_map('strlen', $lines));
+        $widths = \array_map('strlen', $lines);
+        return $widths === [] ? 0 : \max(...$widths);
     }
 
     private function measureHeight(FlexItem $item): int
