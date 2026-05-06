@@ -429,22 +429,27 @@ code, pre, .mono {
 .demo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 22px;
+    gap: 24px;
 }
 
 .demo-card {
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    /* Match the lib-card grouping: bigger radius + two-tier shadow
+       so demos are visibly their own contained block, not a row of
+       tiles bleeding into one another. */
+    border-radius: 18px;
     overflow: hidden;
-    transition: transform .18s ease, box-shadow .18s ease;
+    transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
     color: var(--ink);
     display: block;
+    box-shadow: 0 1px 2px rgba(15, 12, 24, 0.06), 0 8px 24px rgba(15, 12, 24, 0.04);
 }
 
 .demo-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-6px);
+    box-shadow: 0 2px 6px rgba(15, 12, 24, 0.08), 0 24px 48px rgba(255, 95, 135, 0.18);
+    border-color: rgba(255, 95, 135, 0.55);
     color: var(--ink);
 }
 

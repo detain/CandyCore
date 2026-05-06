@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace CandyCore\Bits\Tests\Table;
 
+use CandyCore\Bits\Table\Styles;
 use CandyCore\Bits\Table\Table;
 use CandyCore\Core\KeyType;
 use CandyCore\Core\Msg\KeyMsg;
+use CandyCore\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase
@@ -118,5 +120,45 @@ final class TableTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         Table::new([], [], -1, 5);
+    }
+
+    public function testCursorAccessor(): void
+    {
+        $t = $this->focused();
+        $this->assertSame(0, $t->cursor());
+        [$t, ] = $t->update(new KeyMsg(KeyType::Down));
+        $this->assertSame(1, $t->cursor());
+    }
+
+    public function testSetCursorClamps(): void
+    {
+        $t = Table::new(['h'], [['a'], ['b'], ['c']]);
+        $t = $t->setCursor(99);
+        $this->assertSame(2, $t->cursor());
+        $t = $t->setCursor(-5);
+        $this->assertSame(0, $t->cursor());
+    }
+
+    public function testRowsAndHeadersAccessors(): void
+    {
+        $t = Table::new(['name', 'qty'], [['apple', '3'], ['banana', '5']]);
+        $this->assertSame(['name', 'qty'], $t->headersList());
+        $this->assertSame([['apple', '3'], ['banana', '5']], $t->rowsList());
+    }
+
+    public function testWithStylesAppliesHeaderStyle(): void
+    {
+        $t = Table::new(['x'], [['a']])
+            ->withStyles(new Styles(header: Style::new()->bold()));
+        $view = $t->view();
+        $this->assertStringContainsString("\x1b[1m", $view);
+    }
+
+    public function testWithStylesNullClearsStyles(): void
+    {
+        $t = Table::new(['x'], [['a']])
+            ->withStyles(new Styles(header: Style::new()->bold()))
+            ->withStyles(null);
+        $this->assertNull($t->getStyles());
     }
 }
