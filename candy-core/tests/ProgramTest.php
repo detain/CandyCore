@@ -828,4 +828,55 @@ final class ProgramTest extends TestCase
         fclose($in);
         fclose($out);
     }
+
+    public function testWithoutSignalHandlerSkipsRegistration(): void
+    {
+        if (!function_exists('pcntl_signal') || !defined('SIGINT')) {
+            $this->markTestSkipped('pcntl_signal not available');
+        }
+        // Install a sentinel SIGINT handler before the program runs.
+        // With withoutSignalHandler=true, the runtime must NOT replace it.
+        $sentinelCalled = false;
+        $sentinel = static function () use (&$sentinelCalled): void {
+            $sentinelCalled = true;
+        };
+        pcntl_signal(SIGINT, $sentinel);
+
+        [$in, $out, $writer] = $this->pipes();
+        $loop = new StreamSelectLoop();
+
+        $opts = new ProgramOptions(
+            useAltScreen: false,
+            catchInterrupts: true,            // would normally install handlers
+            withoutSignalHandler: true,        // but this one wins
+            input: $in,
+            output: $out,
+            loop: $loop,
+        );
+        $program = new Program(new RecordingModel(quitAfter: 4), $opts);
+        $program->quit();
+        $program->run();
+
+        // After run(), the sentinel should still be the registered handler.
+        // pcntl_signal_get_handler() returns the current callable.
+        $current = function_exists('pcntl_signal_get_handler')
+            ? pcntl_signal_get_handler(SIGINT)
+            : null;
+        if ($current !== null) {
+            $this->assertSame($sentinel, $current);
+        } else {
+            // On older PHPs without _get_handler, raise SIGINT and confirm
+            // our sentinel is the one that fires.
+            posix_kill(posix_getpid(), SIGINT);
+            pcntl_signal_dispatch();
+            $this->assertTrue($sentinelCalled);
+        }
+
+        // Reset SIGINT to default so later tests don't inherit our sentinel.
+        pcntl_signal(SIGINT, SIG_DFL);
+
+        fclose($writer);
+        fclose($in);
+        fclose($out);
+    }
 }
