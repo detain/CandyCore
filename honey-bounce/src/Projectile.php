@@ -14,12 +14,19 @@ namespace CandyCore\Bounce;
  * `$deltaTime` is the simulation step bake-in matching {@see Spring}'s
  * convention — pass the same value for every update().
  *
+ * **Axis convention.** `gravity()` / `terminalGravity()` now return
+ * **Y-up** vectors (`{0, -9.81, 0}` / `{0, -53, 0}`) to match the
+ * upstream Charmbracelet harmonica API. If you copied an example from
+ * the harmonica docs, it will fly the right direction. The previous
+ * Y-down convention is still reachable as
+ * `gravityYDown()` / `terminalGravityYDown()` for back-compat.
+ *
  * ```php
  * $p = Projectile::new(
  *     deltaTime: Spring::fps(60),
  *     position:  Point::zero(),
- *     velocity:  new Vector(5.0, -10.0),
- *     accel:     Projectile::gravity(),
+ *     velocity:  new Vector(5.0, 10.0),     // upward (Y-up)
+ *     acceleration: Projectile::gravity(),   // pulls down (negative Y)
  * );
  * for ($i = 0; $i < 60; $i++) {
  *     $p = $p->update();
@@ -28,10 +35,10 @@ namespace CandyCore\Bounce;
  */
 final class Projectile
 {
-    /** Standard gravity (m/s² × cell-units, scaled). Mirrors `harmonica.Gravity`. */
+    /** Standard gravity magnitude. Mirrors `harmonica.Gravity` value. */
     public const GRAVITY = 9.81;
 
-    /** Approximate skydiver terminal velocity. Mirrors `harmonica.TerminalGravity`. */
+    /** Approximate skydiver terminal-velocity magnitude. Mirrors `harmonica.TerminalGravity`. */
     public const TERMINAL_GRAVITY = 53.0;
 
     public function __construct(
@@ -66,15 +73,39 @@ final class Projectile
     public function velocity(): Vector     { return $this->velocity; }
     public function acceleration(): Vector { return $this->acceleration; }
 
-    /** Convenience: gravity vector pointing in `+Y` (standard "down"). */
+    /**
+     * Gravity vector — Y-up, matching upstream harmonica
+     * `Gravity = Vector{0, -9.81, 0}`. Use this when porting examples
+     * from the harmonica docs verbatim.
+     */
     public static function gravity(): Vector
     {
-        return new Vector(0.0, self::GRAVITY);
+        return new Vector(0.0, -self::GRAVITY, 0.0);
     }
 
-    /** Convenience: terminal-velocity gravity vector. */
+    /**
+     * Terminal-velocity gravity — Y-up, matching upstream harmonica
+     * `TerminalGravity = Vector{0, -53, 0}`.
+     */
     public static function terminalGravity(): Vector
     {
-        return new Vector(0.0, self::TERMINAL_GRAVITY);
+        return new Vector(0.0, -self::TERMINAL_GRAVITY, 0.0);
+    }
+
+    /**
+     * Legacy Y-down gravity. Earlier versions of HoneyBounce used
+     * `(0, +9.81, 0)` (Y-down) — kept here so existing PHP code that
+     * relied on the old convention can opt back in via a single name
+     * change without flipping every Y-coord in the model.
+     */
+    public static function gravityYDown(): Vector
+    {
+        return new Vector(0.0, self::GRAVITY, 0.0);
+    }
+
+    /** Legacy Y-down terminal-velocity gravity. See {@see gravityYDown()}. */
+    public static function terminalGravityYDown(): Vector
+    {
+        return new Vector(0.0, self::TERMINAL_GRAVITY, 0.0);
     }
 }
