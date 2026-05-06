@@ -70,16 +70,61 @@ Gravity constants: `Projectile::GRAVITY` (9.81) and
 `Projectile::gravity()` and `Projectile::terminalGravity()` return Y-axis
 `Vector` instances ready to drop into the constructor.
 
+`CandyCore\Bounce\Gravity` exposes the same vectors as static
+accessors at the package level — `Gravity::standard()`,
+`Gravity::terminal()`, `Gravity::standardYDown()`,
+`Gravity::terminalYDown()` — so call sites translating from harmonica's
+package-level `Gravity` / `TerminalGravity` constants read uniformly.
+
+## Damping-ratio regimes
+
+The `dampingRatio` argument to `Spring` picks one of three classical
+behaviours:
+
+- **Under-damped** (`ζ < 1`) — oscillates around the target,
+  amplitudes decaying each cycle. Picks for "bouncy" feel.
+- **Critically-damped** (`ζ = 1`) — fastest convergence with no
+  overshoot. The default for "snap to value" animations.
+- **Over-damped** (`ζ > 1`) — converges without overshoot but slower
+  than critical. Picks for slow, weighty motion.
+
+Negative damping ratios are clamped to `0` (a pure oscillator with
+no decay would never settle).
+
+## Coordinate systems
+
+Both `Vector` and `Point` are **3D** (`x`, `y`, `z`) — the constructor's
+`$z` defaults to `0.0` so existing 2D call sites still compile
+unchanged. Use the third dimension when porting demos that need a Z
+axis (parallax / depth-shaded particle systems).
+
+The Y-axis convention is **Y-up** by default to match upstream
+harmonica: `Gravity::standard()` returns `(0, -9.81, 0)` so increasing
+Y means "up the screen". Terminal renderers usually grow downward —
+flip to `Gravity::standardYDown()` (or its `Projectile::gravityYDown()`
+alias) when you want gravity to pull toward the bottom of the grid
+without manually negating every coordinate.
+
+`Projectile::update()` returns a **new `Projectile`** instance each
+call (immutable-with-pattern); upstream `Projectile.Update()` returns
+the new `Point` and mutates the receiver in place. Read the new
+position from `result->position` rather than `$p->position()`.
+
 ## Public API
 
 - **`Spring`** — `__construct($dt, $ω, $ζ)` / `update($pos, $vel, $target)`
   / `Spring::fps(int)`.
 - **`Projectile`** — `Projectile::new(...)` / `update()` / `position()` /
   `velocity()` / `acceleration()` / `gravity()` / `terminalGravity()` /
-  `GRAVITY` / `TERMINAL_GRAVITY`.
-- **`Vector`** — immutable 2D vector with `add` / `sub` / `scale` /
-  `length` / `Vector::zero()`.
-- **`Point`** — immutable 2D point with `add(Vector)` / `Point::zero()`.
+  `gravityYDown()` / `terminalGravityYDown()` / `GRAVITY` /
+  `TERMINAL_GRAVITY`.
+- **`Gravity`** — package-level static accessors mirroring harmonica's
+  `Gravity` / `TerminalGravity` constants: `standard()`, `terminal()`,
+  `standardYDown()`, `terminalYDown()`.
+- **`Vector`** — immutable 3D vector with `add` / `sub` / `scale` /
+  `length` / `dot` / `cross` / `Vector::zero()`.
+- **`Point`** — immutable 3D point with `add(Vector)` / `distance` /
+  `Point::zero()`.
 
 ## Test
 

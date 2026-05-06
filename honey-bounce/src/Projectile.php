@@ -77,6 +77,15 @@ final class Projectile
      * Gravity vector — Y-up, matching upstream harmonica
      * `Gravity = Vector{0, -9.81, 0}`. Use this when porting examples
      * from the harmonica docs verbatim.
+     *
+     * **Mutability note.** Upstream `Projectile.Update()` returns a
+     * `Point` (the new position only) and mutates the projectile in
+     * place. PHP `Projectile::update()` instead returns a new
+     * `Projectile` instance and leaves the receiver untouched —
+     * matches the rest of the SugarCraft stack's immutable-with-
+     * pattern and avoids spooky action when you keep a reference to
+     * an earlier frame for replay / debugging. Read the new position
+     * from `result->position` after each call.
      */
     public static function gravity(): Vector
     {
