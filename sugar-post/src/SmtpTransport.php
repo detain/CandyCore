@@ -1,0 +1,321 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Post;
+
+/**
+ * Sends email via direct SMTP (TCP/TLS).
+ *
+ * Implements a minimal SMTP client sufficient for sending plain-text and
+ * multi-part MIME emails. TLS is supported on port 465; STARTTLS on 587.
+ */
+final class SmtpTransport implements Transport
+{
+    private string $host;
+    private int $port;
+    private string $username;
+    private string $password;
+    private int $timeout;
+    private bool $tls;
+
+    /** @var resource|\Socket|null */
+    private $socket = null;
+    private string $lastResponse = '';
+
+    public function __construct(
+        string $host,
+        int $port = 587,
+        string $username = '',
+        string $password = '',
+        int $timeout = 30,
+    ) {
+        $this->host     = $host;
+        $this->port     = $port;
+        $this->username = $username;
+        $this->password = $password;
+        $this->timeout  = $timeout;
+        $this->tls      = ($port === 465);
+    }
+
+    public function send(Email $email): void
+    {
+        try {
+            $this->connect();
+            $this->helo();
+            $this->startTlsIfNeeded();
+            $this->authenticateIfNeeded();
+            $this->sendMailFrom($email->from[0] ?? 'unknown@localhost');
+            foreach ($email->allRecipients() as $rcpt) {
+                $this->sendRcptTo($rcpt);
+            }
+            $this->sendData($email);
+            $this->quit();
+        } catch (\Throwable $e) {
+            $this->disconnect();
+            throw new \RuntimeException("SMTP send failed: {$e->getMessage()}", 0, $e);
+        }
+    }
+
+    public function name(): string
+    {
+        return "smtp://{$this->host}:{$this->port}";
+    }
+
+    // -------------------------------------------------------------------------
+    // Connection lifecycle
+    // -------------------------------------------------------------------------
+
+    private function connect(): void
+    {
+        $addr = "tcp://{$this->host}:{$this->port}";
+        $this->socket = @\stream_socket_client(
+            $addr,
+            $errno,
+            $errstr,
+            $this->timeout,
+            \STREAM_CLIENT_CONNECT,
+        );
+
+        if ($this->socket === false) {
+            throw new \RuntimeException("Cannot connect to {$addr}: {$errstr} ({$errno})");
+        }
+
+        \stream_set_timeout($this->socket, $this->timeout);
+        $this->readResponse(220);
+
+        // Identify with EHLO
+        $this->send("EHLO {$this->getHeloHost()}\r\n");
+        $this->readResponse(250);
+    }
+
+    private function startTlsIfNeeded(): void
+    {
+        if ($this->tls || $this->hasExtension('STARTTLS')) {
+            $this->send("STARTTLS\r\n");
+            $this->readResponse(220);
+
+            /** @var array<resource> $context */
+            $context = \stream_context_get_default([
+                'ssl' => [
+                    'verify_peer'      => true,
+                    'verify_peer_name' => true,
+                ],
+            ]);
+
+            $crypto = \stream_socket_enable_crypto($this->socket, true, \STREAM_CRYPTO_METHOD_TLS_CLIENT);
+            if ($crypto === false) {
+                throw new \RuntimeException('STARTTLS negotiation failed');
+            }
+
+            // Re-EHLO after TLS
+            $this->send("EHLO {$this->getHeloHost()}\r\n");
+            $this->readResponse(250);
+        }
+    }
+
+    private function authenticateIfNeeded(): void
+    {
+        if ($this->username === '' || $this->password === '') {
+            return;
+        }
+
+        if (!$this->hasExtension('AUTH')) {
+            return; // No auth available; try anyway without
+        }
+
+        $this->send("AUTH LOGIN\r\n");
+        $this->readResponse(334); // Username prompt (base64 "Username:")
+
+        $this->send(\base64_encode($this->username) . "\r\n");
+        $this->readResponse(334); // Password prompt (base64 "Password:")
+
+        $this->send(\base64_encode($this->password) . "\r\n");
+        $this->readResponse(235); // Authentication successful
+    }
+
+    private function disconnect(): void
+    {
+        if ($this->socket !== null) {
+           @\fclose($this->socket);
+            $this->socket = null;
+        }
+    }
+
+    private function quit(): void
+    {
+        if ($this->socket === null) {
+            return;
+        }
+        $this->send("QUIT\r\n");
+        @$this->readResponse(221);
+        $this->disconnect();
+    }
+
+    // -------------------------------------------------------------------------
+    // SMTP commands
+    // -------------------------------------------------------------------------
+
+    private function helo(): void
+    {
+        $this->send("HELO {$this->getHeloHost()}\r\n");
+        $this->readResponse(250);
+    }
+
+    private function sendMailFrom(string $address): void
+    {
+        $this->send("MAIL FROM:<{$address}>\r\n");
+        $this->readResponse(250);
+    }
+
+    private function sendRcptTo(string $address): void
+    {
+        $this->send("RCPT TO:<{$address}>\r\n");
+        $this->readResponse(250);
+    }
+
+    private function sendData(Email $email): void
+    {
+        $this->send("DATA\r\n");
+        $this->readResponse(354);
+
+        $mime = $this->buildMimeMessage($email);
+        $this->send($mime . "\r\n.\r\n");
+        $this->readResponse(250);
+    }
+
+    // -------------------------------------------------------------------------
+    // MIME building
+    // -------------------------------------------------------------------------
+
+    private function buildMimeMessage(Email $email): string
+    {
+        $boundary = \bin2hex(\random_bytes(16));
+        $lines = [];
+
+        // Headers
+        $lines[] = "From: {$this->addrListHeader($email->from)}";
+        $lines[] = "To: {$this->addrListHeader($email->to)}";
+        if ($email->cc !== []) {
+            $lines[] = "Cc: {$this->addrListHeader($email->cc)}";
+        }
+        if ($email->subject !== null) {
+            $lines[] = "Subject: {$email->subject}";
+        }
+        $lines[] = "MIME-Version: 1.0";
+        $lines[] = "Content-Type: multipart/mixed; boundary=\"{$boundary}\"";
+
+        if ($email->replyTo !== null) {
+            $lines[] = "Reply-To: {$email->replyTo}";
+        }
+
+        $lines[] = '';
+        $lines[] = '--' . $boundary;
+
+        // Body (either text or multipart/alternative)
+        $bodyBoundary = \bin2hex(\random_bytes(16));
+
+        if ($email->htmlBody !== null) {
+            $lines[] = "Content-Type: multipart/alternative; boundary=\"{$bodyBoundary}\"";
+            $lines[] = '';
+            $lines[] = '--' . $bodyBoundary;
+        }
+
+        if ($email->body !== null) {
+            $body = $email->bodyWithSignature() ?? $email->body;
+            $lines[] = 'Content-Type: text/plain; charset="utf-8"';
+            $lines[] = 'Content-Transfer-Encoding: 7bit';
+            $lines[] = '';
+            $lines = \array_merge($lines, \explode("\n", $body));
+            $lines[] = '';
+        }
+
+        if ($email->htmlBody !== null) {
+            $lines[] = '--' . $bodyBoundary;
+            $lines[] = 'Content-Type: text/html; charset="utf-8"';
+            $lines[] = 'Content-Transfer-Encoding: 7bit';
+            $lines[] = '';
+            $lines = \array_merge($lines, \explode("\n", $email->htmlBody));
+            $lines[] = '';
+            $lines[] = '--' . $bodyBoundary . '--';
+            $lines[] = '';
+        }
+
+        // Attachments
+        foreach ($email->attachments as $att) {
+            $content = $att->getContent();
+            $encoded = \chunk_split(\base64_encode($content), 76, "\n");
+
+            $headers = [
+                "Content-Type: {$att->mimeType}; name=\"{$att->filename}\"",
+                "Content-Transfer-Encoding: base64",
+                "Content-Disposition: " . ($att->cid !== null
+                    ? "inline; filename=\"{$att->filename}\""
+                    : "attachment; filename=\"{$att->filename}\""
+                ),
+            ];
+
+            if ($att->cid !== null) {
+                $headers[] = "Content-ID: <{$att->cid}>";
+            }
+
+            $lines[] = '--' . $boundary;
+            foreach ($headers as $h) {
+                $lines[] = $h;
+            }
+            $lines[] = '';
+            $lines[] = $encoded;
+            $lines[] = '';
+        }
+
+        $lines[] = '--' . $boundary . '--';
+
+        return \implode("\r\n", $lines);
+    }
+
+    // -------------------------------------------------------------------------
+    // I/O helpers
+    // -------------------------------------------------------------------------
+
+    private function send(string $data): void
+    {
+        if ($this->socket === null) {
+            throw new \RuntimeException('Not connected');
+        }
+        \fwrite($this->socket, $data);
+    }
+
+    private function readResponse(int $expectedCode): void
+    {
+        if ($this->socket === null) {
+            throw new \RuntimeException('Not connected');
+        }
+
+        $line = \fgets($this->socket);
+        if ($line === false) {
+            throw new \RuntimeException('Server sent no response');
+        }
+
+        $this->lastResponse = \trim($line);
+
+        $code = (int) \substr($this->lastResponse, 0, 3);
+        if ($code !== $expectedCode) {
+            throw new \RuntimeException("SMTP unexpected response: {$this->lastResponse}");
+        }
+    }
+
+    private function hasExtension(string $name): bool
+    {
+        return \str_contains($this->lastResponse, $name);
+    }
+
+    private function getHeloHost(): string
+    {
+        return \gethostname() ?: 'localhost';
+    }
+
+    private function addrListHeader(array $addrs): string
+    {
+        return \implode(', ', $addrs);
+    }
+}
