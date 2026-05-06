@@ -89,6 +89,20 @@ final class Renderer
 
     public static function ansi(): self  { return new self(Theme::ansi());  }
     public static function plain(): self { return new self(Theme::plain()); }
+
+    /**
+     * Top-level convenience: render Markdown with a one-shot
+     * `Renderer` instance and return the ANSI string. Mirrors
+     * glamour's package-level `Render` function.
+     *
+     * Pass a Theme to pick a stock or custom theme; default ansi.
+     * For repeated rendering with the same theme, build a Renderer
+     * directly and reuse it (the parser is cached per instance).
+     */
+    public static function renderMarkdown(string $markdown, ?Theme $theme = null): string
+    {
+        return (new self($theme ?? Theme::ansi()))->render($markdown);
+    }
     public static function ascii(): self { return new self(Theme::ascii()); }
 
     /**
@@ -319,7 +333,14 @@ final class Renderer
         $alt = $this->renderChildren($node);
         $url = $this->resolveUrl($node->getUrl());
         $imageStyle = $this->theme->image ?? \CandyCore\Sprinkles\Style::new()->italic();
-        $rendered = $imageStyle->render($alt === '' ? '[image]' : $alt);
+        if ($alt === '') {
+            $rendered = $imageStyle->render('[image]');
+        } else {
+            // imageText paints the visible alt-text when set; otherwise
+            // fall through to image. Mirrors glamour's `ImageText` slot.
+            $textStyle = $this->theme->imageText ?? $imageStyle;
+            $rendered = $textStyle->render($alt);
+        }
         return $rendered . ' (' . $url . ')';
     }
 
@@ -358,6 +379,7 @@ final class Renderer
         if ($this->wrapWidth !== null) {
             $body = Width::wrapAnsi($body, $this->wrapWidth);
         }
+        $body = $this->theme->paragraphPrefix . $body . $this->theme->paragraphSuffix;
         return $this->theme->paragraph->render($body) . "\n\n";
     }
 
@@ -393,8 +415,28 @@ final class Renderer
             5       => $this->theme->heading5,
             default => $this->theme->heading6,
         };
-        $prefix = str_repeat('#', $h->getLevel()) . ' ';
-        return $style->render($prefix . $this->renderChildren($h)) . "\n\n";
+        $prefix = $this->theme->headingPrefix
+            ?? (str_repeat('#', $h->getLevel()) . ' ');
+        $suffix = (string) $this->theme->headingSuffix;
+        $body   = $this->applyCase($this->renderChildren($h), $this->theme->headingCase);
+        return $style->render($prefix . $body . $suffix) . "\n\n";
+    }
+
+    /**
+     * Apply a case transform to a heading body.
+     *
+     * Mirrors glamour's `Upper` / `Lower` / `Title` flags collapsed
+     * into a single `case` selector. `none` (default) is identity;
+     * unknown selectors fall through to identity.
+     */
+    private function applyCase(string $text, string $case): string
+    {
+        return match (strtolower($case)) {
+            'upper' => mb_strtoupper($text, 'UTF-8'),
+            'lower' => mb_strtolower($text, 'UTF-8'),
+            'title' => mb_convert_case($text, MB_CASE_TITLE, 'UTF-8'),
+            default => $text,
+        };
     }
 
     private function renderBlockQuote(BlockQuote $q): string
@@ -510,6 +552,13 @@ final class Renderer
                     }
                     if ($this->tableWrap && $this->wrapWidth !== null) {
                         $body = Width::wrapAnsi($body, $this->wrapWidth);
+                    }
+                    // Apply per-cell theme style (header vs body) when set.
+                    $cellStyle = $isHeader
+                        ? $this->theme->tableHeader
+                        : $this->theme->tableCell;
+                    if ($cellStyle !== null) {
+                        $body = $cellStyle->render($body);
                     }
                     $cells[] = $body;
                 }

@@ -79,6 +79,42 @@ final class Theme
         public readonly string $horizontalRuleGlyph = '─',
         /** Cells the thematic-break glyph repeats across. Default 40. */
         public readonly int $horizontalRuleLength = 40,
+
+        // ---- table substyles (audit #9 wrap-up) ----
+        /** Style applied to GFM-table header cells. Default null = inherit `bold`. */
+        public readonly ?Style $tableHeader    = null,
+        /** Style applied to body-row cells. Default null = no styling. */
+        public readonly ?Style $tableCell      = null,
+        /** Style applied to the separator characters that join cells. */
+        public readonly ?Style $tableSeparator = null,
+
+        /**
+         * Style applied to the visible alt-text of inline images,
+         * distinct from `$image` which paints the wider `[image]` /
+         * fallback marker. Mirrors glamour's `ImageText` slot.
+         */
+        public readonly ?Style $imageText = null,
+
+        /**
+         * Glyph prefixed to every heading line — defaults to repeating
+         * `'#'` per heading level, matching upstream commonmark output.
+         * Set to a non-null string to override globally (e.g. `'❯ '`
+         * for chevron-prefixed headings).
+         */
+        public readonly ?string $headingPrefix = null,
+        /** Glyph appended to heading lines. Default null = nothing. */
+        public readonly ?string $headingSuffix = null,
+        /** Optional prefix prepended to every paragraph (StylePrimitive::Prefix). */
+        public readonly string $paragraphPrefix = '',
+        /** Optional suffix appended to every paragraph. */
+        public readonly string $paragraphSuffix = '',
+        /**
+         * Casing transform applied to heading bodies — `upper` / `lower`
+         * / `title` / `none`. Default `none`. Mirrors glamour's
+         * StylePrimitive `Upper` / `Lower` / `Title` flags collapsed
+         * into one selector.
+         */
+        public readonly string $headingCase = 'none',
     ) {}
 
     /** Default ANSI theme: bright accents on each heading, coloured code, etc. */
