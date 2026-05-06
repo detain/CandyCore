@@ -381,16 +381,22 @@ final class InputReader
             }
         }
 
+        // Kitty progressive keyboard protocol routes named functional
+        // keys (arrows, F-keys, keypad, media, locks, modifier-as-key)
+        // through the Private Use Area (0xE000+).
+        $kittyMap = KeyType::kittyFunctionalKeys();
+
         // Map well-known codepoints to KeyType; otherwise treat as
         // printable Char with the rune from `$text` (preferred) or the
         // codepoint itself.
         [$type, $rune] = match (true) {
-            $code === 9   => [KeyType::Tab,       ''],
-            $code === 13  => [KeyType::Enter,     ''],
-            $code === 27  => [KeyType::Escape,    ''],
-            $code === 32  => [KeyType::Space,     ' '],
-            $code === 127 => [KeyType::Backspace, ''],
-            default       => [KeyType::Char, $text !== '' ? $text : mb_chr($code, 'UTF-8')],
+            $code === 9              => [KeyType::Tab,       ''],
+            $code === 13             => [KeyType::Enter,     ''],
+            $code === 27             => [KeyType::Escape,    ''],
+            $code === 32             => [KeyType::Space,     ' '],
+            $code === 127            => [KeyType::Backspace, ''],
+            isset($kittyMap[$code])  => [$kittyMap[$code],   ''],
+            default                  => [KeyType::Char, $text !== '' ? $text : mb_chr($code, 'UTF-8')],
         };
 
         $cls = match ($event) {
