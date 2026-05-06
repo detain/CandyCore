@@ -161,4 +161,60 @@ final class BarChartTest extends TestCase
         $this->assertCount(1, $a->bars);
         $this->assertCount(2, $b->bars);
     }
+
+    public function testWithBarWidthPinsColumnWidth(): void
+    {
+        $chart = BarChart::new([['a', 1.0], ['b', 1.0]], 12, 4)
+            ->withShowLabels(false)
+            ->withBarWidth(3)
+            ->withBarGap(1);
+        $rows = explode("\n", $chart->view());
+        // 2 bars × 3 cols + 1 gap = 7 cells.
+        foreach ($rows as $r) {
+            $this->assertSame(7, mb_strlen($r, 'UTF-8'));
+        }
+    }
+
+    public function testWithBarGapZeroPacksBarsTogether(): void
+    {
+        $chart = BarChart::new([['a', 1.0], ['b', 1.0]], 6, 3)
+            ->withShowLabels(false)
+            ->withBarWidth(2)
+            ->withBarGap(0);
+        $rows = explode("\n", $chart->view());
+        // 2 bars × 2 cols + 0 gap = 4 cells, all '█' on the top row.
+        $this->assertSame('████', $rows[0]);
+    }
+
+    public function testWithNoAutoBarWidthDisablesAutoFit(): void
+    {
+        // With auto, 2 bars across 10 cells gives colW ~ 4.5 → 4.
+        // Pinning to 2 keeps each bar narrow.
+        $chart = BarChart::new([['a', 1.0], ['b', 1.0]], 10, 3)
+            ->withShowLabels(false)
+            ->withBarWidth(2);
+        $rows = explode("\n", $chart->view());
+        // 2 bars × 2 cols + auto-gap of 1 = 5 cells.
+        $this->assertSame(5, mb_strlen($rows[0], 'UTF-8'));
+    }
+
+    public function testWithBarWidthRejectsZero(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        BarChart::new([['a', 1.0]], 4, 3)->withBarWidth(0);
+    }
+
+    public function testWithBarGapRejectsNegative(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        BarChart::new([['a', 1.0]], 4, 3)->withBarGap(-1);
+    }
+
+    public function testWithNoAutoBarWidthFalseRestoresAuto(): void
+    {
+        $chart = BarChart::new([['a', 1.0], ['b', 1.0]], 10, 3)
+            ->withBarWidth(2)
+            ->withNoAutoBarWidth(false);
+        $this->assertNull($chart->barWidth);
+    }
 }

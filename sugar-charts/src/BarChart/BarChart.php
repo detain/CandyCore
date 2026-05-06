@@ -26,9 +26,17 @@ final class BarChart
         public readonly bool $showLabels,
         public readonly bool $horizontal = false,
         public readonly bool $showAxis   = false,
+        public readonly ?int $barWidth   = null,
+        public readonly ?int $barGap     = null,
     ) {
         if ($width < 0 || $height < 0) {
             throw new \InvalidArgumentException('bar chart width/height must be >= 0');
+        }
+        if ($barWidth !== null && $barWidth < 1) {
+            throw new \InvalidArgumentException('barWidth must be >= 1');
+        }
+        if ($barGap !== null && $barGap < 0) {
+            throw new \InvalidArgumentException('barGap must be >= 0');
         }
     }
 
@@ -112,7 +120,44 @@ final class BarChart
      */
     public function withShowAxis(bool $on = true): self
     {
-        return new self($this->bars, $this->width, $this->height, $this->min, $this->max, $this->showLabels, $this->horizontal, $on);
+        return new self($this->bars, $this->width, $this->height, $this->min, $this->max, $this->showLabels, $this->horizontal, $on, $this->barWidth, $this->barGap);
+    }
+
+    /**
+     * Pin every bar to a fixed cell width. Default null means
+     * "distribute available width across bars" (the prior behaviour).
+     * Mirrors ntcharts' `WithBarWidth`. `null` re-enables auto.
+     */
+    public function withBarWidth(?int $width): self
+    {
+        return new self($this->bars, $this->width, $this->height, $this->min, $this->max, $this->showLabels, $this->horizontal, $this->showAxis, $width, $this->barGap);
+    }
+
+    /**
+     * Pin the gap between bars. Default null means "1-cell gap when
+     * width allows". `0` packs bars edge-to-edge. Mirrors ntcharts'
+     * `WithBarGap`.
+     */
+    public function withBarGap(?int $gap): self
+    {
+        return new self($this->bars, $this->width, $this->height, $this->min, $this->max, $this->showLabels, $this->horizontal, $this->showAxis, $this->barWidth, $gap);
+    }
+
+    /**
+     * Disable auto-fit on `barWidth` — synonymous with
+     * `withBarWidth($w)` once a width is pinned, but expressed as a
+     * boolean for parity with ntcharts' `WithNoAutoBarWidth`. With
+     * no pinned barWidth this is a no-op.
+     */
+    public function withNoAutoBarWidth(bool $on = true): self
+    {
+        // Pure parity-shim: the override semantics are already on
+        // withBarWidth(). When `$on` is false and a width is pinned,
+        // unset it so auto kicks back in.
+        if (!$on) {
+            return $this->withBarWidth(null);
+        }
+        return $this;
     }
 
     public function view(): string
@@ -153,10 +198,20 @@ final class BarChart
 
         // Distribute available width across the surviving bars; reserve a
         // 1-cell gap when there's room. Bars expand to fill the remainder
-        // so labels can render in full when possible.
-        $gap   = $count > 1 && $this->width >= 2 * $count - 1 ? 1 : 0;
-        $avail = $this->width - ($count - 1) * $gap;
-        $colW  = max(1, intdiv($avail, max(1, $count)));
+        // so labels can render in full when possible. Caller-pinned
+        // barWidth / barGap (via withBarWidth / withBarGap) override the
+        // auto-fit calculation.
+        if ($this->barGap !== null) {
+            $gap = $this->barGap;
+        } else {
+            $gap = $count > 1 && $this->width >= 2 * $count - 1 ? 1 : 0;
+        }
+        if ($this->barWidth !== null) {
+            $colW = $this->barWidth;
+        } else {
+            $avail = $this->width - ($count - 1) * $gap;
+            $colW  = max(1, intdiv($avail, max(1, $count)));
+        }
 
         // Reserve one row for labels only if the chart is tall enough to
         // also contain a body. height=1 + showLabels would otherwise emit
