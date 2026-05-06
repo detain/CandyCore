@@ -1,6 +1,6 @@
 {
     "name": "candycore/candy-core",
-    "description": "PHP port of charmbracelet/bubbletea \u2014 Elm-architecture TUI runtime.",
+    "description": "PHP port of charmbracelet/bubbletea — Elm-architecture TUI runtime.",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -180,5 +180,7 @@
                 "symlink": true
             }
         }
-    ]
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

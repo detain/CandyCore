@@ -190,6 +190,29 @@ final class TextInput implements Model
     public function withPlaceholder(string $p): self { return $this->mutate(placeholder: $p); }
     public function withPrompt(string $p): self      { return $this->mutate(prompt: $p); }
 
+    /** Configured display width. 0 = no cap. Mirrors Bubbles' `Width()`. */
+    public function getWidth(): int  { return $this->width; }
+
+    /** Cursor position (0-based char index). Mirrors Bubbles' `Position()`. */
+    public function position(): int  { return $this->cursorPos; }
+
+    /** Mirror of {@see $focused}. Mirrors Bubbles' `Focused()`. */
+    public function isFocused(): bool { return $this->focused; }
+
+    /** Read-only accessor for the underlying {@see Cursor}. */
+    public function cursor(): Cursor { return $this->cursor; }
+
+    /**
+     * Full configured suggestion list. Mirrors Bubbles'
+     * `AvailableSuggestions()`.
+     *
+     * @return list<string>
+     */
+    public function availableSuggestions(): array { return $this->suggestions; }
+
+    /** Index of the currently-highlighted suggestion. */
+    public function currentSuggestionIndex(): int { return $this->currentSuggestionIndex; }
+
     /**
      * Apply per-element styling. Mirrors upstream Bubbles' `Styles`
      * struct + `SetStyles`. Pass null to clear.
