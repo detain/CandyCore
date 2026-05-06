@@ -48,6 +48,7 @@ final class TextInput implements Model
         public readonly int $currentSuggestionIndex = 0,
         public readonly ?\Closure $validate = null,
         public readonly ?string $err = null,
+        public readonly ?Styles $styles = null,
     ) {}
 
     public static function new(): self
@@ -111,9 +112,13 @@ final class TextInput implements Model
 
     public function view(): string
     {
+        $stylePrompt      = fn (string $s): string => $this->styles !== null ? $this->styles->prompt->render($s)      : $s;
+        $stylePlaceholder = fn (string $s): string => $this->styles !== null ? $this->styles->placeholder->render($s) : $s;
+        $styleText        = fn (string $s): string => $this->styles !== null ? $this->styles->text->render($s)        : $s;
+
         // Empty + unfocused with a placeholder: show the placeholder.
         if ($this->value === '' && !$this->focused && $this->placeholder !== '') {
-            return $this->prompt . $this->placeholder;
+            return $stylePrompt($this->prompt) . $stylePlaceholder($this->placeholder);
         }
 
         $display = $this->displayedValue();
@@ -139,7 +144,7 @@ final class TextInput implements Model
         $relPos   = $pos - $start;
 
         if (!$this->focused) {
-            return $this->prompt . $slice;
+            return $stylePrompt($this->prompt) . $styleText($slice);
         }
 
         $sliceLenActual = mb_strlen($slice, 'UTF-8');
@@ -148,7 +153,7 @@ final class TextInput implements Model
         $after  = $relPos < $sliceLenActual ? mb_substr($slice, $relPos + 1, null, 'UTF-8') : '';
 
         $cursorView = $this->cursor->setChar($charAt)->view();
-        return $this->prompt . $before . $cursorView . $after;
+        return $stylePrompt($this->prompt) . $styleText($before) . $cursorView . $styleText($after);
     }
 
     // ---- focus + setters ------------------------------------------------
@@ -184,6 +189,17 @@ final class TextInput implements Model
 
     public function withPlaceholder(string $p): self { return $this->mutate(placeholder: $p); }
     public function withPrompt(string $p): self      { return $this->mutate(prompt: $p); }
+
+    /**
+     * Apply per-element styling. Mirrors upstream Bubbles' `Styles`
+     * struct + `SetStyles`. Pass null to clear.
+     */
+    public function withStyles(?Styles $styles): self
+    {
+        return $this->mutate(styles: $styles, stylesSet: true);
+    }
+
+    public function getStyles(): ?Styles { return $this->styles; }
     public function withCharLimit(int $n): self      { return $this->mutate(charLimit: max(0, $n)); }
     public function withWidth(int $w): self          { return $this->mutate(width: max(0, $w)); }
     public function withEchoMode(EchoMode $m): self  { return $this->mutate(echoMode: $m); }
@@ -407,6 +423,7 @@ final class TextInput implements Model
         ?int $currentSuggestionIndex = null,
         ?\Closure $validate = null, bool $validateSet = false,
         ?string $err = null, bool $errSet = false,
+        ?Styles $styles = null, bool $stylesSet = false,
     ): self {
         $newValue = $value ?? $this->value;
         // Auto-revalidate when the value changes and a validator is set,
@@ -434,6 +451,7 @@ final class TextInput implements Model
             currentSuggestionIndex: $currentSuggestionIndex ?? $this->currentSuggestionIndex,
             validate:               $resolvedValidate,
             err:                    $err,
+            styles:                 $stylesSet ? $styles : $this->styles,
         );
     }
 }

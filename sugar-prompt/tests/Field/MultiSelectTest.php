@@ -101,4 +101,18 @@ final class MultiSelectTest extends TestCase
         $this->assertStringContainsString('Pick foods', $view);
         $this->assertStringContainsString('any number', $view);
     }
+
+    public function testWithLimitSetsMax(): void
+    {
+        $f = MultiSelect::new('x')->withOptions('a', 'b', 'c')->withLimit(2);
+        $this->assertSame(0, $f->min);
+        $this->assertSame(2, $f->max);
+    }
+
+    public function testWithLimitZeroClearsBounds(): void
+    {
+        $f = MultiSelect::new('x')->withOptions('a', 'b')->withMin(1)->withMax(2)->withLimit(0);
+        $this->assertSame(0, $f->min);
+        $this->assertSame(0, $f->max);
+    }
 }
