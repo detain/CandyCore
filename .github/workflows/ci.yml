@@ -49,6 +49,21 @@ jobs:
           - candy-mines
           - candy-flip
           - honey-flap
+          - candy-hermit
+          - candy-lister
+          - candy-log
+          - candy-palette
+          - candy-serve
+          - sugar-boxer
+          - sugar-calendar
+          - sugar-crumbs
+          - sugar-post
+          - sugar-readline
+          - sugar-skate
+          - sugar-stickers
+          - sugar-table
+          - sugar-toast
+          - sugar-veil
 
     steps:
       - uses: actions/checkout@v5
@@ -121,6 +136,21 @@ jobs:
           - candy-mines
           - candy-flip
           - honey-flap
+          - candy-hermit
+          - candy-lister
+          - candy-log
+          - candy-palette
+          - candy-serve
+          - sugar-boxer
+          - sugar-calendar
+          - sugar-crumbs
+          - sugar-post
+          - sugar-readline
+          - sugar-skate
+          - sugar-stickers
+          - sugar-table
+          - sugar-toast
+          - sugar-veil
     steps:
       - uses: actions/checkout@v5
 
