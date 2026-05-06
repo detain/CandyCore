@@ -186,4 +186,54 @@ final class TreeTest extends TestCase
         $expected = "r\n└── p\n....└── x";
         $this->assertSame($expected, $out);
     }
+
+    public function testRootOfNamedConstructor(): void
+    {
+        $a = Tree::rootOf('Root')->child('a');
+        $b = Tree::new()->root('Root')->child('a');
+        $this->assertSame($a->render(), $b->render());
+    }
+
+    public function testValueGetter(): void
+    {
+        $this->assertSame('',     Tree::new()->value());
+        $this->assertSame('Docs', Tree::new()->root('Docs')->value());
+        $this->assertSame('Docs', Tree::rootOf('Docs')->value());
+    }
+
+    public function testOffsetSlicesChildren(): void
+    {
+        $t = Tree::rootOf('r')->children('a', 'b', 'c', 'd', 'e');
+        // [start=1, end=4) → keep b, c, d.
+        $out = $t->offset(1, 4)->render();
+        $this->assertStringNotContainsString(' a', $out);
+        $this->assertStringContainsString('b', $out);
+        $this->assertStringContainsString('c', $out);
+        $this->assertStringContainsString('d', $out);
+        $this->assertStringNotContainsString(' e', $out);
+    }
+
+    public function testOffsetStartDropsLeading(): void
+    {
+        $t = Tree::rootOf('r')->children('a', 'b', 'c');
+        $out = $t->offsetStart(2)->render();
+        $this->assertStringNotContainsString(' a', $out);
+        $this->assertStringNotContainsString(' b', $out);
+        $this->assertStringContainsString('c', $out);
+    }
+
+    public function testOffsetEndKeepsLeading(): void
+    {
+        $t = Tree::rootOf('r')->children('a', 'b', 'c');
+        $out = $t->offsetEnd(2)->render();
+        $this->assertStringContainsString('a', $out);
+        $this->assertStringContainsString('b', $out);
+        $this->assertStringNotContainsString(' c', $out);
+    }
+
+    public function testOffsetRejectsNegativeBounds(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        Tree::new()->offset(-1, 0);
+    }
 }

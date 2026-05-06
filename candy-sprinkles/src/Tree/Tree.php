@@ -53,10 +53,21 @@ final class Tree
     private ?Style $itemStyle = null;
     private ?Style $enumeratorStyle = null;
     private ?\Closure $indenter = null;
+    private int $offsetStart = 0;
+    private int $offsetEnd   = 0;
 
     public static function new(): self
     {
         return new self();
+    }
+
+    /**
+     * Named-ctor variant of `Tree::new()->root($label)`. Mirrors
+     * lipgloss's `tree.Root(label)` package-level constructor.
+     */
+    public static function rootOf(string $label): self
+    {
+        return self::new()->root($label);
     }
 
     public function root(string $r): self
@@ -66,11 +77,44 @@ final class Tree
         return $clone;
     }
 
+    /** Read-only accessor for the configured root label. */
+    public function value(): string { return $this->root; }
+
     public function child(self|string $c): self
     {
         $clone = clone $this;
         $clone->children = [...$this->children, $c];
         return $clone;
+    }
+
+    /**
+     * Render only children in the half-open `[start, end)` range. Pass
+     * `0` for either bound to mean "no clamp on that end" — i.e.
+     * `offset(2, 0)` skips the first two children and renders the rest;
+     * `offset(0, 5)` renders only the first five. Mirrors lipgloss's
+     * `Tree::Offset(start, end)` / `OffsetStart` / `OffsetEnd`.
+     */
+    public function offset(int $start, int $end): self
+    {
+        if ($start < 0 || $end < 0) {
+            throw new \InvalidArgumentException('tree offset bounds must be >= 0');
+        }
+        $clone = clone $this;
+        $clone->offsetStart = $start;
+        $clone->offsetEnd   = $end;
+        return $clone;
+    }
+
+    /** Convenience: drop the first `$start` children. */
+    public function offsetStart(int $start): self
+    {
+        return $this->offset($start, $this->offsetEnd);
+    }
+
+    /** Convenience: keep only the first `$end` children. */
+    public function offsetEnd(int $end): self
+    {
+        return $this->offset($this->offsetStart, $end);
     }
 
     public function children(self|string ...$c): self
@@ -145,8 +189,19 @@ final class Tree
                 ? $this->rootStyle->render($this->root)
                 : $this->root;
         }
-        $count = count($this->children);
-        foreach ($this->children as $i => $child) {
+        // Apply Offset(start, end) — half-open. End=0 means "no upper
+        // clamp"; start=0 means "no lower clamp" (already implicit).
+        $children = $this->children;
+        $end = $this->offsetEnd > 0 ? $this->offsetEnd : count($children);
+        if ($this->offsetStart > 0 || $end < count($children)) {
+            $children = array_slice(
+                $children,
+                $this->offsetStart,
+                max(0, $end - $this->offsetStart),
+            );
+        }
+        $count = count($children);
+        foreach ($children as $i => $child) {
             $isLast = $i === $count - 1;
             $branchRaw = $isLast ? $enum->lastBranch : $enum->branch;
             $contRaw   = $this->indenter !== null

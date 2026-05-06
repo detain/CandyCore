@@ -42,9 +42,27 @@ final class ItemList
         $this->enumerator = Enumerator::dash();
     }
 
-    public static function new(): self
+    /**
+     * Variadic constructor — accepts an arbitrary number of items in
+     * one call. Mirrors lipgloss's `list.New(items ...)` shortcut.
+     *
+     * ```php
+     * ItemList::new('apple', 'pear', 'quince');
+     * // equivalent to ItemList::new()->items(['apple', 'pear', 'quince'])
+     * ```
+     *
+     * @param string|self ...$items
+     */
+    public static function new(string|self ...$items): self
     {
-        return new self();
+        $list = new self();
+        if ($items === []) {
+            return $list;
+        }
+        foreach ($items as $i) {
+            $list->items[] = $i;
+        }
+        return $list;
     }
 
     /** @param string|self $text  pass a nested ItemList for sublists */
