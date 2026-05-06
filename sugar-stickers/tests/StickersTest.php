@@ -1,0 +1,255 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Stickers\Tests;
+
+use CandyCore\Stickers\Flex\{Align, Direction, FlexBox, FlexItem, Justify};
+use CandyCore\Stickers\Table\{Column, Table};
+use PHPUnit\Framework\TestCase;
+
+final class StickersTest extends TestCase
+{
+    // ---- FlexBox tests ----
+
+    public function testFlexItemDefaults(): void
+    {
+        $item = FlexItem::new('hello');
+        $this->assertSame('hello', $item->content);
+        $this->assertSame(1, $item->ratio);
+        $this->assertSame(0, $item->basis);
+    }
+
+    public function testFlexItemWithMethods(): void
+    {
+        $item = FlexItem::new('x')
+            ->withRatio(2)
+            ->withBasis(10)
+            ->withGrow(3)
+            ->withShrink(0)
+            ->withStyle('32');
+
+        $this->assertSame(2, $item->ratio);
+        $this->assertSame(10, $item->basis);
+        $this->assertSame(3, $item->grow);
+        $this->assertSame(0, $item->shrink);
+        $this->assertSame('32', $item->style);
+    }
+
+    public function testFlexBoxRow(): void
+    {
+        $box = FlexBox::row(
+            FlexItem::new('A'),
+            FlexItem::new('B'),
+        )->withGap(1);
+
+        $this->assertSame(Direction::Row, $box->direction);
+        $this->assertSame(0, $box->gap);
+        $box = $box->withGap(1);
+        $this->assertSame(1, $box->gap);
+    }
+
+    public function testFlexBoxColumn(): void
+    {
+        $box = FlexBox::column(
+            FlexItem::new('A'),
+            FlexItem::new('B'),
+        );
+
+        $this->assertSame(Direction::Column, $box->direction);
+    }
+
+    public function testFlexBoxRenderRow(): void
+    {
+        $box = FlexBox::row(
+            FlexItem::new('LEFT'),
+            FlexItem::new('RIGHT'),
+        );
+
+        $result = $box->render(20, 3);
+        $this->assertIsString($result);
+        $this->assertStringContainsString('LEFT', $result);
+        $this->assertStringContainsString('RIGHT', $result);
+    }
+
+    public function testFlexBoxRenderColumn(): void
+    {
+        $box = FlexBox::column(
+            FlexItem::new('TOP'),
+            FlexItem::new('BOTTOM'),
+        );
+
+        $result = $box->render(20, 6);
+        $this->assertIsString($result);
+        $this->assertStringContainsString('TOP', $result);
+        $this->assertStringContainsString('BOTTOM', $result);
+    }
+
+    public function testFlexBoxWithJustify(): void
+    {
+        $box = FlexBox::row(FlexItem::new('x'))
+            ->withJustify(Justify::Center);
+        $this->assertSame(Justify::Center, $box->justify);
+    }
+
+    public function testFlexBoxWithAlign(): void
+    {
+        $box = FlexBox::row(FlexItem::new('x'))
+            ->withAlign(Align::Center);
+        $this->assertSame(Align::Center, $box->align);
+    }
+
+    public function testFlexBoxEmpty(): void
+    {
+        $box = FlexBox::row();
+        $this->assertSame('', $box->render(80, 24));
+    }
+
+    public function testFlexItemImmutability(): void
+    {
+        $a = FlexItem::new('old');
+        $b = $a->withContent('new');
+        $this->assertSame('old', $a->content);
+        $this->assertSame('new', $b->content);
+    }
+
+    // ---- Table tests ----
+
+    public function testTableAddColumn(): void
+    {
+        $t = new Table();
+        $t = $t->addColumn(Column::make('Name', 20));
+
+        $this->assertSame(1, $t->colCount());
+    }
+
+    public function testTableAddRow(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addColumn(Column::make('Age', 5))
+            ->addRow(['Alice', '30'])
+            ->addRow(['Bob', '25']);
+
+        $this->assertSame(2, $t->rowCount());
+    }
+
+    public function testTableSortBy(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addColumn(Column::make('Age', 5))
+            ->addRow(['Bob', '25'])
+            ->addRow(['Alice', '30'])
+            ->sortBy(0, true);
+
+        $this->assertSame('Alice', $t->currentRow()[0]);
+    }
+
+    public function testTableSortByNumeric(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Age', 5))
+            ->addRow(['25'])
+            ->addRow(['30'])
+            ->addRow(['15'])
+            ->sortBy(0, true);
+
+        $rows = [];
+        for ($i = 0; $i < $t->rowCount(); $i++) {
+            $rows[] = $t->setCursor($i)->currentCell(0);
+        }
+
+        $this->assertSame('15', $rows[0]);
+        $this->assertSame('25', $rows[1]);
+        $this->assertSame('30', $rows[2]);
+    }
+
+    public function testTableFilter(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addRow(['Alice'])
+            ->addRow(['Bob'])
+            ->addRow(['Carol'])
+            ->filter('a');
+
+        // Alice + Carol both contain 'a' (case-insensitive)
+        $this->assertSame(2, $t->rowCount());
+    }
+
+    public function testTableClearFilter(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addRow(['Alice'])
+            ->addRow(['Bob'])
+            ->filter('a')
+            ->clearFilter();
+
+        $this->assertSame(2, $t->rowCount());
+    }
+
+    public function testTableCursorNavigation(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addRow(['Alice'])
+            ->addRow(['Bob'])
+            ->addRow(['Carol']);
+
+        $this->assertSame('Alice', $t->currentRow()[0]);
+        $t = $t->setCursor(1);
+        $this->assertSame('Bob', $t->currentRow()[0]);
+    }
+
+    public function testTableRender(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addRow(['Alice'])
+            ->addRow(['Bob']);
+
+        $result = $t->render();
+        $this->assertIsString($result);
+        $this->assertStringContainsString('Name', $result);
+        $this->assertStringContainsString('Alice', $result);
+        $this->assertStringContainsString('Bob', $result);
+    }
+
+    public function testTableColumnAlignRight(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Age', 5)->withAlign('right'))
+            ->addRow(['30']);
+
+        $result = $t->render();
+        $this->assertIsString($result);
+        $this->assertStringContainsString('  30', $result);
+    }
+
+    public function testTableSortToggle(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addRow(['Bob'])
+            ->addRow(['Alice'])
+            ->sortBy(0, true);  // asc
+
+        $this->assertSame('Alice', $t->currentRow()[0]);
+
+        $t = $t->sortByNext(0);  // toggle to desc
+        $this->assertSame('Bob', $t->currentRow()[0]);
+    }
+
+    public function testTableCurrentCell(): void
+    {
+        $t = (new Table())
+            ->addColumn(Column::make('Name', 10))
+            ->addColumn(Column::make('City', 10))
+            ->addRow(['Alice', 'NYC']);
+
+        $this->assertSame('Alice', $t->currentCell(0));
+        $this->assertSame('NYC', $t->currentCell(1));
+    }
+}
