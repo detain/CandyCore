@@ -49,6 +49,8 @@ final class ItemList implements Model
         public readonly string $statusMessage = '',
         public readonly float $statusMessageExpiresAt = 0.0,
         public readonly float $statusMessageLifetime = 1.0,
+        public readonly string $cursorPrefix     = '> ',
+        public readonly string $unselectedPrefix = '  ',
     ) {}
 
     /**
@@ -139,11 +141,11 @@ final class ItemList implements Model
         foreach ($window as $i => $item) {
             $idx = $top + $i;
             $sel = $idx === $this->cursor;
-            // For selected, prefix '> '; for others, indent two spaces.
+            // For selected, render the cursor prefix; for others, the unselected prefix.
             if ($sel) {
-                $title = '> ' . Ansi::sgr(Ansi::REVERSE) . $item->title() . Ansi::reset();
+                $title = $this->cursorPrefix . Ansi::sgr(Ansi::REVERSE) . $item->title() . Ansi::reset();
             } else {
-                $title = '  ' . $item->title();
+                $title = $this->unselectedPrefix . $item->title();
             }
             $lines[] = $title;
             if ($this->showDescription && $item->description() !== '') {
@@ -290,6 +292,25 @@ final class ItemList implements Model
     public function withInfiniteScrolling(bool $on): self { return $this->mutate(infiniteScrolling: $on); }
 
     /**
+     * Glyph rendered before the highlighted (cursor) item. Default '> '
+     * (two cells: arrow + space). The string is taken verbatim — pass
+     * the trailing space yourself if you want one.
+     */
+    public function withCursorPrefix(string $glyph): self
+    {
+        return $this->mutate(cursorPrefix: $glyph);
+    }
+
+    /**
+     * Glyph rendered before non-cursor items. Default '  ' (two
+     * spaces, matching the cursor prefix's width).
+     */
+    public function withUnselectedPrefix(string $glyph): self
+    {
+        return $this->mutate(unselectedPrefix: $glyph);
+    }
+
+    /**
      * Default lifetime (in seconds) of a status message set via
      * {@see newStatusMessage()}. Default 1.0s.
      */
@@ -425,6 +446,8 @@ final class ItemList implements Model
         ?string $statusMessage = null,
         ?float $statusMessageExpiresAt = null,
         ?float $statusMessageLifetime = null,
+        ?string $cursorPrefix = null,
+        ?string $unselectedPrefix = null,
     ): self {
         return new self(
             items:                  $items                  ?? $this->items,
@@ -444,6 +467,8 @@ final class ItemList implements Model
             statusMessage:          $statusMessage          ?? $this->statusMessage,
             statusMessageExpiresAt: $statusMessageExpiresAt ?? $this->statusMessageExpiresAt,
             statusMessageLifetime:  $statusMessageLifetime  ?? $this->statusMessageLifetime,
+            cursorPrefix:           $cursorPrefix           ?? $this->cursorPrefix,
+            unselectedPrefix:       $unselectedPrefix       ?? $this->unselectedPrefix,
         );
     }
 }

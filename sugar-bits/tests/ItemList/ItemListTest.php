@@ -255,4 +255,26 @@ final class ItemListTest extends TestCase
         $l2 = $l->removeItem(42);
         $this->assertSame(4, count($l2->items()));
     }
+
+    public function testCursorPrefixDefault(): void
+    {
+        $l = $this->focused();
+        $view = $l->view();
+        $this->assertStringContainsString('> ', $view);
+    }
+
+    public function testCustomCursorPrefix(): void
+    {
+        $l = $this->focused()->withCursorPrefix('▶ ');
+        $view = $l->view();
+        $this->assertStringContainsString('▶ ', $view);
+    }
+
+    public function testCustomUnselectedPrefix(): void
+    {
+        $l = $this->focused()->withUnselectedPrefix('· ');
+        $view = $l->view();
+        // banana / cherry / date are non-cursor on row 0 cursor.
+        $this->assertStringContainsString('· banana', $view);
+    }
 }

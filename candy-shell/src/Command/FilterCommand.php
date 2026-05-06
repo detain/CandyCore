@@ -37,6 +37,9 @@ final class FilterCommand extends Command
             ->addOption('reverse',          null, InputOption::VALUE_NONE,    'Reverse the multi-select output order.')
             ->addOption('select-if-one',    null, InputOption::VALUE_NONE,    'Auto-pick when the input has exactly one line.')
             ->addOption('output-delimiter', null, InputOption::VALUE_REQUIRED, 'Separator for multi-select output.', "\n")
+            ->addOption('cursor', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before the highlighted item.', '> ')
+            ->addOption('indicator', null, InputOption::VALUE_REQUIRED, 'Alias for --cursor.', null)
+            ->addOption('unselected-prefix', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before non-cursor items.', null)
             ->addOption('style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Per-element style: '<elem>.<prop>=<value>'. Elements: cursor, header, prompt, indicator, match, selected, unselected.",
                 []
@@ -54,15 +57,21 @@ final class FilterCommand extends Command
             return Command::SUCCESS;
         }
 
+        // --indicator is an alias for --cursor; user-supplied wins.
+        $cursor = $input->getOption('indicator') ?? $input->getOption('cursor');
+        $unselected = $input->getOption('unselected-prefix');
+
         $model   = FilterModel::fromOptions(
-            options:     $lines,
-            height:      (int)    $input->getOption('height'),
-            limit:       (int)    $input->getOption('limit'),
-            noLimit:     (bool)   $input->getOption('no-limit'),
-            header:      (string) $input->getOption('header'),
-            preselected: $input->getOption('selected'),
-            reverse:     (bool)   $input->getOption('reverse'),
-            value:       (string) $input->getOption('value'),
+            options:          $lines,
+            height:           (int)    $input->getOption('height'),
+            limit:            (int)    $input->getOption('limit'),
+            noLimit:          (bool)   $input->getOption('no-limit'),
+            header:           (string) $input->getOption('header'),
+            preselected:      $input->getOption('selected'),
+            reverse:          (bool)   $input->getOption('reverse'),
+            value:            (string) $input->getOption('value'),
+            cursorPrefix:     is_string($cursor) ? $cursor : null,
+            unselectedPrefix: is_string($unselected) ? $unselected : null,
         );
         $program = new Program($model, new ProgramOptions(
             useAltScreen:    true,
