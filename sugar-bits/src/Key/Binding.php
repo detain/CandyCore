@@ -33,6 +33,21 @@ final class Binding
         return in_array($msg->string(), $this->keys, true);
     }
 
+    /**
+     * Variadic top-level helper: `Binding::any($key, $up, $down)`
+     * returns true when `$key` matches any of the supplied bindings.
+     * Mirrors upstream `Matches(KeyMsg, ...Binding)`.
+     */
+    public static function any(KeyMsg $msg, self ...$bindings): bool
+    {
+        foreach ($bindings as $b) {
+            if ($b->matches($msg)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public function withHelp(string $key, string $desc): self
     {
         return new self($this->keys, new Help($key, $desc), $this->disabled);
@@ -41,5 +56,64 @@ final class Binding
     public function disable(bool $disabled = true): self
     {
         return new self($this->keys, $this->help, $disabled);
+    }
+
+    /**
+     * Replace the matched key list. Mirrors upstream `SetKeys`.
+     *
+     * @param list<string> $keys
+     */
+    public function setKeys(array $keys): self
+    {
+        return new self(array_values($keys), $this->help, $this->disabled);
+    }
+
+    /** @return list<string> */
+    public function getKeys(): array
+    {
+        return $this->keys;
+    }
+
+    /**
+     * Replace the help label. Mirrors upstream `SetHelp` — `withHelp`
+     * returns the same shape, kept as the historical name.
+     */
+    public function setHelp(string $key, string $desc): self
+    {
+        return $this->withHelp($key, $desc);
+    }
+
+    public function getHelp(): Help
+    {
+        return $this->help;
+    }
+
+    /**
+     * `enabled()` returns the inverse of `disabled` for read ergonomics
+     * and parity with upstream Bubbles (`Enabled()`).
+     */
+    public function enabled(): bool
+    {
+        return !$this->disabled;
+    }
+
+    /**
+     * Mirror of {@see disable()} that takes the positive-sense flag.
+     * `setEnabled(false)` is equivalent to `disable(true)`.
+     */
+    public function setEnabled(bool $on): self
+    {
+        return new self($this->keys, $this->help, !$on);
+    }
+
+    /**
+     * Drop the binding's keys (still keeps help / disabled). Bound
+     * keys can be repopulated later with {@see setKeys()}; useful
+     * when a Bubbles-style component wants to take an existing
+     * binding out of rotation without losing its label.
+     */
+    public function unbind(): self
+    {
+        return new self([], $this->help, $this->disabled);
     }
 }
