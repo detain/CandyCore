@@ -772,4 +772,72 @@ final class StyleTest extends TestCase
         $s = Style::new()->inline(true)->unsetInline();
         $this->assertSame("a\nb", $s->render("a\nb"));
     }
+
+    public function testSetStringRendersWithNoArg(): void
+    {
+        $s = Style::new()->bold()->setString('hello');
+        $this->assertSame("\x1b[1mhello\x1b[0m", $s->render());
+        $this->assertSame('hello', $s->value());
+    }
+
+    public function testSetStringIsOverriddenByExplicitArg(): void
+    {
+        $s = Style::new()->setString('default');
+        $this->assertSame('explicit', $s->render('explicit'));
+    }
+
+    public function testValueReturnsNullWhenUnbound(): void
+    {
+        $this->assertNull(Style::new()->value());
+    }
+
+    public function testUnderlineColorEmitsSgr58(): void
+    {
+        $s = Style::new()->underline()->underlineColor(Color::rgb(255, 0, 0));
+        $out = $s->render('hi');
+        $this->assertStringContainsString("\x1b[4m",            $out);
+        $this->assertStringContainsString("\x1b[58;2;255;0;0m", $out);
+    }
+
+    public function testUnderlineColorIgnoredWithoutUnderline(): void
+    {
+        $s = Style::new()->underlineColor(Color::rgb(255, 0, 0));
+        $out = $s->render('hi');
+        $this->assertStringNotContainsString("58;2", $out);
+    }
+
+    public function testGetUnderlineColorRoundTrips(): void
+    {
+        $c = Color::rgb(0, 100, 200);
+        $s = Style::new()->underlineColor($c);
+        $this->assertSame($c, $s->getUnderlineColor());
+        $this->assertNull(Style::new()->getUnderlineColor());
+    }
+
+    public function testUnsetBorderPerSideClearsSide(): void
+    {
+        $s = Style::new()->border(Border::normal());
+        $out = $s->unsetBorderTop()->render('x');
+        $rows = explode("\n", $out);
+        $this->assertSame('│x│', $rows[0]);
+        $this->assertSame('└─┘', $rows[1]);
+    }
+
+    public function testUnsetBorderRightLeavesOtherSides(): void
+    {
+        $s = Style::new()->border(Border::normal())->unsetBorderRight();
+        $out = $s->render('x');
+        $this->assertStringStartsWith('┌', $out);
+        $this->assertStringNotContainsString('┐', $out);
+        $this->assertStringNotContainsString('┘', $out);
+    }
+
+    public function testMarkdownBorderUsesAsciiPipesAndDashes(): void
+    {
+        $b = Border::markdownBorder();
+        $this->assertSame('-', $b->top);
+        $this->assertSame('|', $b->left);
+        $this->assertSame('|', $b->topLeft);
+        $this->assertSame('|', $b->middle);
+    }
 }

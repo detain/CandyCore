@@ -83,4 +83,20 @@ final class Border
     {
         return new self(' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ');
     }
+
+    /**
+     * GitHub-flavored Markdown table border. Mirrors lipgloss's
+     * `Border::markdownBorder()` — pipes for the verticals, dashes
+     * for the horizontals, plain `|` corners. Useful when an
+     * already-rendered Sprinkles\Table needs to round-trip through a
+     * Markdown reader without losing its grid.
+     */
+    public static function markdownBorder(): self
+    {
+        return new self(
+            '-', '-', '|', '|', '|', '|', '|', '|',
+            middleLeft: '|', middleRight: '|', middle: '|',
+            middleTop: '|', middleBottom: '|',
+        );
+    }
 }

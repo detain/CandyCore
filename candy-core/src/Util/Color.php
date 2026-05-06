@@ -323,6 +323,31 @@ final class Color
         return $this->toSgr($profile, fg: false);
     }
 
+    /**
+     * SGR 58 — coloured underline (xterm-256 extension). Pairs with
+     * SGR 4 (underline) to render an underline whose colour is
+     * independent of the foreground. Returns the empty string when
+     * the colour profile doesn't support ANSI.
+     */
+    public function toUnderline(ColorProfile $profile): string
+    {
+        if (!$profile->supportsAnsi()) {
+            return '';
+        }
+        if ($profile->supportsTrueColor()) {
+            return Ansi::CSI . '58;2;' . $this->r . ';' . $this->g . ';' . $this->b . 'm';
+        }
+        if ($profile->supports256()) {
+            return Ansi::CSI . '58;5;' . $this->nearest256() . 'm';
+        }
+        // 16-color terminals don't support 58; fall back to 16-color
+        // 38 fg slot — still renders, just colours the text rather
+        // than the underline. Better than dropping the colour.
+        $idx = $this->nearestAnsi16();
+        $code = $idx < 8 ? 30 + $idx : 90 + ($idx - 8);
+        return Ansi::CSI . $code . 'm';
+    }
+
     private function toSgr(ColorProfile $profile, bool $fg): string
     {
         if (!$profile->supportsAnsi()) {
