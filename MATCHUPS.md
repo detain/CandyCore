@@ -55,7 +55,7 @@ Status legend:
 | [erikgeiser/promptkit](https://github.com/erikgeiser/promptkit) | **SugarReadline** | `sugar-readline/` | `candycore/sugar-readline` | `CandyCore\Readline` | 🔴 | Line-editing prompt library |
 | [EthanEFung/bubble-datepicker](https://github.com/EthanEFung/bubble-datepicker) | **SugarCalendar** | `sugar-calendar/` | `candycore/sugar-calendar` | `CandyCore\Calendar` | 🔴 | Date picker component |
 | [DaltonSW/bubbleup](https://github.com/daltonsw/bubbleup) | **SugarToast** | `sugar-toast/` | `candycore/sugar-toast` | `CandyCore\Toast` | 🔴 | Floating alert notification component |
-| [76creates/stickers](https://github.com/76creates/stickers) | **SugarStickers** | `sugar-stickers/` | `candycore/sugar-stickers` | `CandyCore\Stickers` | 🔴 | Lipgloss utility components / building blocks |
+| [76creates/stickers](https://github.com/76creates/stickers) | **SugarStickers** | `sugar-stickers/` | `candycore/sugar-stickers` | `CandyCore\Stickers` | 🟢 |
 
 ## Reference apps
 
