@@ -32,15 +32,80 @@ $form = Form::new(
 // $form is a CandyCore Model — drop it into a Program.
 ```
 
-## Field types (round 1)
+## Field types
 
-- `Input`  — single-line text (wraps `SugarBits\TextInput`).
-- `Note`   — read-only paragraph; navigated past with Tab.
-- `Confirm`— y/n boolean.
-- `Select` — single-choice list (wraps `SugarBits\ItemList`).
+| Field         | Description                                                 | Notable knobs |
+| ------------- | ----------------------------------------------------------- | ------------- |
+| `Input`       | Single-line text (wraps `SugarBits\TextInput`)              | `withPlaceholder`, `withCharLimit`, `withWidth`, `withPrompt`, `withValidator(\Closure)`, `withTitleFunc` / `withDescriptionFunc`, `withPassword(bool, string $echo = '*')`, `withSuggestions(list<string>)`, `withSuggestionsFunc(\Closure(string):list<string>)` |
+| `Text`        | Multi-line text editor                                      | `withCharLimit`, `withMaxLines`, `withShowLineNumbers`, `withValidator` |
+| `Confirm`     | Yes/no boolean                                              | `withAffirmative`/`withNegative`, `withValidator(\Closure(bool):?string)`, `withTitleFunc`, `withDescriptionFunc` |
+| `Select`      | Single-choice list (wraps `SugarBits\ItemList`)             | `withOptions(...)`, `withTitleFunc`, `withDescriptionFunc` |
+| `MultiSelect` | Multi-choice list                                           | `withOptions(...)`, `withLimit(int)` |
+| `Note`        | Read-only paragraph; skipped by tab navigation              | `withTitle`, `withDescription`, `withHeight(int)`, `withNext(bool)`, `withNextLabel(string)` (turns it into an interactive button page) |
+| `FilePicker`  | Filesystem picker (wraps `SugarBits\FileTree`)              | `withCwd`, `withAllowDirs`, `withAllowFiles`, `withShowSize`, `withShowHidden` |
 
-Forms navigate with `Tab` / `Shift+Tab`. `Enter` on the last field
-submits; `Esc` / `Ctrl+C` aborts.
+All fields share a common navigation contract: `Tab` / `↓` advances,
+`Shift+Tab` / `↑` retreats, `Enter` on the last interactive field
+submits, `Esc` / `Ctrl+C` aborts. Skippable fields (e.g. plain
+`Note`s) are passed over silently.
+
+## Forms and groups
+
+`Form::new(...$fields)` is a single-page form. For multi-page flows
+build with `Form::groups(Group::new(...$fields), …)`. Each group
+carries its own title / description / hide-predicate / theme override:
+
+```php
+Form::groups(
+    Group::new(
+        Input::new('name')->withTitle('Your name?'),
+        Confirm::new('proceed')->withTitle('Continue?'),
+    )->withTitle('Step 1'),
+    Group::new(
+        Note::new('done')->withTitle('Thanks!')->withNext()->withNextLabel('Finish'),
+    )
+        ->withTheme(Theme::dracula())
+        ->withShowHelp(false)
+        ->withHideFunc(fn (array $v) => $v['proceed'] !== true),
+);
+```
+
+### Form-level chainables
+
+| Method | What it does |
+| ------ | ------------ |
+| `withTheme(Theme)` | Switch the colour palette. |
+| `withAccessible(bool)` | Render plain `label: value` text — for screen readers / dumb terminals. |
+| `withShowHelp(bool)` | Toggle the help footer. |
+| `withShowErrors(bool)` | Toggle the inline `! error` line on validation failures. |
+| `withWidth(int)`, `withHeight(int)` | Pin the rendered geometry. |
+| `withTimeout(int $ms)` | Auto-abort after `$ms` of wall clock. |
+
+### Reading values after submit
+
+`values()` returns every visible field keyed by `key()`. For typed
+access call `getString`, `getInt`, `getBool`, `getArray`. For
+inspecting validation state during a run use `errors()`,
+`hasErrors()`, `getFocusedField()`, `keyBinds()`, `help()`.
+
+### Themes & accessibility
+
+Stock themes ship as static factories on `CandyCore\Prompt\Theme`:
+`ansi()` (default), `plain()`, `charm()`, `dracula()`, `catppuccin()`,
+`base16()`. Pass one to `Form::withTheme(...)`. The accessibility
+mode flips the entire form to plain-text rendering — useful when you
+detect `NO_COLOR=1` or `TERM=dumb`.
+
+### Validators and dynamic labels
+
+Every value-producing field supports `withValidator(\Closure)`. The
+closure runs on every keystroke (or every value flip for `Confirm`)
+and returns `null` for valid or an error string. The error renders
+inline beneath the field and shows up in `Form::errors()`.
+
+Use `withTitleFunc(\Closure(): string)` / `withDescriptionFunc(...)`
+on any field to compute labels lazily — handy when the label depends
+on values from a previous group.
 
 ## Test
 

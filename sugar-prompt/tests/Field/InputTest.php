@@ -63,4 +63,36 @@ final class InputTest extends TestCase
         $f = $f->blur();
         $this->assertFalse($f->isFocused());
     }
+
+    public function testWithSuggestionsExposesPool(): void
+    {
+        $f = Input::new('repo')->withSuggestions(['alpha', 'beta', 'gamma']);
+        $this->assertSame(['alpha', 'beta', 'gamma'], $f->input->availableSuggestions());
+        $this->assertTrue($f->input->showSuggestions);
+    }
+
+    public function testWithSuggestionsFuncReevaluatesOnUpdate(): void
+    {
+        $f = Input::new('repo')->withSuggestionsFunc(
+            static fn (string $v): array => $v === ''
+                ? []
+                : ['{prefix}-' . $v, 'all-' . $v],
+        );
+        [$f, ] = $f->focus();
+        [$f, ] = $f->update(new KeyMsg(KeyType::Char, 'x'));
+        $this->assertSame(['{prefix}-x', 'all-x'], $f->input->availableSuggestions());
+        $this->assertTrue($f->input->showSuggestions);
+    }
+
+    public function testWithPasswordMasksValue(): void
+    {
+        [$f, ] = Input::new('pw')->withPassword()->focus();
+        [$f, ] = $f->update(new KeyMsg(KeyType::Char, 'a'));
+        [$f, ] = $f->update(new KeyMsg(KeyType::Char, 'b'));
+        $this->assertSame('ab', $f->value());
+        // Mask character does not change the underlying value but is
+        // visible in the rendered output.
+        $this->assertStringContainsString('**', $f->view());
+        $this->assertStringNotContainsString('ab', $f->view());
+    }
 }

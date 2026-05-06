@@ -41,6 +41,7 @@ final class Form implements Model
         public readonly bool $showErrors = true,
         public readonly int $width = 0,
         public readonly int $height = 0,
+        public readonly int $timeoutMs = 0,
     ) {}
 
     /**
@@ -149,6 +150,30 @@ final class Form implements Model
         return $this->mutate(height: max(0, $rows));
     }
 
+    /**
+     * Auto-abort after `$ms` milliseconds of wall-clock time. The form
+     * stores the budget for the runtime to consult — it does not start
+     * a timer itself. Default 0 = no timeout. Mirrors huh's
+     * `WithTimeout(time.Duration)`.
+     */
+    public function withTimeout(int $ms): self
+    {
+        return $this->mutate(timeoutMs: max(0, $ms));
+    }
+
+    /** Configured timeout in milliseconds; 0 means none. */
+    public function timeoutMs(): int { return $this->timeoutMs; }
+
+    /**
+     * Resolved theme for the active group: the group's
+     * {@see Group::withTheme()} override when set, otherwise the
+     * form-level theme.
+     */
+    public function activeTheme(): Theme
+    {
+        return $this->groups[$this->groupIndex]->theme ?? $this->theme;
+    }
+
     public function nextGroup(): self
     {
         [$next, ] = $this->advanceGroup(+1);
@@ -248,18 +273,19 @@ final class Form implements Model
             return $this->accessibleView();
         }
         $group = $this->groups[$this->groupIndex];
+        $theme = $group->theme ?? $this->theme;
         $blocks = [];
         if ($group->title !== '') {
-            $blocks[] = $this->theme->title->render($group->title);
+            $blocks[] = $theme->title->render($group->title);
         }
         if ($group->description !== '') {
-            $blocks[] = $this->theme->description->render($group->description);
+            $blocks[] = $theme->description->render($group->description);
         }
         foreach ($this->fieldsByGroup[$this->groupIndex] as $f) {
             $blocks[] = $f->view();
         }
-        if (count($this->groups) > 1) {
-            $blocks[] = $this->theme->help->render(
+        if (count($this->groups) > 1 && $this->showHelp && $group->showHelp) {
+            $blocks[] = $theme->help->render(
                 sprintf('Step %d of %d', $this->groupIndex + 1, count($this->groups))
             );
         }
@@ -651,6 +677,7 @@ final class Form implements Model
         ?bool $showErrors = null,
         ?int $width = null,
         ?int $height = null,
+        ?int $timeoutMs = null,
     ): self {
         return new self(
             groups:         $this->groups,
@@ -666,6 +693,7 @@ final class Form implements Model
             showErrors:     $showErrors     ?? $this->showErrors,
             width:          $width          ?? $this->width,
             height:         $height         ?? $this->height,
+            timeoutMs:      $timeoutMs      ?? $this->timeoutMs,
         );
     }
 }
