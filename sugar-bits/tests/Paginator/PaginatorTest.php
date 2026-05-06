@@ -104,4 +104,47 @@ final class PaginatorTest extends TestCase
         $p = $p->withTotalItems(15); // now only 2 pages
         $this->assertSame(1, $p->page);
     }
+
+    public function testItemsOnPageStandardPage(): void
+    {
+        $p = Paginator::new()->withPerPage(10)->withTotalItems(25);
+        $this->assertSame(10, $p->itemsOnPage());
+    }
+
+    public function testItemsOnPageLastPagePartial(): void
+    {
+        $p = Paginator::new()->withPerPage(10)->withTotalItems(25)->withPage(2);
+        $this->assertSame(5, $p->itemsOnPage());
+    }
+
+    public function testItemsOnPageEmpty(): void
+    {
+        $p = Paginator::new();
+        $this->assertSame(0, $p->itemsOnPage());
+    }
+
+    public function testSetTotalPagesPinsTotal(): void
+    {
+        $p = Paginator::new()->withPerPage(10)->setTotalPages(7);
+        $this->assertSame(7, $p->totalPages());
+    }
+
+    public function testWithArabicFormatCustom(): void
+    {
+        $p = Paginator::new()
+            ->withPerPage(10)
+            ->withTotalItems(30)
+            ->withType(Type::Arabic)
+            ->withArabicFormat('Page %d of %d');
+        $this->assertSame('Page 1 of 3', $p->view());
+    }
+
+    public function testArabicFormatDefault(): void
+    {
+        $p = Paginator::new()
+            ->withPerPage(10)
+            ->withTotalItems(30)
+            ->withType(Type::Arabic);
+        $this->assertSame('1/3', $p->view());
+    }
 }
