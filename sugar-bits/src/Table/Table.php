@@ -34,6 +34,7 @@ final class Table implements Model
         public readonly bool $focused,
         /** @var list<int> per-column explicit widths (0 = auto). Aligned to $headers index. */
         public readonly array $colWidths = [],
+        public readonly ?Styles $styles = null,
     ) {}
 
     /**
@@ -131,7 +132,10 @@ final class Table implements Model
 
         $lines = [];
         if ($this->headers !== []) {
-            $lines[] = Ansi::sgr(Ansi::UNDERLINE) . $this->renderRow($this->headers, $cols) . Ansi::reset();
+            $headerRow = $this->renderRow($this->headers, $cols);
+            $lines[] = $this->styles !== null
+                ? $this->styles->header->render($headerRow)
+                : Ansi::sgr(Ansi::UNDERLINE) . $headerRow . Ansi::reset();
         }
 
         $top    = max(0, $this->offset);
@@ -139,13 +143,42 @@ final class Table implements Model
         foreach ($window as $i => $row) {
             $idx = $top + $i;
             $line = $this->renderRow($row, $cols);
-            if ($idx === $this->cursor && $this->focused) {
+            $isSelected = $idx === $this->cursor && $this->focused;
+            if ($this->styles !== null) {
+                $line = $isSelected
+                    ? $this->styles->selected->render($line)
+                    : $this->styles->cell->render($line);
+            } elseif ($isSelected) {
                 $line = Ansi::sgr(Ansi::REVERSE) . $line . Ansi::reset();
             }
             $lines[] = $line;
         }
         return implode("\n", $lines);
     }
+
+    /** Read-only accessor for the rows. Mirrors Bubbles' `Rows()`. */
+    public function rowsList(): array { return $this->rows; }
+
+    /** Read-only accessor for the headers. */
+    public function headersList(): array { return $this->headers; }
+
+    /** Cursor position (0-indexed). Mirrors Bubbles' `Cursor()`. */
+    public function cursor(): int { return $this->cursor; }
+
+    /** Move the cursor to a specific row, clamped. */
+    public function setCursor(int $row): self { return $this->moveCursor($row); }
+
+    /**
+     * Apply the supplied {@see Styles} to header / cell / selected
+     * rendering. Pass null to fall back to the default reverse-video
+     * highlight + underlined header. Mirrors Bubbles' `SetStyles`.
+     */
+    public function withStyles(?Styles $styles): self
+    {
+        return $this->mutate(styles: $styles, stylesSet: true);
+    }
+
+    public function getStyles(): ?Styles { return $this->styles; }
 
     /** @return list<string> */
     public function selectedRow(): array
@@ -300,6 +333,8 @@ final class Table implements Model
         ?int $height = null,
         ?bool $focused = null,
         ?array $colWidths = null,
+        ?Styles $styles = null,
+        bool $stylesSet = false,
     ): self {
         return new self(
             headers:   $headers   ?? $this->headers,
@@ -310,6 +345,7 @@ final class Table implements Model
             height:    $height    ?? $this->height,
             focused:   $focused   ?? $this->focused,
             colWidths: $colWidths ?? $this->colWidths,
+            styles:    $stylesSet ? $styles : $this->styles,
         );
     }
 }

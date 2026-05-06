@@ -139,6 +139,28 @@ final class FilePicker implements Model
     }
 
     /**
+     * Absolute path of the currently-highlighted entry, or null when
+     * the listing is empty. Mirrors upstream Bubbles' `HighlightedPath`.
+     */
+    public function highlightedPath(): ?string
+    {
+        $entry = $this->highlightedEntry();
+        return $entry?->path($this->cwd);
+    }
+
+    /** Configured viewport height. Mirrors upstream `Height()`. */
+    public function height(): int
+    {
+        return $this->height;
+    }
+
+    /** Configured viewport width (currently unused — kept for API parity). */
+    public function width(): int
+    {
+        return 0;
+    }
+
+    /**
      * @return array{0:self, 1:?\Closure}
      */
     public function focus(): array

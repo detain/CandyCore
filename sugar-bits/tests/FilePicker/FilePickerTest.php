@@ -151,4 +151,31 @@ final class FilePickerTest extends TestCase
         }
         $this->assertSame(count($p->entries) - 1, $p->cursor);
     }
+
+    public function testHeightAccessor(): void
+    {
+        $p = FilePicker::new($this->root, 7);
+        $this->assertSame(7, $p->height());
+    }
+
+    public function testHighlightedPathReturnsAbsolute(): void
+    {
+        $p = $this->focused();
+        $entry = $p->highlightedEntry();
+        $this->assertNotNull($entry);
+        $expected = $entry->path($p->cwd);
+        $this->assertSame($expected, $p->highlightedPath());
+    }
+
+    public function testHighlightedPathNullWhenEmpty(): void
+    {
+        $emptyDir = sys_get_temp_dir() . '/candy-fp-empty-' . bin2hex(random_bytes(4));
+        mkdir($emptyDir);
+        try {
+            $p = FilePicker::new($emptyDir, 5);
+            $this->assertNull($p->highlightedPath());
+        } finally {
+            @rmdir($emptyDir);
+        }
+    }
 }
