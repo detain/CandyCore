@@ -753,4 +753,67 @@ final class InputReaderTest extends TestCase
         $msgs = (new InputReader())->parse("\x1b[97u");
         $this->assertInstanceOf(KeyMsg::class, $msgs[0]);
     }
+
+    /**
+     * Kitty progressive keyboard protocol uses Private Use Area
+     * codepoints for named functional keys. Spot-check one entry per
+     * group: F-key, keypad, media, lock, system, modifier-as-key.
+     */
+    public function testKittyFunctionalKeyTable(): void
+    {
+        $cases = [
+            // F-keys
+            57364 => KeyType::F1,
+            57375 => KeyType::F12,
+            57376 => KeyType::F13,
+            57398 => KeyType::F35,
+            // Keypad
+            57399 => KeyType::Kp0,
+            57408 => KeyType::Kp9,
+            57414 => KeyType::KpEnter,
+            57427 => KeyType::KpBegin,
+            // Media
+            57428 => KeyType::MediaPlay,
+            57430 => KeyType::MediaPlayPause,
+            57440 => KeyType::MuteVolume,
+            // Lock + system
+            57358 => KeyType::CapsLock,
+            57361 => KeyType::PrintScreen,
+            57363 => KeyType::Menu,
+            // Modifier-as-key
+            57441 => KeyType::LeftShift,
+            57452 => KeyType::RightMeta,
+            57454 => KeyType::IsoLevel5Shift,
+        ];
+
+        foreach ($cases as $code => $expected) {
+            $msgs = (new InputReader())->parse("\x1b[{$code}u");
+            $this->assertCount(1, $msgs, "code {$code} should yield one msg");
+            $this->assertSame(
+                $expected,
+                $msgs[0]->type,
+                "code {$code} should map to {$expected->name}",
+            );
+            $this->assertInstanceOf(KeyMsg::class, $msgs[0]);
+        }
+    }
+
+    public function testKittyFunctionalKeyWithModifiers(): void
+    {
+        // Ctrl+Shift+F1 = CSI 57364 ; 6 u (mod byte 6 → bits 0b101 = ctrl+shift).
+        $msgs = (new InputReader())->parse("\x1b[57364;6u");
+        $this->assertSame(KeyType::F1, $msgs[0]->type);
+        $this->assertTrue($msgs[0]->ctrl);
+        $this->assertTrue($msgs[0]->shift);
+        $this->assertFalse($msgs[0]->alt);
+    }
+
+    public function testKittyFunctionalKeyMapIsExhaustive(): void
+    {
+        // Sanity check: every Kitty PUA codepoint between 57344 and
+        // 57454 should map to a distinct KeyType case.
+        $map = KeyType::kittyFunctionalKeys();
+        $this->assertCount(count(array_unique($map, SORT_REGULAR)), $map);
+        $this->assertGreaterThanOrEqual(80, count($map));
+    }
 }
