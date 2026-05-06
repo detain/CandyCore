@@ -43,4 +43,42 @@ final class WavelineTest extends TestCase
         $this->assertSame(1.0, (float) $w->points[0][0]);
         $this->assertSame(2.0, (float) $w->points[0][1]);
     }
+
+    public function testPushAllAcceptsTuples(): void
+    {
+        $w = Waveline::new()->pushAll([[0.0, 0.0], [1.0, 2.0], [2.0, 4.0]]);
+        $this->assertSame(3, $w->count());
+    }
+
+    public function testClearEmptiesPoints(): void
+    {
+        $w = Waveline::new()->push(0.0, 0.0)->push(1.0, 1.0);
+        $this->assertSame(2, $w->count());
+        $w = $w->clear();
+        $this->assertTrue($w->isEmpty());
+    }
+
+    public function testClearPreservesRange(): void
+    {
+        $w = Waveline::new()
+            ->withXRange(-1.0, 1.0)
+            ->withYRange(-2.0, 2.0)
+            ->withPoint('o')
+            ->push(0.0, 0.0);
+        $w = $w->clear();
+        $this->assertSame(-1.0, $w->xMin);
+        $this->assertSame(1.0,  $w->xMax);
+        $this->assertSame(-2.0, $w->yMin);
+        $this->assertSame(2.0,  $w->yMax);
+        $this->assertSame('o',  $w->point);
+    }
+
+    public function testWithXYRangeAggregate(): void
+    {
+        $w = Waveline::new()->withXYRange(-1.0, 1.0, -2.0, 2.0);
+        $this->assertSame(-1.0, $w->xMin);
+        $this->assertSame(1.0,  $w->xMax);
+        $this->assertSame(-2.0, $w->yMin);
+        $this->assertSame(2.0,  $w->yMax);
+    }
 }

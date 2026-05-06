@@ -59,6 +59,42 @@ final class Waveline
         return new self([...$this->points, [$x, $y]], $this->width, $this->height, $this->xMin, $this->xMax, $this->yMin, $this->yMax, $this->point);
     }
 
+    /**
+     * Append several `[x, y]` points at once.
+     *
+     * @param iterable<array{0:int|float,1:int|float}> $points
+     */
+    public function pushAll(iterable $points): self
+    {
+        $next = $this;
+        foreach ($points as $p) {
+            $next = $next->push($p[0], $p[1]);
+        }
+        return $next;
+    }
+
+    /** Reset the point buffer while keeping size / range / glyph. */
+    public function clear(): self
+    {
+        return new self([], $this->width, $this->height, $this->xMin, $this->xMax, $this->yMin, $this->yMax, $this->point);
+    }
+
+    public function isEmpty(): bool
+    {
+        return $this->points === [];
+    }
+
+    public function count(): int
+    {
+        return count($this->points);
+    }
+
+    /** Combined `[xMin, xMax, yMin, yMax]` shorthand. */
+    public function withXYRange(?float $xMin, ?float $xMax, ?float $yMin, ?float $yMax): self
+    {
+        return new self($this->points, $this->width, $this->height, $xMin, $xMax, $yMin, $yMax, $this->point);
+    }
+
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
