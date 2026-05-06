@@ -75,12 +75,39 @@ final class Style
         private readonly ?\Closure $transform = null,
         private readonly ?string $hyperlink = null,
         private readonly string $hyperlinkId = '',
+        private readonly ?string $boundString = null,
+        private readonly ?Color $underlineColor = null,
     ) {}
 
     public static function new(): self
     {
         return new self();
     }
+
+    /**
+     * Bind a default content string to the style. Calling
+     * `render()` with no argument then renders this string. Mirrors
+     * lipgloss's `SetString()`.
+     */
+    public function setString(string $content): self
+    {
+        return $this->with(boundString: $content, boundStringSet: true, propsAdded: ['boundString']);
+    }
+
+    /** Currently-bound string from {@see setString()}, or null. */
+    public function value(): ?string { return $this->boundString; }
+
+    /**
+     * Coloured underline, separate from the foreground colour. Mirrors
+     * lipgloss's `UnderlineColor`. Emits SGR `58;...` (xterm-256
+     * extension) when underlining is active. Pass null to clear.
+     */
+    public function underlineColor(?Color $c): self
+    {
+        return $this->with(underlineColor: $c, underlineColorSet: true, propsAdded: ['underlineColor']);
+    }
+
+    public function getUnderlineColor(): ?Color { return $this->underlineColor; }
 
     public function foreground(?Color $c): self          { return $this->with(fg: $c, fgSet: true, propsAdded: ['fg']); }
     public function background(?Color $c): self          { return $this->with(bg: $c, bgSet: true, propsAdded: ['bg']); }
@@ -537,6 +564,34 @@ final class Style
     }
 
     /**
+     * Per-side border-side disablers. Each one flips the matching
+     * `borderSides` slot back to false without touching the other three
+     * sides or the border characters themselves. Mirror lipgloss's
+     * `UnsetBorderTop` / `UnsetBorderRight` / `UnsetBorderBottom` /
+     * `UnsetBorderLeft`.
+     */
+    public function unsetBorderTop(): self
+    {
+        $s = $this->borderSides; $s[0] = false;
+        return $this->with(borderSides: $s)->withUnsetProp('borderSides');
+    }
+    public function unsetBorderRight(): self
+    {
+        $s = $this->borderSides; $s[1] = false;
+        return $this->with(borderSides: $s)->withUnsetProp('borderSides');
+    }
+    public function unsetBorderBottom(): self
+    {
+        $s = $this->borderSides; $s[2] = false;
+        return $this->with(borderSides: $s)->withUnsetProp('borderSides');
+    }
+    public function unsetBorderLeft(): self
+    {
+        $s = $this->borderSides; $s[3] = false;
+        return $this->with(borderSides: $s)->withUnsetProp('borderSides');
+    }
+
+    /**
      * Duplicate this style. Returns an identical instance (the explicit
      * propsSet is preserved). Mirrors lipgloss's deprecated `Copy()` —
      * since Style is immutable, this is mostly a clarity helper.
@@ -598,8 +653,14 @@ final class Style
         );
     }
 
-    public function render(string $content): string
+    public function render(string $content = ''): string
     {
+        // setString() bound string is the default content when render()
+        // is called with no argument. Mirrors lipgloss's
+        // `style.SetString("...").Render()` shape.
+        if ($content === '' && $this->boundString !== null) {
+            $content = $this->boundString;
+        }
         // Tab expansion (before any width measurements).
         if ($this->tabWidth > 0 && str_contains($content, "\t")) {
             $content = str_replace("\t", str_repeat(' ', $this->tabWidth), $content);
@@ -897,6 +958,12 @@ final class Style
         $sgr = $codes === [] ? '' : Ansi::sgr(...$codes);
         if ($this->fg !== null) $sgr .= $this->fg->toFg($this->profile);
         if ($this->bg !== null) $sgr .= $this->bg->toBg($this->profile);
+        // SGR 58: coloured underline (xterm-256 extension). Only emit
+        // when underline is on AND a colour is explicitly set, so plain
+        // underline keeps its default terminal colour.
+        if ($this->underline && $this->underlineColor !== null) {
+            $sgr .= $this->underlineColor->toUnderline($this->profile);
+        }
         return $sgr;
     }
 
@@ -985,6 +1052,8 @@ final class Style
         ?\Closure $transform = null, bool $transformSet = false,
         ?string $hyperlink = null, bool $hyperlinkSet = false,
         ?string $hyperlinkId = null,
+        ?string $boundString = null, bool $boundStringSet = false,
+        ?Color $underlineColor = null, bool $underlineColorSet = false,
         array $propsAdded = [],
     ): self {
         $newProps = $this->propsSet;
@@ -1028,6 +1097,8 @@ final class Style
             transform:        $transformSet  ? $transform       : $this->transform,
             hyperlink:        $hyperlinkSet  ? $hyperlink       : $this->hyperlink,
             hyperlinkId:      $hyperlinkId   ?? $this->hyperlinkId,
+            boundString:      $boundStringSet ? $boundString    : $this->boundString,
+            underlineColor:   $underlineColorSet ? $underlineColor : $this->underlineColor,
         );
     }
 
@@ -1094,6 +1165,8 @@ final class Style
             transform:        $prop === 'transform'  ? null         : $next->transform,
             hyperlink:        $next->hyperlink,
             hyperlinkId:      $next->hyperlinkId,
+            boundString:      $next->boundString,
+            underlineColor:   $next->underlineColor,
         );
     }
 
@@ -1125,6 +1198,8 @@ final class Style
             colorWhitespace: $this->colorWhitespace, tabWidth: $this->tabWidth,
             transform: $this->transform,
             hyperlink: $this->hyperlink, hyperlinkId: $this->hyperlinkId,
+            boundString: $this->boundString,
+            underlineColor: $this->underlineColor,
         );
     }
 }
