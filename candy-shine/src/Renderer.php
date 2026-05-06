@@ -59,6 +59,7 @@ final class Renderer
     private readonly bool $tableWrap;
     private readonly bool $inlineTableLinks;
     private readonly bool $preservedNewLines;
+    private readonly bool $expandEmoji;
     private bool $inTableCell = false;
 
     public function __construct(
@@ -69,6 +70,7 @@ final class Renderer
         bool $tableWrap = false,
         bool $inlineTableLinks = true,
         bool $preservedNewLines = false,
+        bool $expandEmoji = false,
     ) {
         $this->theme = $theme ?? Theme::ansi();
         $this->wrapWidth = ($wrapWidth !== null && $wrapWidth > 0) ? $wrapWidth : null;
@@ -77,6 +79,7 @@ final class Renderer
         $this->tableWrap = $tableWrap;
         $this->inlineTableLinks = $inlineTableLinks;
         $this->preservedNewLines = $preservedNewLines;
+        $this->expandEmoji = $expandEmoji;
 
         $env = new Environment();
         $env->addExtension(new CommonMarkCoreExtension());
@@ -188,6 +191,35 @@ final class Renderer
         return $this->copy(preservedNewLines: $on);
     }
 
+    /**
+     * Pick a stock theme by name. Mirrors glamour's
+     * `WithStandardStyle($name)`. Accepts every name {@see Theme::byName()}
+     * recognises (`ansi` / `plain` / `dark` / `light` / `dracula` /
+     * `tokyo-night` / `pink` / `notty` / `ascii`); unknown names
+     * throw `InvalidArgumentException`.
+     */
+    public function withStandardStyle(string $name): self
+    {
+        $theme = Theme::byName($name);
+        if ($theme === null) {
+            throw new \InvalidArgumentException("unknown standard style: $name");
+        }
+        return $this->copy(theme: $theme);
+    }
+
+    /**
+     * Expand `:smile:`-style emoji shortcodes in source Markdown
+     * before parsing. Default off; on, the renderer rewrites every
+     * `:shortcode:` token using the {@see EmojiMap} catalogue. Unknown
+     * shortcodes pass through verbatim.
+     *
+     * Mirrors glamour's `WithEmoji`.
+     */
+    public function withEmoji(bool $on = true): self
+    {
+        return $this->copy(expandEmoji: $on);
+    }
+
     /** @internal copy-with-overrides for chainable builders. */
     private function copy(
         ?Theme $theme = null,
@@ -197,6 +229,7 @@ final class Renderer
         ?bool $tableWrap = null,
         ?bool $inlineTableLinks = null,
         ?bool $preservedNewLines = null,
+        ?bool $expandEmoji = null,
     ): self {
         return new self(
             $theme            ?? $this->theme,
@@ -206,14 +239,26 @@ final class Renderer
             $tableWrap        ?? $this->tableWrap,
             $inlineTableLinks ?? $this->inlineTableLinks,
             $preservedNewLines ?? $this->preservedNewLines,
+            $expandEmoji      ?? $this->expandEmoji,
         );
     }
 
     public function render(string $markdown): string
     {
+        if ($this->expandEmoji) {
+            $markdown = self::expandEmojiShortcodes($markdown);
+        }
         $document = $this->parser->parse($markdown);
         $rendered = $this->renderChildren($document);
         $rendered = rtrim($rendered, "\n");
+        // Block prefix / suffix wrap the entire document body (mirrors
+        // glamour's StylePrimitive BlockPrefix / BlockSuffix slots).
+        if ($this->theme->documentBlockPrefix !== '') {
+            $rendered = $this->theme->documentBlockPrefix . $rendered;
+        }
+        if ($this->theme->documentBlockSuffix !== '') {
+            $rendered .= $this->theme->documentBlockSuffix;
+        }
         if ($this->theme->documentIndent > 0) {
             $indent = str_repeat(' ', $this->theme->documentIndent);
             $rendered = $indent . str_replace("\n", "\n" . $indent, $rendered);
@@ -244,6 +289,32 @@ final class Renderer
      *
      * @return list<int> list of blank-line counts, in source order
      */
+    /**
+     * Replace `:shortcode:` tokens with their Unicode equivalent
+     * before parsing. Mirrors glamour's `WithEmoji` expansion. Unknown
+     * shortcodes pass through verbatim. Map matches the gum format
+     * subcommand's emoji selector for consistency.
+     */
+    private static function expandEmojiShortcodes(string $markdown): string
+    {
+        static $map = [
+            'smile'    => '😄', 'grin'    => '😁',
+            'heart'    => '❤️', 'fire'    => '🔥',
+            'rocket'   => '🚀', 'star'    => '⭐',
+            'thumbsup' => '👍', 'thumbsdown' => '👎',
+            'check'    => '✅', 'x'       => '❌',
+            'warning'  => '⚠️',  'info'    => 'ℹ️',
+            'tada'     => '🎉', 'sparkles' => '✨',
+            'candy'    => '🍬', 'sugar'   => '🍭',
+            'honey'    => '🍯',
+        ];
+        return (string) preg_replace_callback(
+            '/:([a-z0-9_+-]+):/i',
+            static fn (array $m): string => $map[strtolower($m[1])] ?? $m[0],
+            $markdown,
+        );
+    }
+
     private static function extractBlankRuns(string $source): array
     {
         $out = [];
@@ -459,13 +530,19 @@ final class Renderer
         $data    = $list->getListData();
         $ordered = $data->type === ListBlock::TYPE_ORDERED;
         $start   = (int) ($data->start ?? 1);
-        $marker  = $this->theme->listMarker;
+        // Distinct ordered / unordered marker styles when supplied;
+        // both fall through to the catch-all `listMarker`.
+        $marker  = $ordered
+            ? ($this->theme->orderedListMarker   ?? $this->theme->listMarker)
+            : ($this->theme->unorderedListMarker ?? $this->theme->listMarker);
+        $orderedFmt = $this->theme->orderedListMarkerFormat;
+        $unorderedGlyph = $this->theme->unorderedListMarkerGlyph;
         $levelIndent = max(0, $this->theme->listLevelIndent);
 
         $out = '';
         $i   = $start;
         foreach ($list->children() as $item) {
-            $bullet = $ordered ? sprintf('%d.', $i) : '•';
+            $bullet = $ordered ? sprintf($orderedFmt, $i) : $unorderedGlyph;
             $body   = rtrim($this->renderChildren($item), "\n");
             // Paragraphs inside list items emit a trailing blank line for
             // top-level separation; collapse those runs so nested lists
