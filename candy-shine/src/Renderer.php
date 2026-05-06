@@ -73,6 +73,18 @@ final class Renderer
 
     public static function ansi(): self  { return new self(Theme::ansi());  }
     public static function plain(): self { return new self(Theme::plain()); }
+    public static function ascii(): self { return new self(Theme::ascii()); }
+
+    /**
+     * Build a Renderer whose theme is selected by the `GLAMOUR_STYLE`
+     * environment variable. Falls back to {@see Theme::ansi()} when the
+     * env var is unset / unrecognised. Mirrors glamour's
+     * `RenderWithEnvironmentConfig`.
+     */
+    public static function fromEnvironment(): self
+    {
+        return new self(Theme::fromEnvironment());
+    }
 
     public function withTheme(Theme $theme): self
     {
