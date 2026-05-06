@@ -10,6 +10,7 @@ use CandyCore\Core\Msg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Msg\MouseWheelMsg;
 use CandyCore\Core\MouseAction;
+use CandyCore\Core\Util\Width;
 
 /**
  * Scrollable text area. Holds a fixed-size window over arbitrarily long
@@ -17,7 +18,8 @@ use CandyCore\Core\MouseAction;
  * window, clamped so the viewport never goes past the start or end.
  *
  * `update()` recognises the standard navigation keys: ↑/k, ↓/j, PgUp/b,
- * PgDn/space/f, Ctrl+U / Ctrl+D (half page), Home/g, End/G.
+ * PgDn/space/f, Ctrl+U / Ctrl+D (half page), Home/g, End/G, plus
+ * ←/h and →/l for horizontal scroll.
  */
 final class Viewport implements Model
 {
@@ -27,6 +29,8 @@ final class Viewport implements Model
         /** @var list<string> */
         public readonly array $lines,
         public readonly int $yOffset,
+        public readonly int $xOffset = 0,
+        public readonly int $horizontalStep = 6,
         public readonly bool $mouseWheelEnabled = true,
         public readonly int $mouseWheelDelta = 3,
         public readonly bool $showScrollbar = false,
@@ -70,6 +74,12 @@ final class Viewport implements Model
             $msg->type === KeyType::Down
                 || ($msg->type === KeyType::Char && $msg->rune === 'j')
                 => [$this->lineDown(1), null],
+            $msg->type === KeyType::Left
+                || ($msg->type === KeyType::Char && $msg->rune === 'h')
+                => [$this->scrollLeft(), null],
+            $msg->type === KeyType::Right
+                || ($msg->type === KeyType::Char && $msg->rune === 'l')
+                => [$this->scrollRight(), null],
             $msg->type === KeyType::PageUp
                 || ($msg->type === KeyType::Char && $msg->rune === 'b')
                 => [$this->pageUp(), null],
@@ -95,6 +105,12 @@ final class Viewport implements Model
     {
         $top    = max(0, $this->yOffset);
         $window = array_slice($this->lines, $top, $this->height);
+        if ($this->xOffset > 0) {
+            $window = array_map(
+                fn(string $l) => Width::dropAnsi($l, $this->xOffset),
+                $window,
+            );
+        }
         if (!$this->showScrollbar) {
             return implode("\n", $window);
         }
@@ -124,6 +140,20 @@ final class Viewport implements Model
     }
 
     public function yOffset(): int { return $this->yOffset; }
+
+    /** Direct seek of the horizontal offset, clamped to `[0, maxXOffset]`. */
+    public function setXOffset(int $offset): self
+    {
+        return $this->copy(xOffset: $offset)->clamp();
+    }
+
+    public function xOffset(): int { return $this->xOffset; }
+
+    /** Cells advanced per `scrollLeft()` / `scrollRight()`. Default 6. */
+    public function withHorizontalStep(int $step): self
+    {
+        return $this->copy(horizontalStep: max(1, $step));
+    }
 
     public function withMouseWheelEnabled(bool $on): self
     {
@@ -165,6 +195,18 @@ final class Viewport implements Model
     public function pageUp(): self   { return $this->lineUp(max(1, $this->height)); }
     public function pageDown(): self { return $this->lineDown(max(1, $this->height)); }
 
+    public function scrollLeft(int $n = 0): self
+    {
+        $n = $n > 0 ? $n : $this->horizontalStep;
+        return $this->copy(xOffset: max(0, $this->xOffset - $n));
+    }
+
+    public function scrollRight(int $n = 0): self
+    {
+        $n = $n > 0 ? $n : $this->horizontalStep;
+        return $this->copy(xOffset: $this->xOffset + $n)->clamp();
+    }
+
     public function gotoTop(): self
     {
         return $this->copy(yOffset: 0);
@@ -190,6 +232,12 @@ final class Viewport implements Model
     public function atTop(): bool    { return $this->yOffset <= 0; }
     public function atBottom(): bool { return $this->yOffset >= $this->maxOffset(); }
 
+    /** True when the horizontal offset is at the leftmost column (0). */
+    public function atLeftmost(): bool { return $this->xOffset <= 0; }
+
+    /** True when the horizontal offset is at the maximum needed for any line. */
+    public function atRightmost(): bool { return $this->xOffset >= $this->maxXOffset(); }
+
     /** Scroll position 0.0 (top) → 1.0 (bottom). 1.0 when content fits. */
     public function scrollPercent(): float
     {
@@ -200,18 +248,41 @@ final class Viewport implements Model
         return min(1.0, max(0.0, $this->yOffset / $max));
     }
 
+    /** Horizontal scroll position 0.0 (leftmost) → 1.0 (rightmost). */
+    public function horizontalScrollPercent(): float
+    {
+        $max = $this->maxXOffset();
+        if ($max <= 0) {
+            return 1.0;
+        }
+        return min(1.0, max(0.0, $this->xOffset / $max));
+    }
+
     private function maxOffset(): int
     {
         return max(0, $this->totalLineCount() - $this->height);
     }
 
+    private function maxXOffset(): int
+    {
+        $widest = 0;
+        foreach ($this->lines as $line) {
+            $w = Width::string($line);
+            if ($w > $widest) {
+                $widest = $w;
+            }
+        }
+        return max(0, $widest - $this->width);
+    }
+
     private function clamp(): self
     {
-        $offset = max(0, min($this->yOffset, $this->maxOffset()));
-        if ($offset === $this->yOffset) {
+        $offset  = max(0, min($this->yOffset, $this->maxOffset()));
+        $xOffset = max(0, min($this->xOffset, $this->maxXOffset()));
+        if ($offset === $this->yOffset && $xOffset === $this->xOffset) {
             return $this;
         }
-        return $this->copy(yOffset: $offset);
+        return $this->copy(yOffset: $offset, xOffset: $xOffset);
     }
 
     /**
@@ -237,7 +308,7 @@ final class Viewport implements Model
         $out = [];
         foreach ($window as $i => $line) {
             $padded = $bodyWidth > 0
-                ? \CandyCore\Core\Util\Width::padRight($line, $bodyWidth)
+                ? Width::padRight($line, $bodyWidth)
                 : $line;
             $sb = ($i >= $thumbStart && $i < $thumbStart + $thumbHeight)
                 ? $this->scrollbarChar
@@ -255,6 +326,8 @@ final class Viewport implements Model
         ?int $height = null,
         ?array $lines = null,
         ?int $yOffset = null,
+        ?int $xOffset = null,
+        ?int $horizontalStep = null,
         ?bool $mouseWheelEnabled = null,
         ?int $mouseWheelDelta = null,
         ?bool $showScrollbar = null,
@@ -266,6 +339,8 @@ final class Viewport implements Model
             height:             $height            ?? $this->height,
             lines:              $lines             ?? $this->lines,
             yOffset:            $yOffset           ?? $this->yOffset,
+            xOffset:            $xOffset           ?? $this->xOffset,
+            horizontalStep:     $horizontalStep    ?? $this->horizontalStep,
             mouseWheelEnabled:  $mouseWheelEnabled ?? $this->mouseWheelEnabled,
             mouseWheelDelta:    $mouseWheelDelta   ?? $this->mouseWheelDelta,
             showScrollbar:      $showScrollbar     ?? $this->showScrollbar,
