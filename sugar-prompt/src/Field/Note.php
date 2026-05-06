@@ -6,6 +6,7 @@ namespace CandyCore\Prompt\Field;
 
 use CandyCore\Core\Msg;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -15,6 +16,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class Note implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     public function __construct(
         public readonly string $key,
@@ -39,14 +41,16 @@ final class Note implements Field
     public function view(): string
     {
         $parts = [];
-        if ($this->title !== '')       { $parts[] = $this->title; }
-        if ($this->description !== '') { $parts[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $parts[] = $title; }
+        if ($desc  !== '') { $parts[] = $desc; }
         return implode("\n", $parts);
     }
 
     public function isFocused(): bool         { return false; }
-    public function getTitle(): string        { return $this->title; }
-    public function getDescription(): string  { return $this->description; }
+    public function getTitle(): string        { return $this->resolveTitle($this->title); }
+    public function getDescription(): string  { return $this->resolveDescription($this->description); }
     public function getError(): ?string       { return null; }
     public function skippable(): bool         { return true; }
     public function consumes(Msg $msg): bool  { return false; }

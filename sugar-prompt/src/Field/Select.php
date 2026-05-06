@@ -10,6 +10,7 @@ use CandyCore\Core\KeyType;
 use CandyCore\Core\Msg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -19,6 +20,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class Select implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     private function __construct(
         public readonly string $key,
@@ -69,15 +71,17 @@ final class Select implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '')       { $lines[] = $this->title; }
-        if ($this->description !== '') { $lines[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $lines[] = $title; }
+        if ($desc  !== '') { $lines[] = $desc; }
         $lines[] = $this->list->view();
         return implode("\n", $lines);
     }
 
     public function isFocused(): bool         { return $this->list->focused; }
-    public function getTitle(): string        { return $this->title; }
-    public function getDescription(): string  { return $this->description; }
+    public function getTitle(): string        { return $this->resolveTitle($this->title); }
+    public function getDescription(): string  { return $this->resolveDescription($this->description); }
     public function getError(): ?string       { return null; }
     public function skippable(): bool         { return false; }
 

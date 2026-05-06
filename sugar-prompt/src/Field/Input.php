@@ -7,6 +7,7 @@ namespace CandyCore\Prompt\Field;
 use CandyCore\Bits\TextInput\TextInput;
 use CandyCore\Core\Msg;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -16,6 +17,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class Input implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     /** @var (\Closure(string):?string)|null */
     private $validator;
@@ -80,11 +82,13 @@ final class Input implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '') {
-            $lines[] = $this->title;
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') {
+            $lines[] = $title;
         }
-        if ($this->description !== '') {
-            $lines[] = $this->description;
+        if ($desc !== '') {
+            $lines[] = $desc;
         }
         $lines[] = $this->input->view();
         if ($this->error !== null) {
@@ -94,8 +98,8 @@ final class Input implements Field
     }
 
     public function isFocused(): bool        { return $this->input->focused; }
-    public function getTitle(): string       { return $this->title; }
-    public function getDescription(): string { return $this->description; }
+    public function getTitle(): string       { return $this->resolveTitle($this->title); }
+    public function getDescription(): string { return $this->resolveDescription($this->description); }
     public function getError(): ?string      { return $this->error; }
     public function skippable(): bool        { return false; }
     public function consumes(Msg $msg): bool { return false; }
