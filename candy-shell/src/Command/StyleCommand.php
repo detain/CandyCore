@@ -40,13 +40,20 @@ final class StyleCommand extends Command
             ->addOption('border',             null, InputOption::VALUE_REQUIRED, 'Border preset: normal|rounded|thick|double|block|hidden.')
             ->addOption('border-foreground',  null, InputOption::VALUE_REQUIRED, 'Border foreground colour.')
             ->addOption('border-background',  null, InputOption::VALUE_REQUIRED, 'Border background colour.')
-            ->addOption('trim',               null, InputOption::VALUE_NONE,     'Trim trailing whitespace from each line.');
+            ->addOption('trim',               null, InputOption::VALUE_NONE,     'Trim trailing whitespace from each line.')
+            ->addOption('strip-ansi',         null, InputOption::VALUE_NONE,     'Strip ANSI escapes from input before styling.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $argv = $input->getArgument('text') ?: [];
         $text = $argv === [] ? self::readStdin() : implode(' ', $argv);
+
+        // --strip-ansi clears any inline SGR sequences before applying
+        // styling, mirroring gum's behaviour for piped output.
+        if ($input->getOption('strip-ansi')) {
+            $text = \CandyCore\Core\Util\Ansi::strip($text);
+        }
 
         $style = StyleBuilder::fromFlags([
             'foreground'         => $input->getOption('foreground'),

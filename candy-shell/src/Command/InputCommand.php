@@ -30,6 +30,7 @@ final class InputCommand extends Command
             ->addOption('char-limit',  null, InputOption::VALUE_REQUIRED, 'Max input length (0 = unlimited).', 0)
             ->addOption('width',       null, InputOption::VALUE_REQUIRED, 'Visible width (0 = full line).', 0)
             ->addOption('header',      null, InputOption::VALUE_REQUIRED, 'Header text rendered above the prompt.', '')
+            ->addOption('strip-ansi',  null, InputOption::VALUE_NONE,     'Strip ANSI escapes from the printed result.')
             ->addOption('style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Per-element style: '<elem>.<prop>=<value>'. Elements: cursor, prompt, header, placeholder.",
                 []
@@ -58,7 +59,11 @@ final class InputCommand extends Command
         if ($final->isAborted() || !$final->isSubmitted()) {
             return Command::FAILURE;
         }
-        $output->writeln($final->value());
+        $value = $final->value();
+        if ($input->getOption('strip-ansi')) {
+            $value = \CandyCore\Core\Util\Ansi::strip($value);
+        }
+        $output->writeln($value);
         return Command::SUCCESS;
     }
 }
