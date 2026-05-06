@@ -90,4 +90,17 @@ final class SpinnerTest extends TestCase
         // Ellipsis cycles through 4 frames including the empty one.
         $this->assertCount(4, Style::ellipsis()->frames);
     }
+
+    public function testIdAccessor(): void
+    {
+        $s = Spinner::new();
+        $this->assertSame($s->id, $s->id());
+    }
+
+    public function testIdsAreUnique(): void
+    {
+        $a = Spinner::new();
+        $b = Spinner::new();
+        $this->assertNotSame($a->id(), $b->id());
+    }
 }

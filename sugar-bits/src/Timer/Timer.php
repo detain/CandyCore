@@ -102,8 +102,25 @@ final class Timer implements Model
         return new self($d, $this->interval, false, false, $this->id);
     }
 
+    /**
+     * Flip the running state. When running → stop; when stopped →
+     * start (returning the start cmd).
+     *
+     * @return array{0:self, 1:?\Closure}
+     */
+    public function toggle(): array
+    {
+        return $this->running ? [$this->stop(), null] : $this->start();
+    }
+
     public function isRunning(): bool { return $this->running; }
     public function timedOut(): bool  { return $this->timedOut; }
+
+    /**
+     * Stable per-instance ID — used by {@see TickMsg} / {@see TimeoutMsg}
+     * routing. Mirrors upstream Bubbles `ID()`.
+     */
+    public function id(): int { return $this->id; }
 
     private function tick(): \Closure
     {

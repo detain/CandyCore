@@ -72,4 +72,11 @@ final class Spinner implements Model
         $id = $this->id;
         return Cmd::tick($this->style->interval(), static fn(): Msg => new TickMsg($id));
     }
+
+    /**
+     * Stable per-instance ID — used by {@see TickMsg} routing so two
+     * spinners on the same loop don't both step on every tick.
+     * Mirrors upstream Bubbles `ID()`.
+     */
+    public function id(): int { return $this->id; }
 }
