@@ -60,6 +60,23 @@ final class Streamline
         return $next;
     }
 
+    /** Reset the sliding window to empty while preserving sizing / range / glyph. */
+    public function clear(): self
+    {
+        return new self([], $this->width, $this->height, $this->min, $this->max, $this->point);
+    }
+
+    /** True when the window holds zero samples. */
+    public function isEmpty(): bool
+    {
+        return $this->window === [];
+    }
+
+    public function count(): int
+    {
+        return count($this->window);
+    }
+
     public function withSize(int $w, int $h): self
     {
         $window = $this->window;
@@ -71,6 +88,10 @@ final class Streamline
 
     public function withMin(?float $m): self    { return new self($this->window, $this->width, $this->height, $m, $this->max, $this->point); }
     public function withMax(?float $m): self    { return new self($this->window, $this->width, $this->height, $this->min, $m, $this->point); }
+    public function withYRange(?float $min, ?float $max): self
+    {
+        return new self($this->window, $this->width, $this->height, $min, $max, $this->point);
+    }
     public function withPoint(string $r): self  { return new self($this->window, $this->width, $this->height, $this->min, $this->max, $r); }
 
     public function view(): string

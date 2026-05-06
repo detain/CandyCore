@@ -45,4 +45,29 @@ final class StreamlineTest extends TestCase
         $this->assertSame(3, substr_count($out, "\n") + 1);
         $this->assertStringContainsString('*', $out);
     }
+
+    public function testClearEmptiesWindow(): void
+    {
+        $s = Streamline::new(5, 3)->pushAll([1, 2, 3]);
+        $this->assertSame(3, $s->count());
+        $s = $s->clear();
+        $this->assertTrue($s->isEmpty());
+        $this->assertSame(0, $s->count());
+    }
+
+    public function testClearPreservesSettings(): void
+    {
+        $s = Streamline::new(5, 3)->withMin(0.0)->withMax(10.0)->withPoint('o');
+        $s = $s->clear();
+        $this->assertSame(0.0,  $s->min);
+        $this->assertSame(10.0, $s->max);
+        $this->assertSame('o',  $s->point);
+    }
+
+    public function testWithYRangeShortcut(): void
+    {
+        $s = Streamline::new(5, 3)->withYRange(0.0, 10.0);
+        $this->assertSame(0.0,  $s->min);
+        $this->assertSame(10.0, $s->max);
+    }
 }
