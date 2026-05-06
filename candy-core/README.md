@@ -103,6 +103,59 @@ builds on it. From the same monorepo:
 See the matchup table in [../MATCHUPS.md](../MATCHUPS.md) for status,
 package names, and namespace mappings.
 
+## Composing Cmds
+
+The runtime ships several Cmd combinators. The cheat-sheet below
+maps Bubble Tea idioms to the PHP equivalents:
+
+| Need | Use |
+|---|---|
+| Run several Cmds in parallel | `Cmd::batch(...$cmds)` |
+| Run several Cmds one-after-the-other | `Cmd::sequence(...$cmds)` |
+| Schedule a Msg in N seconds | `Cmd::tick($seconds, fn () => $msg)` |
+| Schedule a Msg on every wall-clock multiple of N seconds | `Cmd::every($seconds, fn () => $msg)` |
+| Dispatch a Msg right away | `Cmd::send($msg)` |
+| Quit the program | `Cmd::quit()` |
+| Hard-kill (after `quit` failed) | `$program->kill()` (from outside the loop) |
+| Print text above the program region | `Cmd::println($s)` / `Cmd::printf($fmt, ...)` |
+| Drop bytes onto the wire | `Cmd::raw($bytes)` |
+| Suspend on Ctrl+Z, resume on SIGCONT | `Cmd::suspend()` (returns to a `ResumeMsg`) |
+| Run an external program (`$EDITOR`) | `Cmd::exec($cmd, $args, fn ($exit) => $msg)` |
+
+`init()` returns a Cmd (or null) to fire once at startup. `update()`
+returns `[Model, ?Cmd]` — the runtime applies the Cmd, dispatches
+its Msg, and feeds the result back into `update()`.
+
+The `examples/` directory has runnable demos for each pattern:
+[`counter`](examples/counter.php) (basic), [`timer`](examples/timer.php)
+(tick scheduling), [`realtime`](examples/realtime.php) (self-rescheduling
+tick), [`sequence`](examples/sequence.php) (`Cmd::sequence`),
+[`send-msg`](examples/send-msg.php) (custom Msg + `Cmd::tick`),
+[`tabs`](examples/tabs.php) (state-driven view selection),
+[`views`](examples/views.php) (multi-view switcher),
+[`splash`](examples/splash.php) (animated splash → main view),
+[`suspend`](examples/suspend.php) (`Cmd::suspend` + `ResumeMsg`),
+[`mouse`](examples/mouse.php), [`focus-blur`](examples/focus-blur.php),
+[`window-size`](examples/window-size.php), [`print-key`](examples/print-key.php),
+[`set-window-title`](examples/set-window-title.php), and
+[`prevent-quit`](examples/prevent-quit.php).
+
+## Alt-screen vs inline mode
+
+Pass `useAltScreen: true` (the default) to `ProgramOptions` and the
+runtime takes over the alt-screen — the user's previous content is
+preserved underneath, and `Cmd::quit()` restores it. Best for
+fullscreen TUIs.
+
+Pass `useAltScreen: false` + `inlineMode: true` for a program that
+shares scrollback with the surrounding shell. The runtime saves the
+cursor on first frame and restores it after each repaint, so
+preceding shell output stays visible. Pair with `Cmd::println()` to
+emit lines that scroll above the program region.
+
+A typical CandyShell prompt (`gum input`-style) uses inline mode;
+a fullscreen filter (`gum filter`-style) uses alt-screen.
+
 ## Test
 
 ```sh
