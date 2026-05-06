@@ -131,4 +131,86 @@ final class ViewportTest extends TestCase
         $v = $v->withSize(80, 10);
         $this->assertSame(10, $v->yOffset); // new max offset
     }
+
+    private function wide(int $cols, int $rows): string
+    {
+        $lines = [];
+        for ($r = 1; $r <= $rows; $r++) {
+            $lines[] = str_repeat(chr(ord('a') + (($r - 1) % 26)), $cols);
+        }
+        return implode("\n", $lines);
+    }
+
+    public function testInitialXOffsetZero(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(40, 3));
+        $this->assertSame(0, $v->xOffset);
+        $this->assertTrue($v->atLeftmost());
+        $this->assertFalse($v->atRightmost());
+    }
+
+    public function testScrollRightAdvancesByStep(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(40, 3))->withHorizontalStep(5);
+        $v = $v->scrollRight();
+        $this->assertSame(5, $v->xOffset);
+        $v = $v->scrollRight();
+        $this->assertSame(10, $v->xOffset);
+    }
+
+    public function testScrollLeftCannotGoBelowZero(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(40, 3));
+        $v = $v->scrollLeft();
+        $this->assertSame(0, $v->xOffset);
+    }
+
+    public function testScrollRightClampsAtMax(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(15, 3))->withHorizontalStep(20);
+        $v = $v->scrollRight();
+        $this->assertSame(5, $v->xOffset); // widest=15, width=10 -> max 5
+        $this->assertTrue($v->atRightmost());
+    }
+
+    public function testSetXOffsetClamps(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(15, 3));
+        $v = $v->setXOffset(99);
+        $this->assertSame(5, $v->xOffset);
+        $v = $v->setXOffset(-3);
+        $this->assertSame(0, $v->xOffset);
+    }
+
+    public function testHorizontalScrollPercent(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(20, 3))->setXOffset(5);
+        // max=10 → halfway
+        $this->assertEqualsWithDelta(0.5, $v->horizontalScrollPercent(), 1e-6);
+    }
+
+    public function testHorizontalArrowKey(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(40, 3))->withHorizontalStep(4);
+        [$v, ] = $v->update(new KeyMsg(KeyType::Right));
+        $this->assertSame(4, $v->xOffset);
+        [$v, ] = $v->update(new KeyMsg(KeyType::Left));
+        $this->assertSame(0, $v->xOffset);
+    }
+
+    public function testHorizontalVimKeys(): void
+    {
+        $v = Viewport::new(10, 3)->setContent($this->wide(40, 3))->withHorizontalStep(2);
+        [$v, ] = $v->update(new KeyMsg(KeyType::Char, 'l'));
+        $this->assertSame(2, $v->xOffset);
+        [$v, ] = $v->update(new KeyMsg(KeyType::Char, 'h'));
+        $this->assertSame(0, $v->xOffset);
+    }
+
+    public function testViewDropsLeftCellsOnXOffset(): void
+    {
+        // viewport must be narrower than the line for setXOffset to stick.
+        $v = Viewport::new(5, 1)->setContent('abcdefghij')->setXOffset(3);
+        $this->assertSame('defghij', $v->view());
+    }
 }
