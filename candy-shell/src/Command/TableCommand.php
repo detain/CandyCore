@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace CandyCore\Shell\Command;
 
+use CandyCore\Sprinkles\Align;
 use CandyCore\Sprinkles\Border;
 use CandyCore\Sprinkles\Table\Table;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -32,7 +33,17 @@ final class TableCommand extends Command
             ->addOption('separator', 's', InputOption::VALUE_REQUIRED, 'Column separator. Default: comma.', ',')
             ->addOption('header',     null, InputOption::VALUE_NONE, 'Treat the first row as a header.')
             ->addOption('border',     null, InputOption::VALUE_REQUIRED,
-                'normal|rounded|thick|double|ascii|hidden|none', 'rounded');
+                'normal|rounded|thick|double|ascii|hidden|none', 'rounded')
+            ->addOption('columns',    'c',  InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Override header titles (one per column). Repeat: --columns=Name --columns=Age.",
+                [])
+            ->addOption('widths',     'w',  InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Per-column max widths in cells. Repeat: --widths=20 --widths=10.",
+                [])
+            ->addOption('height',     null, InputOption::VALUE_REQUIRED, 'Cap rendered height in rows. 0 = unlimited.', 0)
+            ->addOption('print',      'p',  InputOption::VALUE_NONE, 'Alias for the default print-and-exit behaviour (gum-compat).')
+            ->addOption('show-help',  null, InputOption::VALUE_NONE, 'Alias for --help (gum-compat).')
+            ->addOption('timeout',    null, InputOption::VALUE_REQUIRED, 'Seconds to wait before auto-exiting (no-op for table — gum-compat).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -54,6 +65,44 @@ final class TableCommand extends Command
         $hasHeader = (bool) $input->getOption('header');
         $headers   = $hasHeader ? array_shift($rows) : [];
 
+        // --columns overrides header titles entirely.
+        $colOverride = $input->getOption('columns');
+        if (is_array($colOverride) && $colOverride !== []) {
+            $headers = array_values(array_map('strval', $colOverride));
+        }
+
+        // --widths truncates each cell to the corresponding budget.
+        /** @var list<int> $widths */
+        $widths = array_map('intval', is_array($input->getOption('widths')) ? $input->getOption('widths') : []);
+        if ($widths !== []) {
+            $rows = array_map(
+                static fn (array $row) => array_map(
+                    static function (string $cell, int $i) use ($widths): string {
+                        $cap = $widths[$i] ?? 0;
+                        if ($cap > 0 && mb_strlen($cell, 'UTF-8') > $cap) {
+                            return mb_substr($cell, 0, $cap, 'UTF-8');
+                        }
+                        return $cell;
+                    },
+                    $row,
+                    array_keys($row),
+                ),
+                $rows,
+            );
+            if ($headers !== []) {
+                $headers = array_map(
+                    static function (string $h, int $i) use ($widths): string {
+                        $cap = $widths[$i] ?? 0;
+                        return $cap > 0 && mb_strlen($h, 'UTF-8') > $cap
+                            ? mb_substr($h, 0, $cap, 'UTF-8')
+                            : $h;
+                    },
+                    $headers,
+                    array_keys($headers),
+                );
+            }
+        }
+
         $border = self::parseBorder((string) $input->getOption('border'));
 
         $table = Table::new()->headers(...$headers);
@@ -63,7 +112,18 @@ final class TableCommand extends Command
         foreach ($rows as $row) {
             $table = $table->row(...$row);
         }
-        $output->writeln($table->render());
+        $rendered = $table->render();
+
+        // --height caps the rendered output to N rows.
+        $height = (int) $input->getOption('height');
+        if ($height > 0) {
+            $lines = explode("\n", $rendered);
+            if (count($lines) > $height) {
+                $rendered = implode("\n", array_slice($lines, 0, $height));
+            }
+        }
+
+        $output->writeln($rendered);
         return Command::SUCCESS;
     }
 

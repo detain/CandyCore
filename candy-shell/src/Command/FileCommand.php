@@ -31,7 +31,9 @@ final class FileCommand extends Command
             ->addOption('all',       'a',  InputOption::VALUE_NONE,     'Show hidden (dot) files.')
             ->addOption('directory', null, InputOption::VALUE_NONE,     'Allow selecting directories.')
             ->addOption('file',      null, InputOption::VALUE_NONE,     'Allow selecting files (default).')
-            ->addOption('show-size', null, InputOption::VALUE_NONE,     'Render the file-size column.');
+            ->addOption('show-size', null, InputOption::VALUE_NONE,     'Render the file-size column.')
+            ->addOption('show-help', null, InputOption::VALUE_NONE,     'Alias for --help (gum compat).')
+            ->addOption('timeout',   null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

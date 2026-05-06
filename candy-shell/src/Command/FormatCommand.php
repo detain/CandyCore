@@ -31,7 +31,9 @@ final class FormatCommand extends Command
             ->addOption('theme', null, InputOption::VALUE_REQUIRED, 'ansi | plain | dark | light | dracula | tokyo-night | pink | notty | ascii', 'ansi')
             ->addOption('type',  't',  InputOption::VALUE_REQUIRED, 'Render type: markdown | code | template | emoji. Default markdown.', 'markdown')
             ->addOption('language', 'l', InputOption::VALUE_REQUIRED, 'Source language for `--type code`.', '')
-            ->addOption('strip-ansi', null, InputOption::VALUE_NONE, 'Strip ANSI escapes from the rendered output.');
+            ->addOption('strip-ansi', null, InputOption::VALUE_NONE, 'Strip ANSI escapes from the rendered output.')
+            ->addOption('show-help',  null, InputOption::VALUE_NONE, 'Alias for --help (gum compat).')
+            ->addOption('timeout',    null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none, no-op for non-interactive format).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

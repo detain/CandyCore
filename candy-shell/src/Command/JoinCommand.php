@@ -33,7 +33,9 @@ final class JoinCommand extends Command
               . "Horizontal mode: top|middle|bottom (vertical alignment of blocks of unequal height).\n"
               . "Vertical mode:   left|center|right (horizontal alignment of lines of unequal width).",
                 'top'
-            );
+            )
+            ->addOption('show-help',  null, InputOption::VALUE_NONE, 'Alias for --help (gum compat).')
+            ->addOption('timeout',    null, InputOption::VALUE_REQUIRED, 'Auto-abort after N seconds (0 = none, no-op for non-interactive join).', 0);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
