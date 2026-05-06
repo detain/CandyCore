@@ -158,4 +158,101 @@ final class ItemListTest extends TestCase
         $l = ItemList::new([]);
         $this->assertNull($l->selectedItem());
     }
+
+    public function testItemsAccessor(): void
+    {
+        $l = ItemList::new($this->items());
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'banana', 'cherry', 'date'], $names);
+    }
+
+    public function testSetItemReplacesInPlace(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->setItem(1, new StringItem('blueberry'));
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'blueberry', 'cherry', 'date'], $names);
+    }
+
+    public function testSetItemNegativeIndex(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->setItem(-1, new StringItem('damson'));
+        $this->assertSame('damson', $l->items()[3]->title());
+    }
+
+    public function testSetItemOutOfRangeIsNoOp(): void
+    {
+        $l = ItemList::new($this->items());
+        $l2 = $l->setItem(99, new StringItem('z'));
+        $this->assertSame(4, count($l2->items()));
+        $this->assertSame('apple', $l2->items()[0]->title());
+    }
+
+    public function testInsertItemAtPosition(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->insertItem(1, new StringItem('avocado'));
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'avocado', 'banana', 'cherry', 'date'], $names);
+    }
+
+    public function testInsertItemAppendsBeyondCount(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->insertItem(99, new StringItem('elder'));
+        $items = $l->items();
+        $this->assertSame('elder', $items[count($items) - 1]->title());
+    }
+
+    public function testInsertItemMultipleAtOnce(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->insertItem(2, new StringItem('blackberry'), new StringItem('boysenberry'));
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(
+            ['apple', 'banana', 'blackberry', 'boysenberry', 'cherry', 'date'],
+            $names,
+        );
+    }
+
+    public function testInsertItemNegativeIndex(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->insertItem(-1, new StringItem('crunchy'));
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'banana', 'cherry', 'crunchy', 'date'], $names);
+    }
+
+    public function testRemoveItemDropsByIndex(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->removeItem(1);
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'cherry', 'date'], $names);
+    }
+
+    public function testRemoveItemNegativeIndex(): void
+    {
+        $l = ItemList::new($this->items());
+        $l = $l->removeItem(-1);
+        $names = array_map(static fn ($i) => $i->title(), $l->items());
+        $this->assertSame(['apple', 'banana', 'cherry'], $names);
+    }
+
+    public function testRemoveItemReclampsCursor(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'G'));
+        $l = $l->removeItem(3);
+        $this->assertNotNull($l->selectedItem());
+        $this->assertLessThan(count($l->items()), $l->index());
+    }
+
+    public function testRemoveItemOutOfRangeIsNoOp(): void
+    {
+        $l = ItemList::new($this->items());
+        $l2 = $l->removeItem(42);
+        $this->assertSame(4, count($l2->items()));
+    }
 }
