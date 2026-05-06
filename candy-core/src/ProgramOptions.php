@@ -107,5 +107,17 @@ final class ProgramOptions
          * notice no difference at typical frame sizes.
          */
         public readonly bool $cellDiffRenderer = false,
+        /**
+         * Register no signal handlers at all. Mirrors Bubble Tea's
+         * `WithoutSignalHandler`. When true, the runtime skips
+         * installing handlers for SIGINT / SIGWINCH / SIGTSTP /
+         * SIGCONT regardless of {@see $catchInterrupts}.
+         *
+         * Use this when the calling process already owns signal
+         * handling (e.g. a long-running daemon that wraps Program in
+         * a custom supervisor) and the runtime mustn't clobber the
+         * existing handlers.
+         */
+        public readonly bool $withoutSignalHandler = false,
     ) {}
 }

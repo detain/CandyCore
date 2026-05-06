@@ -680,7 +680,10 @@ final class Program
 
     private function installSignalHandlers(): void
     {
-        if (!$this->options->catchInterrupts || !function_exists('pcntl_signal')) {
+        if ($this->options->withoutSignalHandler
+            || !$this->options->catchInterrupts
+            || !function_exists('pcntl_signal')
+        ) {
             return;
         }
         pcntl_signal(SIGINT, function (): void {
