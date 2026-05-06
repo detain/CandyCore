@@ -5,43 +5,72 @@ declare(strict_types=1);
 namespace CandyCore\Bounce;
 
 /**
- * 2D vector for {@see Projectile}. Immutable.
+ * 3D vector for {@see Projectile}. Immutable.
  *
  * Mirrors the harmonica `Vector` value type — used both for positions
- * (X / Y in arbitrary units) and for velocities / accelerations (units
- * per simulation step).
+ * (X / Y / Z in arbitrary units) and for velocities / accelerations
+ * (units per simulation step).
+ *
+ * The `$z` axis defaults to `0.0` so existing 2D call sites keep working
+ * unchanged. Use the third component for true 3D simulations or to
+ * express depth in pseudo-3D scenes.
  */
 final class Vector
 {
     public function __construct(
         public readonly float $x,
         public readonly float $y,
+        public readonly float $z = 0.0,
     ) {}
 
     public static function zero(): self
     {
-        return new self(0.0, 0.0);
+        return new self(0.0, 0.0, 0.0);
     }
 
     public function add(self $other): self
     {
-        return new self($this->x + $other->x, $this->y + $other->y);
+        return new self(
+            $this->x + $other->x,
+            $this->y + $other->y,
+            $this->z + $other->z,
+        );
     }
 
     public function sub(self $other): self
     {
-        return new self($this->x - $other->x, $this->y - $other->y);
+        return new self(
+            $this->x - $other->x,
+            $this->y - $other->y,
+            $this->z - $other->z,
+        );
     }
 
-    /** Scale both components by `$s`. */
+    /** Scale all three components by `$s`. */
     public function scale(float $s): self
     {
-        return new self($this->x * $s, $this->y * $s);
+        return new self($this->x * $s, $this->y * $s, $this->z * $s);
     }
 
-    /** Euclidean length. */
+    /** Euclidean length in 3D. */
     public function length(): float
     {
-        return sqrt($this->x * $this->x + $this->y * $this->y);
+        return sqrt($this->x * $this->x + $this->y * $this->y + $this->z * $this->z);
+    }
+
+    /** Dot product. */
+    public function dot(self $other): float
+    {
+        return $this->x * $other->x + $this->y * $other->y + $this->z * $other->z;
+    }
+
+    /** Cross product. Returns a new perpendicular {@see Vector}. */
+    public function cross(self $other): self
+    {
+        return new self(
+            $this->y * $other->z - $this->z * $other->y,
+            $this->z * $other->x - $this->x * $other->z,
+            $this->x * $other->y - $this->y * $other->x,
+        );
     }
 }

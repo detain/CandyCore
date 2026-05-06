@@ -19,7 +19,8 @@ use CandyCore\Bounce\Vector;
 $p = Projectile::new(
     deltaTime:    Spring::fps(60),
     position:     Point::zero(),
-    velocity:     new Vector(20.0, -25.0),
+    // Y-up convention: positive Y goes upward.
+    velocity:     new Vector(20.0, 25.0),
     acceleration: Projectile::gravity(),
 );
 
