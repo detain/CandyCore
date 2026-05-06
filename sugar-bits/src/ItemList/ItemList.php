@@ -200,6 +200,80 @@ final class ItemList implements Model
         return $clone->reclamp();
     }
 
+    /**
+     * Replace a single item in place. Negative indices count from the
+     * end (Pythonic). Out-of-range indices are silently ignored, matching
+     * upstream Bubbles' `SetItem`.
+     */
+    public function setItem(int $index, Item $item): self
+    {
+        $count = count($this->items);
+        if ($count === 0) {
+            return $this;
+        }
+        if ($index < 0) {
+            $index += $count;
+        }
+        if ($index < 0 || $index >= $count) {
+            return $this;
+        }
+        $items = $this->items;
+        $items[$index] = $item;
+        return $this->mutate(items: array_values($items));
+    }
+
+    /**
+     * Insert one or more items at the given position. Negative indices
+     * count from the end; an index >= count appends. Cursor / offset are
+     * re-clamped against the new length.
+     */
+    public function insertItem(int $index, Item ...$items): self
+    {
+        if ($items === []) {
+            return $this;
+        }
+        $count = count($this->items);
+        if ($index < 0) {
+            $index = max(0, $count + $index);
+        }
+        $index = min($count, max(0, $index));
+        $merged = array_merge(
+            array_slice($this->items, 0, $index),
+            array_values($items),
+            array_slice($this->items, $index),
+        );
+        return $this->mutate(items: array_values($merged))->reclamp();
+    }
+
+    /**
+     * Remove the item at the given index. Negative indices count from
+     * the end. Out-of-range indices are silently ignored. Cursor stays
+     * on the same logical position where possible (clamps when removing
+     * the last visible item).
+     */
+    public function removeItem(int $index): self
+    {
+        $count = count($this->items);
+        if ($count === 0) {
+            return $this;
+        }
+        if ($index < 0) {
+            $index += $count;
+        }
+        if ($index < 0 || $index >= $count) {
+            return $this;
+        }
+        $items = $this->items;
+        array_splice($items, $index, 1);
+        return $this->mutate(items: array_values($items))->reclamp();
+    }
+
+    /** @return list<Item> */
+    public function items(): array
+    {
+        return $this->items;
+    }
+
     public function setSize(int $width, int $height): self
     {
         if ($width < 0 || $height < 0) {
