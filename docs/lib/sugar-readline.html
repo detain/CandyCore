@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SugarReadline — SugarCraft</title>
+<meta name="description" content="SugarReadline: Interactive prompts — text, confirm, select, multi-select, textarea. PHP port of erikgeiser/promptkit.">
+<meta property="og:title" content="SugarReadline — SugarCraft">
+<meta property="og:description" content="Interactive prompts — text, confirm, select, multi-select, textarea. Port of erikgeiser/promptkit.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-readline.png">
+<link rel="icon" type="image/png" href="../img/icons/sugar-readline.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/sugar-readline.png" alt="SugarReadline" onerror="this.style.display='none'">
+      <div>
+        <h2>SugarReadline</h2>
+        <p class="detail-sub">Interactive prompts — text, confirm, select, multi-select, textarea</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/erikgeiser/promptkit" style="color: inherit;">erikgeiser/promptkit</a></span>
+          <span class="tag-chip">prompt</span><span class="tag-chip">input</span><span class="tag-chip">readline</span><span class="tag-chip">interactive</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Text, Confirm, Selection, MultiSelect, and Textarea prompts with full keyboard handling, filter-as-you-type, and pagination. State-machine model — no external readline dependency.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/sugar-readline</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Readline\{TextPrompt, SelectionPrompt, MultiSelectPrompt};
+
+// Text prompt
+$name = TextPrompt::new('Your name:')-&gt;HandleChar('A')-&gt;Confirm()-&gt;Value();
+
+// Selection prompt
+$lang = SelectionPrompt::new('Pick a language:', ['PHP', 'Go', 'Rust', 'Python'])
+    -&gt;HandleKey('enter');
+
+// Multi-select with constraints
+$tools = MultiSelectPrompt::new('Pick tools:', ['vim', 'git', 'docker', 'php'])
+    -&gt;WithMinSelections(1)
+    -&gt;WithMaxSelections(3)
+    -&gt;HandleKey('space')
+    -&gt;HandleKey('enter');</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>TextPrompt</strong><span>Single-line input with placeholder, default value, password masking support.</span></div>
+            <div class="feature"><strong>ConfirmationPrompt</strong><span>Yes / No with customizable labels and default.</span></div>
+            <div class="feature"><strong>SelectionPrompt</strong><span>Arrow-key selection with filter-as-you-type and pagination.</span></div>
+            <div class="feature"><strong>MultiSelectPrompt</strong><span>Multi-item selection with min/max enforcement, marker (◉/○), pagination.</span></div>
+            <div class="feature"><strong>TextareaPrompt</strong><span>Multi-line editor with cursor movement, line count display.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/sugar-readline">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-readline/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-readline/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/erikgeiser/promptkit">erikgeiser/promptkit</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

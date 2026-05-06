@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CandyLog — SugarCraft</title>
+<meta name="description" content="CandyLog: Colorful leveled logger. PHP port of charmbracelet/log.">
+<meta property="og:title" content="CandyLog — SugarCraft">
+<meta property="og:description" content="Colorful leveled logger. Port of charmbracelet/log.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/candy-log.png">
+<link rel="icon" type="image/png" href="../img/icons/candy-log.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/candy-log.png" alt="CandyLog" onerror="this.style.display='none'">
+      <div>
+        <h2>CandyLog</h2>
+        <p class="detail-sub">Colorful leveled logger</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/charmbracelet/log" style="color: inherit;">charmbracelet/log</a></span>
+          <span class="tag-chip">logging</span><span class="tag-chip">cli</span><span class="tag-chip">output</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Minimal, colorful leveled logging. Debug / Info / Warn / Error / Fatal with structured key/value context, Text / JSON / Logfmt formatters, and sub-loggers with persistent fields.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/candy-log</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Log\Logger;
+
+$log = Logger::new();
+$log-&gt;info('Starting oven', ['degree' =&gt; 375]);
+$log-&gt;warn('Almost ready', ['batch' =&gt; 2]);
+$log-&gt;error('Temperature too low', ['err' =&gt; 'underheated']);
+
+$child = $log-&gt;with('service', 'bakery');
+$child-&gt;info('Batch complete');</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>Leveled logging</strong><span>Debug, Info, Warn, Error, Fatal. TTY detection enables color automatically.</span></div>
+            <div class="feature"><strong>Three formatters</strong><span>TextFormatter (default), JSONFormatter, LogfmtFormatter — swap via `withFormatter()`.</span></div>
+            <div class="feature"><strong>Structured context</strong><span>Arbitrary key/value pairs attached to every log call.</span></div>
+            <div class="feature"><strong>Sub-loggers</strong><span>`with(...)` creates a child logger that inherits all context.</span></div>
+            <div class="feature"><strong>StandardLogAdapter</strong><span>Wrap any PSR-3 logger for `*log.Logger` compatibility.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/candy-log">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/candy-log/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/candy-log/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/charmbracelet/log">charmbracelet/log</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

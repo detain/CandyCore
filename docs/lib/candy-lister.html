@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CandyLister — SugarCraft</title>
+<meta name="description" content="CandyLister: Tree / list view with box-drawing prefixes + cursor nav. PHP port of treilik/bubblelister.">
+<meta property="og:title" content="CandyLister — SugarCraft">
+<meta property="og:description" content="Tree / list view with box-drawing prefixes + cursor nav. Port of treilik/bubblelister.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/candy-lister.png">
+<link rel="icon" type="image/png" href="../img/icons/candy-lister.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/candy-lister.png" alt="CandyLister" onerror="this.style.display='none'">
+      <div>
+        <h2>CandyLister</h2>
+        <p class="detail-sub">Tree / list view with box-drawing prefixes + cursor nav</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/treilik/bubblelister" style="color: inherit;">treilik/bubblelister</a></span>
+          <span class="tag-chip">tree</span><span class="tag-chip">list</span><span class="tag-chip">view</span><span class="tag-chip">navigation</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Tree and flat list views with customizable box-drawing prefixes, cursor navigation, and word-wrap. Composeable with any bubbletea model.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/candy-lister</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Lister\{Model, Item, StringItem};
+
+$items = [
+    new StringItem('folder', 'src/'),
+    new StringItem('item',   'src/main.php'),
+    new StringItem('item',   'src/Model.php'),
+    new StringItem('folder', 'tests/'),
+    new StringItem('item',   'tests/MainTest.php'),
+];
+
+$model = Model::fromItems($items);
+echo $model-&gt;view();</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>Box-drawing prefixes</strong><span>Customizable prefixers per depth level — lines, bullets, arrows.</span></div>
+            <div class="feature"><strong>Cursor navigation</strong><span>Up / Down / Home / End movement with viewport tracking.</span></div>
+            <div class="feature"><strong>Word-wrap</strong><span>Auto-wrap long items to terminal width.</span></div>
+            <div class="feature"><strong>Filter</strong><span>Type to filter items in real-time.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/candy-lister">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/candy-lister/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/candy-lister/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/treilik/bubblelister">treilik/bubblelister</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

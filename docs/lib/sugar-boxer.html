@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SugarBoxer — SugarCraft</title>
+<meta name="description" content="SugarBoxer: Box-drawing layout engine for terminal UIs. PHP port of treilik/bubbleboxer.">
+<meta property="og:title" content="SugarBoxer — SugarCraft">
+<meta property="og:description" content="Box-drawing layout engine for terminal UIs. Port of treilik/bubbleboxer.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-boxer.png">
+<link rel="icon" type="image/png" href="../img/icons/sugar-boxer.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/sugar-boxer.png" alt="SugarBoxer" onerror="this.style.display='none'">
+      <div>
+        <h2>SugarBoxer</h2>
+        <p class="detail-sub">Box-drawing layout engine for terminal UIs</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/treilik/bubbleboxer" style="color: inherit;">treilik/bubbleboxer</a></span>
+          <span class="tag-chip">layout</span><span class="tag-chip">box</span><span class="tag-chip">border</span><span class="tag-chip">ui</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Compose terminal layouts with horizontal and vertical panels. Attach borders, set individual widths/heights, and nest arbitrarily deep.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/sugar-boxer</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Boxer\{Boxer, BoxerNode};
+
+$layout = Boxer::row()
+    -&gt;addH(Panel::new('Sidebar', 20))
+    -&gt;addV(
+        Panel::new('Header', 3),
+        Panel::new('Content', null),
+        Panel::new('Footer', 1),
+    );
+
+echo $layout-&gt;render(80, 24);</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>H/V panels</strong><span>Row and column composition with weighted sizing.</span></div>
+            <div class="feature"><strong>Borders</strong><span>Pre-attached or custom borders per panel.</span></div>
+            <div class="feature"><strong>Nested layouts</strong><span>Arbitrarily deep nesting — grids within grids.</span></div>
+            <div class="feature"><strong>Word-wrap</strong><span>Content-aware panel sizing.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/sugar-boxer">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-boxer/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-boxer/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/treilik/bubbleboxer">treilik/bubbleboxer</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

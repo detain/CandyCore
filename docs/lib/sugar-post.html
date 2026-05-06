@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SugarPost — SugarCraft</title>
+<meta name="description" content="SugarPost: Email sending — SMTP, API transports, attachments. PHP port of charmbracelet/skate.">
+<meta property="og:title" content="SugarPost — SugarCraft">
+<meta property="og:description" content="Email sending — SMTP, API transports, attachments. Port of charmbracelet/skate.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-post.png">
+<link rel="icon" type="image/png" href="../img/icons/sugar-post.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/sugar-post.png" alt="SugarPost" onerror="this.style.display='none'">
+      <div>
+        <h2>SugarPost</h2>
+        <p class="detail-sub">Email sending — SMTP, API transports, attachments</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/charmbracelet/skate" style="color: inherit;">charmbracelet/skate</a></span>
+          <span class="tag-chip">email</span><span class="tag-chip">mail</span><span class="tag-chip">smtp</span><span class="tag-chip">attachment</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Email builder and sender. SMTP transport, Resend API transport, attachment support, HTML + plain-text multipart, and a fluent interface.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/sugar-post</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Post\{Email, SmtpTransport, Attachment};
+
+$email = (new Email())
+    -&gt;from('noreply@example.com')
+    -&gt;to('user@example.com')
+    -&gt;subject('Deployment complete')
+    -&gt;text('Your app was deployed successfully.')
+    -&gt;html('&lt;p&gt;Your app was deployed &lt;strong&gt;successfully&lt;/strong&gt;.&lt;/p&gt;')
+    -&gt;attach(Attachment::fromPath('/tmp/build.zip', 'build.zip'));
+
+$transport = new SmtpTransport('smtp.example.com', 587);
+$transport-&gt;send($email);</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>SMTP transport</strong><span>TCP connection with TLS, auth (plain/login), and batching.</span></div>
+            <div class="feature"><strong>Resend transport</strong><span>API-based sending via Resend.com — no SMTP needed.</span></div>
+            <div class="feature"><strong>Attachments</strong><span>Local files, memory content, custom MIME types.</span></div>
+            <div class="feature"><strong>HTML + Text</strong><span>Multipart/alternative email bodies.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/sugar-post">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-post/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-post/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/charmbracelet/skate">charmbracelet/skate</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

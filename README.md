@@ -26,7 +26,7 @@ composer require candycore/candycore
 
 ## What's in the box
 
-Sixteen libraries grouped by layer:
+Thirty-one libraries grouped by layer:
 
 | | Library | Role |
 |---|---|---|
@@ -46,6 +46,21 @@ Sixteen libraries grouped by layer:
 | <img src="media/icons/candy-wish.png" width="48" alt=""> | **[CandyWish](candy-wish/)** | SSH server middleware — Logger, Auth, RateLimit, BubbleTea (mount a CandyCore Program over `ForceCommand`). Port of [wish](https://github.com/charmbracelet/wish). |
 | <img src="media/icons/sugar-wishlist.png" width="48" alt=""> | **[SugarWishlist](sugar-wishlist/)** | TUI directory of SSH endpoints — YAML/JSON config + `pcntl_exec` into the chosen `ssh`. Port of [wishlist](https://github.com/charmbracelet/wishlist). |
 | <img src="media/icons/candy-metrics.png" width="48" alt=""> | **[CandyMetrics](candy-metrics/)** | Telemetry primitives — counters, gauges, histograms with InMemory / JSON / StatsD / Prometheus textfile / Multi backends, plus a CandyWish session middleware. Port of [promwish](https://github.com/charmbracelet/promwish). |
+| <img src="media/icons/candy-log.png" width="48" alt=""> | **[CandyLog](candy-log/)** | Colorful leveled logger — Debug / Info / Warn / Error / Fatal with structured context, Text / JSON / Logfmt formatters, sub-loggers, and StandardLogAdapter. Port of [log](https://github.com/charmbracelet/log) |
+| <img src="media/icons/candy-palette.png" width="48" alt=""> | **[CandyPalette](candy-palette/)** | Terminal color profile detection + ANSI / ANSI256 / TrueColor conversion. StandardColors and ProfileWriter. Port of [colorprofile](https://github.com/charmbracelet/colorprofile) |
+| <img src="media/icons/candy-lister.png" width="48" alt=""> | **[CandyLister](candy-lister/)** | Tree/list view with box-drawing prefixes, cursor navigation, word-wrap, and filter-as-you-type. Port of [bubblelister](https://github.com/treilik/bubblelister) |
+| <img src="media/icons/sugar-boxer.png" width="48" alt=""> | **[SugarBoxer](sugar-boxer/)** | Box-drawing layout engine — H/V panel composition with weighted sizing, borders, and nested grids. Port of [bubbleboxer](https://github.com/treilik/bubbleboxer) |
+| <img src="media/icons/sugar-veil.png" width="48" alt=""> | **[SugarVeil](sugar-veil/)** | Terminal overlay compositor — push/pop overlay views with z-ordering, positioning, and per-overlay teardown. Port of [bubbletea-overlay](https://github.com/rmhubbert/bubbletea-overlay) |
+| <img src="media/icons/sugar-crumbs.png" width="48" alt=""> | **[SugarCrumbs](sugar-crumbs/)** | Navigation breadcrumbs — immutable NavStack with push/pop, shell-change detection, and type-ahead filter. Port of [bubbleo](https://github.com/KevM/bubbleo) |
+| <img src="media/icons/candy-hermit.png" width="48" alt=""> | **[CandyHermit](candy-hermit/)** | Fuzzy finder overlay — type to filter a list, arrow keys to select, Enter to confirm. Bubbletea Model wrapper. Port of [theHermit](https://github.com/Genekkion/theHermit) |
+| <img src="media/icons/sugar-stickers.png" width="48" alt=""> | **[SugarStickers](sugar-stickers/)** | FlexBox layout engine + simple sort/filter table. Ratio-based sizing, gap, justify, align, per-column styling. Port of [stickers](https://github.com/76creates/stickers) |
+| <img src="media/icons/sugar-toast.png" width="48" alt=""> | **[SugarToast](sugar-toast/)** | Floating notification overlays — Info / Success / Warning / Error types, configurable position and auto-dismiss. Port of [bubbleup](https://github.com/DaltonSW/bubbleup) |
+| <img src="media/icons/sugar-calendar.png" width="48" alt=""> | **[SugarCalendar](sugar-calendar/)** | Interactive month-grid date picker — keyboard navigation, min/max date constraints, locale day names, ANSI rendering. Port of [bubble-datepicker](https://github.com/EthanEFung/bubble-datepicker) |
+| <img src="media/icons/sugar-readline.png" width="48" alt=""> | **[SugarReadline](sugar-readline/)** | Interactive prompts — Text, Confirm, Selection, MultiSelect, Textarea. State-machine model, no external readline dependency. Port of [promptkit](https://github.com/erikgeiser/promptkit) |
+| <img src="media/icons/sugar-table.png" width="48" alt=""> | **[SugarTable](sugar-table/)** | Full-featured interactive data table — column definitions, StyledCell ANSI formatting, pagination, frozen rows/cols. Port of [bubble-table](https://github.com/Evertras/bubble-table) |
+| <img src="media/icons/sugar-skate.png" width="48" alt=""> | **[SugarSkate](sugar-skate/)** | In-memory key/value store with plugin backends — Memory, SQLite, Badger. Glob listing, TTL, batch operations. Port of [skate](https://github.com/charmbracelet/skate) |
+| <img src="media/icons/sugar-post.png" width="48" alt=""> | **[SugarPost](sugar-post/)** | Email sending library — SMTP + Resend API transports, attachments, HTML + plain-text multipart, fluent interface. Port of [skate](https://github.com/charmbracelet/skate) |
+| <img src="media/icons/candy-serve.png" width="48" alt=""> | **[CandyServe](candy-serve/)** | Self-hostable Git server over SSH (authorized keys), Git daemon, and HTTP. Users, repos, access control, optional LFS. Port of [soft-serve](https://github.com/charmbracelet/soft-serve) |
 
 ## Apps built on the stack
 

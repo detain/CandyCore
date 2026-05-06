@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SugarToast — SugarCraft</title>
+<meta name="description" content="SugarToast: Floating notification overlays. PHP port of DaltonSW/bubbleup.">
+<meta property="og:title" content="SugarToast — SugarCraft">
+<meta property="og:description" content="Floating notification overlays. Port of DaltonSW/bubbleup.">
+<meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-toast.png">
+<link rel="icon" type="image/png" href="../img/icons/sugar-toast.png">
+<link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+
+<nav class="nav"><div class="nav-inner">
+    <a class="brand" href="../"><span class="logo-mark"></span>SugarCraft</a>
+    <div class="nav-links">
+        <a href="../#libraries">Libraries</a>
+        <a href="../#apps">Apps</a>
+        <a href="../#demos">Demos</a>
+        <a href="../#quickstart">Quickstart</a>
+        <a href="../compare.html">Compare</a>
+        <a href="https://github.com/sugarcraft" class="btn btn-ghost">GitHub →</a>
+    </div>
+</div></nav>
+
+<section class="section">
+  <div class="container">
+    <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
+
+    <div class="detail-header">
+      <img class="detail-icon" src="../img/icons/sugar-toast.png" alt="SugarToast" onerror="this.style.display='none'">
+      <div>
+        <h2>SugarToast</h2>
+        <p class="detail-sub">Floating notification overlays</p>
+        <div class="detail-meta">
+          <span class="tag-chip accent">port of <a href="https://github.com/DaltonSW/bubbleup" style="color: inherit;">DaltonSW/bubbleup</a></span>
+          <span class="tag-chip">notification</span><span class="tag-chip">toast</span><span class="tag-chip">alert</span><span class="tag-chip">overlay</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="lede" style="margin-top: 28px;">Non-blocking floating notifications that appear at the top or bottom of the terminal. Info, Success, Warning, Error types. Auto-dismiss or manual dismiss.</p>
+
+    <h3 style="margin-top: 32px;">Install</h3>
+    <pre class="code"><code>composer require candycore/sugar-toast</code></pre>
+
+    <h3 style="margin-top: 32px;">Quickstart</h3>
+    <pre class="code"><code>use CandyCore\Toast\{Toast, ToastType};
+
+$toast = Toast::new('Deployment complete!', ToastType::Success);
+$toast = $toast-&gt;withDuration(5000);  // ms
+$toast = $toast-&gt;withPosition('bottom');
+
+// Render: outputs ANSI-styled notification string
+echo $toast-&gt;render();</code></pre>
+
+    <h3 style="margin-top: 32px;">What's in the box</h3>
+    <div class="feature-grid">
+      <div class="feature"><strong>Four types</strong><span>Info, Success, Warning, Error — each with a distinct symbol and color.</span></div>
+            <div class="feature"><strong>Positions</strong><span>Top, Bottom, TopCenter, BottomCenter.</span></div>
+            <div class="feature"><strong>Auto-dismiss</strong><span>Configurable duration; Toast::Update triggers removal.</span></div>
+            <div class="feature"><strong>Symbol sets</strong><span>Default, SuccessCheck, WarningTriangle, ErrorX.</span></div>
+            
+    </div>
+
+    <h3 style="margin-top: 40px;">Source &amp; demos</h3>
+    <ul>
+      <li><a href="https://github.com/sugarcraft/sugar-toast">Source on GitHub</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-toast/blob/main/README.md">Full README</a></li>
+      <li><a href="https://github.com/sugarcraft/sugar-toast/tree/main/examples">Runnable examples</a></li>
+      <li>Port of <a href="https://github.com/DaltonSW/bubbleup">DaltonSW/bubbleup</a> (Go upstream)</li>
+    </ul>
+
+    <p style="margin-top: 48px;"><a href="../#quickstart" class="btn btn-primary">Try the quickstart →</a></p>
+  </div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>
+        <div>
+            <a href="https://github.com/sugarcraft">GitHub</a> ·
+            <a href="https://github.com/detain/sugarcraft/blob/master/CONVERSION.md">Architecture</a>
+        </div>
+    </div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
