@@ -49,4 +49,67 @@ final class BindingTest extends TestCase
         $this->assertSame('', $h->key);
         $this->assertSame('', $h->desc);
     }
+
+    public function testSetKeysReplaces(): void
+    {
+        $b = new Binding(['up'], new Help('↑', 'up'));
+        $b2 = $b->setKeys(['k']);
+        $this->assertSame(['k'], $b2->getKeys());
+        $this->assertSame(['up'], $b->getKeys()); // immutable
+    }
+
+    public function testSetHelpAlias(): void
+    {
+        $b = new Binding(['up']);
+        $b2 = $b->setHelp('↑/k', 'move up');
+        $this->assertSame('↑/k',     $b2->getHelp()->key);
+        $this->assertSame('move up', $b2->getHelp()->desc);
+    }
+
+    public function testEnabledReflectsDisabledFlag(): void
+    {
+        $b = new Binding(['up']);
+        $this->assertTrue($b->enabled());
+        $disabled = $b->disable();
+        $this->assertFalse($disabled->enabled());
+    }
+
+    public function testSetEnabledFlipsFlag(): void
+    {
+        $b = (new Binding(['up']))->disable();
+        $on = $b->setEnabled(true);
+        $this->assertTrue($on->enabled());
+        $off = $on->setEnabled(false);
+        $this->assertFalse($off->enabled());
+    }
+
+    public function testUnbindClearsKeys(): void
+    {
+        $b = new Binding(['up', 'k'], new Help('↑/k', 'up'));
+        $u = $b->unbind();
+        $this->assertSame([], $u->getKeys());
+        $this->assertSame('↑/k', $u->getHelp()->key);
+    }
+
+    public function testAnyMatchesAcrossBindings(): void
+    {
+        $up   = new Binding(['up', 'k']);
+        $down = new Binding(['down', 'j']);
+        $key  = new KeyMsg(KeyType::Down);
+        $this->assertTrue(Binding::any($key, $up, $down));
+
+        $j = new KeyMsg(KeyType::Char, 'j');
+        $this->assertTrue(Binding::any($j, $up, $down));
+
+        $other = new KeyMsg(KeyType::Char, 'x');
+        $this->assertFalse(Binding::any($other, $up, $down));
+    }
+
+    public function testAnySkipsDisabled(): void
+    {
+        $down  = (new Binding(['down', 'j']))->disable();
+        $other = new Binding(['other']);
+        $j = new KeyMsg(KeyType::Char, 'j');
+        $this->assertFalse(Binding::any($j, $down, $other));
+    }
 }
