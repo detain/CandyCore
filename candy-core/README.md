@@ -156,6 +156,140 @@ emit lines that scroll above the program region.
 A typical CandyShell prompt (`gum input`-style) uses inline mode;
 a fullscreen filter (`gum filter`-style) uses alt-screen.
 
+## Tutorial — building a shopping list
+
+Every CandyCore program is three things: a **Model** (the state), an
+**update** (state transitions), and a **view** (a string). Here's a
+shopping list that walks through all three.
+
+```php
+use CandyCore\Core\{Cmd, KeyType, Model, Msg, Program};
+use CandyCore\Core\Msg\KeyMsg;
+
+final class ShoppingList implements Model
+{
+    /** @param list<string> $items @param array<int,bool> $bought */
+    public function __construct(
+        public readonly array $items,
+        public readonly array $bought = [],
+        public readonly int $cursor = 0,
+    ) {}
+
+    // 1. init() runs once at startup. Return a Cmd or null.
+    public function init(): ?\Closure { return null; }
+
+    // 2. update() takes a Msg and returns [newModel, ?Cmd].
+    public function update(Msg $msg): array
+    {
+        if (!$msg instanceof KeyMsg) {
+            return [$this, null];
+        }
+        return match (true) {
+            $msg->type === KeyType::Char && $msg->rune === 'q'
+                => [$this, Cmd::quit()],
+            $msg->type === KeyType::Up
+                => [new self($this->items, $this->bought, max(0, $this->cursor - 1)), null],
+            $msg->type === KeyType::Down
+                => [new self($this->items, $this->bought, min(count($this->items) - 1, $this->cursor + 1)), null],
+            $msg->type === KeyType::Space => [
+                new self(
+                    $this->items,
+                    [...$this->bought, $this->cursor => !($this->bought[$this->cursor] ?? false)],
+                    $this->cursor,
+                ),
+                null,
+            ],
+            default => [$this, null],
+        };
+    }
+
+    // 3. view() renders the current state. Pure function — no side effects.
+    public function view(): string
+    {
+        $lines = ["Shopping list:\n"];
+        foreach ($this->items as $i => $name) {
+            $cursor = $i === $this->cursor ? '>' : ' ';
+            $check  = ($this->bought[$i] ?? false) ? '[x]' : '[ ]';
+            $lines[] = "  $cursor $check $name";
+        }
+        $lines[] = "\n(↑/↓ to move, space to toggle, q to quit)";
+        return implode("\n", $lines);
+    }
+}
+
+(new Program(new ShoppingList(['eggs', 'milk', 'bread', 'candy'])))->run();
+```
+
+Three rules carry through to every program:
+
+1. **Model is immutable.** `update()` returns a *new* Model, never
+   mutates the receiver. This buys you snapshot debugging, time
+   travel, undo — all for free.
+2. **Cmds run async.** `update()` decides what should happen; the
+   runtime applies the resulting Cmd. A Cmd is a closure returning
+   a Msg.
+3. **view() is pure.** Same Model in → same string out. Side
+   effects (writing to disk, hitting an HTTP endpoint, blinking the
+   cursor) all live in Cmds, never in `view()`.
+
+Once you've internalised the loop, every other CandyCore feature is
+just a richer Msg or a more interesting Cmd.
+
+## Debugging tips
+
+The renderer owns stdout — printing to it from `update()` or `view()`
+will be overwritten on the next frame. The two ways to surface
+debug info from inside a running program:
+
+1. **Log to a file.** Tail the file from another terminal:
+   ```php
+   error_log('counter is now ' . $count . "\n", 3, '/tmp/candy.log');
+   ```
+   ```sh
+   $ tail -f /tmp/candy.log
+   ```
+2. **Use `Cmd::println()`.** Lines emitted via `Cmd::println()`
+   print *above* the program region (alt-screen and inline mode
+   both honour this) — perfect for "I got here" prints during
+   development.
+
+Other gotchas:
+
+- **Don't return `null` from `Model::view()`.** The runtime expects
+  a string. Return `''` for an empty frame.
+- **Don't block the main thread** in `update()` or `view()` — the
+  runtime won't pump frames while you're sleeping. Long work goes
+  in a Cmd that emits a Msg when it finishes.
+- **Test the Model in isolation.** Drive `update()` with scripted
+  Msgs in PHPUnit; the runtime is irrelevant for state-machine
+  testing. (See `candy-core/tests/Model/` for the pattern.)
+- **Profile with `--bail`.** If a render is slow, the cell-diff
+  renderer skips unchanged regions — make sure your `view()` is
+  deterministic so the diff stays cheap.
+
+## Mouse support — cell-motion vs all-motion
+
+Pass `MouseMode::CellMotion` (only emit motion events while a
+button is held) or `MouseMode::AllMotion` (emit every motion event
+including bare-cursor moves) to `ProgramOptions`. Pick:
+
+- **`CellMotion`** when the model only cares about clicks + drags
+  (most apps). Fewer Msgs flow through `update()`, lighter on the
+  parser, plays nicely with terminal copy/paste because the user
+  can hold Shift to bypass mouse capture.
+- **`AllMotion`** when the model reacts to hover state (tooltips,
+  fancy cursor effects, drag-preview overlays). Trade: every
+  motion event lands in `update()`, so use a `MouseMode::CellMotion`
+  stub for non-hover frames if perf bites.
+
+`MouseMsg` carries a `MouseAction` enum (`Press` / `Release` /
+`Motion` / `WheelUp` / `WheelDown`) and 1-based `col` / `row`
+coordinates. The four `MouseClickMsg` / `MouseReleaseMsg` /
+`MouseMotionMsg` / `MouseWheelMsg` subclasses let you match by class
+when that's more convenient.
+
+`examples/mouse.php` is a runnable demonstrator.
+
 ## Test
 
 ```sh
