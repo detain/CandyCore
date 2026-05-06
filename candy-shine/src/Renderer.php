@@ -200,6 +200,14 @@ final class Renderer
         $document = $this->parser->parse($markdown);
         $rendered = $this->renderChildren($document);
         $rendered = rtrim($rendered, "\n");
+        if ($this->theme->documentIndent > 0) {
+            $indent = str_repeat(' ', $this->theme->documentIndent);
+            $rendered = $indent . str_replace("\n", "\n" . $indent, $rendered);
+        }
+        if ($this->theme->documentMargin > 0) {
+            $margin = str_repeat("\n", $this->theme->documentMargin);
+            $rendered = $margin . $rendered . $margin;
+        }
         if ($this->preservedNewLines) {
             // CommonMark collapses `\n\n+` to one blank-line break;
             // re-inflate by counting source blank lines and padding the
@@ -267,7 +275,9 @@ final class Renderer
             $node instanceof ListBlock     => $this->renderList($node),
             $node instanceof ListItem      => $this->renderChildren($node),
             $node instanceof MdTable       => $this->renderTable($node),
-            $node instanceof ThematicBreak => $this->theme->rule->render(str_repeat('─', 40)) . "\n\n",
+            $node instanceof ThematicBreak => $this->theme->rule->render(
+                str_repeat($this->theme->horizontalRuleGlyph, max(1, $this->theme->horizontalRuleLength))
+            ) . "\n\n",
             $node instanceof Strong        => $this->theme->bold->render($this->renderChildren($node)),
             $node instanceof Emphasis      => $this->theme->italic->render($this->renderChildren($node)),
             $node instanceof Strikethrough => $this->renderStrike($node),
@@ -408,6 +418,7 @@ final class Renderer
         $ordered = $data->type === ListBlock::TYPE_ORDERED;
         $start   = (int) ($data->start ?? 1);
         $marker  = $this->theme->listMarker;
+        $levelIndent = max(0, $this->theme->listLevelIndent);
 
         $out = '';
         $i   = $start;
@@ -421,7 +432,11 @@ final class Renderer
 
             $lines  = explode("\n", $body);
             $first  = array_shift($lines) ?? '';
-            $indent = str_repeat(' ', mb_strlen($bullet, 'UTF-8') + 1);
+            // Continuation indent: max of bullet width and configured
+            // listLevelIndent so nested lists indent uniformly per
+            // theme. Default levelIndent (4) matches glamour stock.
+            $indentN = max(mb_strlen($bullet, 'UTF-8') + 1, $levelIndent);
+            $indent  = str_repeat(' ', $indentN);
 
             // CommonMark softbreaks leave trailing whitespace on the
             // preceding Text node; rtrim every emitted line so item
@@ -523,7 +538,9 @@ final class Renderer
      */
     private function renderTaskMarker(TaskListItemMarker $marker): string
     {
-        $glyph = $marker->isChecked() ? '☑' : '☐';
+        $glyph = $marker->isChecked()
+            ? $this->theme->taskTickedGlyph
+            : $this->theme->taskUntickedGlyph;
         return $this->theme->listMarker->render($glyph);
     }
 }

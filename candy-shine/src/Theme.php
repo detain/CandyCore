@@ -52,6 +52,33 @@ final class Theme
         public readonly ?Style $text = null,
         /** Auto-detected URLs (`https://x`) when not wrapped in `[...]`. */
         public readonly ?Style $autolink = null,
+
+        // ---- glamour-element parity (audit #9) ----
+        /**
+         * Outer document margin: number of blank lines emitted before
+         * the document body. Mirrors glamour's `Document.Margin`.
+         */
+        public readonly int $documentMargin = 0,
+        /**
+         * Number of cells the document is indented from the left edge.
+         * Mirrors glamour's `Document.Indent`.
+         */
+        public readonly int $documentIndent = 0,
+        /**
+         * Indentation cells per list nesting level. Mirrors glamour's
+         * per-list `LevelIndent`. Default 0 means "use bullet width
+         * + 1" (the prior behaviour); set explicitly to a positive
+         * value to override (glamour stock dark / light themes use 4).
+         */
+        public readonly int $listLevelIndent = 0,
+        /** Glyph rendered for a checked task list item (`[x]`). */
+        public readonly string $taskTickedGlyph = '☑',
+        /** Glyph rendered for an unchecked task list item (`[ ]`). */
+        public readonly string $taskUntickedGlyph = '☐',
+        /** Glyph repeated to draw a thematic break / horizontal rule. */
+        public readonly string $horizontalRuleGlyph = '─',
+        /** Cells the thematic-break glyph repeats across. Default 40. */
+        public readonly int $horizontalRuleLength = 40,
     ) {}
 
     /** Default ANSI theme: bright accents on each heading, coloured code, etc. */

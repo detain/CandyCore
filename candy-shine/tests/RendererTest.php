@@ -384,4 +384,75 @@ MD;
         $this->assertStringContainsString('first', $out);
         $this->assertStringContainsString('last',  $out);
     }
+
+    private function withTheme(Theme $t): Renderer
+    {
+        return new Renderer($t);
+    }
+
+    public function testCustomTaskGlyphs(): void
+    {
+        $base = Theme::plain();
+        $custom = new Theme(
+            heading1: $base->heading1, heading2: $base->heading2, heading3: $base->heading3,
+            heading4: $base->heading4, heading5: $base->heading5, heading6: $base->heading6,
+            paragraph: $base->paragraph, bold: $base->bold, italic: $base->italic,
+            code: $base->code, codeBlock: $base->codeBlock, link: $base->link,
+            blockquote: $base->blockquote, listMarker: $base->listMarker, rule: $base->rule,
+            taskTickedGlyph: '[x]', taskUntickedGlyph: '[ ]',
+        );
+        $out = $this->withTheme($custom)->render("- [x] done\n- [ ] todo");
+        $this->assertStringContainsString('[x] done', $out);
+        $this->assertStringContainsString('[ ] todo', $out);
+    }
+
+    public function testCustomHorizontalRule(): void
+    {
+        $base = Theme::plain();
+        $custom = new Theme(
+            heading1: $base->heading1, heading2: $base->heading2, heading3: $base->heading3,
+            heading4: $base->heading4, heading5: $base->heading5, heading6: $base->heading6,
+            paragraph: $base->paragraph, bold: $base->bold, italic: $base->italic,
+            code: $base->code, codeBlock: $base->codeBlock, link: $base->link,
+            blockquote: $base->blockquote, listMarker: $base->listMarker, rule: $base->rule,
+            horizontalRuleGlyph: '=', horizontalRuleLength: 8,
+        );
+        $out = $this->withTheme($custom)->render("---");
+        $this->assertStringContainsString('========', $out);
+        $this->assertStringNotContainsString('─', $out);
+    }
+
+    public function testDocumentMarginAndIndent(): void
+    {
+        $base = Theme::plain();
+        $custom = new Theme(
+            heading1: $base->heading1, heading2: $base->heading2, heading3: $base->heading3,
+            heading4: $base->heading4, heading5: $base->heading5, heading6: $base->heading6,
+            paragraph: $base->paragraph, bold: $base->bold, italic: $base->italic,
+            code: $base->code, codeBlock: $base->codeBlock, link: $base->link,
+            blockquote: $base->blockquote, listMarker: $base->listMarker, rule: $base->rule,
+            documentMargin: 2, documentIndent: 3,
+        );
+        $out = $this->withTheme($custom)->render('hello');
+        // 2 leading newlines (margin) + 3-space indent on the body line.
+        $this->assertStringStartsWith("\n\n   hello", $out);
+        $this->assertStringEndsWith("\n\n", $out);
+    }
+
+    public function testListLevelIndentOverridesBulletWidth(): void
+    {
+        $base = Theme::plain();
+        $custom = new Theme(
+            heading1: $base->heading1, heading2: $base->heading2, heading3: $base->heading3,
+            heading4: $base->heading4, heading5: $base->heading5, heading6: $base->heading6,
+            paragraph: $base->paragraph, bold: $base->bold, italic: $base->italic,
+            code: $base->code, codeBlock: $base->codeBlock, link: $base->link,
+            blockquote: $base->blockquote, listMarker: $base->listMarker, rule: $base->rule,
+            listLevelIndent: 6,
+        );
+        $out = $this->withTheme($custom)->render("- one\n  continuation");
+        // The continuation should be indented 6 spaces (overriding the
+        // default bullet+space width of 2).
+        $this->assertStringContainsString('      continuation', $out);
+    }
 }
