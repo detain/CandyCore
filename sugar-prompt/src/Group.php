@@ -42,6 +42,8 @@ final class Group
         public readonly string $title,
         public readonly string $description,
         public readonly ?\Closure $hideFunc,
+        public readonly bool $showHelp = true,
+        public readonly ?Theme $theme = null,
     ) {}
 
     public static function new(Field ...$fields): self
@@ -57,12 +59,33 @@ final class Group
 
     public function withTitle(string $title): self
     {
-        return new self($this->fields, $title, $this->description, $this->hideFunc);
+        return new self($this->fields, $title, $this->description, $this->hideFunc, $this->showHelp, $this->theme);
     }
 
     public function withDescription(string $desc): self
     {
-        return new self($this->fields, $this->title, $desc, $this->hideFunc);
+        return new self($this->fields, $this->title, $desc, $this->hideFunc, $this->showHelp, $this->theme);
+    }
+
+    /**
+     * Per-group help-bar toggle. When false, the {@see Form} suppresses
+     * the help line while this group is active. Default true. Mirrors
+     * huh's `Group.WithShowHelp`.
+     */
+    public function withShowHelp(bool $on = true): self
+    {
+        return new self($this->fields, $this->title, $this->description, $this->hideFunc, $on, $this->theme);
+    }
+
+    /**
+     * Override the {@see Form} theme while this group is active. Useful
+     * when a particular page wants a different palette (e.g. a "danger"
+     * page in red). Pass null to inherit the form-level theme. Mirrors
+     * huh's `Group.WithTheme`.
+     */
+    public function withTheme(?Theme $theme): self
+    {
+        return new self($this->fields, $this->title, $this->description, $this->hideFunc, $this->showHelp, $theme);
     }
 
     /**
@@ -75,7 +98,7 @@ final class Group
      */
     public function withHideFunc(?\Closure $fn): self
     {
-        return new self($this->fields, $this->title, $this->description, $fn);
+        return new self($this->fields, $this->title, $this->description, $fn, $this->showHelp, $this->theme);
     }
 
     /** @param array<string,mixed> $values */
@@ -87,6 +110,6 @@ final class Group
     /** @param list<Field>|null $fields */
     public function withFields(array $fields): self
     {
-        return new self(array_values($fields), $this->title, $this->description, $this->hideFunc);
+        return new self(array_values($fields), $this->title, $this->description, $this->hideFunc, $this->showHelp, $this->theme);
     }
 }

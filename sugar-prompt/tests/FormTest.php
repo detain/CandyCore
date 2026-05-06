@@ -516,4 +516,26 @@ final class FormTest extends TestCase
         $form2 = $form->withHeight(24);
         $this->assertSame(24, $form2->height);
     }
+
+    public function testWithTimeoutClampsToZero(): void
+    {
+        $form = Form::new(Input::new('a'))->withTimeout(-100);
+        $this->assertSame(0, $form->timeoutMs());
+        $form2 = $form->withTimeout(15000);
+        $this->assertSame(15000, $form2->timeoutMs());
+    }
+
+    public function testActiveThemePrefersGroupOverride(): void
+    {
+        $custom = \CandyCore\Prompt\Theme::ansi();
+        $form = Form::groups(
+            \CandyCore\Prompt\Group::new(Input::new('a'))->withTheme($custom),
+        );
+        // Group override wins.
+        $this->assertSame($custom, $form->activeTheme());
+
+        // Group with no override falls back to form theme.
+        $form2 = Form::groups(\CandyCore\Prompt\Group::new(Input::new('a')));
+        $this->assertSame($form2->theme, $form2->activeTheme());
+    }
 }

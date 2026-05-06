@@ -22,6 +22,9 @@ final class Input implements Field
     /** @var (\Closure(string):?string)|null */
     private $validator;
 
+    /** @var (\Closure(string):list<string>)|null */
+    private $suggestionsFunc;
+
     private function __construct(
         public readonly string $key,
         public readonly TextInput $input,
@@ -29,8 +32,10 @@ final class Input implements Field
         public readonly string $description,
         public readonly ?string $error,
         ?\Closure $validator = null,
+        ?\Closure $suggestionsFunc = null,
     ) {
         $this->validator = $validator;
+        $this->suggestionsFunc = $suggestionsFunc;
     }
 
     public static function new(string $key): self
@@ -51,10 +56,71 @@ final class Input implements Field
     public function withCharLimit(int $n): self      { return $this->mutate(input: $this->input->withCharLimit($n)); }
     public function withWidth(int $w): self          { return $this->mutate(input: $this->input->withWidth($w)); }
 
+    /**
+     * Mask the rendered value with a fixed echo character. Mirrors huh's
+     * `Password()` modifier — handy for token / passphrase prompts.
+     * Pass empty string to clear masking.
+     */
+    public function withPassword(bool $on = true, string $echoChar = '*'): self
+    {
+        if ($on) {
+            $next = $this->input
+                ->withEchoMode(\CandyCore\Bits\TextInput\EchoMode::Password)
+                ->withEchoChar($echoChar === '' ? '*' : $echoChar);
+        } else {
+            $next = $this->input->withEchoMode(\CandyCore\Bits\TextInput\EchoMode::Normal);
+        }
+        return $this->mutate(input: $next);
+    }
+
+    /**
+     * Provide an autocomplete pool that the user can cycle with the
+     * default TextInput suggestion bindings. Pass an empty list (or omit)
+     * to disable. Mirrors huh's `Suggestions([]string)`.
+     *
+     * @param list<string> $candidates
+     */
+    public function withSuggestions(array $candidates): self
+    {
+        $next = $this->input
+            ->withSuggestions($candidates)
+            ->showSuggestions($candidates !== []);
+        return $this->mutate(input: $next);
+    }
+
+    /**
+     * Dynamic suggestions: the closure receives the current input value
+     * (post-keystroke) and returns the candidate list to display. Mirrors
+     * huh's `SuggestionsFunc`. The closure is re-evaluated on every
+     * keystroke so callers can hit a remote completion endpoint, etc.
+     *
+     * @param \Closure(string):list<string> $fn
+     */
+    public function withSuggestionsFunc(\Closure $fn): self
+    {
+        return new self(
+            $this->key,
+            $this->input,
+            $this->title,
+            $this->description,
+            $this->error,
+            $this->validator,
+            $fn,
+        );
+    }
+
     /** @param \Closure(string):?string $fn returns null on valid, error string on invalid */
     public function withValidator(\Closure $fn): self
     {
-        return new self($this->key, $this->input, $this->title, $this->description, $this->error, $fn);
+        return new self(
+            $this->key,
+            $this->input,
+            $this->title,
+            $this->description,
+            $this->error,
+            $fn,
+            $this->suggestionsFunc,
+        );
     }
 
     public function key(): string  { return $this->key; }
@@ -74,6 +140,10 @@ final class Input implements Field
     public function update(Msg $msg): array
     {
         [$ti, $cmd] = $this->input->update($msg);
+        if ($this->suggestionsFunc !== null) {
+            $candidates = ($this->suggestionsFunc)($ti->value);
+            $ti = $ti->withSuggestions($candidates)->showSuggestions($candidates !== []);
+        }
         $next = $this->mutate(input: $ti);
         $next = $next->validate();
         return [$next, $cmd];
@@ -113,18 +183,19 @@ final class Input implements Field
         if ($err === $this->error) {
             return $this;
         }
-        return new self($this->key, $this->input, $this->title, $this->description, $err, $this->validator);
+        return new self($this->key, $this->input, $this->title, $this->description, $err, $this->validator, $this->suggestionsFunc);
     }
 
     private function mutate(?TextInput $input = null, ?string $title = null, ?string $description = null, ?string $error = null): self
     {
         return new self(
-            key:         $this->key,
-            input:       $input       ?? $this->input,
-            title:       $title       ?? $this->title,
-            description: $description ?? $this->description,
-            error:       $error       ?? $this->error,
-            validator:   $this->validator,
+            key:             $this->key,
+            input:           $input       ?? $this->input,
+            title:           $title       ?? $this->title,
+            description:     $description ?? $this->description,
+            error:           $error       ?? $this->error,
+            validator:       $this->validator,
+            suggestionsFunc: $this->suggestionsFunc,
         );
     }
 }
