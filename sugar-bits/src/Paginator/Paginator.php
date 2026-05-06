@@ -31,6 +31,7 @@ final class Paginator implements Model
         public readonly Type $type,
         public readonly string $activeDot,
         public readonly string $inactiveDot,
+        public readonly string $arabicFormat = '%d/%d',
     ) {}
 
     public static function new(): self
@@ -76,7 +77,7 @@ final class Paginator implements Model
         $total = max(1, $this->totalPages());
         return match ($this->type) {
             Type::Dots => $this->renderDots($total),
-            Type::Arabic => sprintf('%d/%d', $this->page + 1, $total),
+            Type::Arabic => sprintf($this->arabicFormat, $this->page + 1, $total),
         };
     }
 
@@ -144,6 +145,50 @@ final class Paginator implements Model
         return $this->mutate(activeDot: $active, inactiveDot: $inactive);
     }
 
+    /**
+     * Format string for the Arabic page-counter view. Receives the
+     * 1-based current page and total page count, in that order.
+     * Default `'%d/%d'` (e.g. `"3/8"`); upstream Bubbles defaults to
+     * `'%d/%d'` for ASCII contexts but lets callers swap it for e.g.
+     * `'Page %d of %d'`. Mirrors `ArabicFormat`.
+     */
+    public function withArabicFormat(string $fmt): self
+    {
+        return $this->mutate(arabicFormat: $fmt);
+    }
+
+    /**
+     * Pin the total number of pages directly. Inverse of computing
+     * pages from `totalItems / perPage` — useful when the list isn't
+     * evenly partitioned by `perPage` (custom pagination strategies)
+     * or when the total isn't yet known and the caller wants to
+     * reserve N dots up-front. The total reflects through to
+     * {@see totalPages()} by setting `totalItems = pages * perPage`,
+     * which keeps the existing arithmetic consistent. Mirrors
+     * `SetTotalPages`.
+     */
+    public function setTotalPages(int $pages): self
+    {
+        $pages = max(0, $pages);
+        // Choose a totalItems that evaluates to exactly $pages via
+        // ceil(totalItems / perPage). The simplest is `pages * perPage`.
+        return $this->withTotalItems($pages * max(1, $this->perPage));
+    }
+
+    /**
+     * Number of items rendered on the current page. Equivalent to
+     * `min(perPage, totalItems - perPage * page)` clamped at 0.
+     * Mirrors `ItemsOnPage(totalItems)` minus the redundant arg.
+     */
+    public function itemsOnPage(): int
+    {
+        if ($this->totalItems <= 0 || $this->perPage <= 0) {
+            return 0;
+        }
+        $start = $this->page * $this->perPage;
+        return max(0, min($this->perPage, $this->totalItems - $start));
+    }
+
     private function renderDots(int $total): string
     {
         $out = [];
@@ -160,14 +205,16 @@ final class Paginator implements Model
         ?Type $type = null,
         ?string $activeDot = null,
         ?string $inactiveDot = null,
+        ?string $arabicFormat = null,
     ): self {
         return new self(
-            page:        $page        ?? $this->page,
-            perPage:     $perPage     ?? $this->perPage,
-            totalItems:  $totalItems  ?? $this->totalItems,
-            type:        $type        ?? $this->type,
-            activeDot:   $activeDot   ?? $this->activeDot,
-            inactiveDot: $inactiveDot ?? $this->inactiveDot,
+            page:         $page         ?? $this->page,
+            perPage:      $perPage      ?? $this->perPage,
+            totalItems:   $totalItems   ?? $this->totalItems,
+            type:         $type         ?? $this->type,
+            activeDot:    $activeDot    ?? $this->activeDot,
+            inactiveDot:  $inactiveDot  ?? $this->inactiveDot,
+            arabicFormat: $arabicFormat ?? $this->arabicFormat,
         );
     }
 }
