@@ -175,4 +175,26 @@ final class ItemListTest extends TestCase
         $this->assertStringContainsString('inner2', $out);
         $this->assertStringContainsString('- after', $out);
     }
+
+    public function testVariadicNewAcceptsItemsInOneCall(): void
+    {
+        $a = ItemList::new('apple', 'pear', 'quince');
+        $b = ItemList::new()->items(['apple', 'pear', 'quince']);
+        $this->assertSame($a->render(), $b->render());
+    }
+
+    public function testVariadicNewWithNoArgsIsEmpty(): void
+    {
+        $this->assertSame('', ItemList::new()->render());
+    }
+
+    public function testVariadicNewAcceptsNestedSublists(): void
+    {
+        $sub = ItemList::new('inner-1', 'inner-2');
+        $out = ItemList::new('outer', $sub, 'after')->render();
+        $this->assertStringContainsString('outer',   $out);
+        $this->assertStringContainsString('inner-1', $out);
+        $this->assertStringContainsString('inner-2', $out);
+        $this->assertStringContainsString('after',   $out);
+    }
 }
