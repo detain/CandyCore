@@ -33,6 +33,9 @@ final class ChooseCommand extends Command
             ->addOption('selected', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'Pre-selected option(s) (multi mode).', [])
             ->addOption('select-if-one', null, InputOption::VALUE_NONE, 'Auto-pick when exactly one option is supplied.')
             ->addOption('output-delimiter', null, InputOption::VALUE_REQUIRED, 'Separator for multi-select output.', "\n")
+            ->addOption('cursor', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before the highlighted item.', '> ')
+            ->addOption('cursor-prefix', null, InputOption::VALUE_REQUIRED, 'Alias for --cursor.', null)
+            ->addOption('unselected-prefix', null, InputOption::VALUE_REQUIRED, 'Glyph rendered before non-cursor items.', null)
             ->addOption('style', null, InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Per-element style: '<elem>.<prop>=<value>' (gum-compat).\n"
               . "Elements: cursor, header, selected, unselected.\n"
@@ -61,8 +64,20 @@ final class ChooseCommand extends Command
             return Command::SUCCESS;
         }
 
+        // --cursor-prefix is an alias for --cursor; user-supplied wins.
+        $cursor = $input->getOption('cursor-prefix') ?? $input->getOption('cursor');
+        $unselected = $input->getOption('unselected-prefix');
+
         $model   = ChooseModel::fromOptions(
-            $options, $height, $limit, $noLimit, $header, $preselected, $ordered,
+            $options,
+            $height,
+            $limit,
+            $noLimit,
+            $header,
+            $preselected,
+            $ordered,
+            cursorPrefix:     is_string($cursor) ? $cursor : null,
+            unselectedPrefix: is_string($unselected) ? $unselected : null,
         );
         $program = new Program($model, new ProgramOptions(
             useAltScreen:    true,

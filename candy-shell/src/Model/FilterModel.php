@@ -32,9 +32,17 @@ final class FilterModel implements Model
         array $preselected = [],
         bool $reverse = false,
         string $value = '',
+        ?string $cursorPrefix = null,
+        ?string $unselectedPrefix = null,
     ): self {
         $items = array_map(static fn(string $o) => new StringItem($o), $options);
         $list  = ItemList::new($items, 60, max(1, $height))->withShowDescription(false);
+        if ($cursorPrefix !== null) {
+            $list = $list->withCursorPrefix($cursorPrefix);
+        }
+        if ($unselectedPrefix !== null) {
+            $list = $list->withUnselectedPrefix($unselectedPrefix);
+        }
         if ($header !== '') {
             $list = $list->withTitle($header);
         }

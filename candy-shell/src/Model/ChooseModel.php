@@ -39,9 +39,17 @@ final class ChooseModel implements Model
         string $header = '',
         array $preselected = [],
         bool $ordered = false,
+        ?string $cursorPrefix = null,
+        ?string $unselectedPrefix = null,
     ): self {
         $items = array_map(static fn(string $o) => new StringItem($o), $options);
         $list  = ItemList::new($items, 60, max(1, $height))->withShowDescription(false);
+        if ($cursorPrefix !== null) {
+            $list = $list->withCursorPrefix($cursorPrefix);
+        }
+        if ($unselectedPrefix !== null) {
+            $list = $list->withUnselectedPrefix($unselectedPrefix);
+        }
         if ($header !== '') {
             $list = $list->withTitle($header);
         }
