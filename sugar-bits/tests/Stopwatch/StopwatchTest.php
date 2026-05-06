@@ -74,4 +74,35 @@ final class StopwatchTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Stopwatch::new(0.0);
     }
+
+    public function testIdAccessor(): void
+    {
+        $s = Stopwatch::new();
+        $this->assertSame($s->id, $s->id());
+    }
+
+    public function testElapsedAccessor(): void
+    {
+        $s = Stopwatch::new(0.5);
+        [$s, ] = $s->start();
+        [$s, ] = $s->update(new TickMsg($s->id));
+        $this->assertSame(0.5, $s->elapsed());
+    }
+
+    public function testToggleStartsWhenStopped(): void
+    {
+        $s = Stopwatch::new();
+        [$s2, $cmd] = $s->toggle();
+        $this->assertTrue($s2->isRunning());
+        $this->assertNotNull($cmd);
+    }
+
+    public function testToggleStopsWhenRunning(): void
+    {
+        $s = Stopwatch::new();
+        [$s, ] = $s->start();
+        [$s2, $cmd] = $s->toggle();
+        $this->assertFalse($s2->isRunning());
+        $this->assertNull($cmd);
+    }
 }

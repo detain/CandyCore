@@ -85,7 +85,27 @@ final class Stopwatch implements Model
         return new self(0.0, $this->interval, false, $this->id);
     }
 
+    /**
+     * Flip the running state. When running → stop; when stopped →
+     * start (returning the start cmd).
+     *
+     * @return array{0:self, 1:?\Closure}
+     */
+    public function toggle(): array
+    {
+        return $this->running ? [$this->stop(), null] : $this->start();
+    }
+
     public function isRunning(): bool { return $this->running; }
+
+    /**
+     * Stable per-instance ID — used by {@see TickMsg} to route the
+     * matching update events. Mirrors the upstream Bubbles `ID()`.
+     */
+    public function id(): int { return $this->id; }
+
+    /** Elapsed wall-clock seconds since the last reset / new(). */
+    public function elapsed(): float { return $this->elapsed; }
 
     private function tick(): \Closure
     {

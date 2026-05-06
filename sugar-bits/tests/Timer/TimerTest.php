@@ -111,4 +111,27 @@ final class TimerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         Timer::new(5.0, 0.0);
     }
+
+    public function testIdAccessor(): void
+    {
+        $t = Timer::new(3.0);
+        $this->assertSame($t->id, $t->id());
+    }
+
+    public function testToggleStartsWhenStopped(): void
+    {
+        $t = Timer::new(3.0);
+        [$t, $cmd] = $t->toggle();
+        $this->assertTrue($t->isRunning());
+        $this->assertNotNull($cmd);
+    }
+
+    public function testToggleStopsWhenRunning(): void
+    {
+        $t = Timer::new(3.0);
+        [$t, ] = $t->start();
+        [$t, $cmd] = $t->toggle();
+        $this->assertFalse($t->isRunning());
+        $this->assertNull($cmd);
+    }
 }
