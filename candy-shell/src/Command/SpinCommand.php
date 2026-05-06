@@ -41,7 +41,8 @@ final class SpinCommand extends Command
             ->addOption('show-output', null, InputOption::VALUE_NONE,    'Print captured stdout after the command exits.')
             ->addOption('show-error',  null, InputOption::VALUE_NONE,    'Print captured stderr after the command exits.')
             ->addOption('show-stdout', null, InputOption::VALUE_NONE,    'Alias for --show-output.')
-            ->addOption('show-stderr', null, InputOption::VALUE_NONE,    'Alias for --show-error.');
+            ->addOption('show-stderr', null, InputOption::VALUE_NONE,    'Alias for --show-error.')
+            ->addOption('align',       'a',  InputOption::VALUE_REQUIRED, 'Title position relative to the spinner: left | right.', 'left');
     }
 
     public const EXIT_INTERRUPTED = 130; // 128 + SIGINT(2)
@@ -59,8 +60,13 @@ final class SpinCommand extends Command
         // When the caller wants captured output, redirect stdout/stderr
         // so they don't bleed onto the spinner — write the buffered
         // content after the spinner stops.
+        $align = strtolower((string) $input->getOption('align'));
+        if ($align === '') {
+            $align = 'left';
+        }
+
         $process = RealProcess::spawn($argv, captureStdout: $showOutput, captureStderr: $showError);
-        $model   = SpinModel::spawn($process, $title, $style);
+        $model   = SpinModel::spawn($process, $title, $style, $align);
 
         $program = new Program($model, new ProgramOptions(
             useAltScreen:    false,

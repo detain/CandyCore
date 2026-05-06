@@ -90,4 +90,22 @@ final class SpinModelTest extends TestCase
         $this->assertSame($model, $same);
         $this->assertNull($cmd);
     }
+
+    public function testDefaultAlignIsLeft(): void
+    {
+        $model = SpinModel::spawn(new FakeProcess(), 'building');
+        $this->assertSame('left', $model->align);
+        $view = $model->view();
+        $tokens = preg_split('/\s+/', $view);
+        $this->assertSame('building', end($tokens));
+    }
+
+    public function testAlignRightPutsTitleFirst(): void
+    {
+        $model = SpinModel::spawn(new FakeProcess(), 'building', null, 'right');
+        $this->assertSame('right', $model->align);
+        $view = $model->view();
+        $tokens = preg_split('/\s+/', $view);
+        $this->assertSame('building', $tokens[0]);
+    }
 }
