@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace CandyCore\Bits\Tests\TextInput;
 
 use CandyCore\Bits\TextInput\EchoMode;
+use CandyCore\Bits\TextInput\Styles;
 use CandyCore\Bits\TextInput\TextInput;
 use CandyCore\Core\KeyType;
 use CandyCore\Core\Msg\KeyMsg;
+use CandyCore\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class TextInputTest extends TestCase
@@ -252,5 +254,38 @@ final class TextInputTest extends TestCase
         $t = TextInput::new()->setValue('a')->setCursor(1);
         $t = $t->paste("b\nc\rd");
         $this->assertSame('abcd', $t->value);
+    }
+
+    public function testWithStylesAppliesPromptStyle(): void
+    {
+        $t = TextInput::new()->withPrompt('> ')
+            ->withStyles(new Styles(prompt: Style::new()->bold()));
+        $view = $t->view();
+        $this->assertStringContainsString("\x1b[1m> \x1b[0m", $view);
+    }
+
+    public function testWithStylesAppliesPlaceholder(): void
+    {
+        $t = TextInput::new()
+            ->withPlaceholder('type here')
+            ->withStyles(new Styles(placeholder: Style::new()->faint()));
+        $view = $t->view();
+        $this->assertStringContainsString("\x1b[2mtype here\x1b[0m", $view);
+    }
+
+    public function testWithStylesAppliesText(): void
+    {
+        $t = TextInput::new()->setValue('hello');
+        $t = $t->withStyles(new Styles(text: Style::new()->italic()));
+        $view = $t->view();
+        $this->assertStringContainsString("\x1b[3mhello\x1b[0m", $view);
+    }
+
+    public function testWithStylesNullClears(): void
+    {
+        $t = TextInput::new()
+            ->withStyles(new Styles(prompt: Style::new()->bold()))
+            ->withStyles(null);
+        $this->assertNull($t->getStyles());
     }
 }

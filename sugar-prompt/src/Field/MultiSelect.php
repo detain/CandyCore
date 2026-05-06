@@ -72,6 +72,18 @@ final class MultiSelect implements Field
     /** Cap selections at N (0 = no limit). */
     public function withMax(int $n): self { return $this->mutate(max: max(0, $n)); }
 
+    /**
+     * huh-style combined cap: a single integer that sets both
+     * the minimum (0) and maximum to the same value when positive.
+     * Matches huh's `WithLimit` shape — convenient when you want
+     * "exactly N or fewer" as one call. Pass `0` to clear both.
+     */
+    public function withLimit(int $n): self
+    {
+        $n = max(0, $n);
+        return $this->mutate(min: 0, max: $n);
+    }
+
     public function key(): string { return $this->key; }
 
     /** @return list<string> selected option strings in declaration order */
