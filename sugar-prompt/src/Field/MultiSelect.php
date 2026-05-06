@@ -9,6 +9,7 @@ use CandyCore\Core\Msg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Util\Ansi;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -22,6 +23,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class MultiSelect implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     /**
      * @param list<string>      $options
@@ -114,8 +116,10 @@ final class MultiSelect implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '')       { $lines[] = $this->title; }
-        if ($this->description !== '') { $lines[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $lines[] = $title; }
+        if ($desc  !== '') { $lines[] = $desc; }
         foreach ($this->options as $i => $opt) {
             $box   = empty($this->selected[$i]) ? '[ ]' : '[x]';
             $marker = ($i === $this->cursor && $this->focused) ? '>' : ' ';
@@ -132,8 +136,8 @@ final class MultiSelect implements Field
     }
 
     public function isFocused(): bool         { return $this->focused; }
-    public function getTitle(): string        { return $this->title; }
-    public function getDescription(): string  { return $this->description; }
+    public function getTitle(): string        { return $this->resolveTitle($this->title); }
+    public function getDescription(): string  { return $this->resolveDescription($this->description); }
     public function getError(): ?string       { return $this->error; }
     public function skippable(): bool         { return false; }
 

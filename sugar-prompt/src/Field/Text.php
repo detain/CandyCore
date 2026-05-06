@@ -7,6 +7,7 @@ namespace CandyCore\Prompt\Field;
 use CandyCore\Bits\TextArea\TextArea;
 use CandyCore\Core\Msg;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -17,6 +18,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class Text implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     /** @var (\Closure(string):?string)|null */
     private $validator;
@@ -80,16 +82,18 @@ final class Text implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '')       { $lines[] = $this->title; }
-        if ($this->description !== '') { $lines[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $lines[] = $title; }
+        if ($desc  !== '') { $lines[] = $desc; }
         $lines[] = $this->area->view();
         if ($this->error !== null)     { $lines[] = '! ' . $this->error; }
         return implode("\n", $lines);
     }
 
     public function isFocused(): bool        { return $this->area->focused; }
-    public function getTitle(): string       { return $this->title; }
-    public function getDescription(): string { return $this->description; }
+    public function getTitle(): string       { return $this->resolveTitle($this->title); }
+    public function getDescription(): string { return $this->resolveDescription($this->description); }
     public function getError(): ?string      { return $this->error; }
     public function skippable(): bool        { return false; }
 

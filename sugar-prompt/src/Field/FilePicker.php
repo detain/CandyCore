@@ -7,6 +7,7 @@ namespace CandyCore\Prompt\Field;
 use CandyCore\Bits\FilePicker\FilePicker as PickerWidget;
 use CandyCore\Core\Msg;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -20,6 +21,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class FilePicker implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     private function __construct(
         public readonly string $key,
@@ -68,8 +70,10 @@ final class FilePicker implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '')       { $lines[] = $this->title; }
-        if ($this->description !== '') { $lines[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $lines[] = $title; }
+        if ($desc  !== '') { $lines[] = $desc; }
         $lines[] = $this->picker->view();
         if ($this->picker->selected() !== null) {
             $lines[] = '→ ' . $this->picker->selected();
@@ -78,8 +82,8 @@ final class FilePicker implements Field
     }
 
     public function isFocused(): bool        { return $this->picker->focused; }
-    public function getTitle(): string       { return $this->title; }
-    public function getDescription(): string { return $this->description; }
+    public function getTitle(): string       { return $this->resolveTitle($this->title); }
+    public function getDescription(): string { return $this->resolveDescription($this->description); }
     public function getError(): ?string      { return null; }
     public function skippable(): bool        { return false; }
 

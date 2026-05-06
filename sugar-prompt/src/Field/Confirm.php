@@ -9,6 +9,7 @@ use CandyCore\Core\Msg;
 use CandyCore\Core\Msg\KeyMsg;
 use CandyCore\Core\Util\Ansi;
 use CandyCore\Prompt\Field;
+use CandyCore\Prompt\HasDynamicLabels;
 use CandyCore\Prompt\HasHideFunc;
 
 /**
@@ -18,6 +19,7 @@ use CandyCore\Prompt\HasHideFunc;
 final class Confirm implements Field
 {
     use HasHideFunc;
+    use HasDynamicLabels;
 
     private function __construct(
         public readonly string $key,
@@ -71,8 +73,10 @@ final class Confirm implements Field
     public function view(): string
     {
         $lines = [];
-        if ($this->title !== '')       { $lines[] = $this->title; }
-        if ($this->description !== '') { $lines[] = $this->description; }
+        $title = $this->resolveTitle($this->title);
+        $desc  = $this->resolveDescription($this->description);
+        if ($title !== '') { $lines[] = $title; }
+        if ($desc  !== '') { $lines[] = $desc; }
 
         $yes = $this->value ? Ansi::sgr(Ansi::REVERSE) . " {$this->affirmative} " . Ansi::reset()
                             : " {$this->affirmative} ";
@@ -83,8 +87,8 @@ final class Confirm implements Field
     }
 
     public function isFocused(): bool         { return $this->focused; }
-    public function getTitle(): string        { return $this->title; }
-    public function getDescription(): string  { return $this->description; }
+    public function getTitle(): string        { return $this->resolveTitle($this->title); }
+    public function getDescription(): string  { return $this->resolveDescription($this->description); }
     public function getError(): ?string       { return null; }
     public function skippable(): bool         { return false; }
     public function consumes(Msg $msg): bool  { return false; }
