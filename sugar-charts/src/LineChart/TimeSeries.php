@@ -20,6 +20,8 @@ final class TimeSeries
         public readonly int $height,
         public readonly string $timeFormat,
         public readonly int $xLabelCount,
+        public readonly ?\DateTimeImmutable $rangeStart = null,
+        public readonly ?\DateTimeImmutable $rangeEnd = null,
     ) {}
 
     /** @param list<array{0:\DateTimeImmutable,1:int|float}> $points */
@@ -31,7 +33,7 @@ final class TimeSeries
     /** @param list<array{0:\DateTimeImmutable,1:int|float}> $points */
     public function withPoints(array $points): self
     {
-        return new self(array_values($points), $this->width, $this->height, $this->timeFormat, $this->xLabelCount);
+        return new self(array_values($points), $this->width, $this->height, $this->timeFormat, $this->xLabelCount, $this->rangeStart, $this->rangeEnd);
     }
 
     /** Push a single sample on the right; convenience over withPoints. */
@@ -43,19 +45,38 @@ final class TimeSeries
             $this->height,
             $this->timeFormat,
             $this->xLabelCount,
+            $this->rangeStart,
+            $this->rangeEnd,
         );
     }
 
     /** PHP `date()` format string for X axis labels. Default `'H:i'`. */
     public function withTimeFormat(string $fmt): self
     {
-        return new self($this->points, $this->width, $this->height, $fmt, $this->xLabelCount);
+        return new self($this->points, $this->width, $this->height, $fmt, $this->xLabelCount, $this->rangeStart, $this->rangeEnd);
     }
 
     /** Number of labels rendered along the X axis (default 5). */
     public function withXLabelCount(int $n): self
     {
-        return new self($this->points, $this->width, $this->height, $this->timeFormat, max(2, $n));
+        return new self($this->points, $this->width, $this->height, $this->timeFormat, max(2, $n), $this->rangeStart, $this->rangeEnd);
+    }
+
+    /**
+     * Pin the rendered X-axis range to `[$start, $end]`. Points outside
+     * the range are filtered out before rendering, and the X-axis
+     * labels span the explicit range rather than the data extent.
+     * Pass null endpoints to clear and revert to auto-range. Mirrors
+     * ntcharts' `WithTimeRange`.
+     */
+    public function withTimeRange(?\DateTimeImmutable $start, ?\DateTimeImmutable $end): self
+    {
+        return new self($this->points, $this->width, $this->height, $this->timeFormat, $this->xLabelCount, $start, $end);
+    }
+
+    public function getTimeRange(): array
+    {
+        return [$this->rangeStart, $this->rangeEnd];
     }
 
     public function view(): string
@@ -63,17 +84,51 @@ final class TimeSeries
         if ($this->points === []) {
             return (new \CandyCore\Charts\Canvas\Canvas($this->width, $this->height))->view();
         }
-        $values  = array_map(static fn(array $p): float => (float) $p[1], $this->points);
-        $stamps  = array_map(static fn(array $p): \DateTimeImmutable => $p[0], $this->points);
+        $points = $this->points;
+        if ($this->rangeStart !== null || $this->rangeEnd !== null) {
+            $start = $this->rangeStart;
+            $end   = $this->rangeEnd;
+            $points = array_values(array_filter($points, static function (array $p) use ($start, $end): bool {
+                if ($start !== null && $p[0] < $start) { return false; }
+                if ($end !== null && $p[0] > $end)     { return false; }
+                return true;
+            }));
+            if ($points === []) {
+                return (new \CandyCore\Charts\Canvas\Canvas($this->width, $this->height))->view();
+            }
+        }
+
+        $values  = array_map(static fn(array $p): float => (float) $p[1], $points);
+        $stamps  = array_map(static fn(array $p): \DateTimeImmutable => $p[0], $points);
         $count   = count($stamps);
 
         $labels = [];
         $samples = min($this->xLabelCount, $count);
-        for ($i = 0; $i < $samples; $i++) {
-            $idx = $samples === 1
-                ? 0
-                : (int) round($i * ($count - 1) / ($samples - 1));
-            $labels[] = $stamps[$idx]->format($this->timeFormat);
+        // When a range is pinned, label the explicit range endpoints
+        // rather than the data extent so axes don't collapse to the
+        // available samples only.
+        if (($this->rangeStart !== null || $this->rangeEnd !== null) && $samples >= 2) {
+            $start = $this->rangeStart ?? $stamps[0];
+            $end   = $this->rangeEnd ?? $stamps[$count - 1];
+            // Preserve the start's timezone for output so labels match
+            // the user-facing range, not the UTC equivalent.
+            $tz      = $start->getTimezone();
+            $startTs = $start->getTimestamp();
+            $endTs   = $end->getTimestamp();
+            $span    = max(1, $endTs - $startTs);
+            for ($i = 0; $i < $samples; $i++) {
+                $ts = $startTs + (int) round($i * $span / ($samples - 1));
+                $labels[] = (new \DateTimeImmutable('@' . $ts))
+                    ->setTimezone($tz)
+                    ->format($this->timeFormat);
+            }
+        } else {
+            for ($i = 0; $i < $samples; $i++) {
+                $idx = $samples === 1
+                    ? 0
+                    : (int) round($i * ($count - 1) / ($samples - 1));
+                $labels[] = $stamps[$idx]->format($this->timeFormat);
+            }
         }
 
         return LineChart::new($values, $this->width, $this->height)

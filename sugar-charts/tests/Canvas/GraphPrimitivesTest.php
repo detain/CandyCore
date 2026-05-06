@@ -91,6 +91,25 @@ final class GraphPrimitivesTest extends TestCase
         $this->assertSame([4, 0], $pts[4]);
     }
 
+    public function testGetFullCirclePointsAreUnique(): void
+    {
+        $pts = Graph::getFullCirclePoints(0, 0, 5);
+        $seen = [];
+        foreach ($pts as [$x, $y]) {
+            $key = $x . ',' . $y;
+            $this->assertArrayNotHasKey($key, $seen);
+            $seen[$key] = true;
+        }
+        // Should at least have ~one point per radius cell (approximate).
+        $this->assertGreaterThanOrEqual(8, count($pts));
+    }
+
+    public function testGetFullCirclePointsWithLimitCaps(): void
+    {
+        $pts = Graph::getFullCirclePointsWithLimit(0, 0, 5, limit: 6);
+        $this->assertCount(6, $pts);
+    }
+
     public function testDrawVerticalLineUpDownAreEquivalent(): void
     {
         $a = new Canvas(2, 4);

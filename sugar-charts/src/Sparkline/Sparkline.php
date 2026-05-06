@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CandyCore\Charts\Sparkline;
 
+use CandyCore\Sprinkles\Style;
+
 /**
  * Compact single-row chart drawn with the eight Unicode block-bar
  * glyphs `▁▂▃▄▅▆▇█`. Each data point becomes one cell whose height is
@@ -30,6 +32,8 @@ final class Sparkline
         public readonly int $width,
         public readonly ?float $min,
         public readonly ?float $max,
+        public readonly ?Style $style = null,
+        public readonly bool $autoMaxValue = true,
     ) {
         if ($width < 0) {
             throw new \InvalidArgumentException('sparkline width must be >= 0');
@@ -54,7 +58,7 @@ final class Sparkline
     /** @param list<int|float> $data */
     public function withData(array $data): self
     {
-        return new self(array_values($data), $this->width, $this->min, $this->max);
+        return new self(array_values($data), $this->width, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }
 
     public function withWidth(int $w): self
@@ -62,11 +66,31 @@ final class Sparkline
         if ($w < 0) {
             throw new \InvalidArgumentException('sparkline width must be >= 0');
         }
-        return new self($this->data, $w, $this->min, $this->max);
+        return new self($this->data, $w, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }
 
-    public function withMin(?float $m): self { return new self($this->data, $this->width, $m, $this->max); }
-    public function withMax(?float $m): self { return new self($this->data, $this->width, $this->min, $m); }
+    public function withMin(?float $m): self { return new self($this->data, $this->width, $m, $this->max, $this->style, $this->autoMaxValue); }
+    public function withMax(?float $m): self { return new self($this->data, $this->width, $this->min, $m, $this->style, $this->autoMaxValue); }
+
+    /**
+     * Style applied to every glyph in {@see view()}. Pass null to
+     * render unstyled. Mirrors ntcharts' `WithStyle`.
+     */
+    public function withStyle(?Style $style): self
+    {
+        return new self($this->data, $this->width, $this->min, $this->max, $style, $this->autoMaxValue);
+    }
+
+    /**
+     * Disable the implicit `max = max($data)` rescale. With auto-max
+     * off, the configured {@see $max} is used verbatim and values that
+     * exceed it clamp to the top glyph. Mirrors ntcharts'
+     * `WithNoAutoMaxValue`.
+     */
+    public function withNoAutoMaxValue(bool $disable = true): self
+    {
+        return new self($this->data, $this->width, $this->min, $this->max, $this->style, !$disable);
+    }
 
     /**
      * Append a single sample. Mirrors ntcharts'
@@ -78,7 +102,7 @@ final class Sparkline
     {
         $next = $this->data;
         $next[] = $value;
-        return new self($next, $this->width, $this->min, $this->max);
+        return new self($next, $this->width, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }
 
     /**
@@ -96,13 +120,13 @@ final class Sparkline
         foreach ($values as $v) {
             $next[] = $v;
         }
-        return new self($next, $this->width, $this->min, $this->max);
+        return new self($next, $this->width, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }
 
     /** Drop every recorded sample. Mirrors ntcharts' `Clear`. */
     public function clear(): self
     {
-        return new self([], $this->width, $this->min, $this->max);
+        return new self([], $this->width, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }
 
     public function view(): string
@@ -117,11 +141,21 @@ final class Sparkline
             $points = array_slice($points, -$w);
         }
         if ($points === []) {
-            return str_repeat(self::GLYPHS[0], $w);
+            return $this->styled(str_repeat(self::GLYPHS[0], $w));
         }
 
         $min = $this->min ?? min($points);
-        $max = $this->max ?? max($points);
+        // Honour the autoMaxValue toggle: when off and a max was
+        // configured, use it verbatim; otherwise auto-rescale to the
+        // window's max.
+        if ($this->max !== null && !$this->autoMaxValue) {
+            $max = $this->max;
+        } else {
+            $max = $this->max ?? max($points);
+            if (!$this->autoMaxValue) {
+                $max = max((float) $max, (float) max($points));
+            }
+        }
         $range = $max - $min;
 
         $out  = '';
@@ -132,7 +166,12 @@ final class Sparkline
         foreach ($points as $v) {
             $out .= self::glyph((float) $v, (float) $min, $range);
         }
-        return $out;
+        return $this->styled($out);
+    }
+
+    private function styled(string $rendered): string
+    {
+        return $this->style === null ? $rendered : $this->style->render($rendered);
     }
 
     public function __toString(): string

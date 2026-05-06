@@ -280,6 +280,46 @@ final class Graph
     }
 
     /**
+     * Sample the full perimeter of the circle, deduplicated. Equivalent
+     * to {@see getCirclePoints()} with the canonical 4×radius sample
+     * count that ntcharts uses for "complete coverage" — every integer
+     * lattice point on the perimeter is hit at least once. Mirrors
+     * ntcharts' `GetFullCirclePoints`.
+     *
+     * @return list<array{0:int,1:int}>
+     */
+    public static function getFullCirclePoints(int $cx, int $cy, int $radius): array
+    {
+        $samples = max(16, 4 * max(1, $radius));
+        $seen = [];
+        $pts = [];
+        foreach (self::getCirclePoints($cx, $cy, $radius, $samples) as [$x, $y]) {
+            $key = $x . ',' . $y;
+            if (isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $pts[] = [$x, $y];
+        }
+        return $pts;
+    }
+
+    /**
+     * {@see getFullCirclePoints()} capped to `$limit` points (no-op when
+     * `$limit <= 0`). Mirrors ntcharts' `GetFullCirclePointsWithLimit`.
+     *
+     * @return list<array{0:int,1:int}>
+     */
+    public static function getFullCirclePointsWithLimit(int $cx, int $cy, int $radius, int $limit): array
+    {
+        $pts = self::getFullCirclePoints($cx, $cy, $radius);
+        if ($limit > 0 && count($pts) > $limit) {
+            $pts = array_slice($pts, 0, $limit);
+        }
+        return $pts;
+    }
+
+    /**
      * Sample points along the line from `($x0, $y0)` to `($x1, $y1)`,
      * capped at `$limit` points. Mirrors ntcharts'
      * `getLinePointsWithLimit`.

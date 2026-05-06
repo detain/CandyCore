@@ -47,6 +47,8 @@ final class Heatmap
         public readonly ColorProfile $profile,
         public readonly array $palette  = [],
         public readonly bool $showLegend = false,
+        public readonly ?Style $cellStyle = null,
+        public readonly bool $autoValueRange = true,
     ) {
         if ($width < 0 || $height < 0) {
             throw new \InvalidArgumentException('heatmap width/height must be >= 0');
@@ -76,7 +78,7 @@ final class Heatmap
         if ($w < 0 || $h < 0) {
             throw new \InvalidArgumentException('heatmap width/height must be >= 0');
         }
-        return new self($this->grid, $w, $h, $this->min, $this->max, $this->rune, $this->coldColor, $this->hotColor, $this->profile);
+        return $this->copy(width: $w, height: $h);
     }
 
     public function withMin(?float $m): self  { return $this->copy(min: $m, minSet: true); }
@@ -158,6 +160,33 @@ final class Heatmap
         return $this->copy(showLegend: $on);
     }
 
+    /**
+     * Pre-styled overlay applied to every cell in addition to the
+     * computed foreground colour. Useful for setting bold / italic /
+     * background slots without losing the value-driven gradient.
+     * Pass null to clear. Mirrors ntcharts' `WithCellStyle`.
+     */
+    public function withCellStyle(?Style $style): self
+    {
+        return $this->copy(cellStyle: $style, cellStyleSet: true);
+    }
+
+    public function getCellStyle(): ?Style { return $this->cellStyle; }
+
+    /**
+     * Toggle the implicit `min` / `max` rescale done at {@see view()}
+     * time. With auto-range off, the configured {@see $min} /
+     * {@see $max} are used verbatim and out-of-band values clamp at
+     * the gradient endpoints. Default on. Mirrors ntcharts'
+     * `WithAutoValueRange`.
+     */
+    public function withAutoValueRange(bool $on = true): self
+    {
+        return $this->copy(autoValueRange: $on);
+    }
+
+    public function getAutoValueRange(): bool { return $this->autoValueRange; }
+
     public function view(): string
     {
         if ($this->grid === [] || $this->width === 0 || $this->height === 0) {
@@ -165,9 +194,12 @@ final class Heatmap
         }
 
         // Auto-detect range when not pinned. Empty grids are caught above.
+        // The `autoValueRange` flag suppresses the scan: when off and a
+        // pinned bound is supplied, missing endpoints fall back to
+        // sensible defaults (0 / 1) so out-of-range values clamp.
         $min = $this->min;
         $max = $this->max;
-        if ($min === null || $max === null) {
+        if (($min === null || $max === null) && $this->autoValueRange) {
             $first = true;
             foreach ($this->grid as $row) {
                 foreach ($row as $v) {
@@ -201,7 +233,11 @@ final class Heatmap
                 }
                 $v = (float) $row[$x];
                 $color = $this->sample((float) $min, (float) $max, $v);
-                $canvas->setCell($x, $y, $this->rune, Style::new()->foreground($color)->colorProfile($this->profile));
+                $cell = Style::new()->foreground($color)->colorProfile($this->profile);
+                if ($this->cellStyle !== null) {
+                    $cell = $cell->inherit($this->cellStyle);
+                }
+                $canvas->setCell($x, $y, $this->rune, $cell);
             }
         }
         $body = $canvas->view();
@@ -279,19 +315,23 @@ final class Heatmap
         ?ColorProfile $profile = null,
         ?array $palette = null,
         ?bool $showLegend = null,
+        ?Style $cellStyle = null, bool $cellStyleSet = false,
+        ?bool $autoValueRange = null,
     ): self {
         return new self(
-            grid:       $grid       ?? $this->grid,
-            width:      $width      ?? $this->width,
-            height:     $height     ?? $this->height,
-            min:        $minSet     ? $min       : $this->min,
-            max:        $maxSet     ? $max       : $this->max,
-            rune:       $rune       ?? $this->rune,
-            coldColor:  $coldColor  ?? $this->coldColor,
-            hotColor:   $hotColor   ?? $this->hotColor,
-            profile:    $profile    ?? $this->profile,
-            palette:    $palette    ?? $this->palette,
-            showLegend: $showLegend ?? $this->showLegend,
+            grid:           $grid       ?? $this->grid,
+            width:          $width      ?? $this->width,
+            height:         $height     ?? $this->height,
+            min:            $minSet     ? $min       : $this->min,
+            max:            $maxSet     ? $max       : $this->max,
+            rune:           $rune       ?? $this->rune,
+            coldColor:      $coldColor  ?? $this->coldColor,
+            hotColor:       $hotColor   ?? $this->hotColor,
+            profile:        $profile    ?? $this->profile,
+            palette:        $palette    ?? $this->palette,
+            showLegend:     $showLegend ?? $this->showLegend,
+            cellStyle:      $cellStyleSet ? $cellStyle : $this->cellStyle,
+            autoValueRange: $autoValueRange ?? $this->autoValueRange,
         );
     }
 }
