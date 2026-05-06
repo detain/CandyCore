@@ -1,9 +1,18 @@
-# Codecov config — one flag per lib so each package has its own
-# badge + per-PR coverage diff in the SugarCraft monorepo.
+# Codecov config — one flag + one component per lib so each package has its
+# own badge, per-PR coverage diff, and diff-component breakdown in the
+# SugarCraft monorepo.
 #
 # Coverage is reported by the `coverage:` job in .github/workflows/ci.yml,
 # which iterates the same lib list and uploads `<lib>/coverage.xml` with
-# `flags: <lib>`.
+# `-F <lib>` (the flag).  Codecov carries forward each flag's coverage so
+# untouched libs don't go to zero between commits.
+#
+# Flags:   defined in `flag_management` → controls upload-level behaviour
+#          (carryforward, status checks, PR comment flags section).
+# Components: defined in `component_management` → groups coverage by path
+#          server-side using `flag_regexes` (AND-style with paths) so each
+#          lib gets its own diff table in PR comments and component history
+#          in the Codecov UI.
 
 coverage:
   status:
@@ -16,13 +25,10 @@ coverage:
         target: 80%
         threshold: 1%
 
-# Don't comment on every PR — the per-flag badges in each lib's README
-# are the primary surface; PR comments would just clutter.
-comment: false
+comment:
+  layout: "header, diff, flags, components"
+  require_changes: false
 
-# Carryforward keeps a flag's last reported coverage across pushes
-# that don't touch that lib — otherwise touching only `candy-core`
-# would zero out the badges for every other package.
 flag_management:
   default_rules:
     carryforward: true
@@ -79,3 +85,296 @@ flag_management:
       paths: ["candy-flip/src/**"]
     - name: honey-flap
       paths: ["honey-flap/src/**"]
+    - name: candy-hermit
+      paths: ["candy-hermit/src/**"]
+    - name: candy-lister
+      paths: ["candy-lister/src/**"]
+    - name: candy-log
+      paths: ["candy-log/src/**"]
+    - name: candy-palette
+      paths: ["candy-palette/src/**"]
+    - name: candy-serve
+      paths: ["candy-serve/src/**"]
+    - name: sugar-boxer
+      paths: ["sugar-boxer/src/**"]
+    - name: sugar-calendar
+      paths: ["sugar-calendar/src/**"]
+    - name: sugar-crumbs
+      paths: ["sugar-crumbs/src/**"]
+    - name: sugar-post
+      paths: ["sugar-post/src/**"]
+    - name: sugar-readline
+      paths: ["sugar-readline/src/**"]
+    - name: sugar-skate
+      paths: ["sugar-skate/src/**"]
+    - name: sugar-stickers
+      paths: ["sugar-stickers/src/**"]
+    - name: sugar-table
+      paths: ["sugar-table/src/**"]
+    - name: sugar-toast
+      paths: ["sugar-toast/src/**"]
+    - name: sugar-veil
+      paths: ["sugar-veil/src/**"]
+
+# ── Components ────────────────────────────────────────────────────────────────
+# Each component links to its flag via flag_regexes.  Because both
+# flag_regexes AND paths are set, a file must satisfy BOTH to belong to the
+# component (Codecov AND-style logic).  This keeps flag-level and
+# component-level grouping in sync without any upload-time changes.
+component_management:
+  default_rules:
+    carryforward: true
+    statuses:
+      - type: project
+        target: auto
+        threshold: 1%
+      - type: patch
+        target: 80%
+        threshold: 1%
+  individual_components:
+    - component_id: candy-core
+      name: candy-core
+      paths:
+        - "candy-core/src/**"
+      flag_regexes:
+        - "^candy-core$"
+    - component_id: candy-sprinkles
+      name: candy-sprinkles
+      paths:
+        - "candy-sprinkles/src/**"
+      flag_regexes:
+        - "^candy-sprinkles$"
+    - component_id: honey-bounce
+      name: honey-bounce
+      paths:
+        - "honey-bounce/src/**"
+      flag_regexes:
+        - "^honey-bounce$"
+    - component_id: candy-zone
+      name: candy-zone
+      paths:
+        - "candy-zone/src/**"
+      flag_regexes:
+        - "^candy-zone$"
+    - component_id: sugar-bits
+      name: sugar-bits
+      paths:
+        - "sugar-bits/src/**"
+      flag_regexes:
+        - "^sugar-bits$"
+    - component_id: sugar-charts
+      name: sugar-charts
+      paths:
+        - "sugar-charts/src/**"
+      flag_regexes:
+        - "^sugar-charts$"
+    - component_id: sugar-prompt
+      name: sugar-prompt
+      paths:
+        - "sugar-prompt/src/**"
+      flag_regexes:
+        - "^sugar-prompt$"
+    - component_id: candy-shell
+      name: candy-shell
+      paths:
+        - "candy-shell/src/**"
+      flag_regexes:
+        - "^candy-shell$"
+    - component_id: candy-shine
+      name: candy-shine
+      paths:
+        - "candy-shine/src/**"
+      flag_regexes:
+        - "^candy-shine$"
+    - component_id: candy-kit
+      name: candy-kit
+      paths:
+        - "candy-kit/src/**"
+      flag_regexes:
+        - "^candy-kit$"
+    - component_id: candy-freeze
+      name: candy-freeze
+      paths:
+        - "candy-freeze/src/**"
+      flag_regexes:
+        - "^candy-freeze$"
+    - component_id: sugar-glow
+      name: sugar-glow
+      paths:
+        - "sugar-glow/src/**"
+      flag_regexes:
+        - "^sugar-glow$"
+    - component_id: sugar-spark
+      name: sugar-spark
+      paths:
+        - "sugar-spark/src/**"
+      flag_regexes:
+        - "^sugar-spark$"
+    - component_id: candy-wish
+      name: candy-wish
+      paths:
+        - "candy-wish/src/**"
+      flag_regexes:
+        - "^candy-wish$"
+    - component_id: sugar-wishlist
+      name: sugar-wishlist
+      paths:
+        - "sugar-wishlist/src/**"
+      flag_regexes:
+        - "^sugar-wishlist$"
+    - component_id: candy-metrics
+      name: candy-metrics
+      paths:
+        - "candy-metrics/src/**"
+      flag_regexes:
+        - "^candy-metrics$"
+    - component_id: candy-mold
+      name: candy-mold
+      paths:
+        - "candy-mold/src/**"
+      flag_regexes:
+        - "^candy-mold$"
+    - component_id: candy-tetris
+      name: candy-tetris
+      paths:
+        - "candy-tetris/src/**"
+      flag_regexes:
+        - "^candy-tetris$"
+    - component_id: super-candy
+      name: super-candy
+      paths:
+        - "super-candy/src/**"
+      flag_regexes:
+        - "^super-candy$"
+    - component_id: sugar-crush
+      name: sugar-crush
+      paths:
+        - "sugar-crush/src/**"
+      flag_regexes:
+        - "^sugar-crush$"
+    - component_id: sugar-stash
+      name: sugar-stash
+      paths:
+        - "sugar-stash/src/**"
+      flag_regexes:
+        - "^sugar-stash$"
+    - component_id: candy-query
+      name: candy-query
+      paths:
+        - "candy-query/src/**"
+      flag_regexes:
+        - "^candy-query$"
+    - component_id: sugar-tick
+      name: sugar-tick
+      paths:
+        - "sugar-tick/src/**"
+      flag_regexes:
+        - "^sugar-tick$"
+    - component_id: candy-mines
+      name: candy-mines
+      paths:
+        - "candy-mines/src/**"
+      flag_regexes:
+        - "^candy-mines$"
+    - component_id: candy-flip
+      name: candy-flip
+      paths:
+        - "candy-flip/src/**"
+      flag_regexes:
+        - "^candy-flip$"
+    - component_id: honey-flap
+      name: honey-flap
+      paths:
+        - "honey-flap/src/**"
+      flag_regexes:
+        - "^honey-flap$"
+    - component_id: candy-hermit
+      name: candy-hermit
+      paths:
+        - "candy-hermit/src/**"
+      flag_regexes:
+        - "^candy-hermit$"
+    - component_id: candy-lister
+      name: candy-lister
+      paths:
+        - "candy-lister/src/**"
+      flag_regexes:
+        - "^candy-lister$"
+    - component_id: candy-log
+      name: candy-log
+      paths:
+        - "candy-log/src/**"
+      flag_regexes:
+        - "^candy-log$"
+    - component_id: candy-palette
+      name: candy-palette
+      paths:
+        - "candy-palette/src/**"
+      flag_regexes:
+        - "^candy-palette$"
+    - component_id: candy-serve
+      name: candy-serve
+      paths:
+        - "candy-serve/src/**"
+      flag_regexes:
+        - "^candy-serve$"
+    - component_id: sugar-boxer
+      name: sugar-boxer
+      paths:
+        - "sugar-boxer/src/**"
+      flag_regexes:
+        - "^sugar-boxer$"
+    - component_id: sugar-calendar
+      name: sugar-calendar
+      paths:
+        - "sugar-calendar/src/**"
+      flag_regexes:
+        - "^sugar-calendar$"
+    - component_id: sugar-crumbs
+      name: sugar-crumbs
+      paths:
+        - "sugar-crumbs/src/**"
+      flag_regexes:
+        - "^sugar-crumbs$"
+    - component_id: sugar-post
+      name: sugar-post
+      paths:
+        - "sugar-post/src/**"
+      flag_regexes:
+        - "^sugar-post$"
+    - component_id: sugar-readline
+      name: sugar-readline
+      paths:
+        - "sugar-readline/src/**"
+      flag_regexes:
+        - "^sugar-readline$"
+    - component_id: sugar-skate
+      name: sugar-skate
+      paths:
+        - "sugar-skate/src/**"
+      flag_regexes:
+        - "^sugar-skate$"
+    - component_id: sugar-stickers
+      name: sugar-stickers
+      paths:
+        - "sugar-stickers/src/**"
+      flag_regexes:
+        - "^sugar-stickers$"
+    - component_id: sugar-table
+      name: sugar-table
+      paths:
+        - "sugar-table/src/**"
+      flag_regexes:
+        - "^sugar-table$"
+    - component_id: sugar-toast
+      name: sugar-toast
+      paths:
+        - "sugar-toast/src/**"
+      flag_regexes:
+        - "^sugar-toast$"
+    - component_id: sugar-veil
+      name: sugar-veil
+      paths:
+        - "sugar-veil/src/**"
+      flag_regexes:
+        - "^sugar-veil$"
