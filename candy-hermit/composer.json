@@ -1,0 +1,59 @@
+{
+    "name": "candycore/candy-hermit",
+    "description": "PHP port of Genekkion/theHermit \u2014 fuzzy finder / quick-fix overlay for terminal UIs. Wraps a background view, renders a filterable list overlay on top, background continues to update underneath.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["tui", "fuzzy", "finder", "overlay", "quickfix", "candycore"],
+    "homepage": "https://github.com/sugarcraft/candy-hermit",
+    "authors": [
+        { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
+    ],
+    "support": {
+        "issues": "https://github.com/sugarcraft/candy-hermit/issues",
+        "source": "https://github.com/sugarcraft/candy-hermit"
+    },
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5"
+    },
+    "repositories": [
+        { "type": "path", "url": "../candy-core",      "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-sprinkles", "options": { "symlink": true } },
+        { "type": "path", "url": "../honey-bounce",    "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-zone",      "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-bits",      "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-charts",    "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-prompt",    "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-shell",     "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-shine",     "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-kit",       "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-freeze",    "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-glow",      "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-spark",     "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-wish",      "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-wishlist",  "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-metrics",   "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-mold",      "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-tetris",    "options": { "symlink": true } },
+        { "type": "path", "url": "../super-candy",     "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-crush",     "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-log",       "options": { "symlink": true } },
+        { "type": "path", "url": "../candy-palette",   "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-skate",     "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-post",      "options": { "symlink": true } },
+        { "type": "path": "url": "../candy-lister",    "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-boxer",     "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-veil",      "options": { "symlink": true } },
+        { "type": "path", "url": "../sugar-crumbs",    "options": { "symlink": true } }
+    ],
+    "autoload": {
+        "psr-4": { "CandyCore\\Hermit\\": "src/" }
+    },
+    "autoload-dev": {
+        "psr-4": { "CandyCore\\Hermit\\Tests\\": "tests/" }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}

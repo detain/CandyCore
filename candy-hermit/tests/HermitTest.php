@@ -1,0 +1,175 @@
+<?php
+
+declare(strict_types=1);
+
+namespace CandyCore\Hermit\Tests;
+
+use CandyCore\Hermit\{Hermit, Model};
+use PHPUnit\Framework\TestCase;
+
+final class HermitTest extends TestCase
+{
+    private function makeHermit(): Hermit
+    {
+        return Hermit::new(['apple', 'banana', 'cherry', 'date', 'elderberry']);
+    }
+
+    public function testNew(): void
+    {
+        $h = Hermit::new(['a', 'b']);
+        $this->assertSame(2, $h->allCount());
+        $this->assertFalse($h->isShown());
+    }
+
+    public function testShowHide(): void
+    {
+        $h = $this->makeHermit();
+        $this->assertFalse($h->isShown());
+
+        $h = $h->show();
+        $this->assertTrue($h->isShown());
+
+        $h = $h->hide();
+        $this->assertFalse($h->isShown());
+    }
+
+    public function testTypeFilters(): void
+    {
+        $h = $this->makeHermit()->show();
+
+        $h = $h->type('a');  // apple, banana, date
+        $this->assertSame(3, $h->itemCount());
+        $this->assertSame('apple', $h->selected());
+    }
+
+    public function testBackspace(): void
+    {
+        $h = $this->makeHermit()->show()->type('ban');
+
+        $this->assertSame(1, $h->itemCount()); // banana
+        $h = $h->backspace();                  // ba
+        $this->assertSame(1, $h->itemCount()); // banana still
+        $h = $h->backspace()->backspace()->backspace();  // ''
+        $this->assertSame(5, $h->itemCount());
+    }
+
+    public function testClearFilter(): void
+    {
+        $h = $this->makeHermit()->show()->type('b');
+        $this->assertSame(1, $h->itemCount());
+
+        $h = $h->clear();
+        $this->assertSame('', $h->filterText());
+        $this->assertSame(5, $h->itemCount());
+    }
+
+    public function testCursorNavigation(): void
+    {
+        $h = $this->makeHermit()->show();
+
+        $this->assertSame(0, $h->cursor());
+        $h = $h->cursorDown();
+        $this->assertSame(1, $h->cursor());
+        $h = $h->cursorDown(2);
+        $this->assertSame(3, $h->cursor());
+        $h = $h->cursorUp();
+        $this->assertSame(2, $h->cursor());
+        $h = $h->cursorTop();
+        $this->assertSame(0, $h->cursor());
+        $h = $h->cursorBottom();
+        $this->assertSame(4, $h->cursor());
+    }
+
+    public function testCursorClamp(): void
+    {
+        $h = $this->makeHermit()->show();
+        $h = $h->cursorUp();  // below 0 → clamped
+        $this->assertSame(0, $h->cursor());
+
+        $h = $h->cursorBottom();
+        $h = $h->cursorDown(100);  // beyond end → clamped
+        $this->assertSame(4, $h->cursor());
+    }
+
+    public function testSelectedItem(): void
+    {
+        $h = $this->makeHermit()->show()->type('a');
+        $this->assertSame('apple', $h->selected());
+
+        $h = $h->cursorDown();
+        // next filtered item
+        $this->assertNotNull($h->selected());
+    }
+
+    public function testSelectedNullOnEmptyFilter(): void
+    {
+        $h = Hermit::new([])->show();
+        $this->assertNull($h->selected());
+    }
+
+    public function testViewWhenHidden(): void
+    {
+        $bg = "background\ncontent";
+        $h = $this->makeHermit();
+        $this->assertSame($bg, $h->View($bg));
+    }
+
+    public function testViewWhenShown(): void
+    {
+        $bg = "background\ncontent";
+        $h = $this->makeHermit()->show();
+        $result = $h->View($bg);
+
+        $this->assertIsString($result);
+        // When shown, the prompt appears
+        $this->assertStringContainsString('> ', $result);
+    }
+
+    public function testFluentSetters(): void
+    {
+        $h = $this->makeHermit()
+            ->setPrompt('Search: ')
+            ->setMatchStyle("\x1b[33m")
+            ->setWindowHeight(5)
+            ->setWindowWidth(40)
+            ->setOffset(5, 3);
+
+        $this->assertTrue($h->isShown()); // setPrompt doesn't auto-show
+    }
+
+    public function testWithItemsReturnsNewInstance(): void
+    {
+        $a = $this->makeHermit();
+        $b = $a->withItems(['x', 'y', 'z']);
+
+        $this->assertSame(5, $a->allCount());
+        $this->assertSame(3, $b->allCount());
+    }
+
+    public function testCustomItemFormatter(): void
+    {
+        $h = Hermit::new(['apple', 'banana'])
+            ->show()
+            ->setItemFormatter(fn($item, $sel) => "[$sel] $item");
+
+        // Hidden view result — but custom formatter is applied in View()
+        $bg = str_repeat("....................\n", 5);
+        $result = $h->View($bg);
+
+        $this->assertIsString($result);
+    }
+
+    public function testImmutability(): void
+    {
+        $a = $this->makeHermit()->show()->type('a');
+        $b = $a->cursorDown();
+
+        // a is unchanged
+        $this->assertSame(0, $a->cursor());
+        // b is different
+        $this->assertSame(1, $b->cursor());
+        // a filter unchanged
+        $this->assertSame('a', $a->filterText());
+        $this->assertSame('a', $b->filterText());
+    }
+}
