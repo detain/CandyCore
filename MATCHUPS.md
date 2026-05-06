@@ -48,7 +48,7 @@ Status legend:
 | [charmbracelet/pop](https://github.com/charmbracelet/pop) | **SugarPost** | `sugar-post/` | `candycore/sugar-post` | `CandyCore\Post` | 🟢 |
 | [treilik/bubblelister](https://github.com/treilik/bubblelister) | **CandyLister** | `candy-lister/` | `candycore/candy-lister` | `CandyCore\Lister` | 🟢 |
 | [treilik/bubbleboxer](https://github.com/treilik/bubbleboxer) | **SugarBoxer** | `sugar-boxer/` | `candycore/sugar-boxer` | `CandyCore\Boxer` | 🟢 |
-| [rmhubbert/bubbletea-overlay](https://github.com/rmhubbert/bubbletea-overlay) | **SugarVeil** | `sugar-veil/` | `candycore/sugar-veil` | `CandyCore\Veil` | 🔴 | Modal / overlay window component |
+| [rmhubbert/bubbletea-overlay](https://github.com/rmhubbert/bubbletea-overlay) | **SugarVeil** | `sugar-veil/` | `candycore/sugar-veil` | `CandyCore\Veil` | 🟢 |
 | [KevM/bubbleo](https://github.com/KevM/bubbleo) | **SugarCrumbs** | `sugar-crumbs/` | `candycore/sugar-crumbs` | `CandyCore\Crumbs` | 🔴 | NavStack / Breadcrumbs / Menu navigation components |
 | [Genekkion/theHermit](https://github.com/Genekkion/theHermit) | **CandyHermit** | `candy-hermit/` | `candycore/candy-hermit` | `CandyCore\Hermit` | 🔴 | Model for the Bubble Tea lifecycle |
 | [Evertras/bubble-table](https://github.com/Evertras/bubble-table) | **SugarTable** | `sugar-table/` | `candycore/sugar-table` | `CandyCore\Table` | 🔴 | Customizable interactive table component |
