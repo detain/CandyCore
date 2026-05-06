@@ -115,6 +115,66 @@ final class Theme
          * into one selector.
          */
         public readonly string $headingCase = 'none',
+
+        /**
+         * Distinct marker style for ordered lists. Default null falls
+         * through to the catch-all {@see $listMarker}. Mirrors
+         * glamour's separate `Item.OrderedList` slot.
+         */
+        public readonly ?Style $orderedListMarker = null,
+
+        /**
+         * Distinct marker style for unordered lists. Default null
+         * falls through to {@see $listMarker}. Mirrors glamour's
+         * `Item.UnorderedList` slot.
+         */
+        public readonly ?Style $unorderedListMarker = null,
+
+        /**
+         * `printf` format used for ordered-list markers. Receives the
+         * 1-based item number. Default `'%d.'`. Mirrors glamour's
+         * upstream `Format` field (only the integer-format slice).
+         */
+        public readonly string $orderedListMarkerFormat = '%d.',
+
+        /**
+         * Marker glyph for unordered list items. Default `'•'`.
+         * Mirrors glamour's `Item.Prefix` for unordered lists.
+         */
+        public readonly string $unorderedListMarkerGlyph = '•',
+
+        // ---- table-separator glyph overrides (glamour parity) ----
+        /** Centre intersection (`┼`-style) glyph for table separators. */
+        public readonly string $tableCenterSeparator = '┼',
+        /** Vertical column-separator glyph. Default `│`. */
+        public readonly string $tableColumnSeparator = '│',
+        /** Horizontal row-separator glyph. Default `─`. */
+        public readonly string $tableRowSeparator    = '─',
+
+        // ---- definition list (glamour `DefinitionList`) ----
+        /**
+         * Block-level style applied to the entire definition list.
+         * Default null = no wrapping style; the term / description
+         * children render with their own styles.
+         */
+        public readonly ?Style $definitionList = null,
+
+        // ---- StylePrimitive features (glamour parity) ----
+        /**
+         * Block-level prefix prepended once before the document body.
+         * Mirrors glamour's `Document.BlockPrefix`.
+         */
+        public readonly string $documentBlockPrefix = '',
+        /**
+         * Block-level suffix appended once after the document body.
+         */
+        public readonly string $documentBlockSuffix = '',
+        /**
+         * Per-element conceal flag: when true, suppresses the element
+         * type from emit. Used by Notty / ASCII themes to skip emoji.
+         * Currently a no-op placeholder that callers can branch on.
+         */
+        public readonly bool $conceal = false,
     ) {}
 
     /** Default ANSI theme: bright accents on each heading, coloured code, etc. */
