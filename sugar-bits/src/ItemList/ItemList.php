@@ -276,6 +276,81 @@ final class ItemList implements Model
         return $this->items;
     }
 
+    /** Move cursor up `$n` rows. Mirrors Bubbles' `CursorUp`. */
+    public function cursorUp(int $n = 1): self
+    {
+        return $this->moveCursor($this->cursor - max(1, $n));
+    }
+
+    /** Move cursor down `$n` rows. Mirrors Bubbles' `CursorDown`. */
+    public function cursorDown(int $n = 1): self
+    {
+        return $this->moveCursor($this->cursor + max(1, $n));
+    }
+
+    /** Jump to row 0. Mirrors `GoToStart`. */
+    public function goToStart(): self { return $this->moveCursor(0); }
+
+    /** Jump to last row. Mirrors `GoToEnd`. */
+    public function goToEnd(): self   { return $this->moveCursor(PHP_INT_MAX); }
+
+    /** Page back by `$height` rows. Mirrors `PrevPage`. */
+    public function prevPage(): self
+    {
+        return $this->moveCursor($this->cursor - max(1, $this->height));
+    }
+
+    /** Page forward by `$height` rows. Mirrors `NextPage`. */
+    public function nextPage(): self
+    {
+        return $this->moveCursor($this->cursor + max(1, $this->height));
+    }
+
+    /**
+     * Move the cursor directly to `$index` (0-based, clamped).
+     * Mirrors Bubbles' `Select(int)`.
+     */
+    public function select(int $index): self
+    {
+        return $this->moveCursor($index);
+    }
+
+    /** Reset the selection to row 0. Mirrors `ResetSelected`. */
+    public function resetSelected(): self
+    {
+        return $this->moveCursor(0);
+    }
+
+    /**
+     * Drop the active filter text and exit filter mode. Mirrors
+     * Bubbles' `ResetFilter`. Equivalent to {@see clearFilter()}.
+     */
+    public function resetFilter(): self
+    {
+        return $this->clearFilter();
+    }
+
+    /** True when a filter is currently typed. Mirrors `IsFiltered`. */
+    public function isFiltered(): bool
+    {
+        return $this->filterText !== '';
+    }
+
+    /** Currently typed filter text. Mirrors `FilterValue`. */
+    public function filterValue(): string
+    {
+        return $this->filterText;
+    }
+
+    /**
+     * True when the user is actively typing into the filter buffer
+     * (vs viewing filtered results). Mirrors `SettingFilter`.
+     */
+    public function settingFilter(): bool
+    {
+        return $this->filtering;
+    }
+
     public function setSize(int $width, int $height): self
     {
         if ($width < 0 || $height < 0) {

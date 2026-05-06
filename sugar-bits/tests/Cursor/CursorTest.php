@@ -111,4 +111,25 @@ final class CursorTest extends TestCase
         // The cell renders via textStyle when not highlighted.
         $this->assertStringContainsString("\x1b[2mA\x1b[0m", $c->view());
     }
+
+    public function testBlinkSpeedAccessor(): void
+    {
+        $c = Cursor::new('|', Mode::Blink, 0.25);
+        $this->assertSame(0.25, $c->blinkSpeed());
+    }
+
+    public function testIsBlinkedFalseInStaticMode(): void
+    {
+        [$c, ] = Cursor::new('|', Mode::Static)->focus();
+        $this->assertFalse($c->isBlinked());
+    }
+
+    public function testIsBlinkedTrueDuringOffPhase(): void
+    {
+        [$c, ] = Cursor::new('|', Mode::Blink)->focus();
+        $this->assertFalse($c->isBlinked()); // initial = on
+        // Toggle the blink phase via update().
+        [$c, ] = $c->update(new BlinkMsg($c->id));
+        $this->assertTrue($c->isBlinked());
+    }
 }

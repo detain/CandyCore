@@ -139,6 +139,22 @@ final class Cursor implements Model
     /** Current cursor mode. */
     public function mode(): Mode { return $this->mode; }
 
+    /** Configured blink interval in seconds. Mirrors Bubbles' `BlinkSpeed`. */
+    public function blinkSpeed(): float { return $this->blinkSpeed; }
+
+    /**
+     * True when the cursor is currently in the "off" half of a blink
+     * cycle (the cell is rendered without highlight). Mirrors Bubbles'
+     * `IsBlinked()`.
+     */
+    public function isBlinked(): bool
+    {
+        if ($this->mode !== Mode::Blink) {
+            return false;
+        }
+        return !$this->blinkOn;
+    }
+
     private function blink(): \Closure
     {
         $id = $this->id;

@@ -288,4 +288,42 @@ final class TextInputTest extends TestCase
             ->withStyles(null);
         $this->assertNull($t->getStyles());
     }
+
+    public function testGetWidth(): void
+    {
+        $t = TextInput::new()->withWidth(40);
+        $this->assertSame(40, $t->getWidth());
+    }
+
+    public function testPositionAccessor(): void
+    {
+        $t = TextInput::new()->setValue('hello')->setCursor(3);
+        $this->assertSame(3, $t->position());
+    }
+
+    public function testIsFocusedAccessor(): void
+    {
+        $t = TextInput::new();
+        $this->assertFalse($t->isFocused());
+        [$t, ] = $t->focus();
+        $this->assertTrue($t->isFocused());
+    }
+
+    public function testCursorAccessor(): void
+    {
+        $t = TextInput::new();
+        $this->assertSame($t->cursor, $t->cursor());
+    }
+
+    public function testAvailableSuggestions(): void
+    {
+        $t = TextInput::new()->withSuggestions(['foo', 'bar', 'baz']);
+        $this->assertSame(['foo', 'bar', 'baz'], $t->availableSuggestions());
+    }
+
+    public function testCurrentSuggestionIndex(): void
+    {
+        $t = TextInput::new();
+        $this->assertSame(0, $t->currentSuggestionIndex());
+    }
 }

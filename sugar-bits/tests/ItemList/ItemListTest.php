@@ -256,6 +256,78 @@ final class ItemListTest extends TestCase
         $this->assertSame(4, count($l2->items()));
     }
 
+    public function testCursorUpDown(): void
+    {
+        $l = $this->focused()->cursorDown(2);
+        $this->assertSame(2, $l->index());
+        $l = $l->cursorUp();
+        $this->assertSame(1, $l->index());
+    }
+
+    public function testGoToStartEnd(): void
+    {
+        $l = $this->focused()->goToEnd();
+        $this->assertSame(3, $l->index());
+        $l = $l->goToStart();
+        $this->assertSame(0, $l->index());
+    }
+
+    public function testPrevNextPage(): void
+    {
+        $items = [];
+        for ($i = 1; $i <= 20; $i++) {
+            $items[] = new StringItem("item$i");
+        }
+        $l = ItemList::new($items, 60, 5);
+        [$l, ] = $l->focus();
+        $l = $l->nextPage();
+        $this->assertSame(5, $l->index());
+        $l = $l->prevPage();
+        $this->assertSame(0, $l->index());
+    }
+
+    public function testSelectMovesCursor(): void
+    {
+        $l = $this->focused()->select(2);
+        $this->assertSame(2, $l->index());
+    }
+
+    public function testResetSelected(): void
+    {
+        $l = $this->focused()->cursorDown(2)->resetSelected();
+        $this->assertSame(0, $l->index());
+    }
+
+    public function testResetFilterClears(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        $this->assertTrue($l->isFiltered());
+        $l = $l->resetFilter();
+        $this->assertFalse($l->isFiltered());
+    }
+
+    public function testFilterValueAccessor(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'b'));
+        $this->assertSame('b', $l->filterValue());
+        $this->assertTrue($l->isFiltered());
+        $this->assertTrue($l->settingFilter());
+    }
+
+    public function testSettingFilterFalseAfterEnter(): void
+    {
+        $l = $this->focused();
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, '/'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Char, 'a'));
+        [$l, ] = $l->update(new KeyMsg(KeyType::Enter));
+        $this->assertFalse($l->settingFilter());
+        $this->assertTrue($l->isFiltered());
+    }
+
     public function testCursorPrefixDefault(): void
     {
         $l = $this->focused();
