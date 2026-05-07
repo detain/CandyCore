@@ -80,6 +80,41 @@ foreach ($store-&gt;list('user:*') as $key =&gt; $value) {
   </div>
 </section>
 
+
+<section class="section" style="background: var(--card); border-block: 1px solid var(--line);">
+    <div class="container">
+        <h2>Demos.</h2>
+        <p class="lede">VHS-recorded GIFs of every example shipped with the library. Regenerated automatically on every push that touches the source.</p>
+        <div class="demo-grid">
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-skate/.vhs/basic.gif" alt="Get / set / list">
+                <h3>Get / set / list</h3>
+                <span class="demo-caption">Default in-memory store — set, get, list, delete.</span>
+            </div>
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-skate/.vhs/glob.gif" alt="Glob listing">
+                <h3>Glob listing</h3>
+                <span class="demo-caption">List keys matching `users/*` and `cache/*`.</span>
+            </div>
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-skate/.vhs/reverse-order.gif" alt="Reverse-order list">
+                <h3>Reverse-order list</h3>
+                <span class="demo-caption">List a key range in reverse insertion order.</span>
+            </div>
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-skate/.vhs/binary.gif" alt="Binary values">
+                <h3>Binary values</h3>
+                <span class="demo-caption">Round-trip raw bytes in / out of the store.</span>
+            </div>
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-skate/.vhs/multidb.gif" alt="Multiple DBs">
+                <h3>Multiple DBs</h3>
+                <span class="demo-caption">Two named stores side-by-side, no collisions.</span>
+            </div>
+        </div>
+    </div>
+</section>
+
 <footer class="footer">
     <div class="container">
         <div><span class="logo-mark"></span> <strong>SugarCraft</strong> · MIT-licensed · PHP 8.1+</div>

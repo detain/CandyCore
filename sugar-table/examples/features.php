@@ -1,6 +1,6 @@
 <?php
 /**
- * sugar-table — complex table with frozen cols, styled cells, and pagination.
+ * sugar-table — wide table with frozen columns, styled cells, pagination.
  *
  * Run: php examples/features.php
  */
@@ -11,49 +11,45 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 use SugarCraft\Table\{Table, Column, Row, RowData, StyledCell};
 
-echo "=== Wide table with frozen column and pagination ===\n\n";
+echo "=== Wide table with frozen column + pagination ===\n\n";
 
-// 40 rows of data
+// 40 rows of host telemetry, every 3rd warning, every 5th failing.
 $rows = [];
 for ($i = 1; $i <= 40; $i++) {
     $status = $i % 5 === 0 ? 'error' : ($i % 3 === 0 ? 'warning' : 'ok');
-    $statusColor = match ($status) {
-        'error' => '31', // red
-        'warning' => '33', // yellow
-        default => '32', // green
+    [$statusText, $statusColor] = match ($status) {
+        'error'   => ['FAIL', '31'],
+        'warning' => ['WARN', '33'],
+        default   => ['OK',   '32'],
     };
-    $statusText = match ($status) {
-        'error' => 'FAIL',
-        'warning' => 'WARN',
-        default => 'OK',
-    };
-    $rows[] = Row::new([
-        new StyledCell((string) $i, '36'), // id in cyan
-        new StyledCell("Server-{$i}", ''),
-        new StyledCell("10.0.{$i % 255}.1", '90'), // dim IP
-        new StyledCell("{$i * 10}ms", ''),
-        new StyledCell($statusText, $statusColor),
-    ]);
+    $rows[] = Row::new(RowData::from([
+        'id'      => new StyledCell((string) $i, '36'),
+        'host'    => new StyledCell('Server-' . $i, ''),
+        'ip'      => new StyledCell('10.0.' . ($i % 255) . '.1', '90'),
+        'latency' => new StyledCell(($i * 10) . 'ms', ''),
+        'status'  => new StyledCell($statusText, $statusColor),
+    ]));
 }
 
-$table = (new Table())
-    ->withColumns([
-        Column::make('#', 5)->withAlignment('right'),
-        Column::make('Hostname', 15),
-        Column::make('IP Address', 18),
-        Column::make('Latency', 10)->withAlignment('right'),
-        Column::make('Status', 8)->withAlignment('center'),
-    ])
+$table = Table::withColumns([
+    Column::new('id',      '#',          5),
+    Column::new('host',    'Hostname',  15)->withAlignLeft(),
+    Column::new('ip',      'IP',        18)->withAlignLeft(),
+    Column::new('latency', 'Latency',   10),
+    Column::new('status',  'Status',     8),
+])
     ->withRows($rows)
-    ->withPagination(10);
+    ->withPageSize(10)
+    ->withZebra()
+    ->withHeaderStyle('1;37');
 
-echo $table->view() . "\n\n";
+echo $table->View() . "\n\n";
 
 echo "Navigate: use NextPage() / PreviousPage() in code.\n";
-echo "Total pages: {$table->TotalPages()}\n";
-echo "Current page: {$table->CurrentPage()}\n";
+echo "Total pages: " . $table->TotalPages() . "\n";
+echo "Current page: " . ($table->CurrentPage() + 1) . " (zero-indexed underneath)\n";
 
-// Show page 3
-$table = $table->withPage(3);
-echo "\n=== Page 3 ===\n";
-echo $table->view() . "\n";
+// Jump straight to page 3 (zero-indexed → 2).
+$table = $table->withPage(2);
+echo "\n=== Page 3 (frozen # column stays on the left) ===\n";
+echo $table->View() . "\n";

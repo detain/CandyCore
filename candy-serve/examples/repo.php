@@ -1,6 +1,8 @@
 <?php
 /**
- * candy-serve Repo + AccessControl example — create repos and manage access.
+ * candy-serve Repo + AccessControl example — build a Repo description,
+ * resolve permissions for a User against it. No actual git server is
+ * spawned; this exercises the metadata surface that ships in the lib.
  *
  * Run: php examples/repo.php
  */
@@ -9,63 +11,54 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+use SugarCraft\Serve\AccessControl;
 use SugarCraft\Serve\Config;
 use SugarCraft\Serve\Repo;
-use SugarCraft\Serve\AccessControl;
+use SugarCraft\Serve\User;
 
+// Steer Config at a temp data dir.
 $tmpDir = \sys_get_temp_dir() . '/candy-serve-test-' . \uniqid();
 \mkdir($tmpDir, 0755, true);
-
-// Demo with a temp config
+\putenv("CANDY_SERVE_DATA_PATH={$tmpDir}");
 $config = Config::fromDefaults();
 
-// Reflect into dataPath for our temp dir
-$ref = (new \ReflectionClass($config))->getProperty('dataPath');
-$ref->setAccessible(true);
-$ref->setValue($config, $tmpDir);
+echo "=== Config ===\n";
+echo "  reposPath: {$config->reposPath()}\n";
+echo "  sshPath  : {$config->sshPath()}\n";
+echo "  dbPath   : {$config->dbPath()}\n\n";
 
-echo "=== Repo Management ===\n\n";
+// Build a public, push-allowed Repo with one collaborator.
+$repo = Repo::new('hello-world', $config->reposPath() . '/hello-world.git')
+    ->withDescription('Greeting service for the docs site.')
+    ->withPublic(true)
+    ->withAllowPush(true)
+    ->withHighlightLanguage('php')
+    ->addCollaborator('alice');
 
-$reposPath = $config->reposPath();
-echo "Repos path: {$reposPath}\n\n";
+echo "=== Repo metadata ===\n";
+echo "  name           : {$repo->name}\n";
+echo "  path           : {$repo->path()}\n";
+echo "  description    : {$repo->description}\n";
+echo "  public         : " . ($repo->isPublic ? 'yes' : 'no') . "\n";
+echo "  allow push     : " . ($repo->allowPush ? 'yes' : 'no') . "\n";
+echo "  highlight lang : {$repo->highlightLanguage}\n";
+echo "  collaborators  : " . implode(', ', $repo->collaborators()) . "\n\n";
 
-// Create a repo
-try {
-    $repo = Repo::create($config, 'hello-world');
-    echo "Created repo: {$repo->name()}\n";
-    echo "Path       : {$repo->path()}\n";
-    echo "Is bare    : " . ($repo->isBare() ? 'yes' : 'no') . "\n";
-    echo "Default branch: {$repo->defaultBranch()}\n";
+// Build users + an AccessControl, ask the access matrix.
+$alice = User::new('alice');
+$bob   = User::new('bob');
 
-    // Read a file (before any push)
-    $content = $repo->readFile('README.md');
-    echo "README.md  : " . ($content !== null ? '"' . \substr($content, 0, 40) . '..."' : '(not found)') . "\n";
-
-    // List branches
-    $branches = $repo->branches();
-    echo "Branches   : " . \implode(', ', $branches) . "\n";
-
-    // Add a collaborator
-    $ac = new AccessControl();
-    $ac = $ac->grantRead($repo->name(), 'alice@example.com');
-    echo "Alice access: " . ($ac->canRead('alice@example.com', $repo->name()) ? 'read' : 'none') . "\n";
-
-    // Grant write
-    $ac = $ac->grantWrite($repo->name(), 'bob@example.com');
-    echo "Bob access  : " . ($ac->canWrite('bob@example.com', $repo->name()) ? 'write' : 'read-only') . "\n";
-
-    echo "\n--- All repos ---\n";
-    $allRepos = Repo::listAll($config);
-    echo "Total repos: " . \count($allRepos) . "\n";
-    foreach ($allRepos as $r) {
-        echo "  - {$r->name()}\n";
-    }
-
-} catch (\Throwable $e) {
-    echo "Error: {$e->getMessage()}\n";
-}
+$ac = AccessControl::getInstance();
+echo "=== Access matrix ===\n";
+echo sprintf("  %-8s read=%-3s write=%-3s admin=%s\n",
+    'alice', $ac->canRead($alice, $repo) ? 'yes' : 'no', $ac->canWrite($alice, $repo) ? 'yes' : 'no', $ac->canAdmin($alice, $repo) ? 'yes' : 'no');
+echo sprintf("  %-8s read=%-3s write=%-3s admin=%s\n",
+    'bob',   $ac->canRead($bob,   $repo) ? 'yes' : 'no', $ac->canWrite($bob,   $repo) ? 'yes' : 'no', $ac->canAdmin($bob,   $repo) ? 'yes' : 'no');
+echo sprintf("  %-8s read=%-3s (anonymous read = %s)\n",
+    'guest',
+    $ac->canRead(null, $repo) ? 'yes' : 'no',
+    $ac->allowAnonymousRead() ? 'on' : 'off');
 
 // Cleanup
 exec("rm -rf " . \escapeshellarg($tmpDir));
-
 echo "\nDone.\n";
