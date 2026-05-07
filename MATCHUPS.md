@@ -32,20 +32,12 @@ Status legend:
 | [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) | **SugarBits** | `sugar-bits/` | `sugarcraft/sugar-bits` | `SugarCraft\Bits` | 🟡 | 14 prebuilt components (TextInput, ItemList, Table, …) |
 | [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) | **SugarCharts** | `sugar-charts/` | `sugarcraft/sugar-charts` | `SugarCraft\Charts` | 🟡 | Sparkline / Bar / Line / Heatmap / Scatter / TimeSeries / OHLC / picture |
 | [charmbracelet/huh](https://github.com/charmbracelet/huh) | **SugarPrompt** | `sugar-prompt/` | `sugarcraft/sugar-prompt` | `SugarCraft\Prompt` | 🟢 | Form library — Note / Input / Confirm / Select / MultiSelect / Text / FilePicker |
-| [charmbracelet/gum](https://github.com/charmbracelet/gum) | **CandyShell** | `candy-shell/` | `sugarcraft/candy-shell` | `SugarCraft\Shell` | 🟡 | Composer-installable CLI of 13 subcommands |
 | [charmbracelet/glamour](https://github.com/charmbracelet/glamour) | **CandyShine** | `candy-shine/` | `sugarcraft/candy-shine` | `SugarCraft\Shine` | 🟡 | Markdown → ANSI renderer (themes, syntax, OSC 8 hyperlinks) |
-| [charmbracelet/glow](https://github.com/charmbracelet/glow) | **SugarGlow** | `sugar-glow/` | `sugarcraft/sugar-glow` | `SugarCraft\Glow` | 🟢 | Markdown CLI viewer / pager (consumes CandyShine) |
-| [charmbracelet/freeze](https://github.com/charmbracelet/freeze) | **CandyFreeze** | `candy-freeze/` | `sugarcraft/candy-freeze` | `SugarCraft\Freeze` | 🟢 | Code → SVG screenshot (no GD / Imagick required) |
-| [charmbracelet/sequin](https://github.com/charmbracelet/sequin) | **SugarSpark** | `sugar-spark/` | `sugarcraft/sugar-spark` | `SugarCraft\Spark` | 🟢 | ANSI escape-sequence inspector |
 | [charmbracelet/fang](https://github.com/charmbracelet/fang) | **CandyKit** | `candy-kit/` | `sugarcraft/candy-kit` | `SugarCraft\Kit` | 🟢 | CLI presentation helpers (StatusLine / Banner / Section / Stage / HelpText) |
 | [charmbracelet/wish](https://github.com/charmbracelet/wish) | **CandyWish** | `candy-wish/` | `sugarcraft/candy-wish` | `SugarCraft\Wish` | 🟢 | SSH-server middleware framework (leans on host `sshd`) |
-| [charmbracelet/wishlist](https://github.com/charmbracelet/wishlist) | **SugarWishlist** | `sugar-wishlist/` | `sugarcraft/sugar-wishlist` | `SugarCraft\Wishlist` | 🟢 | SSH endpoint launcher (YAML / JSON shortcuts directory) |
 | [charmbracelet/promwish](https://github.com/charmbracelet/promwish) | **CandyMetrics** | `candy-metrics/` | `sugarcraft/candy-metrics` | `SugarCraft\Metrics` | 🟢 | Telemetry primitives + CandyWish session middleware |
 | [charmbracelet/log](https://github.com/charmbracelet/log) | **CandyLog** | `candy-log/` | `sugarcraft/candy-log` | `SugarCraft\Log` | 🟢 | Minimal, colorful logging library |
 | [charmbracelet/colorprofile](https://github.com/charmbracelet/colorprofile) | **CandyPalette** | `candy-palette/` | `sugarcraft/candy-palette` | `SugarCraft\Palette` | 🟢 | Terminal color detection + ICC profile handling |
-| [charmbracelet/soft-serve](https://github.com/charmbracelet/soft-serve) | **CandyServe** | `candy-serve/` | `sugarcraft/candy-serve` | `SugarCraft\Serve` | 🟢 |
-| [charmbracelet/skate](https://github.com/charmbracelet/skate) | **SugarSkate** | `sugar-skate/` | `sugarcraft/sugar-skate` | `SugarCraft\Skate` | 🟢 | Personal key/value store |
-| [charmbracelet/pop](https://github.com/charmbracelet/pop) | **SugarPost** | `sugar-post/` | `sugarcraft/sugar-post` | `SugarCraft\Post` | 🟢 |
 | [treilik/bubblelister](https://github.com/treilik/bubblelister) | **CandyLister** | `candy-lister/` | `sugarcraft/candy-lister` | `SugarCraft\Lister` | 🟢 |
 | [treilik/bubbleboxer](https://github.com/treilik/bubbleboxer) | **SugarBoxer** | `sugar-boxer/` | `sugarcraft/sugar-boxer` | `SugarCraft\Boxer` | 🟢 |
 | [rmhubbert/bubbletea-overlay](https://github.com/rmhubbert/bubbletea-overlay) | **SugarVeil** | `sugar-veil/` | `sugarcraft/sugar-veil` | `SugarCraft\Veil` | 🟢 |
@@ -57,11 +49,19 @@ Status legend:
 | [DaltonSW/bubbleup](https://github.com/daltonsw/bubbleup) | **SugarToast** | `sugar-toast/` | `sugarcraft/sugar-toast` | `SugarCraft\Toast` | 🟢 |
 | [76creates/stickers](https://github.com/76creates/stickers) | **SugarStickers** | `sugar-stickers/` | `sugarcraft/sugar-stickers` | `SugarCraft\Stickers` | 🟢 |
 
-## Reference apps
+## Apps
 
 | Upstream | SugarCraft port | Subdir | Composer pkg | Namespace | Status | Role |
 |---|---|---|---|---|:---:|---|
 | _starter scaffold_ | **CandyMold** | `candy-mold/` | `sugarcraft/candy-mold` | `App\` | 🟢 | `composer create-project` skeleton — counter Model + bin + tests |
+| [charmbracelet/gum](https://github.com/charmbracelet/gum) | **CandyShell** | `candy-shell/` | `sugarcraft/candy-shell` | `SugarCraft\Shell` | 🟡 | Composer-installable CLI of 13 subcommands |
+| [charmbracelet/freeze](https://github.com/charmbracelet/freeze) | **CandyFreeze** | `candy-freeze/` | `sugarcraft/candy-freeze` | `SugarCraft\Freeze` | 🟢 | Code → SVG screenshot (no GD / Imagick required) |
+| [charmbracelet/glow](https://github.com/charmbracelet/glow) | **SugarGlow** | `sugar-glow/` | `sugarcraft/sugar-glow` | `SugarCraft\Glow` | 🟢 | Markdown CLI viewer / pager (consumes CandyShine) |
+| [charmbracelet/sequin](https://github.com/charmbracelet/sequin) | **SugarSpark** | `sugar-spark/` | `sugarcraft/sugar-spark` | `SugarCraft\Spark` | 🟢 | ANSI escape-sequence inspector |
+| [charmbracelet/wishlist](https://github.com/charmbracelet/wishlist) | **SugarWishlist** | `sugar-wishlist/` | `sugarcraft/sugar-wishlist` | `SugarCraft\Wishlist` | 🟢 | SSH endpoint launcher (YAML / JSON shortcuts directory) |
+| [charmbracelet/skate](https://github.com/charmbracelet/skate) | **SugarSkate** | `sugar-skate/` | `sugarcraft/sugar-skate` | `SugarCraft\Skate` | 🟢 | Personal key/value store |
+| [charmbracelet/pop](https://github.com/charmbracelet/pop) | **SugarPost** | `sugar-post/` | `sugarcraft/sugar-post` | `SugarCraft\Post` | 🟢 |
+| [charmbracelet/soft-serve](https://github.com/charmbracelet/soft-serve) | **CandyServe** | `candy-serve/` | `sugarcraft/candy-serve` | `SugarCraft\Serve` | 🟢 |
 | [charmbracelet/crush](https://github.com/charmbracelet/crush) | **SugarCrush** | `sugar-crush/` | `sugarcraft/sugar-crush` | `SugarCraft\Crush` | 🟢 | Chat-shell TUI for AI coding assistants |
 | [Broderick-Westrope/tetrigo](https://github.com/Broderick-Westrope/tetrigo) | **CandyTetris** | `candy-tetris/` | `sugarcraft/candy-tetris` | `SugarCraft\Tetris` | 🟢 | Tetris clone — SRS / 7-bag / NES scoring |
 | [yorukot/superfile](https://github.com/yorukot/superfile) | **SuperCandy** | `super-candy/` | `sugarcraft/super-candy` | `SugarCraft\SuperCandy` | 🟢 | Dual-pane file manager |
@@ -95,7 +95,7 @@ opt-in. Don't mint new prefixes without a discussion in
 
 1. Pick the upstream repo and the SugarCraft prefix + suffix following
    the cheat sheet above.
-2. Add a row to the matching table here (libraries vs reference apps).
+2. Add a row to the matching table here (libraries vs apps).
 3. Add the same name + prefix discussion to
    [`PROJECT_NAMES.md`](./PROJECT_NAMES.md) — this is the canonical
    place for naming-decision history.
