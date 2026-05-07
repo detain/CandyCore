@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Serve;
 
+use SugarCraft\Serve\Lang;
+
 /**
  * A Git repository managed by CandyServe.
  *
@@ -132,7 +134,7 @@ final class Repo
         if (!\is_dir($this->path)) {
             $ok = \mkdir($this->path, 0755, true);
             if (!$ok) {
-                throw new \RuntimeException("Failed to create repo directory: {$this->path}");
+                throw new \RuntimeException(Lang::t('repo.create_dir_failed', ['path' => $this->path]));
             }
         }
 
@@ -142,7 +144,7 @@ final class Repo
             $rc  = 0;
             \exec('git init --bare 2>&1', $out, $rc);
             if ($rc !== 0) {
-                throw new \RuntimeException('git init failed: ' . \implode("\n", $out));
+                throw new \RuntimeException(Lang::t('repo.git_init_failed', ['output' => \implode("\n", $out)]));
             }
         }
 

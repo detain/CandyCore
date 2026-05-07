@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shell\Process;
 
+use SugarCraft\Shell\Lang;
+
 /**
  * Production {@see Process} backed by `proc_open`. The child's stdout
  * and stderr are inherited from the parent so the spinner overlays the
@@ -35,7 +37,7 @@ final class RealProcess implements Process
         $pipes  = [];
         $handle = @proc_open($command, $descriptors, $pipes);
         if (!is_resource($handle)) {
-            throw new \RuntimeException('failed to spawn child process');
+            throw new \RuntimeException(Lang::t('process.spawn_failed'));
         }
         $self = new self($handle);
         $self->pipes[0] = $captureStdout && isset($pipes[1]) && is_resource($pipes[1]) ? $pipes[1] : null;

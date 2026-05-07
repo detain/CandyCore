@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Log;
 
+use SugarCraft\Log\Lang;
 use SugarCraft\Log\Formatter\TextFormatter;
 use SugarCraft\Sprinkles\Style;
 
@@ -99,7 +100,7 @@ final class Logger
         \fwrite($this->stream, $line);
 
         if ($level === Level::Fatal) {
-            throw new \RuntimeException('fatal log: ' . $message);
+            throw new \RuntimeException(Lang::t('logger.fatal', ['message' => $message]));
         }
     }
 

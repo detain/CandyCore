@@ -19,10 +19,11 @@ use SugarCraft\Core\Program;
 use SugarCraft\Core\ProgramOptions;
 use SugarCraft\Stash\App;
 use SugarCraft\Stash\Git;
+use SugarCraft\Stash\Lang;
 
 $cwd = getcwd();
 if ($cwd === false || !is_dir("$cwd/.git")) {
-    fwrite(STDERR, "sugar-stash: not a git repository (no .git in $cwd)\n");
+    fwrite(STDERR, Lang::t('cli.not_a_repo', ['cwd' => (string) $cwd]) . "\n");
     exit(1);
 }
 (new Program(App::start(new Git($cwd)), new ProgramOptions(useAltScreen: true)))->run();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Table;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Core\KeyType;
 use SugarCraft\Core\Model;
 use SugarCraft\Core\Msg;
@@ -52,7 +53,7 @@ final class Table implements Model
     public static function new(array $headers = [], array $rows = [], int $width = 0, int $height = 10): self
     {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('table width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('table.dim_nonneg'));
         }
         return new self(
             headers: array_values($headers),
@@ -79,7 +80,7 @@ final class Table implements Model
         $widths = [];
         foreach ($columns as $col) {
             if (!$col instanceof Column) {
-                throw new \InvalidArgumentException('setColumns expects Column instances');
+                throw new \InvalidArgumentException(Lang::t('table.set_columns_type'));
             }
             $titles[] = $col->title;
             $widths[] = $col->width;
@@ -254,7 +255,7 @@ final class Table implements Model
     public function setSize(int $width, int $height): self
     {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('table width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('table.dim_nonneg'));
         }
         return $this->mutate(width: $width, height: $height)->reclamp();
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shell\Command;
 
+use SugarCraft\Shell\Lang;
 use SugarCraft\Shine\Renderer;
 use SugarCraft\Shine\Theme;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -52,7 +53,7 @@ final class FormatCommand extends Command
             'code'         => self::renderCode($raw, (string) $input->getOption('language'), (string) $input->getOption('theme')),
             'template'     => self::renderTemplate($raw),
             'emoji'        => self::renderEmoji($raw),
-            default        => throw new \InvalidArgumentException("unknown --type: $type"),
+            default        => throw new \InvalidArgumentException(Lang::t('format.unknown_type', ['type' => $type])),
         };
 
         if ($input->getOption('strip-ansi')) {
@@ -69,7 +70,7 @@ final class FormatCommand extends Command
         // so callers stay aligned with CandyShine's full theme set.
         $theme = Theme::byName($name);
         if ($theme === null) {
-            throw new \InvalidArgumentException("unknown theme: $name");
+            throw new \InvalidArgumentException(Lang::t('format.unknown_theme', ['name' => $name]));
         }
         return $theme;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SugarCraft\Shell\Log;
 
 use SugarCraft\Core\Util\Color;
+use SugarCraft\Shell\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -27,7 +28,7 @@ enum LogLevel: string
             'warn', 'warning', 'wrn' => self::Warn,
             'error', 'err'           => self::Error,
             'fatal', 'crit'          => self::Fatal,
-            default => throw new \InvalidArgumentException("unknown log level: $name"),
+            default => throw new \InvalidArgumentException(Lang::t('log.unknown_level', ['name' => $name])),
         };
     }
 

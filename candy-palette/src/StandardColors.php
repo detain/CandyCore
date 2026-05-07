@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Palette;
 
+use SugarCraft\Palette\Lang;
+
 /**
  * Standard 16-color ANSI palette as named {@see Color} objects.
  *
@@ -72,7 +74,7 @@ final class StandardColors
     {
         $all = self::all();
         if (!isset($all[$index])) {
-            throw new \OutOfBoundsException("ANSI 16-color index must be 0–15, got {$index}");
+            throw new \OutOfBoundsException(Lang::t('standard.ansi16_out_of_range', ['index' => $index]));
         }
         return $all[$index];
     }

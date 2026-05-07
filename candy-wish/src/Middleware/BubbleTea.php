@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Wish\Middleware;
 
+use SugarCraft\Wish\Lang;
 use SugarCraft\Wish\Middleware;
 use SugarCraft\Wish\Session;
 
@@ -42,10 +43,9 @@ final class BubbleTea implements Middleware
     {
         $program = ($this->factory)($session);
         if (!is_object($program) || !method_exists($program, 'run')) {
-            throw new \RuntimeException(
-                'BubbleTea factory must return an object with a run() method; got '
-                . (is_object($program) ? $program::class : gettype($program))
-            );
+            throw new \RuntimeException(Lang::t('bubbletea.bad_factory', [
+                'got' => is_object($program) ? $program::class : gettype($program),
+            ]));
         }
         $program->run();
     }

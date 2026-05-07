@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Wish\Middleware;
 
+use SugarCraft\Wish\Lang;
 use SugarCraft\Wish\Middleware;
 use SugarCraft\Wish\Session;
 
@@ -45,13 +46,13 @@ final class Auth implements Middleware
         if ($stderr === null) {
             $stream = fopen('php://stderr', 'w');
             if ($stream === false) {
-                throw new \RuntimeException('cannot open php://stderr');
+                throw new \RuntimeException(Lang::t('middleware.cannot_open_stderr'));
             }
             $this->stderr = $stream;
             return;
         }
         if (!is_resource($stderr)) {
-            throw new \InvalidArgumentException('stderr must be a resource');
+            throw new \InvalidArgumentException(Lang::t('middleware.stderr_not_resource'));
         }
         $this->stderr = $stderr;
     }

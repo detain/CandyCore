@@ -26,6 +26,7 @@ declare(strict_types=1);
 })($argv);
 
 use SugarCraft\Wishlist\Config;
+use SugarCraft\Wishlist\Lang;
 use SugarCraft\Wishlist\Launcher;
 use SugarCraft\Wishlist\Picker;
 
@@ -42,10 +43,10 @@ for ($i = 1; $i < $argc; $i++) {
             break;
         case '--help':
         case '-h':
-            fwrite(STDOUT, "Usage: wishlist [--config <path>] [--ssh <ssh-binary>]\n");
+            fwrite(STDOUT, Lang::t('cli.usage') . "\n");
             exit(0);
         default:
-            fwrite(STDERR, "wishlist: unknown arg: {$argv[$i]}\n");
+            fwrite(STDERR, Lang::t('cli.unknown_arg', ['arg' => $argv[$i]]) . "\n");
             exit(2);
     }
 }
@@ -66,20 +67,20 @@ if ($cfgPath === null) {
     }
 }
 if ($cfgPath === null || !is_file($cfgPath)) {
-    fwrite(STDERR, "wishlist: no config found. Pass --config <path>.\n");
+    fwrite(STDERR, Lang::t('cli.no_config') . "\n");
     exit(1);
 }
 
 try {
     $endpoints = Config::load($cfgPath);
 } catch (\Throwable $e) {
-    fwrite(STDERR, "wishlist: " . $e->getMessage() . "\n");
+    fwrite(STDERR, Lang::t('cli.error', ['message' => $e->getMessage()]) . "\n");
     exit(1);
 }
 
 $pick = (new Picker())->pick($endpoints);
 if ($pick === null) {
-    fwrite(STDERR, "wishlist: cancelled.\n");
+    fwrite(STDERR, Lang::t('cli.cancelled') . "\n");
     exit(130);
 }
 

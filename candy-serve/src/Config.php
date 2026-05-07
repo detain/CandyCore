@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Serve;
 
+use SugarCraft\Serve\Lang;
+
 /**
  * Server configuration loaded from config.yaml.
  *
@@ -65,12 +67,12 @@ final class Config
     public static function load(string $path): self
     {
         if (!\file_exists($path)) {
-            throw new \RuntimeException("Config file not found: {$path}");
+            throw new \RuntimeException(Lang::t('config.not_found', ['path' => $path]));
         }
 
         $yaml = \file_get_contents($path);
         if ($yaml === false) {
-            throw new \RuntimeException("Failed to read config: {$path}");
+            throw new \RuntimeException(Lang::t('config.read_failed', ['path' => $path]));
         }
 
         $data = self::parseYaml($yaml);

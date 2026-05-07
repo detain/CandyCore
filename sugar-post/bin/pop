@@ -16,7 +16,7 @@ namespace SugarCraft\Post;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use SugarCraft\Post\{Email, Mailer, ResendTransport, SmtpTransport};
+use SugarCraft\Post\{Email, Lang, Mailer, ResendTransport, SmtpTransport};
 
 // Parse arguments manually (no getopt dependence on platform)
 $args = parseArgs($argv);
@@ -40,7 +40,7 @@ if ($body === '' && !\feof(STDIN)) {
 try {
     $email = buildEmail($args['opts'], $body);
 } catch (\Throwable $e) {
-    fwrite(STDERR, "Error: {$e->getMessage()}\n");
+    fwrite(STDERR, Lang::t('cli.error', ['message' => $e->getMessage()]) . "\n");
     exit(1);
 }
 
@@ -48,7 +48,7 @@ try {
 try {
     $transport = buildTransport();
 } catch (\Throwable $e) {
-    fwrite(STDERR, "Transport error: {$e->getMessage()}\n");
+    fwrite(STDERR, Lang::t('cli.transport_error', ['message' => $e->getMessage()]) . "\n");
     exit(1);
 }
 
@@ -56,9 +56,9 @@ $mailer = new Mailer($transport);
 
 try {
     $mailer->send($email);
-    echo "✓ Email sent via {$mailer->transportName()}.\n";
+    echo Lang::t('cli.email_sent', ['transport' => $mailer->transportName()]) . "\n";
 } catch (\Throwable $e) {
-    fwrite(STDERR, "Send failed: {$e->getMessage()}\n");
+    fwrite(STDERR, Lang::t('cli.send_failed', ['message' => $e->getMessage()]) . "\n");
     exit(1);
 }
 
@@ -132,7 +132,7 @@ function buildEmail(array $opts, string $stdinBody): Email
     $to   = $opts['to'] ?? [];
 
     if ($to === []) {
-        throw new \InvalidArgumentException('No --to recipient specified');
+        throw new \InvalidArgumentException(Lang::t('cli.no_to_recipient'));
     }
 
     $body = $stdinBody !== '' ? $stdinBody : ($opts['body'] ?? null);
@@ -155,7 +155,7 @@ function buildEmail(array $opts, string $stdinBody): Email
 
     foreach ($opts['attachments'] ?? [] as $file) {
         if (!\file_exists($file)) {
-            throw new \InvalidArgumentException("Attachment file not found: {$file}");
+            throw new \InvalidArgumentException(Lang::t('cli.attachment_not_found', ['file' => $file]));
         }
         $email = $email->withAttachment(\basename($file), $file);
     }
@@ -179,9 +179,7 @@ function buildTransport(): Transport
         );
     }
 
-    throw new \RuntimeException(
-        'No transport configured. Set RESEND_API_KEY or POP_SMTP_HOST environment variable.'
-    );
+    throw new \RuntimeException(Lang::t('cli.no_transport'));
 }
 
 function help(string $bin): string

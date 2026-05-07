@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\Sparkline;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -36,7 +37,7 @@ final class Sparkline
         public readonly bool $autoMaxValue = true,
     ) {
         if ($width < 0) {
-            throw new \InvalidArgumentException('sparkline width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('sparkline.width_nonneg'));
         }
     }
 
@@ -64,7 +65,7 @@ final class Sparkline
     public function withWidth(int $w): self
     {
         if ($w < 0) {
-            throw new \InvalidArgumentException('sparkline width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('sparkline.width_nonneg'));
         }
         return new self($this->data, $w, $this->min, $this->max, $this->style, $this->autoMaxValue);
     }

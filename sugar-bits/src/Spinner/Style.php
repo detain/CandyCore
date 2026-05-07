@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Spinner;
 
+use SugarCraft\Bits\Lang;
+
 /**
  * A spinner style: an ordered list of frames and a per-frame interval.
  *
@@ -18,10 +20,10 @@ final class Style
         public readonly float $fps = 10.0,
     ) {
         if ($frames === []) {
-            throw new \InvalidArgumentException('spinner style needs at least one frame');
+            throw new \InvalidArgumentException(Lang::t('spinner.empty_frames'));
         }
         if ($fps <= 0.0) {
-            throw new \InvalidArgumentException('spinner fps must be > 0');
+            throw new \InvalidArgumentException(Lang::t('spinner.fps_positive'));
         }
     }
 

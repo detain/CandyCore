@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shine;
 
+use SugarCraft\Shine\Lang;
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Sprinkles\Style;
 
@@ -561,7 +562,7 @@ final class Theme
     {
         $raw = @file_get_contents($path);
         if ($raw === false) {
-            throw new \RuntimeException("could not read theme file: $path");
+            throw new \RuntimeException(Lang::t('theme.read_failed', ['path' => $path]));
         }
         return self::fromJsonString($raw);
     }
@@ -571,7 +572,7 @@ final class Theme
     {
         $data = json_decode($json, associative: true);
         if (!is_array($data)) {
-            throw new \InvalidArgumentException('theme JSON must decode to an object');
+            throw new \InvalidArgumentException(Lang::t('theme.json_object'));
         }
         $pick = static fn(string $k): Style
             => isset($data[$k]) && is_array($data[$k])

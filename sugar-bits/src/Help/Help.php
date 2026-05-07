@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Help;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Bits\Key\Binding;
 use SugarCraft\Bits\Key\KeyMap;
 use SugarCraft\Core\Msg;
@@ -77,7 +78,7 @@ final class Help
     public function width(int $cells): self
     {
         if ($cells < 0) {
-            throw new \InvalidArgumentException('help width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('help.width_nonneg'));
         }
         return $this->copy(maxWidth: $cells);
     }

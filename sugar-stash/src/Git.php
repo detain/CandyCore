@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Stash;
 
+use SugarCraft\Stash\Lang;
+
 /**
  * Thin wrapper around `git` invocations. Everything that mutates a
  * repo shells out — no libgit2 binding, no in-PHP plumbing-command
@@ -86,7 +88,7 @@ final class Git implements GitDriver
             $pipes,
         );
         if (!is_resource($proc)) {
-            throw new \RuntimeException('git: failed to spawn');
+            throw new \RuntimeException(Lang::t('git.spawn_failed'));
         }
         $stdout = stream_get_contents($pipes[1]) ?: '';
         $stderr = stream_get_contents($pipes[2]) ?: '';
@@ -94,7 +96,7 @@ final class Git implements GitDriver
         fclose($pipes[2]);
         $exit = proc_close($proc);
         if ($exit !== 0) {
-            throw new \RuntimeException("git: " . trim($stderr));
+            throw new \RuntimeException(Lang::t('git.error', ['stderr' => trim($stderr)]));
         }
         return explode("\n", rtrim($stdout, "\n"));
     }

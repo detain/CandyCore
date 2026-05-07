@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Table;
 
+use SugarCraft\Bits\Lang;
+
 /**
  * Header column for {@see Table::setColumns()}. `$width = 0` lets the
  * table auto-size the column to fit its widest cell; any positive
@@ -18,7 +20,7 @@ final class Column
         public readonly int $width = 0,
     ) {
         if ($width < 0) {
-            throw new \InvalidArgumentException('Column width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('column.width_nonneg'));
         }
     }
 }

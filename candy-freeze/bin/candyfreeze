@@ -22,6 +22,7 @@ foreach ([__DIR__ . '/../vendor/autoload.php', $root . '/vendor/autoload.php'] a
     }
 }
 
+use SugarCraft\Freeze\Lang;
 use SugarCraft\Freeze\SvgRenderer;
 use SugarCraft\Freeze\Theme;
 
@@ -57,7 +58,7 @@ while (($arg = array_shift($argv)) !== null) {
             if ($inputPath === null && !str_starts_with($arg, '-')) {
                 $inputPath = $arg;
             } else {
-                fwrite(STDERR, "candyfreeze: unrecognised flag '{$arg}'\n");
+                fwrite(STDERR, Lang::t('cli.unknown_flag', ['flag' => $arg]) . "\n");
                 exit(2);
             }
     }
@@ -72,7 +73,7 @@ $theme = match (strtolower(str_replace('_', '-', $themeName))) {
     default       => null,
 };
 if ($theme === null) {
-    fwrite(STDERR, "candyfreeze: unknown theme '{$themeName}'. Known: dark, light, dracula, tokyo-night, nord\n");
+    fwrite(STDERR, Lang::t('cli.unknown_theme', ['name' => $themeName]) . "\n");
     exit(2);
 }
 
@@ -80,7 +81,7 @@ $text = $inputPath !== null
     ? @file_get_contents($inputPath)
     : stream_get_contents(STDIN);
 if ($text === false || $text === null) {
-    fwrite(STDERR, "candyfreeze: failed to read input\n");
+    fwrite(STDERR, Lang::t('cli.read_failed') . "\n");
     exit(1);
 }
 
@@ -96,7 +97,7 @@ $svg = (new SvgRenderer(
 
 if ($output !== null) {
     if (@file_put_contents($output, $svg) === false) {
-        fwrite(STDERR, "candyfreeze: failed to write '{$output}'\n");
+        fwrite(STDERR, Lang::t('cli.write_failed', ['path' => $output]) . "\n");
         exit(1);
     }
 } else {

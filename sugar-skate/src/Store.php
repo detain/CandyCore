@@ -17,6 +17,8 @@ declare(strict_types=1);
  */
 namespace SugarCraft\Skate;
 
+use SugarCraft\Skate\Lang;
+
 /**
  * Main entry point for the Skate key/value store.
  *
@@ -160,7 +162,7 @@ final class Store
     {
         $bytes = \file_get_contents($filePath);
         if ($bytes === false) {
-            throw new \RuntimeException("Cannot read file: {$filePath}");
+            throw new \RuntimeException(Lang::t('store.cannot_read', ['path' => $filePath]));
         }
         return $this->set($key, $bytes, true);
     }

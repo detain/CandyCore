@@ -19,6 +19,7 @@ namespace SugarCraft\Skate;
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use SugarCraft\Skate\Lang;
 use SugarCraft\Skate\Store;
 
 $bin = basename($argv[0]);
@@ -34,7 +35,7 @@ $cmd = $argv[1];
 switch ($cmd) {
     case 'set':
         if ($argc < 3) {
-            fwrite(STDERR, "Usage: {$bin} set <key> [value]\n");
+            fwrite(STDERR, Lang::t('cli.usage_set', ['bin' => $bin]) . "\n");
             exit(1);
         }
         $key = $argv[2];
@@ -44,7 +45,7 @@ switch ($cmd) {
 
     case 'get':
         if ($argc < 3) {
-            fwrite(STDERR, "Usage: {$bin} get <key>\n");
+            fwrite(STDERR, Lang::t('cli.usage_get', ['bin' => $bin]) . "\n");
             exit(1);
         }
         $val = $store->get($argv[2]);
@@ -69,11 +70,11 @@ switch ($cmd) {
 
     case 'delete':
         if ($argc < 3) {
-            fwrite(STDERR, "Usage: {$bin} delete <key>\n");
+            fwrite(STDERR, Lang::t('cli.usage_delete', ['bin' => $bin]) . "\n");
             exit(1);
         }
         $n = $store->delete($argv[2]);
-        echo "Deleted {$n} entries.\n";
+        echo Lang::t('cli.deleted_n', ['count' => $n]) . "\n";
         break;
 
     case 'list-dbs':
@@ -89,7 +90,7 @@ switch ($cmd) {
         break;
 
     default:
-        fwrite(STDERR, "Unknown command: {$cmd}\n");
+        fwrite(STDERR, Lang::t('cli.unknown_command', ['cmd' => $cmd]) . "\n");
         help($bin);
         exit(1);
 }

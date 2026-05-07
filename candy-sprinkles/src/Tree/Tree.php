@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Sprinkles\Tree;
 
+use SugarCraft\Sprinkles\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -97,7 +98,7 @@ final class Tree
     public function offset(int $start, int $end): self
     {
         if ($start < 0 || $end < 0) {
-            throw new \InvalidArgumentException('tree offset bounds must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('tree.offset_nonneg'));
         }
         $clone = clone $this;
         $clone->offsetStart = $start;

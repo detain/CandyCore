@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Progress;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Core\Util\ColorProfile;
 use SugarCraft\Core\Util\Width;
@@ -49,7 +50,7 @@ final class Progress
         ?\Closure $colorFunc = null,
     ) {
         if ($width < 0) {
-            throw new \InvalidArgumentException('progress width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('progress.width_nonneg'));
         }
         $this->percent = max(0.0, min(1.0, $percent));
         $this->gradientStops = array_values($gradientStops);

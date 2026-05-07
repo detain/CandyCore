@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\LineChart;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Charts\Canvas\Canvas;
 use SugarCraft\Charts\Canvas\Graph;
 
@@ -47,7 +48,7 @@ final class LineChart
         public readonly int $yLabelTicks   = 0,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('line chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('linechart.dim_nonneg'));
         }
     }
 
@@ -66,7 +67,7 @@ final class LineChart
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('line chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('linechart.dim_nonneg'));
         }
         return $this->copy(width: $w, height: $h);
     }

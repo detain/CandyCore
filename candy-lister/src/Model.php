@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Lister;
 
+use SugarCraft\Lister\Lang;
 use SugarCraft\Core\Util\Width;
 
 /**
@@ -209,7 +210,7 @@ final class Model
     public function cursorItem(): \Stringable
     {
         if ($this->isEmpty()) {
-            throw new \RuntimeException('NoItems: list has no items');
+            throw new \RuntimeException(Lang::t('list.no_items'));
         }
         return $this->items[$this->cursorIndex]->value;
     }
@@ -279,10 +280,10 @@ final class Model
     public function lines(): array
     {
         if ($this->isEmpty()) {
-            throw new \RuntimeException('NoItems: list has no items');
+            throw new \RuntimeException(Lang::t('list.no_items'));
         }
         if ($this->width <= 0 || $this->height <= 0) {
-            throw new \RuntimeException("Can't display with zero width or height of viewport");
+            throw new \RuntimeException(Lang::t('list.zero_viewport'));
         }
 
         $count = \count($this->items);

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Query;
 
+use SugarCraft\Query\Lang;
+
 /**
  * Thin SQLite wrapper. Everything else in this app talks to a {@see
  * Database} (an interface in spirit, sealed concrete class in
@@ -23,7 +25,7 @@ final class Database
     public static function open(string $path): self
     {
         if ($path !== ':memory:' && !is_file($path)) {
-            throw new \RuntimeException("candy-query: no such SQLite file: $path");
+            throw new \RuntimeException(Lang::t('database.no_file', ['path' => $path]));
         }
         return new self(new \PDO('sqlite:' . $path));
     }

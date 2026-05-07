@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Serve\SSH;
 
+use SugarCraft\Serve\Lang;
 use SugarCraft\Serve\{AccessControl, Config, Repo, User};
 
 /**
@@ -189,7 +190,7 @@ final class SSHServer
         $ac = AccessControl::getInstance();
         if (!$ac->canCreateRepos($user)) {
             $viewer = $user?->username;
-            throw new \RuntimeException("User {$viewer} cannot create repos");
+            throw new \RuntimeException(Lang::t('ssh.user_cannot_create', ['viewer' => $viewer]));
         }
 
         $path = $this->config->reposPath() . '/' . $name;

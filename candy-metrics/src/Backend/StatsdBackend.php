@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Metrics\Backend;
 
+use SugarCraft\Metrics\Lang;
 use SugarCraft\Metrics\Backend;
 
 /**
@@ -41,14 +42,14 @@ final class StatsdBackend implements Backend
     ) {
         if ($existingSocket !== null) {
             if (!is_resource($existingSocket)) {
-                throw new \InvalidArgumentException('existingSocket must be a resource');
+                throw new \InvalidArgumentException(Lang::t('statsd.socket_not_resource'));
             }
             $this->sock = $existingSocket;
             return;
         }
         $sock = @fsockopen("udp://{$host}", $port, $errno, $errstr, 1.0);
         if ($sock === false) {
-            throw new \RuntimeException("statsd connect failed: {$errstr} ({$errno})");
+            throw new \RuntimeException(Lang::t('statsd.connect_failed', ['errstr' => (string) $errstr, 'errno' => (string) $errno]));
         }
         $this->sock = $sock;
         $this->owns = true;

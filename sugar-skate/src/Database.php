@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Skate;
 
+use SugarCraft\Skate\Lang;
+
 /**
  * SQLite-backed store for one named database.
  *
@@ -92,7 +94,7 @@ final class Database
         $stmt->execute();
         $stmt->close();
 
-        return $this->get($key) ?? throw new \RuntimeException('Entry set but not readable');
+        return $this->get($key) ?? throw new \RuntimeException(Lang::t('database.entry_unreadable'));
     }
 
     /**

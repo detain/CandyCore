@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Glow;
 
+use SugarCraft\Glow\Lang;
 use SugarCraft\Core\Program;
 use SugarCraft\Core\ProgramOptions;
 use SugarCraft\Core\Util\Tty;
@@ -87,7 +88,7 @@ final class RenderCommand extends Command
             'tokyo-night',
             'tokyonight'       => Theme::tokyoNight(),
             'pink'             => Theme::pink(),
-            default            => throw new \InvalidArgumentException("unknown theme: $name"),
+            default            => throw new \InvalidArgumentException(Lang::t('render.unknown_theme', ['name' => $name])),
         };
     }
 

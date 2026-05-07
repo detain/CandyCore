@@ -19,6 +19,7 @@ use SugarCraft\Core\Program;
 use SugarCraft\Core\ProgramOptions;
 use SugarCraft\Tick\Dashboard;
 use SugarCraft\Tick\Heartbeat;
+use SugarCraft\Tick\Lang;
 use SugarCraft\Tick\Store;
 
 $argv = $argv ?? [];
@@ -33,7 +34,11 @@ if ($cmd === 'push') {
     $file     = $argv[4] ?? '';
     $duration = (int)($argv[5] ?? 60);
     $store->append(new Heartbeat(time(), $project, $language, $file, $duration));
-    fwrite(STDOUT, "tick pushed: $project ($language) +{$duration}s\n");
+    fwrite(STDOUT, Lang::t('cli.tick_pushed', [
+        'project'  => $project,
+        'language' => $language,
+        'duration' => $duration,
+    ]) . "\n");
     exit(0);
 }
 

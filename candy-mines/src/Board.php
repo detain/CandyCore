@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Mines;
 
+use SugarCraft\Mines\Lang;
+
 /**
  * The minesweeper board — pure value object. Immutable; every reveal
  * or flag returns a fresh Board with the changed cells swapped in.
@@ -30,10 +32,10 @@ final class Board
         public readonly bool $exploded = false,
     ) {
         if ($width < 2 || $height < 2) {
-            throw new \InvalidArgumentException('board too small');
+            throw new \InvalidArgumentException(Lang::t('board.too_small'));
         }
         if ($mineCount < 1 || $mineCount > $width * $height - 1) {
-            throw new \InvalidArgumentException('mineCount out of range');
+            throw new \InvalidArgumentException(Lang::t('board.minecount_out_of_range'));
         }
         $this->rows = $rows;
     }
