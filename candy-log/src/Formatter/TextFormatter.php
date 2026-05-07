@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Log\Formatter;
 
+use SugarCraft\Core\Util\Color;
 use SugarCraft\Log\Formatter;
 use SugarCraft\Log\Level;
 use SugarCraft\Sprinkles\Style;
@@ -75,22 +76,22 @@ final class TextFormatter implements Formatter
     {
         $label = $level->shortLabel();
         return match ($level) {
-            Level::Debug => Style::new()->foreground(8)->render($label),   // grey
-            Level::Info  => Style::new()->foreground(4)->render($label),   // blue
-            Level::Warn  => Style::new()->foreground(3)->render($label),   // yellow
-            Level::Error => Style::new()->foreground(1)->render($label),   // red
-            Level::Fatal => Style::new()->foreground(7)->background(1)->render($label),
+            Level::Debug => Style::new()->foreground(Color::ansi(8))->render($label),   // grey
+            Level::Info  => Style::new()->foreground(Color::ansi(4))->render($label),   // blue
+            Level::Warn  => Style::new()->foreground(Color::ansi(3))->render($label),   // yellow
+            Level::Error => Style::new()->foreground(Color::ansi(1))->render($label),   // red
+            Level::Fatal => Style::new()->foreground(Color::ansi(7))->background(Color::ansi(1))->render($label),
         };
     }
 
     private function styledPrefix(string $prefix): string
     {
-        return Style::new()->foreground(5)->render($prefix); // magenta
+        return Style::new()->foreground(Color::ansi(5))->render($prefix); // magenta
     }
 
     private function styledCaller(string $caller): string
     {
-        return Style::new()->foreground(8)->render("<{$caller}>"); // grey
+        return Style::new()->foreground(Color::ansi(8))->render("<{$caller}>"); // grey
     }
 
     private function formatContext(array $context): string
@@ -99,7 +100,7 @@ final class TextFormatter implements Formatter
         foreach ($context as $k => $v) {
             $val = $this->formatValue($v);
             $pairs[] = $this->useColors
-                ? Style::new()->foreground(8)->render($k) . '=' . $val
+                ? Style::new()->foreground(Color::ansi(8))->render("{$k}={$val}")
                 : "{$k}={$val}";
         }
         return \implode(' ', $pairs);

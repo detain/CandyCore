@@ -99,7 +99,7 @@ final class Logger
         \fwrite($this->stream, $line);
 
         if ($level === Level::Fatal) {
-            exit(1);
+            throw new \RuntimeException('fatal log: ' . $message);
         }
     }
 
