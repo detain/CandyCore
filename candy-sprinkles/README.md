@@ -24,15 +24,31 @@ composer require sugarcraft/candy-sprinkles
 
 ```php
 use SugarCraft\Sprinkles\Style;
+
+echo Style::new()
+    ->bold()
+    ->fg('#ff5f87')        // accepts hex string or Color instance
+    ->on('#1e1e2e')        // background — reads naturally in chains
+    ->pad(0, 2)            // CSS-style 1/2/4-arg padding
+    ->of('hello, candy world')
+    ->render() . "\n";
+```
+
+`fg` / `bg` / `on` / `pad` / `mg` / `of` are short-form ergonomic aliases.
+The upstream-mirroring full names (`foreground` / `background` / `padding`
+/ `margin` / `setString`) work identically — pick whichever reads better at
+the call site:
+
+```php
 use SugarCraft\Core\Util\Color;
 
-$banner = Style::new()
+echo Style::new()
     ->bold()
     ->foreground(Color::hex('#ff5f87'))
+    ->background(Color::hex('#1e1e2e'))
     ->padding(0, 2)
-    ->render('hello, candy world');
-
-echo $banner . "\n";
+    ->setString('hello, candy world')
+    ->render() . "\n";
 ```
 
 ## Layout helpers
