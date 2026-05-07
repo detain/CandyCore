@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit\Tests;
+namespace SugarCraft\Kit\Tests;
 
-use CandyCore\Core\Util\Width;
-use CandyCore\Kit\Section;
-use CandyCore\Kit\Theme;
+use SugarCraft\Core\Util\Width;
+use SugarCraft\Kit\Section;
+use SugarCraft\Kit\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class SectionTest extends TestCase

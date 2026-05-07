@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Model;
+namespace SugarCraft\Shell\Tests\Model;
 
-use CandyCore\Bits\Spinner\TickMsg;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Shell\Model\SpinModel;
-use CandyCore\Shell\Process\FakeProcess;
+use SugarCraft\Bits\Spinner\TickMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Shell\Model\SpinModel;
+use SugarCraft\Shell\Process\FakeProcess;
 use PHPUnit\Framework\TestCase;
 
 final class SpinModelTest extends TestCase

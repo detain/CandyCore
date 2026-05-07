@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Util;
+namespace SugarCraft\Core\Tests\Util;
 
-use CandyCore\Core\Util\Ansi;
+use SugarCraft\Core\Util\Ansi;
 use PHPUnit\Framework\TestCase;
 
 final class AnsiTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log;
+namespace SugarCraft\Log;
 
 /**
  * Log level enum — mirrors charmbracelet/log levels.

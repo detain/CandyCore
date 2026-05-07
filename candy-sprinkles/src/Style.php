@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Immutable styled-text builder. Each setter returns a new Style.
@@ -205,7 +205,7 @@ final class Style
     /**
      * Collapse any adaptive fg/bg slots into concrete `foreground` /
      * `background` based on the supplied dark-background flag (typically
-     * the value of {@see \CandyCore\Core\Msg\BackgroundColorMsg::isDark()}).
+     * the value of {@see \SugarCraft\Core\Msg\BackgroundColorMsg::isDark()}).
      *
      * Adaptive slots only resolve when the matching concrete slot
      * isn't explicitly set, so an explicit `foreground()` always wins

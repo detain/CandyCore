@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\LineChart;
+namespace SugarCraft\Charts\LineChart;
 
-use CandyCore\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\Canvas;
 
 /**
  * Waveline (XY-point) LineChart variant. Mirrors ntcharts'

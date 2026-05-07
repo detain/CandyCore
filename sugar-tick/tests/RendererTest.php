@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick\Tests;
+namespace SugarCraft\Tick\Tests;
 
-use CandyCore\Tick\Dashboard;
-use CandyCore\Tick\Heartbeat;
-use CandyCore\Tick\Renderer;
-use CandyCore\Tick\Stats;
-use CandyCore\Tick\Store;
+use SugarCraft\Tick\Dashboard;
+use SugarCraft\Tick\Heartbeat;
+use SugarCraft\Tick\Renderer;
+use SugarCraft\Tick\Stats;
+use SugarCraft\Tick\Store;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

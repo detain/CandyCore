@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Bits\Spinner\Style as SpinStyle;
-use CandyCore\Shell\Command\SpinCommand;
+use SugarCraft\Bits\Spinner\Style as SpinStyle;
+use SugarCraft\Shell\Command\SpinCommand;
 use PHPUnit\Framework\TestCase;
 
 final class SpinCommandTest extends TestCase

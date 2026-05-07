@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Key;
+namespace SugarCraft\Bits\Tests\Key;
 
-use CandyCore\Bits\Key\Binding;
-use CandyCore\Bits\Key\Help;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\Key\Binding;
+use SugarCraft\Bits\Key\Help;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class BindingTest extends TestCase

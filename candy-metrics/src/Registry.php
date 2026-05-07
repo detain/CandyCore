@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics;
+namespace SugarCraft\Metrics;
 
 /**
  * Application-facing facade. Hand a {@see Backend} in, then call

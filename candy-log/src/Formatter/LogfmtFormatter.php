@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log\Formatter;
+namespace SugarCraft\Log\Formatter;
 
-use CandyCore\Log\Formatter;
-use CandyCore\Log\Level;
+use SugarCraft\Log\Formatter;
+use SugarCraft\Log\Level;
 
 /**
  * Logfmt formatter — emits key=value pairs on a single line.

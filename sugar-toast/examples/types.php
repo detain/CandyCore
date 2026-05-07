@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Toast\{Toast, ToastType, Position, SymbolSet};
+use SugarCraft\Toast\{Toast, ToastType, Position, SymbolSet};
 
 echo "=== All Toast types ===\n\n";
 

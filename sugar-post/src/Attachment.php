@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Post;
+namespace SugarCraft\Post;
 
 /**
  * Represents a file attachment on an email.

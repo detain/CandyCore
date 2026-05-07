@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Tests\Backend;
+namespace SugarCraft\Metrics\Tests\Backend;
 
-use CandyCore\Metrics\Backend\StatsdBackend;
+use SugarCraft\Metrics\Backend\StatsdBackend;
 use PHPUnit\Framework\TestCase;
 
 final class StatsdBackendTest extends TestCase

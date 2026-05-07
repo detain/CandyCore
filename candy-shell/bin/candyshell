@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-use CandyCore\Shell\Application;
+use SugarCraft\Shell\Application;
 
 // Walk up to find the right vendor/autoload.php whether the lib is the
 // top-level project or a Composer dependency.

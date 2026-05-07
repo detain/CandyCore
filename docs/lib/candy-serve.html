@@ -44,10 +44,10 @@
     <p class="lede" style="margin-top: 28px;">Self-hostable Git server with SSH (authorized keys), Git (git://), and HTTP endpoints. Users, repos, access control, and optional LFS — all driven by a config file.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-serve</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-serve</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Serve\{Config, Repo, SSH\SSHServer};
+    <pre class="code"><code>use SugarCraft\Serve\{Config, Repo, SSH\SSHServer};
 
 // Load config
 $config = Config::fromDefaults();

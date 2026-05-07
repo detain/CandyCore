@@ -1,6 +1,6 @@
 {
-    "name": "candycore/candy-shell",
-    "description": "PHP port of charmbracelet/gum \u2014 composer-installable CLI of CandyCore TUI primitives. 13 subcommands: choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write.",
+    "name": "sugarcraft/candy-shell",
+    "description": "PHP port of charmbracelet/gum \u2014 composer-installable CLI of SugarCraft TUI primitives. 13 subcommands: choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write.",
     "type": "library",
     "license": "MIT",
     "keywords": [
@@ -15,7 +15,7 @@
         "spinner",
         "filter",
         "style",
-        "candycore"
+        "sugarcraft"
     ],
     "homepage": "https://github.com/sugarcraft/candy-shell",
     "authors": [
@@ -35,11 +35,11 @@
     ],
     "require": {
         "php": "^8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-shine": "@dev",
-        "candycore/candy-sprinkles": "@dev",
-        "candycore/sugar-bits": "@dev",
-        "candycore/sugar-prompt": "@dev",
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-shine": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
+        "sugarcraft/sugar-bits": "@dev",
+        "sugarcraft/sugar-prompt": "@dev",
         "symfony/console": "^6.4 || ^7.0"
     },
     "require-dev": {
@@ -182,12 +182,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "CandyCore\\Shell\\": "src/"
+            "SugarCraft\\Shell\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Shell\\Tests\\": "tests/"
+            "SugarCraft\\Shell\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",

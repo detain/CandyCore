@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\TextInput\EchoMode;
-use CandyCore\Bits\TextInput\TextInput;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\TextInput\EchoMode;
+use SugarCraft\Bits\TextInput\TextInput;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * Single-line prompt used by {@see \CandyCore\Shell\Command\InputCommand}.
+ * Single-line prompt used by {@see \SugarCraft\Shell\Command\InputCommand}.
  * Wraps {@see TextInput}; Enter submits, Esc/Ctrl-C aborts.
  */
 final class InputModel implements Model

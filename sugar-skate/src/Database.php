@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Skate;
+namespace SugarCraft\Skate;
 
 /**
  * SQLite-backed store for one named database.

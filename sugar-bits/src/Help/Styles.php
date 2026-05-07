@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Help;
+namespace SugarCraft\Bits\Help;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Styles for {@see Help}: one slot per visible help element. All

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\Listing\Enumerator;
-use CandyCore\Sprinkles\Listing\ItemList;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\Listing\Enumerator;
+use SugarCraft\Sprinkles\Listing\ItemList;
+use SugarCraft\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class ItemListTest extends TestCase

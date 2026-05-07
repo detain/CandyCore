@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-veil",
+    "name": "sugarcraft/sugar-veil",
     "description": "PHP port of rmhubbert/bubbletea-overlay \u2014 modal/overlay compositing for terminal UIs. Composite foreground content over a background at any position (Top/Right/Bottom/Left/Center) with optional pixel offsets.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "overlay", "modal", "composite", "terminal", "candycore"],
+    "keywords": ["tui", "overlay", "modal", "composite", "terminal", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-veil",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -47,10 +47,10 @@
         { "type": "path", "url": "../sugar-boxer",     "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Veil\\": "src/" }
+        "psr-4": { "SugarCraft\\Veil\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Veil\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Veil\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

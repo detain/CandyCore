@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap;
+namespace SugarCraft\Flap;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * Flappy-Bird as a CandyCore Model. The world is `width × height`
+ * Flappy-Bird as a SugarCraft Model. The world is `width × height`
  * cells; the bird sits at column 8 and the world scrolls past it
  * at a fixed cadence. Pipes spawn on the right edge at intervals
  * controlled by `pipeSpacing` and slide left one column per tick.

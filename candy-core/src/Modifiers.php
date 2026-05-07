@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Immutable bitfield wrapping the `shift`, `alt`, `ctrl` modifier set

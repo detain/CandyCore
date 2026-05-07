@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze\Tests;
+namespace SugarCraft\Freeze\Tests;
 
-use CandyCore\Freeze\AnsiParser;
+use SugarCraft\Freeze\AnsiParser;
 use PHPUnit\Framework\TestCase;
 
 final class AnsiParserTest extends TestCase

@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-calendar",
+    "name": "sugarcraft/sugar-calendar",
     "description": "PHP port of EthanEFung/bubble-datepicker \u2014 interactive date picker component for terminal UIs. Supports month/year navigation, keyboard navigation, date selection with visual cursor, and customizable styling.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "datepicker", "calendar", "date", "bubble", "candycore"],
+    "keywords": ["tui", "datepicker", "calendar", "date", "bubble", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-calendar",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -52,10 +52,10 @@
         { "type": "path", "url": "../sugar-toast",     "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Calendar\\": "src/" }
+        "psr-4": { "SugarCraft\\Calendar\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Calendar\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Calendar\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

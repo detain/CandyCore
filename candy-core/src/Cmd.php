@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Msg\InterruptMsg;
-use CandyCore\Core\Msg\QuitMsg;
-use CandyCore\Core\Msg\SuspendMsg;
-use CandyCore\Core\Util\Ansi;
+use SugarCraft\Core\Msg\InterruptMsg;
+use SugarCraft\Core\Msg\QuitMsg;
+use SugarCraft\Core\Msg\SuspendMsg;
+use SugarCraft\Core\Util\Ansi;
 
 /**
  * Helper Cmd factories. A Cmd is `Closure(): ?Msg` — an asynchronously
@@ -161,7 +161,7 @@ final class Cmd
      * program. The runtime tears down raw mode + alt screen + cursor
      * hide before launching the child, and restores them once it
      * exits. The result is dispatched to the model as
-     * {@see \CandyCore\Core\Msg\ExecMsg}.
+     * {@see \SugarCraft\Core\Msg\ExecMsg}.
      *
      * `$command` may be a string (executed via the shell) or an argv
      * list (no shell, safer when arguments come from user input).
@@ -187,7 +187,7 @@ final class Cmd
     /**
      * Ask the terminal where the cursor currently is. The reply will
      * be parsed by the input reader and dispatched as a
-     * {@see \CandyCore\Core\Msg\CursorPositionMsg}. Mirrors
+     * {@see \SugarCraft\Core\Msg\CursorPositionMsg}. Mirrors
      * `tea.RequestCursorPosition`.
      */
     public static function requestCursorPosition(): \Closure
@@ -197,7 +197,7 @@ final class Cmd
 
     /**
      * Ask the terminal for its current default foreground colour. The
-     * reply (OSC 10) becomes a {@see \CandyCore\Core\Msg\ForegroundColorMsg}.
+     * reply (OSC 10) becomes a {@see \SugarCraft\Core\Msg\ForegroundColorMsg}.
      */
     public static function requestForegroundColor(): \Closure
     {
@@ -206,8 +206,8 @@ final class Cmd
 
     /**
      * Ask the terminal for its current default background colour. The
-     * reply (OSC 11) becomes a {@see \CandyCore\Core\Msg\BackgroundColorMsg}.
-     * Pair with {@see \CandyCore\Core\Msg\BackgroundColorMsg::isDark()}
+     * reply (OSC 11) becomes a {@see \SugarCraft\Core\Msg\BackgroundColorMsg}.
+     * Pair with {@see \SugarCraft\Core\Msg\BackgroundColorMsg::isDark()}
      * to pick a contrasting theme.
      */
     public static function requestBackgroundColor(): \Closure
@@ -217,7 +217,7 @@ final class Cmd
 
     /**
      * Ask the terminal for its current cursor colour. The reply
-     * (OSC 12) becomes a {@see \CandyCore\Core\Msg\CursorColorMsg}.
+     * (OSC 12) becomes a {@see \SugarCraft\Core\Msg\CursorColorMsg}.
      */
     public static function requestCursorColor(): \Closure
     {
@@ -226,7 +226,7 @@ final class Cmd
 
     /**
      * Ask the terminal to identify itself (XTVERSION). The DCS reply
-     * becomes a {@see \CandyCore\Core\Msg\TerminalVersionMsg} carrying
+     * becomes a {@see \SugarCraft\Core\Msg\TerminalVersionMsg} carrying
      * the human-readable terminal-name + version string.
      */
     public static function requestTerminalVersion(): \Closure
@@ -236,7 +236,7 @@ final class Cmd
 
     /**
      * Ask the terminal whether a given mode is currently set (DECRQM).
-     * The reply becomes a {@see \CandyCore\Core\Msg\ModeReportMsg}.
+     * The reply becomes a {@see \SugarCraft\Core\Msg\ModeReportMsg}.
      * Pass `private: true` (default) for DEC private modes, false for
      * ANSI modes.
      */
@@ -257,7 +257,7 @@ final class Cmd
 
     /**
      * Ask the terminal for the contents of the named selection. The
-     * reply (OSC 52) becomes a {@see \CandyCore\Core\Msg\ClipboardMsg}
+     * reply (OSC 52) becomes a {@see \SugarCraft\Core\Msg\ClipboardMsg}
      * with the decoded text.
      */
     public static function readClipboard(string $selection = 'c'): \Closure
@@ -317,7 +317,7 @@ final class Cmd
     /**
      * Ask the terminal for the currently active Kitty keyboard
      * flags. The reply becomes a
-     * {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     * {@see \SugarCraft\Core\Msg\KeyboardEnhancementsMsg}.
      */
     public static function requestKittyKeyboard(): \Closure
     {

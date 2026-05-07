@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-prompt)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-prompt)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-prompt?label=packagist)](https://packagist.org/packages/candycore/sugar-prompt)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-prompt?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-prompt)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -14,11 +14,11 @@
 ![demo](.vhs/form.gif)
 
 PHP port of [charmbracelet/huh](https://github.com/charmbracelet/huh) —
-interactive form library built on top of CandyCore + SugarBits.
+interactive form library built on top of SugarCraft + SugarBits.
 
 ```php
-use CandyCore\Prompt\Form;
-use CandyCore\Prompt\Field\{Input, Confirm, Select, Note};
+use SugarCraft\Prompt\Form;
+use SugarCraft\Prompt\Field\{Input, Confirm, Select, Note};
 
 $form = Form::new(
     Note::new('welcome')->withTitle('Onboarding')
@@ -29,7 +29,7 @@ $form = Form::new(
         ->withTitle('Favorite language?')
         ->withOptions('PHP', 'Go', 'Rust', 'Python'),
 );
-// $form is a CandyCore Model — drop it into a Program.
+// $form is a SugarCraft Model — drop it into a Program.
 ```
 
 ## Field types
@@ -90,7 +90,7 @@ inspecting validation state during a run use `errors()`,
 
 ### Themes & accessibility
 
-Stock themes ship as static factories on `CandyCore\Prompt\Theme`:
+Stock themes ship as static factories on `SugarCraft\Prompt\Theme`:
 `ansi()` (default), `plain()`, `charm()`, `dracula()`, `catppuccin()`,
 `base16()`. Pass one to `Form::withTheme(...)`. The accessibility
 mode flips the entire form to plain-text rendering — useful when you

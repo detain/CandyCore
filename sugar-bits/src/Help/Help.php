@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Help;
+namespace SugarCraft\Bits\Help;
 
-use CandyCore\Bits\Key\Binding;
-use CandyCore\Bits\Key\KeyMap;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Width;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Bits\Key\Binding;
+use SugarCraft\Bits\Key\KeyMap;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Width;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Renders a {@see KeyMap} as either a short, single-line summary or a

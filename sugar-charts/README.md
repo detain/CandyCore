@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-charts)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-charts)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-charts?label=packagist)](https://packagist.org/packages/candycore/sugar-charts)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-charts?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-charts)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -14,13 +14,13 @@
 ![demo](.vhs/heatmap.gif)
 
 PHP port of [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) —
-terminal charts for CandyCore. v0 ships the canvas foundation plus three
+terminal charts for SugarCraft. v0 ships the canvas foundation plus three
 self-contained chart types.
 
 ```php
-use CandyCore\Charts\Sparkline\Sparkline;
-use CandyCore\Charts\BarChart\BarChart;
-use CandyCore\Charts\LineChart\LineChart;
+use SugarCraft\Charts\Sparkline\Sparkline;
+use SugarCraft\Charts\BarChart\BarChart;
+use SugarCraft\Charts\LineChart\LineChart;
 
 echo Sparkline::new([1, 3, 2, 8, 5, 4, 7, 6], 8)->view() . PHP_EOL;
 // ▁▃▂█▅▄▇▆
@@ -60,7 +60,7 @@ plus coordinates in canvas (cell) space (top-left origin). Pair with
 `BrailleGrid` for sub-cell precision:
 
 ```php
-use CandyCore\Charts\Canvas\{Canvas, BrailleGrid, Graph};
+use SugarCraft\Charts\Canvas\{Canvas, BrailleGrid, Graph};
 
 $canvas = new Canvas(40, 8);
 Graph::drawXYAxis($canvas, 1, 6, 38);

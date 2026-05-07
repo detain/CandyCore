@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Sprinkles\Tree\Enumerator;
-use CandyCore\Sprinkles\Tree\Tree;
+use SugarCraft\Sprinkles\Tree\Enumerator;
+use SugarCraft\Sprinkles\Tree\Tree;
 
 $buildTree = static fn() => Tree::new()
     ->root('sugarcraft/')

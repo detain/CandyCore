@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip\Tests;
+namespace SugarCraft\Flip\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Flip\Frame;
-use CandyCore\Flip\Player;
-use CandyCore\Flip\Renderer;
-use CandyCore\Flip\TickMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Flip\Frame;
+use SugarCraft\Flip\Player;
+use SugarCraft\Flip\Renderer;
+use SugarCraft\Flip\TickMsg;
 use PHPUnit\Framework\TestCase;
 
 final class PlayerTest extends TestCase

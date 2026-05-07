@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\OHLC;
+namespace SugarCraft\Charts\Tests\OHLC;
 
-use CandyCore\Charts\OHLC\Bar;
-use CandyCore\Charts\OHLC\OHLCChart;
+use SugarCraft\Charts\OHLC\Bar;
+use SugarCraft\Charts\OHLC\OHLCChart;
 use PHPUnit\Framework\TestCase;
 
 final class OHLCChartTest extends TestCase

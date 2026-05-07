@@ -49,7 +49,7 @@
             clock, a wizard with form validation as you type, a log tailer
             that keeps a header pinned at the top — Symfony Console doesn't
             give you the primitives. You'd be hand-rolling the same fixes
-            CandyCore already ships: cell-aware diff rendering, raw-mode
+            SugarCraft already ships: cell-aware diff rendering, raw-mode
             input, signal handling, alt-screen lifecycle.
         </p>
         <p>
@@ -63,7 +63,7 @@
         <p>
             <strong>The two compose nicely.</strong> The pattern we like:
             Symfony Console for the outer CLI surface (<code>php app foo
-            --bar=baz</code>), and CandyCore <code>Program::run()</code>
+            --bar=baz</code>), and SugarCraft <code>Program::run()</code>
             inside one of the commands when you need a TUI.
         </p>
 
@@ -78,7 +78,7 @@
             paste, mouse, alt-screen, signal-driven resizes, terminfo capability
             detection, true-color support, OSC 8 hyperlinks — every step
             past "single line of text" pulls in a stack of escape-sequence
-            grammar that CandyCore already implements correctly.
+            grammar that SugarCraft already implements correctly.
         </p>
         <p>
             <strong>Pick raw I/O for</strong>: a single password prompt, a
@@ -113,7 +113,7 @@
         <ul>
             <li>
                 <strong>Cursed cell-diff renderer</strong> (Bubble Tea v2's
-                headline feature) is a first-class option in CandyCore via
+                headline feature) is a first-class option in SugarCraft via
                 <code>cellDiffRenderer: true</code>. Verified ≥15% bandwidth
                 savings on a 50-tick counter test — the kind of win that
                 matters when your TUI is served over SSH.
@@ -135,9 +135,9 @@
             </li>
             <li>
                 <strong>Sixteen libraries, sixteen Composer packages.</strong>
-                Pull just what you need. The umbrella <code>candycore/candycore</code>
+                Pull just what you need. The umbrella <code>sugarcraft/sugarcraft</code>
                 metapackage brings the whole stack at once, but a tiny CLI
-                that only wants colours can grab <code>candycore/candy-sprinkles</code>
+                that only wants colours can grab <code>sugarcraft/candy-sprinkles</code>
                 in isolation.
             </li>
         </ul>

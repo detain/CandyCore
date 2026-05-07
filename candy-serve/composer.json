@@ -1,9 +1,9 @@
 {
-    "name": "candycore/candy-serve",
+    "name": "sugarcraft/candy-serve",
     "description": "PHP port of charmbracelet/soft-serve \u2014 self-hostable Git server over SSH, Git daemon, and HTTP. Supports user management via SSH public keys, repo access control (public/private), collaborators, on-demand repo creation, Git LFS, and an SSH-accessible TUI for browsing repos/files/commits.",
     "type": "project",
     "license": "MIT",
-    "keywords": ["git", "git-server", "self-hosted", "ssh", "lfs", "candycore"],
+    "keywords": ["git", "git-server", "self-hosted", "ssh", "lfs", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/candy-serve",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -59,14 +59,14 @@
     ],
     "autoload": {
         "psr-4": {
-            "CandyCore\\Serve\\": "src/",
-            "CandyCore\\Serve\\SSH\\": "src/SSH/",
-            "CandyCore\\Serve\\Git\\": "src/Git/",
-            "CandyCore\\Serve\\LFS\\": "src/LFS/"
+            "SugarCraft\\Serve\\": "src/",
+            "SugarCraft\\Serve\\SSH\\": "src/SSH/",
+            "SugarCraft\\Serve\\Git\\": "src/Git/",
+            "SugarCraft\\Serve\\LFS\\": "src/LFS/"
         }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Serve\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Serve\\Tests\\": "tests/" }
     },
     "bin": ["bin/soft-serve"],
     "minimum-stability": "dev",

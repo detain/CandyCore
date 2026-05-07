@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Palette\StandardColors;
-use CandyCore\Palette\Color;
+use SugarCraft\Palette\StandardColors;
+use SugarCraft\Palette\Color;
 
 echo "=== Standard ANSI 16-Color Palette Demo ===\n\n";
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Token;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Token;
 
 /**
  * Running SGR ("Select Graphic Rendition") state — bold / italic /
@@ -13,7 +13,7 @@ use CandyCore\Core\Util\Token;
  * background colour. Used by the cursed cell-diff {@see Renderer} to
  * resume a partial-line repaint with the correct styling.
  *
- * Mirrors the subset of SGR codes commonly emitted by CandyCore /
+ * Mirrors the subset of SGR codes commonly emitted by SugarCraft /
  * Sprinkles. CSI parameters outside this surface (38;5;n / 38;2;r;g;b
  * for fg, 48 variants for bg, 58 for underline colour, etc.) are
  * captured as literal SGR substrings so they round-trip cleanly.

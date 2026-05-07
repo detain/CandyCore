@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Scatter;
+namespace SugarCraft\Charts\Tests\Scatter;
 
-use CandyCore\Charts\Scatter\Scatter;
+use SugarCraft\Charts\Scatter\Scatter;
 use PHPUnit\Framework\TestCase;
 
 final class ScatterTest extends TestCase

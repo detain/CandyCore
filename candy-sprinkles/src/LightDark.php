@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Color;
+use SugarCraft\Core\Util\Color;
 
 /**
  * Tiny convenience for picking one of two colours based on whether the

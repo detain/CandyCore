@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Canvas;
+namespace SugarCraft\Charts\Tests\Canvas;
 
-use CandyCore\Charts\Canvas\Canvas;
-use CandyCore\Charts\Canvas\Graph;
+use SugarCraft\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\Graph;
 use PHPUnit\Framework\TestCase;
 
 /**

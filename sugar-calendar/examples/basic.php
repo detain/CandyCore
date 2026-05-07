@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Calendar\DatePicker;
+use SugarCraft\Calendar\DatePicker;
 
 echo "=== Date Picker: May 2026 ===\n";
 $dp = DatePicker::new(new \DateTimeImmutable('2026-05-01'));

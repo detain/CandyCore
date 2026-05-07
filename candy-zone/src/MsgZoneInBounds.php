@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone;
+namespace SugarCraft\Zone;
 
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\MouseMsg;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\MouseMsg;
 
 /**
  * Mouse-event Msg paired with the zone the click landed inside.

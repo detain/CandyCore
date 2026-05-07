@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crumbs\Tests;
+namespace SugarCraft\Crumbs\Tests;
 
-use CandyCore\Crumbs\{Breadcrumb, NavStack, NavigationItem, Shell};
+use SugarCraft\Crumbs\{Breadcrumb, NavStack, NavigationItem, Shell};
 use PHPUnit\Framework\TestCase;
 
 final class NavStackTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Style;
+namespace SugarCraft\Shell\Tests\Style;
 
-use CandyCore\Shell\Style\SubStyleParser;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Shell\Style\SubStyleParser;
+use SugarCraft\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class SubStyleParserTest extends TestCase

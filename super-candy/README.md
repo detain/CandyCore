@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=super-candy)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=super-candy)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/super-candy?label=packagist)](https://packagist.org/packages/candycore/super-candy)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/super-candy?label=packagist)](https://packagist.org/packages/sugarcraft/super-candy)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -66,7 +66,7 @@ The whole transition layer is pure — filesystem I/O is injected as a `Closure(
 | `Sort`              | Enum (NameAsc/NameDesc/MtimeAsc/MtimeDesc/SizeAsc/SizeDesc) + comparator |
 | `Pane`              | One pane: cwd, entries, cursor, selection set, sort, showHidden          |
 | `ConfirmState`      | Pending-confirmation enum (None / DeleteSelected)                        |
-| `Manager`           | CandyCore Model — orchestrates two panes, handles all keys + confirm gate |
+| `Manager`           | SugarCraft Model — orchestrates two panes, handles all keys + confirm gate |
 | `FsLister`          | Default lister: `scandir` + `lstat` against the live filesystem          |
 | `Renderer`          | Pure view function — two pane boxes side-by-side + status line           |
 

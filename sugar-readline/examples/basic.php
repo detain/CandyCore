@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Readline\{ConfirmationPrompt, SelectionPrompt, TextPrompt, TextareaPrompt};
+use SugarCraft\Readline\{ConfirmationPrompt, SelectionPrompt, TextPrompt, TextareaPrompt};
 
 // ---- Text Prompt ----
 echo "=== Text Prompt ===\n";

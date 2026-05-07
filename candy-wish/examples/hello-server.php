@@ -16,10 +16,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Wish\Middleware;
-use CandyCore\Wish\Middleware\Logger;
-use CandyCore\Wish\Server;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware;
+use SugarCraft\Wish\Middleware\Logger;
+use SugarCraft\Wish\Server;
+use SugarCraft\Wish\Session;
 
 final class Banner implements Middleware
 {

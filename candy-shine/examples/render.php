@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
 
 $markdown = <<<MD
 # Heading

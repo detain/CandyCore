@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests\Table;
+namespace SugarCraft\Sprinkles\Tests\Table;
 
-use CandyCore\Sprinkles\Table\StringData;
-use CandyCore\Sprinkles\Table\Table;
+use SugarCraft\Sprinkles\Table\StringData;
+use SugarCraft\Sprinkles\Table\Table;
 use PHPUnit\Framework\TestCase;
 
 final class StringDataTest extends TestCase

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
  * Top-level form container.

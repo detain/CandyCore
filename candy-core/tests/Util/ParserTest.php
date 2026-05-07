@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Util;
+namespace SugarCraft\Core\Tests\Util;
 
-use CandyCore\Core\Util\Parser;
-use CandyCore\Core\Util\Token;
+use SugarCraft\Core\Util\Parser;
+use SugarCraft\Core\Util\Token;
 use PHPUnit\Framework\TestCase;
 
 final class ParserTest extends TestCase

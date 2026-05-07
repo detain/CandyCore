@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
 /**
  * Render a single styled "status line" — a glyph + space + message.
@@ -43,7 +43,7 @@ final class StatusLine
     }
 
     /** Apply $style to the leading glyph + space; the message stays plain. */
-    private static function format(string $glyph, string $message, \CandyCore\Sprinkles\Style $style): string
+    private static function format(string $glyph, string $message, \SugarCraft\Sprinkles\Style $style): string
     {
         return $style->render($glyph) . ' ' . $message;
     }

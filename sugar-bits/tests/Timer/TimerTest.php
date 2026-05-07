@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Timer;
+namespace SugarCraft\Bits\Tests\Timer;
 
-use CandyCore\Bits\Timer\TickMsg;
-use CandyCore\Bits\Timer\TimeoutMsg;
-use CandyCore\Bits\Timer\Timer;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Bits\Timer\TickMsg;
+use SugarCraft\Bits\Timer\TimeoutMsg;
+use SugarCraft\Bits\Timer\Timer;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class TimerTest extends TestCase

@@ -44,10 +44,10 @@
     <p class="lede" style="margin-top: 28px;">Non-blocking floating notifications that appear at the top or bottom of the terminal. Info, Success, Warning, Error types. Auto-dismiss or manual dismiss.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/sugar-toast</code></pre>
+    <pre class="code"><code>composer require sugarcraft/sugar-toast</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Toast\{Toast, ToastType};
+    <pre class="code"><code>use SugarCraft\Toast\{Toast, ToastType};
 
 $toast = Toast::new('Deployment complete!', ToastType::Success);
 $toast = $toast-&gt;withDuration(5000);  // ms

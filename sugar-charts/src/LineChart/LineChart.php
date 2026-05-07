@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\LineChart;
+namespace SugarCraft\Charts\LineChart;
 
-use CandyCore\Charts\Canvas\Canvas;
-use CandyCore\Charts\Canvas\Graph;
+use SugarCraft\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\Graph;
 
 /**
  * Single-series line plot drawn onto a {@see Canvas}. Each data point

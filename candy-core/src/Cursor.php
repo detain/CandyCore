@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Cursor description carried on a {@see View}. A null cursor on the

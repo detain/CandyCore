@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Post\Tests;
+namespace SugarCraft\Post\Tests;
 
-use CandyCore\Post\Attachment;
-use CandyCore\Post\Email;
+use SugarCraft\Post\Attachment;
+use SugarCraft\Post\Email;
 use PHPUnit\Framework\TestCase;
 
 final class EmailTest extends TestCase

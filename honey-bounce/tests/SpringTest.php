@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce\Tests;
+namespace SugarCraft\Bounce\Tests;
 
-use CandyCore\Bounce\Spring;
+use SugarCraft\Bounce\Spring;
 use PHPUnit\Framework\TestCase;
 
 final class SpringTest extends TestCase

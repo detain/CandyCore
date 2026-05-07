@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Boxer;
+namespace SugarCraft\Boxer;
 
 /**
  * Immutable layout tree node.

@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\OHLC\Bar;
-use CandyCore\Charts\OHLC\OHLCChart;
+use SugarCraft\Charts\OHLC\Bar;
+use SugarCraft\Charts\OHLC\OHLCChart;
 
 // 12 days of synthetic price action.
 $bars = [

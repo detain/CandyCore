@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Viewport;
+namespace SugarCraft\Bits\Tests\Viewport;
 
-use CandyCore\Bits\Viewport\Viewport;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\Viewport\Viewport;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class ViewportTest extends TestCase

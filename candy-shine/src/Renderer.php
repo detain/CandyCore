@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine;
+namespace SugarCraft\Shine;
 
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Width;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Table\Table as SprinklesTable;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Width;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Table\Table as SprinklesTable;
 use League\CommonMark\Environment\Environment;
 use League\CommonMark\Extension\Autolink\AutolinkExtension;
 use League\CommonMark\Extension\CommonMark\CommonMarkCoreExtension;
@@ -387,7 +387,7 @@ final class Renderer
         return $literal;
     }
 
-    private function isPlainStyle(\CandyCore\Sprinkles\Style $s): bool
+    private function isPlainStyle(\SugarCraft\Sprinkles\Style $s): bool
     {
         return $s->render('x') === 'x';
     }
@@ -395,7 +395,7 @@ final class Renderer
     private function renderStrike(Strikethrough $node): string
     {
         $body = $this->renderChildren($node);
-        $style = $this->theme->strike ?? \CandyCore\Sprinkles\Style::new()->strikethrough();
+        $style = $this->theme->strike ?? \SugarCraft\Sprinkles\Style::new()->strikethrough();
         return $style->render($body);
     }
 
@@ -403,7 +403,7 @@ final class Renderer
     {
         $alt = $this->renderChildren($node);
         $url = $this->resolveUrl($node->getUrl());
-        $imageStyle = $this->theme->image ?? \CandyCore\Sprinkles\Style::new()->italic();
+        $imageStyle = $this->theme->image ?? \SugarCraft\Sprinkles\Style::new()->italic();
         if ($alt === '') {
             $rendered = $imageStyle->render('[image]');
         } else {
@@ -434,13 +434,13 @@ final class Renderer
     private function renderHtmlBlock(HtmlBlock $node): string
     {
         $literal = rtrim($node->getLiteral(), "\n");
-        $style = $this->theme->htmlBlock ?? \CandyCore\Sprinkles\Style::new();
+        $style = $this->theme->htmlBlock ?? \SugarCraft\Sprinkles\Style::new();
         return $style->render($literal) . "\n\n";
     }
 
     private function renderHtmlSpan(HtmlInline $node): string
     {
-        $style = $this->theme->htmlSpan ?? \CandyCore\Sprinkles\Style::new();
+        $style = $this->theme->htmlSpan ?? \SugarCraft\Sprinkles\Style::new();
         return $style->render($node->getLiteral());
     }
 

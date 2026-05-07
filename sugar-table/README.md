@@ -28,13 +28,13 @@ PHP port of [Evertras/bubble-table](https://github.com/Evertras/bubble-table) â€
 ## Install
 
 ```bash
-composer require candycore/sugar-table
+composer require sugarcraft/sugar-table
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Table\{Column, Row, RowData, Table};
+use SugarCraft\Table\{Column, Row, RowData, Table};
 
 $t = Table::withColumns([
     Column::new('id',   'ID',     5),

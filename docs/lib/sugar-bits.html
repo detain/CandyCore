@@ -47,14 +47,14 @@
     <p class="lede" style="margin-top: 28px;">TextInput, TextArea, ItemList, Table, Viewport, FilePicker, Progress, Spinner, Cursor, Help, Key, Paginator, Stopwatch, Timer. Everything you'd hand-roll on day one of a TUI project, ready to drop into your Model.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/sugar-bits</code></pre>
+    <pre class="code"><code>composer require sugarcraft/sugar-bits</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Bits\TextInput\TextInput;
-use CandyCore\Bits\Spinner\Spinner;
-use CandyCore\Core\{Cmd, Model, Msg, Program};
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\KeyType;
+    <pre class="code"><code>use SugarCraft\Bits\TextInput\TextInput;
+use SugarCraft\Bits\Spinner\Spinner;
+use SugarCraft\Core\{Cmd, Model, Msg, Program};
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\KeyType;
 
 final class Search implements Model {
     public function __construct(

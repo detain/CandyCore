@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy\Tests;
+namespace SugarCraft\SuperCandy\Tests;
 
-use CandyCore\SuperCandy\Entry;
-use CandyCore\SuperCandy\Sort;
+use SugarCraft\SuperCandy\Entry;
+use SugarCraft\SuperCandy\Sort;
 use PHPUnit\Framework\TestCase;
 
 final class SortTest extends TestCase

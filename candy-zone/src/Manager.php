@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone;
+namespace SugarCraft\Zone;
 
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\MouseMsg;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\MouseMsg;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Mouse-zone manager. Wraps content with APC escape sequences identifying

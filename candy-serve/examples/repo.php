@@ -9,9 +9,9 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Serve\Config;
-use CandyCore\Serve\Repo;
-use CandyCore\Serve\AccessControl;
+use SugarCraft\Serve\Config;
+use SugarCraft\Serve\Repo;
+use SugarCraft\Serve\AccessControl;
 
 $tmpDir = \sys_get_temp_dir() . '/candy-serve-test-' . \uniqid();
 \mkdir($tmpDir, 0755, true);

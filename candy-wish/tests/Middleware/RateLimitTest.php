@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Tests\Middleware;
+namespace SugarCraft\Wish\Tests\Middleware;
 
-use CandyCore\Wish\Middleware\RateLimit;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware\RateLimit;
+use SugarCraft\Wish\Session;
 use PHPUnit\Framework\TestCase;
 
 final class RateLimitTest extends TestCase

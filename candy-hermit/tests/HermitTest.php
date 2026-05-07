@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Hermit\Tests;
+namespace SugarCraft\Hermit\Tests;
 
-use CandyCore\Hermit\{Hermit, Model};
+use SugarCraft\Hermit\{Hermit, Model};
 use PHPUnit\Framework\TestCase;
 
 final class HermitTest extends TestCase

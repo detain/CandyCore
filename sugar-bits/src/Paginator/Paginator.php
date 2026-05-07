@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Paginator;
+namespace SugarCraft\Bits\Paginator;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
  * Pagination state + renderer.

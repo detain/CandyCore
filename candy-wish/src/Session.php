@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish;
+namespace SugarCraft\Wish;
 
 /**
  * Per-connection session metadata exposed to middleware.

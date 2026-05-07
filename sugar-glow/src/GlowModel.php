@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow;
+namespace SugarCraft\Glow;
 
-use CandyCore\Bits\Viewport\Viewport;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\Viewport\Viewport;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
  * Pager Model used by {@see RenderCommand} when `-p` / `--pager` is set.

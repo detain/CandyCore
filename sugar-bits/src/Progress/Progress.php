@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Progress;
+namespace SugarCraft\Bits\Progress;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Static progress bar.

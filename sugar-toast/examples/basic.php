@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Toast\{Position, SymbolSet, Toast, ToastType};
+use SugarCraft\Toast\{Position, SymbolSet, Toast, ToastType};
 
 // Background — simulate an app viewport
 $bgLines = [];

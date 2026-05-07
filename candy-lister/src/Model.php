@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister;
+namespace SugarCraft\Lister;
 
 /**
  * Core list model — stores items, renders visible lines within a viewport.

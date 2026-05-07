@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Stopwatch;
+namespace SugarCraft\Bits\Tests\Stopwatch;
 
-use CandyCore\Bits\Stopwatch\Stopwatch;
-use CandyCore\Bits\Stopwatch\TickMsg;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Bits\Stopwatch\Stopwatch;
+use SugarCraft\Bits\Stopwatch\TickMsg;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class StopwatchTest extends TestCase

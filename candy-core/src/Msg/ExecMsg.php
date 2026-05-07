@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Result of a {@see \CandyCore\Core\Cmd::exec()} run. Carries:
+ * Result of a {@see \SugarCraft\Core\Cmd::exec()} run. Carries:
  *
  *  - `$exitCode`   — process exit status (0 on success).
  *  - `$error`      — proc_open / fork failure as a Throwable (null if

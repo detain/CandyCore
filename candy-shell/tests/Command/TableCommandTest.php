@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Shell\Command\TableCommand;
+use SugarCraft\Shell\Command\TableCommand;
 use PHPUnit\Framework\TestCase;
 
 final class TableCommandTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
 /**
  * Horizontal alignment of content within a fixed-width Style box.

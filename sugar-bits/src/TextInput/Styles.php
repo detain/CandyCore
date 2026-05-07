@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\TextInput;
+namespace SugarCraft\Bits\TextInput;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Styles for {@see TextInput}: one slot per visible element. All

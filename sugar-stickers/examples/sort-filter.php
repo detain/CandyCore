@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Stickers\Table\{Table, Column};
+use SugarCraft\Stickers\Table\{Table, Column};
 
 // Build a table with user data
 $table = (new Table())

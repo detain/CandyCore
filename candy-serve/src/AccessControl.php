@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve;
+namespace SugarCraft\Serve;
 
 /**
  * Access control for repositories and operations.

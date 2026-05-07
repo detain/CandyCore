@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow\Tests;
+namespace SugarCraft\Glow\Tests;
 
-use CandyCore\Glow\Application;
-use CandyCore\Glow\RenderCommand;
+use SugarCraft\Glow\Application;
+use SugarCraft\Glow\RenderCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application as SymfonyApplication;
 

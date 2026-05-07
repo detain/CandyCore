@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Listing;
+namespace SugarCraft\Sprinkles\Listing;
 
 /**
  * Factory of enumerator closures for {@see ItemList}.
@@ -88,7 +88,7 @@ final class Enumerator
      *
      * Use this when you want the tree-style layout but only have a
      * flat list of items (no parent / child structure). For real
-     * nested trees, reach for {@see \CandyCore\Sprinkles\Tree\Tree}
+     * nested trees, reach for {@see \SugarCraft\Sprinkles\Tree\Tree}
      * directly.
      */
     public static function tree(): \Closure

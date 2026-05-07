@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query;
+namespace SugarCraft\Query;
 
 /**
  * Thin SQLite wrapper. Everything else in this app talks to a {@see

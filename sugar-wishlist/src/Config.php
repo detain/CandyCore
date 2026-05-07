@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist;
+namespace SugarCraft\Wishlist;
 
 /**
  * Loads a wishlist directory from disk.

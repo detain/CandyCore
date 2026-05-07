@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Parser;
-use CandyCore\Core\Util\Token;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Parser;
+use SugarCraft\Core\Util\Token;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Frame-diff renderer. Compares the new frame against the previously

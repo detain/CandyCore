@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log\Tests;
+namespace SugarCraft\Log\Tests;
 
-use CandyCore\Log\Level;
+use SugarCraft\Log\Level;
 use PHPUnit\Framework\TestCase;
 
 final class LevelTest extends TestCase

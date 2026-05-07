@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Log;
+namespace SugarCraft\Shell\Log;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 /**
- * Severity levels for {@see \CandyCore\Shell\Command\LogCommand}, with
+ * Severity levels for {@see \SugarCraft\Shell\Command\LogCommand}, with
  * the styled badge each one emits.
  */
 enum LogLevel: string

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\LineChart;
+namespace SugarCraft\Charts\LineChart;
 
 /**
  * Time-series LineChart variant. Wraps {@see LineChart} but accepts
@@ -82,7 +82,7 @@ final class TimeSeries
     public function view(): string
     {
         if ($this->points === []) {
-            return (new \CandyCore\Charts\Canvas\Canvas($this->width, $this->height))->view();
+            return (new \SugarCraft\Charts\Canvas\Canvas($this->width, $this->height))->view();
         }
         $points = $this->points;
         if ($this->rangeStart !== null || $this->rangeEnd !== null) {
@@ -94,7 +94,7 @@ final class TimeSeries
                 return true;
             }));
             if ($points === []) {
-                return (new \CandyCore\Charts\Canvas\Canvas($this->width, $this->height))->view();
+                return (new \SugarCraft\Charts\Canvas\Canvas($this->width, $this->height))->view();
             }
         }
 

@@ -25,9 +25,9 @@ declare(strict_types=1);
     exit(1);
 })($argv);
 
-use CandyCore\Wishlist\Config;
-use CandyCore\Wishlist\Launcher;
-use CandyCore\Wishlist\Picker;
+use SugarCraft\Wishlist\Config;
+use SugarCraft\Wishlist\Launcher;
+use SugarCraft\Wishlist\Picker;
 
 $cfgPath = null;
 $sshBin  = '/usr/bin/ssh';

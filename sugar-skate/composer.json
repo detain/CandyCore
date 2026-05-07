@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-skate",
+    "name": "sugarcraft/sugar-skate",
     "description": "PHP port of charmbracelet/skate \u2014 a personal key/value store with multi-database support, binary data, and glob/list filtering.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["key-value", "store", "database", "sqlite", "skate", "candycore"],
+    "keywords": ["key-value", "store", "database", "sqlite", "skate", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-skate",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -43,10 +43,10 @@
         { "type": "path", "url": "../candy-palette",   "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Skate\\": "src/" }
+        "psr-4": { "SugarCraft\\Skate\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Skate\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Skate\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

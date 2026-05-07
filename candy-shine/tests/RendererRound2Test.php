@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine\Tests;
+namespace SugarCraft\Shine\Tests;
 
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 /**

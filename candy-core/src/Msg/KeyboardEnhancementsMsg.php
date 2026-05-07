@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::requestKittyKeyboard()}. The
+ * Reply to a {@see \SugarCraft\Core\Cmd::requestKittyKeyboard()}. The
  * terminal answers `CSI ? <flags> u` — `$flags` is a bitfield against
  * the Kitty progressive-keyboard flag constants below.
  *

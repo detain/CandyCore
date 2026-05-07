@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-stash)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-stash)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-stash?label=packagist)](https://packagist.org/packages/candycore/sugar-stash)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-stash?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-stash)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -16,7 +16,7 @@
 Three-pane git TUI on the SugarCraft stack — port of [`jesseduffield/lazygit`](https://github.com/jesseduffield/lazygit). Status / branches / log laid out side-by-side, single-key stage / unstage, refresh, and ahead/behind branch summary.
 
 ```bash
-composer require candycore/sugar-stash
+composer require sugarcraft/sugar-stash
 sugar-stash    # run inside any git working tree
 ```
 

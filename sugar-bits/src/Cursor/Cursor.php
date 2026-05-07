@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Cursor;
+namespace SugarCraft\Bits\Cursor;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Sprinkles\Style;
 
 /**
- * Text-cursor primitive used inside {@see \CandyCore\Bits\TextInput\TextInput}
+ * Text-cursor primitive used inside {@see \SugarCraft\Bits\TextInput\TextInput}
  * (and similar). Renders the cell under it either highlighted (reverse
  * video) or plain depending on {@see $mode} and the current blink state.
  *

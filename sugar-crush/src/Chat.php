@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush;
+namespace SugarCraft\Crush;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * The chat shell, as a CandyCore {@see Model}.
+ * The chat shell, as a SugarCraft {@see Model}.
  *
  * Three pieces of state:
  *

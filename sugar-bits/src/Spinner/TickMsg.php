@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Spinner;
+namespace SugarCraft\Bits\Spinner;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Animation tick for a specific spinner instance, identified by {@see $id}.

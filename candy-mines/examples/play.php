@@ -8,8 +8,8 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Mines\Game;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Mines\Game;
 
 (new Program(Game::start(width: 12, height: 10, mines: 14), new ProgramOptions(useAltScreen: true)))->run();

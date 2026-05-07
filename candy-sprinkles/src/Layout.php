@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Width as WidthUtil;
+use SugarCraft\Core\Util\Width as WidthUtil;
 
 /**
  * Position constants for {@see Layout::place()}. Match lipgloss's
@@ -33,7 +33,7 @@ final class Position
  *
  * All functions assume the input strings are already-rendered blocks
  * (multi-line OK, ANSI sequences passthrough). Width is measured in
- * cell columns via {@see \CandyCore\Core\Util\Width::string()}.
+ * cell columns via {@see \SugarCraft\Core\Util\Width::string()}.
  */
 final class Layout
 {

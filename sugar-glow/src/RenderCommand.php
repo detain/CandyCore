@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow;
+namespace SugarCraft\Glow;
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Core\Util\Tty;
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Core\Util\Tty;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /** Emitted when the terminal loses focus (CSI 1004 must be enabled). */
 final class BlurMsg implements Msg

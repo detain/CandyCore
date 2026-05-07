@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze;
+namespace SugarCraft\Freeze;
 
 /**
  * Splits a single line of ANSI-styled text into typed {@see Segment}s

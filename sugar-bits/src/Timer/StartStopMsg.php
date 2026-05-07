@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Timer;
+namespace SugarCraft\Bits\Timer;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Internal signal Timer/Stopwatch dispatch when their running flag flips,

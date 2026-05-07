@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Middleware;
+namespace SugarCraft\Metrics\Middleware;
 
-use CandyCore\Metrics\Registry;
-use CandyCore\Wish\Middleware;
-use CandyCore\Wish\Session;
+use SugarCraft\Metrics\Registry;
+use SugarCraft\Wish\Middleware;
+use SugarCraft\Wish\Session;
 
 /**
  * CandyWish middleware that emits session telemetry.

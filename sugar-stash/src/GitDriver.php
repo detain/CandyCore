@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash;
+namespace SugarCraft\Stash;
 
 /**
  * Pluggable git backend. Production is {@see Git} (shells out to the

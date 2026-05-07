@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Table;
+namespace SugarCraft\Sprinkles\Table;
 
 /**
  * Default in-memory {@see Data} implementation — a 2D string array.

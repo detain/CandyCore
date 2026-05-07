@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Veil;
+namespace SugarCraft\Veil;
 
 /**
  * Terminal overlay compositor.

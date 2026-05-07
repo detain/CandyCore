@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\TextInput;
+namespace SugarCraft\Bits\TextInput;
 
 /**
  * How a {@see TextInput} renders its value.

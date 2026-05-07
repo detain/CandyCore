@@ -44,12 +44,12 @@
     <p class="lede" style="margin-top: 28px;">In-memory key/value store with a plugin architecture. Ships with Memory, SQLite, Badger (BadgerDB), and InMemory backends. Supports glob + prefix listing.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/sugar-skate</code></pre>
+    <pre class="code"><code>composer require sugarcraft/sugar-skate</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Skate\{Database, Store};
+    <pre class="code"><code>use SugarCraft\Skate\{Database, Store};
 
-$db = new Database(new \CandyCore\Skate\Backend\MemoryStore());
+$db = new Database(new \SugarCraft\Skate\Backend\MemoryStore());
 $store = $db-&gt;store('my-app');
 
 $store-&gt;set('user:1', 'Alice', ['role' =&gt; 'admin']);

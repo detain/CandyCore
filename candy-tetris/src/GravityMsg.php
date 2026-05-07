@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Dispatched once per gravity tick — a pure marker carrying no

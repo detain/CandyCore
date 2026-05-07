@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\LineChart\TimeSeries;
+use SugarCraft\Charts\LineChart\TimeSeries;
 
 // Hourly samples for the past 24 hours.
 $points = [];

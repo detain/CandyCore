@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Util;
+namespace SugarCraft\Core\Tests\Util;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
 use PHPUnit\Framework\TestCase;
 
 final class ColorTest extends TestCase

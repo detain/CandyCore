@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve;
+namespace SugarCraft\Serve;
 
 /**
  * Server configuration loaded from config.yaml.

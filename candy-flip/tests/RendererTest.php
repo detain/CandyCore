@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip\Tests;
+namespace SugarCraft\Flip\Tests;
 
-use CandyCore\Flip\Frame;
-use CandyCore\Flip\Renderer;
+use SugarCraft\Flip\Frame;
+use SugarCraft\Flip\Renderer;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

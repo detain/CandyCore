@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Field;
+namespace SugarCraft\Prompt\Field;
 
-use CandyCore\Bits\ItemList\ItemList;
-use CandyCore\Bits\ItemList\StringItem;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Prompt\Field;
-use CandyCore\Prompt\HasDynamicLabels;
-use CandyCore\Prompt\HasHideFunc;
+use SugarCraft\Bits\ItemList\ItemList;
+use SugarCraft\Bits\ItemList\StringItem;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Prompt\Field;
+use SugarCraft\Prompt\HasDynamicLabels;
+use SugarCraft\Prompt\HasHideFunc;
 
 /**
  * Single-choice picker. Wraps {@see ItemList}; the field's value is the

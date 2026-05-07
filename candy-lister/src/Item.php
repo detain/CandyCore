@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister;
+namespace SugarCraft\Lister;
 
 /**
  * Internal item wrapper — pairs a Stringable value with a unique integer ID.

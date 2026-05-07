@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines\Tests;
+namespace SugarCraft\Mines\Tests;
 
-use CandyCore\Mines\Board;
+use SugarCraft\Mines\Board;
 use PHPUnit\Framework\TestCase;
 
 final class BoardTest extends TestCase

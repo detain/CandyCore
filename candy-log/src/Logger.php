@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log;
+namespace SugarCraft\Log;
 
-use CandyCore\Log\Formatter\TextFormatter;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Log\Formatter\TextFormatter;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Minimal colorful leveled logger.
@@ -75,53 +75,12 @@ final class Logger
     }
 
     // -------------------------------------------------------------------------
-    // Global convenience methods (static level functions via staticLogger())
-    // -------------------------------------------------------------------------
-
-    private static ?Logger $staticLogger = null;
-
-    private static function staticLogger(): Logger
-    {
-        return self::$staticLogger ??= self::new();
-    }
-
-    public static function debug(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Debug, $message, $context);
-    }
-
-    public static function info(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Info, $message, $context);
-    }
-
-    public static function warn(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Warn, $message, $context);
-    }
-
-    public static function error(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Error, $message, $context);
-    }
-
-    public static function fatal(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Fatal, $message, $context);
-    }
-
-    public static function print(string $message, array $context = []): void
-    {
-        self::staticLogger()->log(Level::Info, $message, $context);
-    }
-
-    public static function setLogger(Logger $logger): void
-    {
-        self::$staticLogger = $logger;
-    }
-
-    // -------------------------------------------------------------------------
     // Instance methods
+    //
+    // The static / global-default facade lives on the sibling {@see Log} class
+    // (`Log::debug(...)`, `Log::setLogger(...)`). PHP doesn't allow static and
+    // instance methods to share a name on a single class, so the convenience
+    // surface is split across two classes.
     // -------------------------------------------------------------------------
 
     public function log(Level $level, string $message, array $context = []): void

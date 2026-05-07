@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Readline\Tests;
+namespace SugarCraft\Readline\Tests;
 
-use CandyCore\Readline\{ConfirmationPrompt, MultiSelectPrompt, SelectionPrompt, TextPrompt, TextareaPrompt};
+use SugarCraft\Readline\{ConfirmationPrompt, MultiSelectPrompt, SelectionPrompt, TextPrompt, TextareaPrompt};
 use PHPUnit\Framework\TestCase;
 
 final class ReadlineTest extends TestCase

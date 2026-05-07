@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
 /**
  * Key-release event. Only emitted under the Kitty progressive-

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
 /**
  * One row in a {@see Pane}'s listing — a file, directory, or

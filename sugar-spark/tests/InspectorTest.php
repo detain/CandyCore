@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark\Tests;
+namespace SugarCraft\Spark\Tests;
 
-use CandyCore\Spark\Inspector;
-use CandyCore\Spark\SequenceSegment;
-use CandyCore\Spark\TextSegment;
+use SugarCraft\Spark\Inspector;
+use SugarCraft\Spark\SequenceSegment;
+use SugarCraft\Spark\TextSegment;
 use PHPUnit\Framework\TestCase;
 
 final class InspectorTest extends TestCase

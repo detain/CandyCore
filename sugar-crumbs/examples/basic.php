@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Crumbs\{Breadcrumb, NavStack};
+use SugarCraft\Crumbs\{Breadcrumb, NavStack};
 
 echo "=== NavStack ===\n";
 $stack = new NavStack();

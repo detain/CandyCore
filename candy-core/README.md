@@ -1,11 +1,11 @@
 <img src=".assets/icon.png" alt="candy-core" width="160" align="right">
 
-# CandyCore
+# SugarCraft
 
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-core)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-core)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-core?label=packagist)](https://packagist.org/packages/candycore/candy-core)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-core?label=packagist)](https://packagist.org/packages/sugarcraft/candy-core)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -17,8 +17,8 @@ PHP port of [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea
 the Elm-architecture TUI runtime at the heart of the Charmbracelet stack.
 
 ```php
-use CandyCore\Core\{Cmd, KeyType, Model, Msg, Program};
-use CandyCore\Core\Msg\{KeyMsg, WindowSizeMsg};
+use SugarCraft\Core\{Cmd, KeyType, Model, Msg, Program};
+use SugarCraft\Core\Msg\{KeyMsg, WindowSizeMsg};
 
 final class Counter implements Model
 {
@@ -84,7 +84,7 @@ feature.
 
 ## Companion libraries
 
-CandyCore is the foundation — the rest of the SugarCraft stack
+SugarCraft is the foundation — the rest of the SugarCraft stack
 builds on it. From the same monorepo:
 
 - **CandySprinkles** (← lipgloss) — declarative styling + layout.
@@ -158,13 +158,13 @@ a fullscreen filter (`gum filter`-style) uses alt-screen.
 
 ## Tutorial — building a shopping list
 
-Every CandyCore program is three things: a **Model** (the state), an
+Every SugarCraft program is three things: a **Model** (the state), an
 **update** (state transitions), and a **view** (a string). Here's a
 shopping list that walks through all three.
 
 ```php
-use CandyCore\Core\{Cmd, KeyType, Model, Msg, Program};
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\{Cmd, KeyType, Model, Msg, Program};
+use SugarCraft\Core\Msg\KeyMsg;
 
 final class ShoppingList implements Model
 {
@@ -232,7 +232,7 @@ Three rules carry through to every program:
    effects (writing to disk, hitting an HTTP endpoint, blinking the
    cursor) all live in Cmds, never in `view()`.
 
-Once you've internalised the loop, every other CandyCore feature is
+Once you've internalised the loop, every other SugarCraft feature is
 just a richer Msg or a more interesting Cmd.
 
 ## Debugging tips

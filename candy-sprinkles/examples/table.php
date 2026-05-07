@@ -11,17 +11,17 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Align;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\Table\Table;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Align;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\Table\Table;
 
 $table = Table::new()
     ->border(Border::rounded())
     ->headers('Lib', 'Stars', 'Year')
     ->rows([
-        ['CandyCore',    '110', '2026'],
+        ['SugarCraft',    '110', '2026'],
         ['CandySprinkles', '92', '2026'],
         ['SugarBits',     '88', '2026'],
         ['CandyShell',    '76', '2026'],

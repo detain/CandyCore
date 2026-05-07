@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap;
+namespace SugarCraft\Flap;
 
-use CandyCore\Bounce\Point;
-use CandyCore\Bounce\Projectile;
-use CandyCore\Bounce\Spring;
-use CandyCore\Bounce\Vector;
+use SugarCraft\Bounce\Point;
+use SugarCraft\Bounce\Projectile;
+use SugarCraft\Bounce\Spring;
+use SugarCraft\Bounce\Vector;
 
 /**
  * The bird's vertical motion is a HoneyBounce {@see Projectile} with

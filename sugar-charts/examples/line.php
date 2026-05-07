@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\LineChart\Streamline;
+use SugarCraft\Charts\LineChart\Streamline;
 
 $line = Streamline::new(width: 60, height: 12);
 for ($i = 0; $i < 80; $i++) {

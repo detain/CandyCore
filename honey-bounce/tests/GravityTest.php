@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce\Tests;
+namespace SugarCraft\Bounce\Tests;
 
-use CandyCore\Bounce\Gravity;
-use CandyCore\Bounce\Projectile;
-use CandyCore\Bounce\Vector;
+use SugarCraft\Bounce\Gravity;
+use SugarCraft\Bounce\Projectile;
+use SugarCraft\Bounce\Vector;
 use PHPUnit\Framework\TestCase;
 
 final class GravityTest extends TestCase
@@ -58,7 +58,7 @@ final class GravityTest extends TestCase
     {
         $p = Projectile::new(
             deltaTime:    1.0 / 60.0,
-            position:     new \CandyCore\Bounce\Point(0.0, 0.0),
+            position:     new \SugarCraft\Bounce\Point(0.0, 0.0),
             velocity:     new Vector(0.0, 10.0),
             acceleration: Gravity::standard(),
         );

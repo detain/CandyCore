@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\TextArea;
+namespace SugarCraft\Bits\TextArea;
 
-use CandyCore\Bits\Cursor\BlinkMsg;
-use CandyCore\Bits\Cursor\Cursor;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\Cursor\BlinkMsg;
+use SugarCraft\Bits\Cursor\Cursor;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
  * Multi-line text input. Holds a list of lines and a (row, col) cursor.

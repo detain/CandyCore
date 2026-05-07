@@ -26,9 +26,9 @@ adding a new lib, skip to the [Audit-driven PR section](#audit-driven-prs).
 2. Pick a **short technical suffix** that describes the role (Core /
    Sprinkles / Bits / Charts / Prompt / Shell / Shine / …).
 3. The PHP **subdir** + **composer name** follow the kebab-cased pair:
-   `CandyShine` → `candy-shine/` → `candycore/candy-shine`.
+   `CandyShine` → `candy-shine/` → `sugarcraft/candy-shine`.
 4. The **PSR-4 namespace** drops the prefix: `CandyShine` →
-   `CandyCore\Shine`. (`CandyCore\Core` is the one quirky exception
+   `SugarCraft\Shine`. (`SugarCraft\Core` is the one quirky exception
    for the runtime that shares the umbrella name.)
 5. Record the choice in two places:
    - Add a new row to [`MATCHUPS.md`](./MATCHUPS.md) under the right
@@ -59,11 +59,11 @@ adding a new lib, skip to the [Audit-driven PR section](#audit-driven-prs).
 
 ```json
 {
-    "name": "candycore/<slug>",
+    "name": "sugarcraft/<slug>",
     "description": "PHP port of <upstream> — <one-line role>.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "terminal", "candycore", "<lib-specific>"],
+    "keywords": ["tui", "terminal", "sugarcraft", "<lib-specific>"],
     "homepage": "https://github.com/sugarcraft/<slug>",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -74,7 +74,7 @@ adding a new lib, skip to the [Audit-driven PR section](#audit-driven-prs).
     },
     "require": {
         "php": "^8.1",
-        "candycore/candy-core": "@dev"
+        "sugarcraft/candy-core": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
@@ -228,7 +228,7 @@ and customise:
 - `<title>` / `<meta description>` / `og:*` tags.
 - The hero header: icon path, title, sub-title, port-of-X chip, role
   chips.
-- Install snippet: `composer require candycore/<slug>`.
+- Install snippet: `composer require sugarcraft/<slug>`.
 - Quickstart: a self-contained snippet small enough to read at a
   glance.
 - "What's in the box" feature grid — 4–6 short feature cards.
@@ -301,7 +301,7 @@ deferred, examples + tests + docs in place):
 1. Tag the monorepo: `<slug>-v1.0.0`.
 2. Extract the subtree into its own repo under `github.com/sugarcraft/<slug>`
    with full git history (`git filter-repo`).
-3. Publish to Packagist under `candycore/<slug>` (will move to
+3. Publish to Packagist under `sugarcraft/<slug>` (will move to
    `sugarcraft/<slug>` when the org migrates).
 4. Bump the row in [`MATCHUPS.md`](./MATCHUPS.md) to 🚀.
 5. Replace the `repositories: [{type: path, ...}]` entry in the root

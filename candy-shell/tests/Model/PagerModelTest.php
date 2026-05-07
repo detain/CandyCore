@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Model;
+namespace SugarCraft\Shell\Tests\Model;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Shell\Model\PagerModel;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Shell\Model\PagerModel;
 use PHPUnit\Framework\TestCase;
 
 final class PagerModelTest extends TestCase

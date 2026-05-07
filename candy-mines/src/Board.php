@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines;
+namespace SugarCraft\Mines;
 
 /**
  * The minesweeper board — pure value object. Immutable; every reveal

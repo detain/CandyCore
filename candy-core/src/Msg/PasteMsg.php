@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Bracketed-paste payload. Emitted by {@see \CandyCore\Core\InputReader}
+ * Bracketed-paste payload. Emitted by {@see \SugarCraft\Core\InputReader}
  * when it sees the `CSI 200~ … CSI 201~` envelope a terminal wraps
  * around pasted text after `CSI ?2004h`.
  *

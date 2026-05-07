@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\Align;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\Table\Table;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\Align;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\Table\Table;
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase

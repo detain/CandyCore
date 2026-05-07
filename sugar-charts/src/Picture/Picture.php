@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Picture;
+namespace SugarCraft\Charts\Picture;
 
-use CandyCore\Core\Util\Color;
+use SugarCraft\Core\Util\Color;
 
 /**
  * Inline-image renderer for SugarCharts. Accepts a 2D RGB pixel grid

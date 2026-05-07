@@ -44,10 +44,10 @@
     <p class="lede" style="margin-top: 28px;">Detect the terminal's color capability (ANSI / ANSI256 / TrueColor), convert between formats, and write StandardColors compatible with the Charm ecosystem.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-palette</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-palette</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Palette\Palette;
+    <pre class="code"><code>use SugarCraft\Palette\Palette;
 
 $profile = Palette::detect();
 echo $profile-&gt;type();   // "truecolor" | "256" | "ansi"

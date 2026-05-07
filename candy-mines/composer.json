@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candy-mines",
+    "name": "sugarcraft/candy-mines",
     "description": "Minesweeper TUI \u2014 port of maxpaulus43/go-sweep on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
@@ -7,7 +7,7 @@
         "tui",
         "game",
         "minesweeper",
-        "candycore",
+        "sugarcraft",
         "sugarcraft"
     ],
     "homepage": "https://sugarcraft.github.io/lib/candy-mines.html",
@@ -28,20 +28,20 @@
     ],
     "require": {
         "php": ">=8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-sprinkles": "@dev"
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Mines\\": "src/"
+            "SugarCraft\\Mines\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Mines\\Tests\\": "tests/"
+            "SugarCraft\\Mines\\Tests\\": "tests/"
         }
     },
     "repositories": [

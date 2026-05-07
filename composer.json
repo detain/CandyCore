@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candycore",
+    "name": "sugarcraft/sugarcraft",
     "description": "PHP ports of the Charmbracelet TUI ecosystem (umbrella monorepo) — install all 13 libraries at once.",
     "type": "metapackage",
     "license": "MIT",
@@ -8,7 +8,7 @@
         "bubbletea", "lipgloss", "bubbles", "huh", "gum",
         "glamour", "glow", "freeze", "harmonica", "ntcharts",
         "wish", "wishlist", "ssh", "metrics", "telemetry",
-        "candycore"
+        "sugarcraft"
     ],
     "homepage": "https://github.com/detain/sugarcraft",
     "authors": [
@@ -21,22 +21,22 @@
     },
     "require": {
         "php": "^8.1",
-        "candycore/candy-core":      "@dev",
-        "candycore/candy-freeze":    "@dev",
-        "candycore/candy-metrics":   "@dev",
-        "candycore/candy-kit":       "@dev",
-        "candycore/candy-shell":     "@dev",
-        "candycore/candy-shine":     "@dev",
-        "candycore/candy-sprinkles": "@dev",
-        "candycore/candy-wish":      "@dev",
-        "candycore/candy-zone":      "@dev",
-        "candycore/honey-bounce":    "@dev",
-        "candycore/sugar-bits":      "@dev",
-        "candycore/sugar-charts":    "@dev",
-        "candycore/sugar-glow":      "@dev",
-        "candycore/sugar-prompt":    "@dev",
-        "candycore/sugar-spark":     "@dev",
-        "candycore/sugar-wishlist":  "@dev"
+        "sugarcraft/candy-core":      "@dev",
+        "sugarcraft/candy-freeze":    "@dev",
+        "sugarcraft/candy-metrics":   "@dev",
+        "sugarcraft/candy-kit":       "@dev",
+        "sugarcraft/candy-shell":     "@dev",
+        "sugarcraft/candy-shine":     "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
+        "sugarcraft/candy-wish":      "@dev",
+        "sugarcraft/candy-zone":      "@dev",
+        "sugarcraft/honey-bounce":    "@dev",
+        "sugarcraft/sugar-bits":      "@dev",
+        "sugarcraft/sugar-charts":    "@dev",
+        "sugarcraft/sugar-glow":      "@dev",
+        "sugarcraft/sugar-prompt":    "@dev",
+        "sugarcraft/sugar-spark":     "@dev",
+        "sugarcraft/sugar-wishlist":  "@dev"
     },
     "repositories": [
         { "type": "path", "url": "candy-core",      "options": { "symlink": true } },

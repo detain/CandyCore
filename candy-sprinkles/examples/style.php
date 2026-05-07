@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 $cases = [
     'foreground'   => Style::new()->foreground(Color::hex('#ff5fd2'))->render('hot pink text'),

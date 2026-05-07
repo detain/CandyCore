@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Color;
+use SugarCraft\Core\Util\Color;
 
 /**
  * Named ANSI colour constants and colour helpers — the lipgloss equivalents
@@ -45,7 +45,7 @@ final class Palette
 
     /**
      * lipgloss-style top-level helper: given a known background {@see Color}
-     * (typically obtained via a CandyCore terminal-query response), report
+     * (typically obtained via a SugarCraft terminal-query response), report
      * whether it's dark enough to want light foregrounds.
      *
      * Returns null when no background is available — callers should treat

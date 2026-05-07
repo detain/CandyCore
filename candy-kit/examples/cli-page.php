@@ -10,12 +10,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Kit\Banner;
-use CandyCore\Kit\HelpText;
-use CandyCore\Kit\Section;
-use CandyCore\Kit\Stage;
-use CandyCore\Kit\StatusLine;
-use CandyCore\Kit\Theme;
+use SugarCraft\Kit\Banner;
+use SugarCraft\Kit\HelpText;
+use SugarCraft\Kit\Section;
+use SugarCraft\Kit\Stage;
+use SugarCraft\Kit\StatusLine;
+use SugarCraft\Kit\Theme;
 
 $theme = Theme::dracula();
 

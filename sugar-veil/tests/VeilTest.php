@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Veil\Tests;
+namespace SugarCraft\Veil\Tests;
 
-use CandyCore\Veil\{Position, Veil};
+use SugarCraft\Veil\{Position, Veil};
 use PHPUnit\Framework\TestCase;
 
 final class VeilTest extends TestCase

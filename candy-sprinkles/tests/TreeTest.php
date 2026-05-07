@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\Tree\Enumerator as TreeEnumerator;
-use CandyCore\Sprinkles\Tree\Tree;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\Tree\Enumerator as TreeEnumerator;
+use SugarCraft\Sprinkles\Tree\Tree;
 use PHPUnit\Framework\TestCase;
 
 final class TreeTest extends TestCase

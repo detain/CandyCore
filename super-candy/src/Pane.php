@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
 /**
  * One half of the dual-pane file manager.

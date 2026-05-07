@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip;
+namespace SugarCraft\Flip;
 
 /**
  * Decode a GIF on disk into a list of {@see Frame}s using ext-gd's

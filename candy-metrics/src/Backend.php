@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics;
+namespace SugarCraft\Metrics;
 
 /**
  * Pluggable metrics emit target.

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Paginator;
+namespace SugarCraft\Bits\Paginator;
 
 /**
  * How the {@see Paginator} renders itself:

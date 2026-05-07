@@ -21,13 +21,13 @@ PHP port of [KevM/bubbleo](https://github.com/KevM/bubbleo) — NavStack (naviga
 ## Install
 
 ```bash
-composer require candycore/sugar-crumbs
+composer require sugarcraft/sugar-crumbs
 ```
 
 ## NavStack Quick Start
 
 ```php
-use CandyCore\Crumbs\NavStack;
+use SugarCraft\Crumbs\NavStack;
 
 $stack = new NavStack();
 
@@ -49,7 +49,7 @@ echo $stack->current()->title;   // "Settings"
 ## Breadcrumb Rendering
 
 ```php
-use CandyCore\Crumbs\Breadcrumb;
+use SugarCraft\Crumbs\Breadcrumb;
 
 $bc = new Breadcrumb();
 $bc->setSeparator(' › ');        // default " › "

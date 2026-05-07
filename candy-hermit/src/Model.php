@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Hermit;
+namespace SugarCraft\Hermit;
 
 /**
  * Model interface for embedding Hermit in a Bubble-Tea-style application.

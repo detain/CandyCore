@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines\Tests;
+namespace SugarCraft\Mines\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Mines\Game;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Mines\Game;
 use PHPUnit\Framework\TestCase;
 
 final class GameTest extends TestCase
@@ -95,7 +95,7 @@ final class GameTest extends TestCase
     public function testNonKeyMessagesAreIgnored(): void
     {
         $g = Game::start(3, 3, 1, static fn(int $max): int => 0);
-        $msg = new \CandyCore\Core\Msg\WindowSizeMsg(80, 24);
+        $msg = new \SugarCraft\Core\Msg\WindowSizeMsg(80, 24);
         [$next, $cmd] = $g->update($msg);
         $this->assertSame($g, $next);
         $this->assertNull($cmd);

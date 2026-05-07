@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Logical key types emitted by the input parser. {@see KeyType::Char} carries

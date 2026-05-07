@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-sprinkles)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-sprinkles)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-sprinkles?label=packagist)](https://packagist.org/packages/candycore/candy-sprinkles)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-sprinkles?label=packagist)](https://packagist.org/packages/sugarcraft/candy-sprinkles)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -17,14 +17,14 @@ PHP port of [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) 
 declarative styling and layout for terminal UIs.
 
 ```sh
-composer require candycore/candy-sprinkles
+composer require sugarcraft/candy-sprinkles
 ```
 
 ## Quickstart
 
 ```php
-use CandyCore\Sprinkles\Style;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
 
 $banner = Style::new()
     ->bold()
@@ -38,8 +38,8 @@ echo $banner . "\n";
 ## Layout helpers
 
 ```php
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Position;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Position;
 
 // Side-by-side
 echo Layout::joinHorizontal(Position::TOP, $left, $right);
@@ -54,9 +54,9 @@ echo Layout::place(40, 10, Position::CENTER, Position::CENTER, 'centered text');
 ## Tables
 
 ```php
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Table\Table;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Table\Table;
+use SugarCraft\Sprinkles\Style;
 
 $styled = Table::new()
     ->headers('Name', 'Age')
@@ -74,8 +74,8 @@ echo $styled;
 ## Trees & lists
 
 ```php
-use CandyCore\Sprinkles\Listing\{Enumerator, ItemList};
-use CandyCore\Sprinkles\Tree\Tree;
+use SugarCraft\Sprinkles\Listing\{Enumerator, ItemList};
+use SugarCraft\Sprinkles\Tree\Tree;
 
 echo ItemList::new()
     ->items(['Apples', 'Bananas', 'Cherries'])

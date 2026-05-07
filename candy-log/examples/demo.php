@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Log\Logger;
-use CandyCore\Log\Level;
-use CandyCore\Log\Formatter\JsonFormatter;
-use CandyCore\Log\Formatter\LogfmtFormatter;
-use CandyCore\Log\StandardLogAdapter;
+use SugarCraft\Log\Logger;
+use SugarCraft\Log\Level;
+use SugarCraft\Log\Formatter\JsonFormatter;
+use SugarCraft\Log\Formatter\LogfmtFormatter;
+use SugarCraft\Log\StandardLogAdapter;
 
 // Capture output for display
 $stderr = fopen('php://stdout', 'w');

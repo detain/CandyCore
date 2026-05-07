@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow\Tests;
+namespace SugarCraft\Glow\Tests;
 
-use CandyCore\Glow\RenderCommand;
-use CandyCore\Shine\Theme;
+use SugarCraft\Glow\RenderCommand;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class RenderCommandTest extends TestCase

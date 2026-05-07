@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Post\{Email, Mailer, ResendTransport};
+use SugarCraft\Post\{Email, Mailer, ResendTransport};
 
 $apiKey = \getenv('RESEND_API_KEY') ?: 're_placeholder';
 $transport = new ResendTransport($apiKey);

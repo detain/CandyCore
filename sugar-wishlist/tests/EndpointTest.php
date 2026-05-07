@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist\Tests;
+namespace SugarCraft\Wishlist\Tests;
 
-use CandyCore\Wishlist\Endpoint;
+use SugarCraft\Wishlist\Endpoint;
 use PHPUnit\Framework\TestCase;
 
 final class EndpointTest extends TestCase

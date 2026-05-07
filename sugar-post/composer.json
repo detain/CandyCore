@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-post",
+    "name": "sugarcraft/sugar-post",
     "description": "PHP port of charmbracelet/pop \u2014 send emails from PHP via Resend API or direct SMTP. Compose from stdin, attach files, supports CC/BCC, HTML body.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["email", "smtp", "resend", "mailer", "send", "candycore"],
+    "keywords": ["email", "smtp", "resend", "mailer", "send", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-post",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -44,10 +44,10 @@
         { "type": "path", "url": "../sugar-skate",     "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Post\\": "src/" }
+        "psr-4": { "SugarCraft\\Post\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Post\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Post\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

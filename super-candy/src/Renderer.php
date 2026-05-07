@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Pure view function for {@see Manager}. Lays out the two panes

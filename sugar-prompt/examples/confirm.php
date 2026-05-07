@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Prompt\Field\Confirm;
+use SugarCraft\Prompt\Field\Confirm;
 
 $cases = [
     'default no'   => Confirm::new('proceed', false)->withTitle('Proceed?'),

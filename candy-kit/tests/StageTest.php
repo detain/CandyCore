@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit\Tests;
+namespace SugarCraft\Kit\Tests;
 
-use CandyCore\Kit\Stage;
-use CandyCore\Kit\Theme;
+use SugarCraft\Kit\Stage;
+use SugarCraft\Kit\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class StageTest extends TestCase

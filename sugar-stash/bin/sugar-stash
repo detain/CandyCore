@@ -15,10 +15,10 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Stash\App;
-use CandyCore\Stash\Git;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Stash\App;
+use SugarCraft\Stash\Git;
 
 $cwd = getcwd();
 if ($cwd === false || !is_dir("$cwd/.git")) {

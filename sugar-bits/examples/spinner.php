@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Spinner\Style as SpinStyle;
+use SugarCraft\Bits\Spinner\Style as SpinStyle;
 
 $styles = [
     'line'      => SpinStyle::line(),

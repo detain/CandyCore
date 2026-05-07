@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Sparkline;
+namespace SugarCraft\Charts\Tests\Sparkline;
 
-use CandyCore\Charts\Sparkline\Sparkline;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Charts\Sparkline\Sparkline;
+use SugarCraft\Core\Util\Width;
 use PHPUnit\Framework\TestCase;
 
 final class SparklineTest extends TestCase
@@ -115,9 +115,9 @@ final class SparklineTest extends TestCase
 
     public function testWithStyleWrapsViewInStyleEscapes(): void
     {
-        $style = \CandyCore\Sprinkles\Style::new()
+        $style = \SugarCraft\Sprinkles\Style::new()
             ->bold()
-            ->colorProfile(\CandyCore\Core\Util\ColorProfile::TrueColor);
+            ->colorProfile(\SugarCraft\Core\Util\ColorProfile::TrueColor);
         $s = Sparkline::new([1, 2, 3], 3)->withStyle($style);
         $rendered = $s->view();
         // Styled output starts with an SGR escape (\e[) when bold is on.

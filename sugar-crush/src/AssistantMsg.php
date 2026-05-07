@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush;
+namespace SugarCraft\Crush;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Internal Msg dispatched once a backend completion arrives.

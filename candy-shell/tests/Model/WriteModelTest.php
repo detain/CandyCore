@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Model;
+namespace SugarCraft\Shell\Tests\Model;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Shell\Model\WriteModel;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Shell\Model\WriteModel;
 use PHPUnit\Framework\TestCase;
 
 final class WriteModelTest extends TestCase

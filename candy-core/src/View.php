@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Util\Color;
+use SugarCraft\Core\Util\Color;
 
 /**
  * Rich render result. Models that want per-frame control over

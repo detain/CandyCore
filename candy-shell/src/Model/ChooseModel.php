@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\ItemList\ItemList;
-use CandyCore\Bits\ItemList\StringItem;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\ItemList\ItemList;
+use SugarCraft\Bits\ItemList\StringItem;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * Selection chooser used by {@see \CandyCore\Shell\Command\ChooseCommand}.
+ * Selection chooser used by {@see \SugarCraft\Shell\Command\ChooseCommand}.
  *
  * Two modes:
  *

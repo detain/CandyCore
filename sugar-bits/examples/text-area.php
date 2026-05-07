@@ -12,7 +12,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\TextArea\TextArea;
+use SugarCraft\Bits\TextArea\TextArea;
 
 $cases = [
     'empty + placeholder' => TextArea::new()

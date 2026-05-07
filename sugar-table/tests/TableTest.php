@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table\Tests;
+namespace SugarCraft\Table\Tests;
 
-use CandyCore\Table\{Column, Row, RowData, StyledCell, Table};
+use SugarCraft\Table\{Column, Row, RowData, StyledCell, Table};
 use PHPUnit\Framework\TestCase;
 
 final class TableTest extends TestCase

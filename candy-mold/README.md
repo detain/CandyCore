@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-mold)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-mold)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-mold?label=packagist)](https://packagist.org/packages/candycore/candy-mold)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-mold?label=packagist)](https://packagist.org/packages/sugarcraft/candy-mold)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -13,10 +13,10 @@
 
 ![demo](.vhs/start.gif)
 
-Skeleton repo for bootstrapping a CandyCore TUI app. Pour your model into the mold and you've got a working app.
+Skeleton repo for bootstrapping a SugarCraft TUI app. Pour your model into the mold and you've got a working app.
 
 ```bash
-composer create-project candycore/candy-mold my-app
+composer create-project sugarcraft/candy-mold my-app
 cd my-app
 ./bin/start
 ```
@@ -38,7 +38,7 @@ my-app/
 
 `bin/start` is just three meaningful lines: load the autoloader, instantiate your `Model`, hand it to `Program::run()`. The Program harness owns the event loop, render tick, signal handling, raw-mode setup, and alt-screen lifecycle — you only write Models.
 
-## Anatomy of a CandyCore Model
+## Anatomy of a SugarCraft Model
 
 A `Model` is three pure methods:
 
@@ -56,13 +56,13 @@ The shape is borrowed verbatim from Bubble Tea / The Elm Architecture. State liv
 
 | Want to…                             | Reach for…                                 |
 |--------------------------------------|---------------------------------------------|
-| Add a text input                     | `candycore/sugar-bits` — `TextInput`        |
-| Show a spinner while loading         | `candycore/sugar-bits` — `Spinner`          |
-| Render Markdown help text            | `candycore/candy-shine` — `Renderer`        |
-| Tail a log into a scrollable pane    | `candycore/sugar-bits` — `Viewport`         |
-| Build a multi-page wizard            | `candycore/sugar-prompt` — `Group`          |
-| Plot a sparkline                     | `candycore/sugar-charts` — `Sparkline`      |
-| Make it `ssh`-accessible             | `candycore/candy-wish`                      |
+| Add a text input                     | `sugarcraft/sugar-bits` — `TextInput`        |
+| Show a spinner while loading         | `sugarcraft/sugar-bits` — `Spinner`          |
+| Render Markdown help text            | `sugarcraft/candy-shine` — `Renderer`        |
+| Tail a log into a scrollable pane    | `sugarcraft/sugar-bits` — `Viewport`         |
+| Build a multi-page wizard            | `sugarcraft/sugar-prompt` — `Group`          |
+| Plot a sparkline                     | `sugarcraft/sugar-charts` — `Sparkline`      |
+| Make it `ssh`-accessible             | `sugarcraft/candy-wish`                      |
 
 Add the dep, import its classes, return them from `view()`. They're all pure renderers on the same `Style`-based vocabulary.
 

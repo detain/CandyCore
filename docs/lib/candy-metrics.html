@@ -47,11 +47,11 @@
     <p class="lede" style="margin-top: 28px;">Counters, gauges, histograms with pluggable backends — drop-in middleware for SSH session metrics. Counter / Gauge / Histogram + four backends: InMemory, JsonStream, StatsD, Prometheus textfile, plus a Multi fan-out.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-metrics</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-metrics</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Metrics\Registry;
-use CandyCore\Metrics\Backend\StatsdBackend;
+    <pre class="code"><code>use SugarCraft\Metrics\Registry;
+use SugarCraft\Metrics\Backend\StatsdBackend;
 
 $reg = new Registry(new StatsdBackend('127.0.0.1', 8125));
 

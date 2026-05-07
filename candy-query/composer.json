@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candy-query",
+    "name": "sugarcraft/candy-query",
     "description": "Terminal SQLite browser \u2014 port of jorgerojas26/lazysql on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
@@ -9,7 +9,7 @@
         "sql",
         "sqlite",
         "lazysql",
-        "candycore",
+        "sugarcraft",
         "sugarcraft"
     ],
     "homepage": "https://sugarcraft.github.io/lib/candy-query.html",
@@ -30,8 +30,8 @@
     ],
     "require": {
         "php": ">=8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-sprinkles": "@dev",
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
         "ext-pdo_sqlite": "*"
     },
     "require-dev": {
@@ -39,12 +39,12 @@
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Query\\": "src/"
+            "SugarCraft\\Query\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Query\\Tests\\": "tests/"
+            "SugarCraft\\Query\\Tests\\": "tests/"
         }
     },
     "repositories": [

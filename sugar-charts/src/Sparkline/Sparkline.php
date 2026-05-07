@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Sparkline;
+namespace SugarCraft\Charts\Sparkline;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Compact single-row chart drawn with the eight Unicode block-bar

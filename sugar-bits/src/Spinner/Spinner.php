@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Spinner;
+namespace SugarCraft\Bits\Spinner;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
 
 /**
  * Animated spinner. Implements {@see Model} so it can be embedded in any
- * CandyCore app: return its `init()` Cmd from your model, forward
+ * SugarCraft app: return its `init()` Cmd from your model, forward
  * {@see TickMsg}s into its `update()`, and call its `view()` wherever
  * you want the spinner to appear.
  *

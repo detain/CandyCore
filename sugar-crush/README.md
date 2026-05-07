@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-crush)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-crush)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-crush?label=packagist)](https://packagist.org/packages/candycore/sugar-crush)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-crush?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-crush)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -69,7 +69,7 @@ The wrapper-script approach is deliberate: keeps the PHP package network-dep-fre
 If you'd rather skip the shell-out dance and integrate the SDK directly, implement the `Backend` interface in PHP:
 
 ```php
-use CandyCore\Crush\{Backend, Chat, Message};
+use SugarCraft\Crush\{Backend, Chat, Message};
 
 final class MyBackend implements Backend {
     public function complete(array $history): Message {
@@ -91,7 +91,7 @@ final class MyBackend implements Backend {
 | `Backend\EchoBackend`        | Offline default — echoes the last user message                 |
 | `Backend\CommandBackend`     | Shells out via proc_open; JSON history → stdin → stdout reply  |
 | `AssistantMsg`               | Internal `Msg` — fires when a backend completion arrives       |
-| `Chat`                       | CandyCore Model — history, input buffer, inFlight gate         |
+| `Chat`                       | SugarCraft Model — history, input buffer, inFlight gate         |
 | `Renderer`                   | Pure view fn — CandyShine-rendered scrollback + input box      |
 
 ## Test plan

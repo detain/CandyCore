@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Log;
+namespace SugarCraft\Shell\Tests\Log;
 
-use CandyCore\Shell\Command\LogCommand;
-use CandyCore\Shell\Log\LogLevel;
+use SugarCraft\Shell\Command\LogCommand;
+use SugarCraft\Shell\Log\LogLevel;
 use PHPUnit\Framework\TestCase;
 
 final class LogLevelTest extends TestCase

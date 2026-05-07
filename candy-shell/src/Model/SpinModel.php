@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\Spinner\Spinner;
-use CandyCore\Bits\Spinner\Style as SpinStyle;
-use CandyCore\Bits\Spinner\TickMsg;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Shell\Process\Process;
+use SugarCraft\Bits\Spinner\Spinner;
+use SugarCraft\Bits\Spinner\Style as SpinStyle;
+use SugarCraft\Bits\Spinner\TickMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Shell\Process\Process;
 
 /**
  * Run a child {@see Process} while a {@see Spinner} animates beside an

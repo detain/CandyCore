@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
 /**
  * One page of fields in a multi-page {@see Form}.

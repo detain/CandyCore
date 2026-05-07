@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Table;
+namespace SugarCraft\Sprinkles\Table;
 
-use CandyCore\Core\Util\Width;
-use CandyCore\Sprinkles\Align;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Width;
+use SugarCraft\Sprinkles\Align;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Sentinel returned by a column-header `StyleFunc` to mark a row as

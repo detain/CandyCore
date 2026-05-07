@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Help;
+namespace SugarCraft\Bits\Tests\Help;
 
-use CandyCore\Bits\Help\Help;
-use CandyCore\Bits\Help\Styles;
-use CandyCore\Bits\Key\Binding;
-use CandyCore\Bits\Key\KeyMap;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Bits\Help\Help;
+use SugarCraft\Bits\Help\Styles;
+use SugarCraft\Bits\Key\Binding;
+use SugarCraft\Bits\Key\KeyMap;
+use SugarCraft\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class FakeKeyMap implements KeyMap
@@ -219,9 +219,9 @@ final class HelpTest extends TestCase
         $h = new Help();
         $this->assertFalse($h->showAll);
         $toggle = (new Binding(['?']))->withHelp('?', 'help');
-        $h2 = $h->updateWithBinding(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, '?'), $toggle);
+        $h2 = $h->updateWithBinding(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, '?'), $toggle);
         $this->assertTrue($h2->showAll);
-        $h3 = $h2->updateWithBinding(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, '?'), $toggle);
+        $h3 = $h2->updateWithBinding(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, '?'), $toggle);
         $this->assertFalse($h3->showAll);
     }
 
@@ -229,7 +229,7 @@ final class HelpTest extends TestCase
     {
         $h = new Help();
         $toggle = (new Binding(['?']))->withHelp('?', 'help');
-        $h2 = $h->updateWithBinding(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'x'), $toggle);
+        $h2 = $h->updateWithBinding(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, 'x'), $toggle);
         $this->assertFalse($h2->showAll);
     }
 
@@ -237,7 +237,7 @@ final class HelpTest extends TestCase
     {
         $h = new Help();
         $toggle = (Binding::withDisabled(['?']))->withHelp('?', 'help');
-        $h2 = $h->updateWithBinding(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, '?'), $toggle);
+        $h2 = $h->updateWithBinding(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, '?'), $toggle);
         $this->assertFalse($h2->showAll);
     }
 }

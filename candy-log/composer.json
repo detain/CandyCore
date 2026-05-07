@@ -1,9 +1,9 @@
 {
-    "name": "candycore/candy-log",
+    "name": "sugarcraft/candy-log",
     "description": "PHP port of charmbracelet/log \u2014 minimal, colorful leveled logging with structured human-readable output, text/JSON/logfmt formatters, and stdlog adapter.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["logging", "cli", "console", "colorful", "structured", "log", "candycore"],
+    "keywords": ["logging", "cli", "console", "colorful", "structured", "log", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/candy-log",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -14,8 +14,8 @@
     },
     "require": {
         "php": "^8.1",
-        "candycore/candy-core":      "@dev",
-        "candycore/candy-sprinkles": "@dev"
+        "sugarcraft/candy-core":      "@dev",
+        "sugarcraft/candy-sprinkles": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.5"
@@ -43,10 +43,10 @@
         { "type": "path", "url": "../sugar-crush",     "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Log\\": "src/" }
+        "psr-4": { "SugarCraft\\Log\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Log\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Log\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

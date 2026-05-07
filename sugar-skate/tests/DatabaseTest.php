@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Skate\Tests;
+namespace SugarCraft\Skate\Tests;
 
-use CandyCore\Skate\Database;
-use CandyCore\Skate\Entry;
+use SugarCraft\Skate\Database;
+use SugarCraft\Skate\Entry;
 use PHPUnit\Framework\TestCase;
 
 final class DatabaseTest extends TestCase

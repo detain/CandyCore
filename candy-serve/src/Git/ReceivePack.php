@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve\Git;
+namespace SugarCraft\Serve\Git;
 
-use CandyCore\Serve\{AccessControl, Repo, User};
+use SugarCraft\Serve\{AccessControl, Repo, User};
 
 /**
  * Handles git-receive-pack requests (push).

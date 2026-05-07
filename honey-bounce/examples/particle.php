@@ -14,10 +14,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bounce\Point;
-use CandyCore\Bounce\Projectile;
-use CandyCore\Bounce\Spring;
-use CandyCore\Bounce\Vector;
+use SugarCraft\Bounce\Point;
+use SugarCraft\Bounce\Projectile;
+use SugarCraft\Bounce\Spring;
+use SugarCraft\Bounce\Vector;
 
 $particleCount = 80;
 $frames        = 60;        // ~1 simulated second at 60 FPS

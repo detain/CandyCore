@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::requestForegroundColor()}. The
+ * Reply to a {@see \SugarCraft\Core\Cmd::requestForegroundColor()}. The
  * terminal answers `OSC 10 ; rgb:RRRR/GGGG/BBBB ST|BEL`; each channel
  * is reported as 4 hex digits and we squash to 8-bit per channel
  * (Bubble Tea v2 does the same).

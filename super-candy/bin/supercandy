@@ -15,9 +15,9 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\SuperCandy\Manager;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\SuperCandy\Manager;
 
 $cwd = getcwd() ?: '/';
 $home = getenv('HOME') ?: '/';

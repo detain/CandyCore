@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-table",
+    "name": "sugarcraft/sugar-table",
     "description": "PHP port of Evertras/bubble-table \u2014 customizable interactive table component for terminal UIs. Supports column definitions with keys/titles/widths, rows as key-value maps, styled cells, selection, pagination, sorting, filtering, frozen columns, horizontal scrolling, zebra striping, and ANSI border styling.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "table", "grid", "interactive", "pagination", "sorting", "candycore"],
+    "keywords": ["tui", "table", "grid", "interactive", "pagination", "sorting", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-table",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -54,10 +54,10 @@
         { "type": "path", "url": "../sugar-readline",  "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Table\\": "src/" }
+        "psr-4": { "SugarCraft\\Table\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Table\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Table\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

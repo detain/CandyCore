@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Hermit\Hermit;
+use SugarCraft\Hermit\Hermit;
 
 $items = [
     'apple', 'banana', 'cherry', 'date', 'elderberry',

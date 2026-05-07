@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\FilePicker\FilePicker;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\FilePicker\FilePicker;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * Filesystem picker used by {@see \CandyCore\Shell\Command\FileCommand}.
+ * Filesystem picker used by {@see \SugarCraft\Shell\Command\FileCommand}.
  * Wraps {@see FilePicker}; the picker handles Enter/Backspace internally
  * for navigation; we add Esc/Ctrl-C abort and short-circuit when a path
  * is selected.

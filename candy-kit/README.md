@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-kit)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-kit)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-kit?label=packagist)](https://packagist.org/packages/candycore/candy-kit)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-kit?label=packagist)](https://packagist.org/packages/sugarcraft/candy-kit)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -15,14 +15,14 @@
 
 PHP port of [charmbracelet/fang](https://github.com/charmbracelet/fang) —
 opinionated **CLI presentation helpers** that turn ordinary command-
-line output into something that matches the rest of the CandyCore
+line output into something that matches the rest of the SugarCraft
 stack. CandyKit is library-only — drop it into any Composer project,
 no Symfony Console requirement.
 
 ```php
-use CandyCore\Kit\StatusLine;
-use CandyCore\Kit\Banner;
-use CandyCore\Kit\Theme;
+use SugarCraft\Kit\StatusLine;
+use SugarCraft\Kit\Banner;
+use SugarCraft\Kit\Theme;
 
 echo Banner::title('CandyApp', 'v0.1.0'), "\n\n";
 echo StatusLine::info('connecting to https://example.com'), "\n";

@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\Sparkline\Sparkline;
+use SugarCraft\Charts\Sparkline\Sparkline;
 
 $values = [];
 for ($i = 0; $i < 60; $i++) {

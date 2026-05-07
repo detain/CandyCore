@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Canvas;
+namespace SugarCraft\Charts\Canvas;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Fixed-size 2D grid of {@see Cell}s. Charts draw onto the canvas and

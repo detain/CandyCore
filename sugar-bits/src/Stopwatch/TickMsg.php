@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Stopwatch;
+namespace SugarCraft\Bits\Stopwatch;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /** Periodic count-up tick for the Stopwatch with id {@see $id}. */
 final class TickMsg implements Msg

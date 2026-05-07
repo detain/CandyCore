@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Palette\ProfileWriter;
-use CandyCore\Palette\Palette;
-use CandyCore\Palette\Profile;
+use SugarCraft\Palette\ProfileWriter;
+use SugarCraft\Palette\Palette;
+use SugarCraft\Palette\Profile;
 
 echo "=== ProfileWriter Degradation Demo ===\n\n";
 

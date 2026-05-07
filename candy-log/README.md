@@ -1,7 +1,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-log)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-log)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-log?label=packagist)](https://packagist.org/packages/candycore/candy-log)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-log?label=packagist)](https://packagist.org/packages/sugarcraft/candy-log)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -23,14 +23,14 @@ PHP port of [charmbracelet/log](https://github.com/charmbracelet/log) — a mini
 ## Install
 
 ```bash
-composer require candycore/candy-log
+composer require sugarcraft/candy-log
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Log\Logger;
-use CandyCore\Log\Level;
+use SugarCraft\Log\Logger;
+use SugarCraft\Log\Level;
 
 $log = Logger::new();
 $log->info('Starting oven', ['degree' => 375]);
@@ -66,9 +66,9 @@ $baker->info('Batch started'); // also has user + session
 ## Formatters
 
 ```php
-use CandyCore\Log\Formatter\TextFormatter;
-use CandyCore\Log\Formatter\JsonFormatter;
-use CandyCore\Log\Formatter\LogfmtFormatter;
+use SugarCraft\Log\Formatter\TextFormatter;
+use SugarCraft\Log\Formatter\JsonFormatter;
+use SugarCraft\Log\Formatter\LogfmtFormatter;
 
 $log = Logger::new(formatter: new JsonFormatter());
 ```
@@ -78,7 +78,7 @@ $log = Logger::new(formatter: new JsonFormatter());
 Styles are applied automatically in TTY environments. Override via `Logger::styles()`:
 
 ```php
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 $log = Logger::new();
 $styles = $log->styles();
 $styles->levels[Level::Error] = Style::new()->foreground('red')->bold();

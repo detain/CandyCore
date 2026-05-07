@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve\LFS;
+namespace SugarCraft\Serve\LFS;
 
-use CandyCore\Serve\{AccessControl, Repo, User};
+use SugarCraft\Serve\{AccessControl, Repo, User};
 
 /**
  * Git LFS batch API handler.

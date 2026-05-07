@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Serve\Config;
+use SugarCraft\Serve\Config;
 
 // --- Demo 1: defaults ---
 echo "=== Default Config ===\n\n";

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Progress;
+namespace SugarCraft\Bits\Tests\Progress;
 
-use CandyCore\Bits\Progress\AnimatedProgress;
-use CandyCore\Bits\Progress\SpringTickMsg;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Bits\Progress\AnimatedProgress;
+use SugarCraft\Bits\Progress\SpringTickMsg;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class AnimatedProgressTest extends TestCase

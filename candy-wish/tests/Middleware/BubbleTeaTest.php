@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Tests\Middleware;
+namespace SugarCraft\Wish\Tests\Middleware;
 
-use CandyCore\Wish\Middleware\BubbleTea;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware\BubbleTea;
+use SugarCraft\Wish\Session;
 use PHPUnit\Framework\TestCase;
 
 final class BubbleTeaTest extends TestCase

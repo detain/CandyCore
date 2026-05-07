@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister;
+namespace SugarCraft\Lister;
 
 /**
  * Plain-string adapter that satisfies \Stringable for use as a list item.

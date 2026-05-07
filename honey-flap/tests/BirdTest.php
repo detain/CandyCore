@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap\Tests;
+namespace SugarCraft\Flap\Tests;
 
-use CandyCore\Flap\Bird;
+use SugarCraft\Flap\Bird;
 use PHPUnit\Framework\TestCase;
 
 final class BirdTest extends TestCase

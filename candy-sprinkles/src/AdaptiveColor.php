@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Color;
+use SugarCraft\Core\Util\Color;
 
 /**
  * A pair of colours that resolve to one based on the active terminal
@@ -27,7 +27,7 @@ final class AdaptiveColor
 
     /**
      * Pick the colour appropriate for the current background. Pass the
-     * value of {@see \CandyCore\Core\Msg\BackgroundColorMsg::isDark()}
+     * value of {@see \SugarCraft\Core\Msg\BackgroundColorMsg::isDark()}
      * (or any other dark-background detector).
      */
     public function pick(bool $isDark): Color

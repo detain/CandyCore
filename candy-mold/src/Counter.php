@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace App;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Demo Model — a counter you can drive with ↑ / ↓ and quit with `q`.
@@ -22,7 +22,7 @@ use CandyCore\Sprinkles\Style;
  *
  * The Model is immutable — `update()` returns a *new* Counter
  * rather than mutating $n. This is the Elm-architecture pattern
- * CandyCore is built on: state lives in value objects, transitions
+ * SugarCraft is built on: state lives in value objects, transitions
  * are pure functions, side effects (timers, HTTP, file I/O) get
  * scheduled as Cmds.
  *

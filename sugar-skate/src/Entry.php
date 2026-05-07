@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Skate;
+namespace SugarCraft\Skate;
 
 /**
  * A single key/value entry in the store.

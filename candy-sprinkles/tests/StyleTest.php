@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\AdaptiveColor;
-use CandyCore\Sprinkles\Align;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\CompleteAdaptiveColor;
-use CandyCore\Sprinkles\CompleteColor;
-use CandyCore\Sprinkles\LightDark;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\VAlign;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\AdaptiveColor;
+use SugarCraft\Sprinkles\Align;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\CompleteAdaptiveColor;
+use SugarCraft\Sprinkles\CompleteColor;
+use SugarCraft\Sprinkles\LightDark;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\VAlign;
 use PHPUnit\Framework\TestCase;
 
 final class StyleTest extends TestCase

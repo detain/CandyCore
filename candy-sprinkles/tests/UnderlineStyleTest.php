@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\UnderlineStyle;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\UnderlineStyle;
 use PHPUnit\Framework\TestCase;
 
 final class UnderlineStyleTest extends TestCase

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Stopwatch;
+namespace SugarCraft\Bits\Stopwatch;
 
-use CandyCore\Bits\Timer\Timer;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
+use SugarCraft\Bits\Timer\Timer;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
 
 /**
  * Count-up stopwatch. Mirror of {@see Timer}: starts at zero, increments

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stickers\Flex;
+namespace SugarCraft\Stickers\Flex;
 
 enum Direction {
     case Row;     // horizontal

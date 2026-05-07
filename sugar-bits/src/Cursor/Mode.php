@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Cursor;
+namespace SugarCraft\Bits\Cursor;
 
 /**
  * How a {@see Cursor} should render the cell under it:

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Heatmap;
+namespace SugarCraft\Charts\Heatmap;
 
 /**
  * Single sample in a {@see Heatmap}'s grid. Mirrors ntcharts'

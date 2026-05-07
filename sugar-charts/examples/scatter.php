@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\Scatter\Scatter;
+use SugarCraft\Charts\Scatter\Scatter;
 
 mt_srand(42);  // deterministic — same demo every run
 

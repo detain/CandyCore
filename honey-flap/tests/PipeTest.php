@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap\Tests;
+namespace SugarCraft\Flap\Tests;
 
-use CandyCore\Flap\Pipe;
+use SugarCraft\Flap\Pipe;
 use PHPUnit\Framework\TestCase;
 
 final class PipeTest extends TestCase

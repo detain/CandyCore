@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\LineChart;
+namespace SugarCraft\Charts\Tests\LineChart;
 
-use CandyCore\Charts\LineChart\Streamline;
+use SugarCraft\Charts\LineChart\Streamline;
 use PHPUnit\Framework\TestCase;
 
 final class StreamlineTest extends TestCase

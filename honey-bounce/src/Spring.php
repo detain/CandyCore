@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce;
+namespace SugarCraft\Bounce;
 
 /**
  * Damped harmonic oscillator (Ryan Juckett's "Damped Springs"), with

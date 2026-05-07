@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Hermit;
+namespace SugarCraft\Hermit;
 
 /**
  * The Hermit — fuzzy finder / quick-fix overlay component.

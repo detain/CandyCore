@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Field;
+namespace SugarCraft\Prompt\Field;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Prompt\Field;
-use CandyCore\Prompt\HasDynamicLabels;
-use CandyCore\Prompt\HasHideFunc;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Prompt\Field;
+use SugarCraft\Prompt\HasDynamicLabels;
+use SugarCraft\Prompt\HasHideFunc;
 
 /**
  * Yes / No question. The user toggles the answer with `←/→`, `h/l`, or

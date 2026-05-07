@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone;
+namespace SugarCraft\Zone;
 
-use CandyCore\Core\Msg\MouseMsg;
+use SugarCraft\Core\Msg\MouseMsg;
 
 /**
  * A rectangular zone discovered by {@see Manager::scan()}. Coordinates are

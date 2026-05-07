@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip;
+namespace SugarCraft\Flip;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * GIF player as a CandyCore Model. Loads every frame up-front (the
+ * GIF player as a SugarCraft Model. Loads every frame up-front (the
  * decoder caps at 256), then advances one frame per `TickMsg` —
  * scheduled via `Cmd::tick($interval, …)` so we don't need a render
  * loop in the bin/.

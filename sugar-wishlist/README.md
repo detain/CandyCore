@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-wishlist)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-wishlist)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-wishlist?label=packagist)](https://packagist.org/packages/candycore/sugar-wishlist)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-wishlist?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-wishlist)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -30,7 +30,7 @@ filter:
 The wishlist binary lives at `bin/wishlist`. Composer adds it to your global `vendor/bin/` when installed as a project dependency, or you can add the repo's `bin/` to your `$PATH`.
 
 ```bash
-composer require candycore/sugar-wishlist
+composer require sugarcraft/sugar-wishlist
 ~/.composer/vendor/bin/wishlist
 ```
 
@@ -96,9 +96,9 @@ That last `pcntl_exec` is the critical line: it **replaces** the PHP process wit
 ## Programmatic use
 
 ```php
-use CandyCore\Wishlist\Config;
-use CandyCore\Wishlist\Picker;
-use CandyCore\Wishlist\Launcher;
+use SugarCraft\Wishlist\Config;
+use SugarCraft\Wishlist\Picker;
+use SugarCraft\Wishlist\Launcher;
 
 $endpoints = Config::load('/etc/wishlist.yml');
 $picked    = (new Picker())->pick($endpoints);

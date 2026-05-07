@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Timer;
+namespace SugarCraft\Bits\Timer;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Emitted exactly once when a Timer's remaining time reaches zero.

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Tests\Backend;
+namespace SugarCraft\Metrics\Tests\Backend;
 
-use CandyCore\Metrics\Backend\PrometheusFileBackend;
+use SugarCraft\Metrics\Backend\PrometheusFileBackend;
 use PHPUnit\Framework\TestCase;
 
 final class PrometheusFileBackendTest extends TestCase

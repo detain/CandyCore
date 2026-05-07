@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
 /**
  * Sort orders for the pane listing. Directories always group at

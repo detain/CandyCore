@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve\SSH;
+namespace SugarCraft\Serve\SSH;
 
-use CandyCore\Serve\{AccessControl, Config, Repo, User};
+use SugarCraft\Serve\{AccessControl, Config, Repo, User};
 
 /**
  * SSH server that speaks the git-upload-pack / git-receive-pack protocol.
@@ -119,9 +119,9 @@ final class SSHServer
 
         // Route to Git protocol handler
         if ($gitCmd === 'git-upload-pack') {
-            $handler = new \CandyCore\Serve\Git\UploadPack($repo, $user);
+            $handler = new \SugarCraft\Serve\Git\UploadPack($repo, $user);
         } else {
-            $handler = new \CandyCore\Serve\Git\ReceivePack($repo, $user);
+            $handler = new \SugarCraft\Serve\Git\ReceivePack($repo, $user);
         }
 
         return $handler->serve();

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce;
+namespace SugarCraft\Bounce;
 
 /**
  * 3D vector for {@see Projectile}. Immutable.

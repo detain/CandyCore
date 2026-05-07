@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Key;
+namespace SugarCraft\Bits\Key;
 
 /**
  * Human-readable label + description for a {@see Binding}, used by the

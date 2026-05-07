@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\BarChart;
+namespace SugarCraft\Charts\BarChart;
 
 /**
  * One labelled value for a {@see BarChart}.

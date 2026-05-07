@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Shell\Model\InputModel;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Shell\Model\InputModel;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -64,7 +64,7 @@ final class InputCommand extends Command
         }
         $value = $final->value();
         if ($input->getOption('strip-ansi')) {
-            $value = \CandyCore\Core\Util\Ansi::strip($value);
+            $value = \SugarCraft\Core\Util\Ansi::strip($value);
         }
         $output->writeln($value);
         return Command::SUCCESS;

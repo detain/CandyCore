@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
 /**
  * Top-level (un-styled) output helpers — the lipgloss equivalents of the

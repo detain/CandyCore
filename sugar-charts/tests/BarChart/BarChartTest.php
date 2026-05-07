@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\BarChart;
+namespace SugarCraft\Charts\Tests\BarChart;
 
-use CandyCore\Charts\BarChart\Bar;
-use CandyCore\Charts\BarChart\BarChart;
+use SugarCraft\Charts\BarChart\Bar;
+use SugarCraft\Charts\BarChart\BarChart;
 use PHPUnit\Framework\TestCase;
 
 final class BarChartTest extends TestCase

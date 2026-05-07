@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candy-core",
+    "name": "sugarcraft/candy-core",
     "description": "PHP port of charmbracelet/bubbletea — Elm-architecture TUI runtime.",
     "type": "library",
     "license": "MIT",
@@ -14,7 +14,7 @@
         "elm-architecture",
         "ansi",
         "react-php",
-        "candycore"
+        "sugarcraft"
     ],
     "homepage": "https://github.com/sugarcraft/candy-core",
     "authors": [
@@ -38,12 +38,12 @@
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Core\\": "src/"
+            "SugarCraft\\Core\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Core\\Tests\\": "tests/"
+            "SugarCraft\\Core\\Tests\\": "tests/"
         }
     },
     "repositories": [

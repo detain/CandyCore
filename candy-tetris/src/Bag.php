@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
 /**
  * 7-bag random piece generator, the standard since Tetris '07.

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Shell\Application;
+use SugarCraft\Shell\Application;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Tester\CommandTester;
 

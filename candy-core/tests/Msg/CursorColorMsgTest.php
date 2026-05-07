@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\Msg\CursorColorMsg;
+use SugarCraft\Core\Msg\CursorColorMsg;
 use PHPUnit\Framework\TestCase;
 
 final class CursorColorMsgTest extends TestCase

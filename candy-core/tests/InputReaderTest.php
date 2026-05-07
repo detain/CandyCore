@@ -2,36 +2,36 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\InputReader;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\ModeState;
-use CandyCore\Core\Modifiers;
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
-use CandyCore\Core\Msg\BackgroundColorMsg;
-use CandyCore\Core\Msg\BlurMsg;
-use CandyCore\Core\Msg\ClipboardMsg;
-use CandyCore\Core\Msg\CursorColorMsg;
-use CandyCore\Core\Msg\CursorPositionMsg;
-use CandyCore\Core\Msg\FocusMsg;
-use CandyCore\Core\Msg\ForegroundColorMsg;
-use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Msg\KeyPressMsg;
-use CandyCore\Core\Msg\KeyReleaseMsg;
-use CandyCore\Core\Msg\KeyRepeatMsg;
-use CandyCore\Core\Msg\PasteEndMsg;
-use CandyCore\Core\Msg\PasteStartMsg;
-use CandyCore\Core\Msg\ModeReportMsg;
-use CandyCore\Core\Msg\TerminalVersionMsg;
-use CandyCore\Core\Msg\MouseClickMsg;
-use CandyCore\Core\Msg\MouseMotionMsg;
-use CandyCore\Core\Msg\MouseMsg;
-use CandyCore\Core\Msg\MouseReleaseMsg;
-use CandyCore\Core\Msg\MouseWheelMsg;
-use CandyCore\Core\Msg\PasteMsg;
+use SugarCraft\Core\InputReader;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\ModeState;
+use SugarCraft\Core\Modifiers;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
+use SugarCraft\Core\Msg\BackgroundColorMsg;
+use SugarCraft\Core\Msg\BlurMsg;
+use SugarCraft\Core\Msg\ClipboardMsg;
+use SugarCraft\Core\Msg\CursorColorMsg;
+use SugarCraft\Core\Msg\CursorPositionMsg;
+use SugarCraft\Core\Msg\FocusMsg;
+use SugarCraft\Core\Msg\ForegroundColorMsg;
+use SugarCraft\Core\Msg\KeyboardEnhancementsMsg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\KeyPressMsg;
+use SugarCraft\Core\Msg\KeyReleaseMsg;
+use SugarCraft\Core\Msg\KeyRepeatMsg;
+use SugarCraft\Core\Msg\PasteEndMsg;
+use SugarCraft\Core\Msg\PasteStartMsg;
+use SugarCraft\Core\Msg\ModeReportMsg;
+use SugarCraft\Core\Msg\TerminalVersionMsg;
+use SugarCraft\Core\Msg\MouseClickMsg;
+use SugarCraft\Core\Msg\MouseMotionMsg;
+use SugarCraft\Core\Msg\MouseMsg;
+use SugarCraft\Core\Msg\MouseReleaseMsg;
+use SugarCraft\Core\Msg\MouseWheelMsg;
+use SugarCraft\Core\Msg\PasteMsg;
 use PHPUnit\Framework\TestCase;
 
 final class InputReaderTest extends TestCase

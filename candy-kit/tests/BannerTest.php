@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit\Tests;
+namespace SugarCraft\Kit\Tests;
 
-use CandyCore\Kit\Banner;
-use CandyCore\Kit\Theme;
-use CandyCore\Sprinkles\Border;
+use SugarCraft\Kit\Banner;
+use SugarCraft\Kit\Theme;
+use SugarCraft\Sprinkles\Border;
 use PHPUnit\Framework\TestCase;
 
 final class BannerTest extends TestCase

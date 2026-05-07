@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Bits\Spinner\Style as SpinStyle;
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Shell\Model\SpinModel;
-use CandyCore\Shell\Process\RealProcess;
+use SugarCraft\Bits\Spinner\Style as SpinStyle;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Shell\Model\SpinModel;
+use SugarCraft\Shell\Process\RealProcess;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

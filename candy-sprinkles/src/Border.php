@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
 /**
  * The 13 corner / edge / interior runes that make up a rectangular box

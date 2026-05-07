@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone\Tests;
+namespace SugarCraft\Zone\Tests;
 
-use CandyCore\Zone\Manager;
-use CandyCore\Zone\Zones;
+use SugarCraft\Zone\Manager;
+use SugarCraft\Zone\Zones;
 use PHPUnit\Framework\TestCase;
 
 final class ZonesTest extends TestCase

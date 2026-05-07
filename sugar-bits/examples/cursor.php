@@ -11,8 +11,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Cursor\Cursor;
-use CandyCore\Bits\Cursor\Mode;
+use SugarCraft\Bits\Cursor\Cursor;
+use SugarCraft\Bits\Cursor\Mode;
 
 foreach ([Mode::Blink, Mode::Static, Mode::Hidden] as $mode) {
     $c = Cursor::new('|', $mode);

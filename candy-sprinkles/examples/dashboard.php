@@ -11,18 +11,18 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Position;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Sprinkles\Table\Table;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Position;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Sprinkles\Table\Table;
 
 $header = Style::new()
     ->bold()
     ->foreground(Color::hex('#ff5fd2'))
     ->padding(0, 2)
-    ->render('  CandyCore Dashboard  ');
+    ->render('  SugarCraft Dashboard  ');
 
 $status = Style::new()
     ->foreground(Color::ansi(10))

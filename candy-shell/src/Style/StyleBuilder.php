@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Style;
+namespace SugarCraft\Shell\Style;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\Style;
 
 /**
- * Builds a {@see \CandyCore\Sprinkles\Style} from CLI flag values. Pure
+ * Builds a {@see \SugarCraft\Sprinkles\Style} from CLI flag values. Pure
  * (no IO) so commands can unit-test the mapping.
  */
 final class StyleBuilder
@@ -78,9 +78,9 @@ final class StyleBuilder
         $align = $flags['align'] ?? null;
         if (is_string($align) && $align !== '') {
             $aligned = match (strtolower($align)) {
-                'left'   => \CandyCore\Sprinkles\Align::Left,
-                'right'  => \CandyCore\Sprinkles\Align::Right,
-                'center' => \CandyCore\Sprinkles\Align::Center,
+                'left'   => \SugarCraft\Sprinkles\Align::Left,
+                'right'  => \SugarCraft\Sprinkles\Align::Right,
+                'center' => \SugarCraft\Sprinkles\Align::Center,
                 default  => null,
             };
             if ($aligned !== null) {
@@ -94,11 +94,11 @@ final class StyleBuilder
         $border = $flags['border'] ?? null;
         if (is_string($border) && $border !== '') {
             $b = match (strtolower($border)) {
-                'normal',  '1' => \CandyCore\Sprinkles\Border::normal(),
-                'rounded'      => \CandyCore\Sprinkles\Border::rounded(),
-                'thick'        => \CandyCore\Sprinkles\Border::thick(),
-                'double'       => \CandyCore\Sprinkles\Border::double(),
-                'block'        => \CandyCore\Sprinkles\Border::block(),
+                'normal',  '1' => \SugarCraft\Sprinkles\Border::normal(),
+                'rounded'      => \SugarCraft\Sprinkles\Border::rounded(),
+                'thick'        => \SugarCraft\Sprinkles\Border::thick(),
+                'double'       => \SugarCraft\Sprinkles\Border::double(),
+                'block'        => \SugarCraft\Sprinkles\Border::block(),
                 'hidden', '0', 'none' => null,
                 default        => null,
             };

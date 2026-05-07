@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy\Tests;
+namespace SugarCraft\SuperCandy\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\SuperCandy\ConfirmState;
-use CandyCore\SuperCandy\Entry;
-use CandyCore\SuperCandy\Manager;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\SuperCandy\ConfirmState;
+use SugarCraft\SuperCandy\Entry;
+use SugarCraft\SuperCandy\Manager;
 use PHPUnit\Framework\TestCase;
 
 final class ManagerTest extends TestCase
@@ -144,7 +144,7 @@ final class ManagerTest extends TestCase
     public function testNonKeyMsgIgnored(): void
     {
         $m = $this->start();
-        $msg = new \CandyCore\Core\Msg\WindowSizeMsg(80, 24);
+        $msg = new \SugarCraft\Core\Msg\WindowSizeMsg(80, 24);
         [$next, $cmd] = $m->update($msg);
         $this->assertSame($m, $next);
         $this->assertNull($cmd);

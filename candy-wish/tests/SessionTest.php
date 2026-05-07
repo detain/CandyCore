@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Tests;
+namespace SugarCraft\Wish\Tests;
 
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Session;
 use PHPUnit\Framework\TestCase;
 
 final class SessionTest extends TestCase

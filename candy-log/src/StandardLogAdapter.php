@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log;
+namespace SugarCraft\Log;
 
 /**
  * Wrap a Logger as a *log.Logger interface for compatibility with

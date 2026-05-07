@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Tests\Field;
+namespace SugarCraft\Prompt\Tests\Field;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Prompt\Field\Text;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Prompt\Field\Text;
 use PHPUnit\Framework\TestCase;
 
 final class TextTest extends TestCase

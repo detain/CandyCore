@@ -9,10 +9,10 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Stash\App;
-use CandyCore\Stash\GitDriver;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Stash\App;
+use SugarCraft\Stash\GitDriver;
 
 $fixture = new class implements GitDriver {
     public function status(): array

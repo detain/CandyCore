@@ -10,9 +10,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Stopwatch\Stopwatch;
+use SugarCraft\Bits\Stopwatch\Stopwatch;
 
-use CandyCore\Bits\Timer\Timer;
+use SugarCraft\Bits\Timer\Timer;
 
 // Stopwatch's view delegates to Timer::format(). Show what the
 // rendered output looks like at a few elapsed-time milestones.

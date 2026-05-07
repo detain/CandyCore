@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Tests;
+namespace SugarCraft\Prompt\Tests;
 
-use CandyCore\Prompt\Field\Confirm;
-use CandyCore\Prompt\Field\FilePicker;
-use CandyCore\Prompt\Field\Input;
-use CandyCore\Prompt\Field\MultiSelect;
-use CandyCore\Prompt\Field\Note;
-use CandyCore\Prompt\Field\Select;
-use CandyCore\Prompt\Field\Text;
+use SugarCraft\Prompt\Field\Confirm;
+use SugarCraft\Prompt\Field\FilePicker;
+use SugarCraft\Prompt\Field\Input;
+use SugarCraft\Prompt\Field\MultiSelect;
+use SugarCraft\Prompt\Field\Note;
+use SugarCraft\Prompt\Field\Select;
+use SugarCraft\Prompt\Field\Text;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Coverage for the {@see \CandyCore\Prompt\HasDynamicLabels} trait —
+ * Coverage for the {@see \SugarCraft\Prompt\HasDynamicLabels} trait —
  * each field type that opts in must surface withTitleFunc /
  * withDescriptionFunc setters and resolve them at view / getTitle /
  * getDescription time.

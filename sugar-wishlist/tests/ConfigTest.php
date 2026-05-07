@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist\Tests;
+namespace SugarCraft\Wishlist\Tests;
 
-use CandyCore\Wishlist\Config;
+use SugarCraft\Wishlist\Config;
 use PHPUnit\Framework\TestCase;
 
 final class ConfigTest extends TestCase

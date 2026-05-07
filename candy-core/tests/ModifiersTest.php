@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\Modifiers;
+use SugarCraft\Core\Modifiers;
 use PHPUnit\Framework\TestCase;
 
 final class ModifiersTest extends TestCase

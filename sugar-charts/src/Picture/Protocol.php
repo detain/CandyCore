@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Picture;
+namespace SugarCraft\Charts\Picture;
 
 /**
  * Inline-image escape protocol used by {@see Picture}. Each protocol

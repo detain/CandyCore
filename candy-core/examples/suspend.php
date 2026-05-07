@@ -15,14 +15,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Msg\ResumeMsg;
-use CandyCore\Core\Msg\SuspendMsg;
-use CandyCore\Core\Program;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\ResumeMsg;
+use SugarCraft\Core\Msg\SuspendMsg;
+use SugarCraft\Core\Program;
 
 final class SuspendDemo implements Model
 {

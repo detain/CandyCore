@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce;
+namespace SugarCraft\Bounce;
 
 /**
  * Newtonian-physics projectile. Ports `harmonica.NewProjectile`.

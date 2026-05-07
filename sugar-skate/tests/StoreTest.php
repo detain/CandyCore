@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Skate\Tests;
+namespace SugarCraft\Skate\Tests;
 
-use CandyCore\Skate\Store;
+use SugarCraft\Skate\Store;
 use PHPUnit\Framework\TestCase;
 
 final class StoreTest extends TestCase

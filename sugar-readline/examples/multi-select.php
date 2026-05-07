@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Readline\MultiSelectPrompt;
+use SugarCraft\Readline\MultiSelectPrompt;
 
 echo "\n=== Multi-Select Prompt Demo ===\n\n";
 

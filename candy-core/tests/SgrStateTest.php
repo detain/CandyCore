@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\SgrState;
-use CandyCore\Core\Util\Parser;
-use CandyCore\Core\Util\Token;
+use SugarCraft\Core\SgrState;
+use SugarCraft\Core\Util\Parser;
+use SugarCraft\Core\Util\Token;
 use PHPUnit\Framework\TestCase;
 
 final class SgrStateTest extends TestCase

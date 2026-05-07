@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Marker interface for messages flowing through the {@see Program} loop.

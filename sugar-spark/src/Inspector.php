@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark;
+namespace SugarCraft\Spark;
 
 /**
  * Walk a string of mixed text + ANSI escape sequences and split it into

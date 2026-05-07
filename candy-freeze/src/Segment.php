@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze;
+namespace SugarCraft\Freeze;
 
 /**
  * One styled run produced by {@see AnsiParser::parse()}. Holds the

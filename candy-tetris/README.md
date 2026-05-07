@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-tetris)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-tetris)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-tetris?label=packagist)](https://packagist.org/packages/candycore/candy-tetris)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-tetris?label=packagist)](https://packagist.org/packages/sugarcraft/candy-tetris)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -13,7 +13,7 @@
 
 ![demo](.vhs/play.gif)
 
-Tetris built on the SugarCraft stack. CandyCore runtime, CandySprinkles for the rounded borders and per-piece colours, deterministic 7-bag RNG, ghost piece, hard drop, hold, level-driven gravity ramp, line-clear scoring.
+Tetris built on the SugarCraft stack. SugarCraft runtime, CandySprinkles for the rounded borders and per-piece colours, deterministic 7-bag RNG, ghost piece, hard drop, hold, level-driven gravity ramp, line-clear scoring.
 
 ## Run it
 
@@ -55,7 +55,7 @@ Piece      VO    ─►  Tetromino + rotation + (x, y), with immutable transform
 Board      VO    ─►  10×24 grid (4 hidden rows above), fits/place/clearLines/dropPiece
 Bag        ──►  7-bag RNG with peek(); injectable RNG closure for deterministic tests
 Score      VO    ─►  points / lines / level + level-driven gravity interval
-Game       Model ─►  CandyCore Model orchestrating the above + key handling
+Game       Model ─►  SugarCraft Model orchestrating the above + key handling
 
 Renderer   ──►  pure view function from Game to frame string
 ```

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap\Tests;
+namespace SugarCraft\Flap\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Flap\Game;
-use CandyCore\Flap\TickMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Flap\Game;
+use SugarCraft\Flap\TickMsg;
 use PHPUnit\Framework\TestCase;
 
 final class GameTest extends TestCase

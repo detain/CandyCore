@@ -9,7 +9,7 @@ declare(strict_types=1);
  *
  * @see https://en.wikipedia.org/wiki/ANSI_escape_code#3/4-bit
  */
-namespace CandyCore\Palette;
+namespace SugarCraft\Palette;
 
 final class StandardColors
 {

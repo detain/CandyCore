@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
 /**
  * Pending-confirmation state for the {@see Manager}'s gate.

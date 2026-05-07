@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 /**
  * Tokenising parser for terminal byte streams.

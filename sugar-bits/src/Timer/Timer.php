@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Timer;
+namespace SugarCraft\Bits\Timer;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
 
 /**
  * Countdown timer. Construct with a duration; call {@see start()} to begin

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Sprinkles\Border;
+use SugarCraft\Sprinkles\Border;
 use PHPUnit\Framework\TestCase;
 
 final class BorderTest extends TestCase

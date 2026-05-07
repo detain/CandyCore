@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 final class Ansi
 {
@@ -96,7 +96,7 @@ final class Ansi
      * `$blink: true` for the blinking version. Pass shape `null`
      * (`CSI 0 q`) to restore the terminal default.
      */
-    public static function cursorShape(?\CandyCore\Core\CursorShape $shape, bool $blink = false): string
+    public static function cursorShape(?\SugarCraft\Core\CursorShape $shape, bool $blink = false): string
     {
         if ($shape === null) {
             return self::CSI . '0 q';
@@ -272,21 +272,21 @@ final class Ansi
     /**
      * Ask the terminal where the cursor is. The reply comes back as a
      * CSI sequence: `ESC [ <row> ; <col> R` (DSR-CPR), parsed into a
-     * {@see \CandyCore\Core\Msg\CursorPositionMsg}.
+     * {@see \SugarCraft\Core\Msg\CursorPositionMsg}.
      */
     public static function requestCursorPosition(): string { return self::CSI . '6n'; }
 
     /**
      * Ask the terminal for its current default foreground colour. Reply
      * arrives as `OSC 10 ; rgb:RRRR/GGGG/BBBB ST|BEL` and is parsed into
-     * {@see \CandyCore\Core\Msg\ForegroundColorMsg}.
+     * {@see \SugarCraft\Core\Msg\ForegroundColorMsg}.
      */
     public static function requestForegroundColor(): string { return self::OSC . '10;?' . self::BEL; }
 
     /**
      * Ask the terminal for its current default background colour. Reply
      * arrives as `OSC 11 ; rgb:RRRR/GGGG/BBBB ST|BEL` and is parsed into
-     * {@see \CandyCore\Core\Msg\BackgroundColorMsg}. Useful for picking
+     * {@see \SugarCraft\Core\Msg\BackgroundColorMsg}. Useful for picking
      * a theme that contrasts the user's background.
      */
     public static function requestBackgroundColor(): string { return self::OSC . '11;?' . self::BEL; }
@@ -311,7 +311,7 @@ final class Ansi
     /**
      * Ask the terminal for its current cursor colour. Reply arrives as
      * `OSC 12 ; rgb:RRRR/GGGG/BBBB ST|BEL` and is parsed into
-     * {@see \CandyCore\Core\Msg\CursorColorMsg}.
+     * {@see \SugarCraft\Core\Msg\CursorColorMsg}.
      */
     public static function requestCursorColor(): string { return self::OSC . '12;?' . self::BEL; }
 
@@ -319,7 +319,7 @@ final class Ansi
      * Ask the terminal to identify itself (XTVERSION). Reply arrives
      * as a DCS sequence: `ESC P > | <terminal name and version> ESC \`
      * (e.g. `xterm(367)` or `iTerm2 3.4.16`) and is parsed into
-     * {@see \CandyCore\Core\Msg\TerminalVersionMsg}. Useful for
+     * {@see \SugarCraft\Core\Msg\TerminalVersionMsg}. Useful for
      * gating capabilities (sixel, kitty keyboard, etc.) on the
      * specific terminal.
      */
@@ -328,7 +328,7 @@ final class Ansi
     /**
      * Ask the terminal whether a given mode is set (DECRQM). Reply
      * arrives as `CSI [?] <mode> ; <state> $ y` (DECRPM) and is
-     * parsed into {@see \CandyCore\Core\Msg\ModeReportMsg}.
+     * parsed into {@see \SugarCraft\Core\Msg\ModeReportMsg}.
      *
      * @param bool $private true for DEC private modes (mouse 1006,
      *                      sync 2026, unicode 2027, etc.); false for
@@ -352,7 +352,7 @@ final class Ansi
     /**
      * Ask the terminal to send back the contents of the named
      * selection. Reply arrives as `OSC 52 ; <selection> ; <base64>
-     * BEL|ST` and is parsed into {@see \CandyCore\Core\Msg\ClipboardMsg}.
+     * BEL|ST` and is parsed into {@see \SugarCraft\Core\Msg\ClipboardMsg}.
      */
     public static function readClipboard(string $selection = 'c'): string
     {
@@ -391,7 +391,7 @@ final class Ansi
      * ConEmu / WezTerm / Windows-Terminal protocol). `$percent` is
      * only meaningful for the Normal / Error / Warning states.
      */
-    public static function setProgressBar(\CandyCore\Core\ProgressBarState $state, int $percent = 0): string
+    public static function setProgressBar(\SugarCraft\Core\ProgressBarState $state, int $percent = 0): string
     {
         $percent = max(0, min(100, $percent));
         return self::OSC . '9;4;' . $state->value . ';' . $percent . self::BEL;
@@ -400,7 +400,7 @@ final class Ansi
     /**
      * Push a new layer onto the Kitty progressive-keyboard flag stack
      * (`CSI > <flags> u`). Use the bit constants on
-     * {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     * {@see \SugarCraft\Core\Msg\KeyboardEnhancementsMsg}.
      */
     public static function pushKittyKeyboard(int $flags): string
     {
@@ -420,7 +420,7 @@ final class Ansi
     /**
      * Ask the terminal which Kitty keyboard flags are currently
      * active (`CSI ? u`). Reply arrives as `CSI ? <flags> u` and is
-     * parsed into {@see \CandyCore\Core\Msg\KeyboardEnhancementsMsg}.
+     * parsed into {@see \SugarCraft\Core\Msg\KeyboardEnhancementsMsg}.
      */
     public static function requestKittyKeyboard(): string
     {

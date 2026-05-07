@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow\Tests;
+namespace SugarCraft\Glow\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Glow\GlowModel;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Glow\GlowModel;
 use PHPUnit\Framework\TestCase;
 
 final class GlowModelTest extends TestCase

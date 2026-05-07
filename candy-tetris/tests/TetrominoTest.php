@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris\Tests;
+namespace SugarCraft\Tetris\Tests;
 
-use CandyCore\Tetris\Tetromino;
+use SugarCraft\Tetris\Tetromino;
 use PHPUnit\Framework\TestCase;
 
 final class TetrominoTest extends TestCase

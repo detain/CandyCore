@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Scatter;
+namespace SugarCraft\Charts\Scatter;
 
-use CandyCore\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\Canvas;
 
 /**
- * Scatter plot — like {@see \CandyCore\Charts\LineChart\LineChart} but
+ * Scatter plot — like {@see \SugarCraft\Charts\LineChart\LineChart} but
  * each point is plotted independently with no connecting strokes. The
  * X and Y ranges are auto-detected from the data unless pinned via
  * {@see withXRange()} / {@see withYRange()}.

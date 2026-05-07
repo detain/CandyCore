@@ -15,11 +15,11 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Crush\Backend\CommandBackend;
-use CandyCore\Crush\Backend\EchoBackend;
-use CandyCore\Crush\Chat;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Crush\Backend\CommandBackend;
+use SugarCraft\Crush\Backend\EchoBackend;
+use SugarCraft\Crush\Chat;
 
 /**
  * Defaults to the offline EchoBackend so the binary is runnable

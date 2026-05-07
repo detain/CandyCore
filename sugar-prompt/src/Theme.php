@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Stylesheet for {@see Form} rendering. Each slot is a {@see Style} for

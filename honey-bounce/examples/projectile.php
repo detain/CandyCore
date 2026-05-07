@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bounce\Point;
-use CandyCore\Bounce\Projectile;
-use CandyCore\Bounce\Spring;
-use CandyCore\Bounce\Vector;
+use SugarCraft\Bounce\Point;
+use SugarCraft\Bounce\Projectile;
+use SugarCraft\Bounce\Spring;
+use SugarCraft\Bounce\Vector;
 
 $p = Projectile::new(
     deltaTime:    Spring::fps(60),

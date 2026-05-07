@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Progress;
+namespace SugarCraft\Bits\Progress;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Tick sentinel dispatched by {@see AnimatedProgress::setPercent()}.

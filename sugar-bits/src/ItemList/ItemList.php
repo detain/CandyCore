@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\ItemList;
+namespace SugarCraft\Bits\ItemList;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Selectable, scrollable, filterable list of {@see Item}s.

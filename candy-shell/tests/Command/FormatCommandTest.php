@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Shell\Command\FormatCommand;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shell\Command\FormatCommand;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class FormatCommandTest extends TestCase
@@ -42,7 +42,7 @@ final class FormatCommandTest extends TestCase
 
     public function testTypeCodeWrapsInFences(): void
     {
-        $cmd = (new \CandyCore\Shell\Application())->find('format');
+        $cmd = (new \SugarCraft\Shell\Application())->find('format');
         $tester = new \Symfony\Component\Console\Tester\CommandTester($cmd);
         // Use a lighter-weight invocation: write the input to a tmp file,
         // pass via 'file' argument to avoid stdin interference.
@@ -65,7 +65,7 @@ final class FormatCommandTest extends TestCase
 
     public function testTypeEmojiExpandsShortcodes(): void
     {
-        $cmd = (new \CandyCore\Shell\Application())->find('format');
+        $cmd = (new \SugarCraft\Shell\Application())->find('format');
         $tester = new \Symfony\Component\Console\Tester\CommandTester($cmd);
         $tmp = tempnam(sys_get_temp_dir(), 'fmt');
         file_put_contents($tmp, ":candy: :rocket: :unknownNonsense:");
@@ -88,7 +88,7 @@ final class FormatCommandTest extends TestCase
     {
         putenv('SC_FMT_GREETING=hello');
         try {
-            $cmd = (new \CandyCore\Shell\Application())->find('format');
+            $cmd = (new \SugarCraft\Shell\Application())->find('format');
             $tester = new \Symfony\Component\Console\Tester\CommandTester($cmd);
             $tmp = tempnam(sys_get_temp_dir(), 'fmt');
             file_put_contents($tmp, "{{SC_FMT_GREETING}} world");

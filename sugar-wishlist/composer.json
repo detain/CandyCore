@@ -1,10 +1,10 @@
 {
-    "name": "candycore/sugar-wishlist",
+    "name": "sugarcraft/sugar-wishlist",
     "description": "SSH endpoint launcher \u2014 a TUI directory of `ssh user@host` shortcuts. Port of charmbracelet/wishlist. Loads endpoints from YAML/JSON, renders an interactive picker, then `exec`s into the chosen ssh client (with full host-key prompt / agent forwarding fidelity).",
     "type": "library",
     "license": "MIT",
     "keywords": [
-        "candycore",
+        "sugarcraft",
         "wishlist",
         "ssh",
         "launcher",
@@ -32,20 +32,20 @@
     "require": {
         "php": ">=8.1",
         "ext-pcntl": "*",
-        "candycore/candy-core": "@dev",
-        "candycore/sugar-bits": "@dev"
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/sugar-bits": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0"
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Wishlist\\": "src/"
+            "SugarCraft\\Wishlist\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Wishlist\\Tests\\": "tests/"
+            "SugarCraft\\Wishlist\\Tests\\": "tests/"
         }
     },
     "repositories": [

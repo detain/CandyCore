@@ -15,7 +15,7 @@ declare(strict_types=1);
  *
  * @see https://github.com/charmbracelet/skate
  */
-namespace CandyCore\Skate;
+namespace SugarCraft\Skate;
 
 /**
  * Main entry point for the Skate key/value store.

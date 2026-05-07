@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Backend;
+namespace SugarCraft\Crush\Backend;
 
-use CandyCore\Crush\Backend;
-use CandyCore\Crush\Message;
-use CandyCore\Crush\Role;
+use SugarCraft\Crush\Backend;
+use SugarCraft\Crush\Message;
+use SugarCraft\Crush\Role;
 
 /**
  * Offline / development backend. Echoes the last user message

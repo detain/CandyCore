@@ -15,7 +15,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Skate\Store;
+use SugarCraft\Skate\Store;
 
 $tmp = sys_get_temp_dir() . '/skate-order-demo-' . uniqid();
 $store = new Store($tmp);
@@ -44,7 +44,7 @@ foreach ($store->list() as $_) { $count++; }
 echo "Count (via iteration): {$count}\n";
 
 // Count via Database directly
-use CandyCore\Skate\Database;
+use SugarCraft\Skate\Database;
 $dbFiles = glob("{$tmp}/*.db") ?: [];
 $db = new Database($dbFiles[0], 'demo');
 echo "Count (via Database::count): " . $db->count() . "\n";

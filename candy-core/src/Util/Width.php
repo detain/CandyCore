@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 /**
  * Display-width measurement for terminal text.
@@ -387,7 +387,7 @@ final class Width
      * `truncateAnsi` returns "first N cells", `dropAnsi` returns
      * "everything after the first N cells". Together they let
      * callers slice an ANSI-coloured row at arbitrary cell columns —
-     * the primitive {@see \CandyCore\Sprinkles\Canvas} uses to
+     * the primitive {@see \SugarCraft\Sprinkles\Canvas} uses to
      * paste overlay layers over a base view at exact positions.
      *
      * If `$skip` lands inside a wide grapheme, that whole cluster is

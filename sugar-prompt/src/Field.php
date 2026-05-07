@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * One field in a {@see Form}.

@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Post\{Email, Mailer, SmtpTransport};
+use SugarCraft\Post\{Email, Mailer, SmtpTransport};
 
 $transport = new SmtpTransport(
     host:     'smtp.gmail.com',

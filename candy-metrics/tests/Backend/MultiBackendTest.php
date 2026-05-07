@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Tests\Backend;
+namespace SugarCraft\Metrics\Tests\Backend;
 
-use CandyCore\Metrics\Backend\InMemoryBackend;
-use CandyCore\Metrics\Backend\MultiBackend;
+use SugarCraft\Metrics\Backend\InMemoryBackend;
+use SugarCraft\Metrics\Backend\MultiBackend;
 use PHPUnit\Framework\TestCase;
 
 final class MultiBackendTest extends TestCase

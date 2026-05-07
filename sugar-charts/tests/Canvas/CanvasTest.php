@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Canvas;
+namespace SugarCraft\Charts\Tests\Canvas;
 
-use CandyCore\Charts\Canvas\Canvas;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Canvas\Canvas;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
 use PHPUnit\Framework\TestCase;
 
 final class CanvasTest extends TestCase

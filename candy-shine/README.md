@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-shine)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-shine)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-shine?label=packagist)](https://packagist.org/packages/candycore/candy-shine)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-shine?label=packagist)](https://packagist.org/packages/sugarcraft/candy-shine)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -17,13 +17,13 @@ PHP port of [charmbracelet/glamour](https://github.com/charmbracelet/glamour) �
 Markdown → ANSI renderer built on `league/commonmark` and CandySprinkles.
 
 ```sh
-composer require candycore/candy-shine
+composer require sugarcraft/candy-shine
 ```
 
 ## Quickstart
 
 ```php
-use CandyCore\Shine\Renderer;
+use SugarCraft\Shine\Renderer;
 
 echo (new Renderer())->render(<<<MD
 # Welcome
@@ -46,7 +46,7 @@ MD);
 Stock presets:
 
 ```php
-use CandyCore\Shine\{Renderer, Theme};
+use SugarCraft\Shine\{Renderer, Theme};
 
 new Renderer(Theme::ansi());        // default colourful
 new Renderer(Theme::plain());       // no SGR
@@ -107,9 +107,9 @@ A `Theme` is a value object — every slot is a `Style` (or scalar).
 Build one with the constructor and feed it to `new Renderer($theme)`:
 
 ```php
-use CandyCore\Core\Util\Color;
-use CandyCore\Shine\Theme;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Shine\Theme;
+use SugarCraft\Sprinkles\Style;
 
 $theme = new Theme(
     heading1:  Style::new()->bold()->underline()->foreground(Color::hex('#ff5f87')),

@@ -1,10 +1,10 @@
 {
-    "name": "candycore/candy-metrics",
-    "description": "Telemetry primitives for CandyCore / CandyWish \u2014 counters, gauges, histograms with pluggable backends (in-memory, StatsD UDP, Prometheus textfile, JSON stream). Drop-in middleware for SSH session metrics.",
+    "name": "sugarcraft/candy-metrics",
+    "description": "Telemetry primitives for SugarCraft / CandyWish \u2014 counters, gauges, histograms with pluggable backends (in-memory, StatsD UDP, Prometheus textfile, JSON stream). Drop-in middleware for SSH session metrics.",
     "type": "library",
     "license": "MIT",
     "keywords": [
-        "candycore",
+        "sugarcraft",
         "metrics",
         "telemetry",
         "observability",
@@ -33,19 +33,19 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0",
-        "candycore/candy-wish": "@dev"
+        "sugarcraft/candy-wish": "@dev"
     },
     "suggest": {
-        "candycore/candy-wish": "Required to use the SessionMetrics middleware."
+        "sugarcraft/candy-wish": "Required to use the SessionMetrics middleware."
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Metrics\\": "src/"
+            "SugarCraft\\Metrics\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Metrics\\Tests\\": "tests/"
+            "SugarCraft\\Metrics\\Tests\\": "tests/"
         }
     },
     "repositories": [

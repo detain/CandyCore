@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-crumbs",
+    "name": "sugarcraft/sugar-crumbs",
     "description": "PHP port of KevM/bubbleo \u2014 NavStack and Breadcrumb components. Push/pop navigation stack with hierarchical breadcrumb rendering for terminal UIs.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "navigation", "breadcrumbs", "navstack", "candycore"],
+    "keywords": ["tui", "navigation", "breadcrumbs", "navstack", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-crumbs",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -48,10 +48,10 @@
         { "type": "path", "url": "../sugar-veil",      "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Crumbs\\": "src/" }
+        "psr-4": { "SugarCraft\\Crumbs\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Crumbs\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Crumbs\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

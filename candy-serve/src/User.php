@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve;
+namespace SugarCraft\Serve;
 
 /**
  * User account with SSH public key authentication.

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Position;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Position;
 use PHPUnit\Framework\TestCase;
 
 final class LayoutTest extends TestCase

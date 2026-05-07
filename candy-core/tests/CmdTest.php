@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\BatchMsg;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\ExecRequest;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\InterruptMsg;
-use CandyCore\Core\Msg\QuitMsg;
-use CandyCore\Core\Msg\SuspendMsg;
-use CandyCore\Core\PrintMsg;
-use CandyCore\Core\ProgressBarState;
-use CandyCore\Core\RawMsg;
-use CandyCore\Core\SequenceMsg;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Core\BatchMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\ExecRequest;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\InterruptMsg;
+use SugarCraft\Core\Msg\QuitMsg;
+use SugarCraft\Core\Msg\SuspendMsg;
+use SugarCraft\Core\PrintMsg;
+use SugarCraft\Core\ProgressBarState;
+use SugarCraft\Core\RawMsg;
+use SugarCraft\Core\SequenceMsg;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class CmdTest extends TestCase
@@ -54,7 +54,7 @@ final class CmdTest extends TestCase
         $msg = new class implements Msg {};
         $cmd = Cmd::tick(0.5, static fn() => $msg);
         $req = $cmd();
-        $this->assertInstanceOf(\CandyCore\Core\TickRequest::class, $req);
+        $this->assertInstanceOf(\SugarCraft\Core\TickRequest::class, $req);
         $this->assertSame(0.5, $req->seconds);
         $this->assertSame($msg, ($req->produce)());
     }

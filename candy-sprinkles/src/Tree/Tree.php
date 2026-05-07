@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tree;
+namespace SugarCraft\Sprinkles\Tree;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Renders a hierarchical tree using box-drawing connectors.

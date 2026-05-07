@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Shell\Style\StyleBuilder;
+use SugarCraft\Shell\Style\StyleBuilder;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -54,7 +54,7 @@ final class StyleCommand extends Command
         // --strip-ansi clears any inline SGR sequences before applying
         // styling, mirroring gum's behaviour for piped output.
         if ($input->getOption('strip-ansi')) {
-            $text = \CandyCore\Core\Util\Ansi::strip($text);
+            $text = \SugarCraft\Core\Util\Ansi::strip($text);
         }
 
         $style = StyleBuilder::fromFlags([

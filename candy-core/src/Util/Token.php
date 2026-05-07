@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 /**
  * One classified slice from a byte stream emitted by {@see Parser::parse()}.

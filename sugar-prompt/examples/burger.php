@@ -14,10 +14,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Prompt\Field\Confirm;
-use CandyCore\Prompt\Field\MultiSelect;
-use CandyCore\Prompt\Field\Select;
-use CandyCore\Prompt\Form;
+use SugarCraft\Prompt\Field\Confirm;
+use SugarCraft\Prompt\Field\MultiSelect;
+use SugarCraft\Prompt\Field\Select;
+use SugarCraft\Prompt\Form;
 
 $form = Form::new(
     Select::new('bun')

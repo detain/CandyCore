@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish;
+namespace SugarCraft\Wish;
 
 /**
  * SSH session middleware contract.
@@ -15,7 +15,7 @@ namespace CandyCore\Wish;
  * without calling it to stop the request.
  *
  * The terminal middleware in a stack is usually
- * {@see Middleware\BubbleTea} (mount a CandyCore Program) — it
+ * {@see Middleware\BubbleTea} (mount a SugarCraft Program) — it
  * never calls `$next`, it just runs the program until the user
  * disconnects.
  */

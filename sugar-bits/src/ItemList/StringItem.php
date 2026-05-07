@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\ItemList;
+namespace SugarCraft\Bits\ItemList;
 
 /**
  * Convenience {@see Item} carrying just a single string. Useful when you

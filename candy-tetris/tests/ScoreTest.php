@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris\Tests;
+namespace SugarCraft\Tetris\Tests;
 
-use CandyCore\Tetris\Score;
+use SugarCraft\Tetris\Score;
 use PHPUnit\Framework\TestCase;
 
 final class ScoreTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stickers\Tests;
+namespace SugarCraft\Stickers\Tests;
 
-use CandyCore\Stickers\Flex\{Align, Direction, FlexBox, FlexItem, Justify};
-use CandyCore\Stickers\Table\{Column, Table};
+use SugarCraft\Stickers\Flex\{Align, Direction, FlexBox, FlexItem, Justify};
+use SugarCraft\Stickers\Table\{Column, Table};
 use PHPUnit\Framework\TestCase;
 
 final class StickersTest extends TestCase

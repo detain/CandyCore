@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine\Tests;
+namespace SugarCraft\Shine\Tests;
 
-use CandyCore\Shine\SyntaxHighlighter;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\SyntaxHighlighter;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class SyntaxHighlighterTest extends TestCase

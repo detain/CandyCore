@@ -3,7 +3,7 @@
 
 declare(strict_types=1);
 
-use CandyCore\Glow\Application;
+use SugarCraft\Glow\Application;
 
 $autoloadCandidates = [
     __DIR__ . '/../vendor/autoload.php',     // dev: standalone

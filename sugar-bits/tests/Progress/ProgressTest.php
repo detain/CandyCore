@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Progress;
+namespace SugarCraft\Bits\Tests\Progress;
 
-use CandyCore\Bits\Progress\Progress;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Bits\Progress\Progress;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Width;
 use PHPUnit\Framework\TestCase;
 
 

@@ -21,7 +21,7 @@ PHP 8.1+, async on ReactPHP.
 🌐 **Website:** [sugarcraft.github.io](https://sugarcraft.github.io/) — library matrix, quickstart, comparison page.
 
 ```sh
-composer require candycore/candycore
+composer require sugarcraft/sugarcraft
 ```
 
 ## What's in the box
@@ -30,7 +30,7 @@ Thirty-one libraries grouped by layer:
 
 | | Library | Role |
 |---|---|---|
-| <img src="media/icons/candy-core.png" width="48" alt=""> | **[CandyCore](candy-core/)** | Elm-architecture TUI runtime — `Model` / `Msg` / `Cmd` / `Program` (incl. cursed cell-diff renderer). Port of [bubbletea](https://github.com/charmbracelet/bubbletea). |
+| <img src="media/icons/candy-core.png" width="48" alt=""> | **[SugarCraft](candy-core/)** | Elm-architecture TUI runtime — `Model` / `Msg` / `Cmd` / `Program` (incl. cursed cell-diff renderer). Port of [bubbletea](https://github.com/charmbracelet/bubbletea). |
 | <img src="media/icons/candy-sprinkles.png" width="48" alt=""> | **[CandySprinkles](candy-sprinkles/)** | Declarative styling + layout — `Style`, `Border`, `Table`, `List`, `Tree`, `Layout::join`, `Place`, `Canvas` (multi-layer compositor). Port of [lipgloss](https://github.com/charmbracelet/lipgloss). |
 | <img src="media/icons/honey-bounce.png" width="48" alt=""> | **[HoneyBounce](honey-bounce/)** | Damped spring physics + Newtonian projectile sim. Port of [harmonica](https://github.com/charmbracelet/harmonica). |
 | <img src="media/icons/candy-zone.png" width="48" alt=""> | **[CandyZone](candy-zone/)** | Mouse-zone tracker — wrap rendered chunks, get back bounding boxes. Port of [bubblezone](https://github.com/lrstanley/bubblezone). |
@@ -43,7 +43,7 @@ Thirty-one libraries grouped by layer:
 | <img src="media/icons/candy-freeze.png" width="48" alt=""> | **[CandyFreeze](candy-freeze/)** | Code → SVG screenshot generator (no `ext-gd` required). Port of [freeze](https://github.com/charmbracelet/freeze). |
 | <img src="media/icons/sugar-glow.png" width="48" alt=""> | **[SugarGlow](sugar-glow/)** | Markdown CLI viewer / pager. Port of [glow](https://github.com/charmbracelet/glow). |
 | <img src="media/icons/sugar-spark.png" width="48" alt=""> | **[SugarSpark](sugar-spark/)** | ANSI escape-sequence inspector. Port of [sequin](https://github.com/charmbracelet/sequin). |
-| <img src="media/icons/candy-wish.png" width="48" alt=""> | **[CandyWish](candy-wish/)** | SSH server middleware — Logger, Auth, RateLimit, BubbleTea (mount a CandyCore Program over `ForceCommand`). Port of [wish](https://github.com/charmbracelet/wish). |
+| <img src="media/icons/candy-wish.png" width="48" alt=""> | **[CandyWish](candy-wish/)** | SSH server middleware — Logger, Auth, RateLimit, BubbleTea (mount a SugarCraft Program over `ForceCommand`). Port of [wish](https://github.com/charmbracelet/wish). |
 | <img src="media/icons/sugar-wishlist.png" width="48" alt=""> | **[SugarWishlist](sugar-wishlist/)** | TUI directory of SSH endpoints — YAML/JSON config + `pcntl_exec` into the chosen `ssh`. Port of [wishlist](https://github.com/charmbracelet/wishlist). |
 | <img src="media/icons/candy-metrics.png" width="48" alt=""> | **[CandyMetrics](candy-metrics/)** | Telemetry primitives — counters, gauges, histograms with InMemory / JSON / StatsD / Prometheus textfile / Multi backends, plus a CandyWish session middleware. Port of [promwish](https://github.com/charmbracelet/promwish). |
 | <img src="media/icons/candy-log.png" width="48" alt=""> | **[CandyLog](candy-log/)** | Colorful leveled logger — Debug / Info / Warn / Error / Fatal with structured context, Text / JSON / Logfmt formatters, sub-loggers, and StandardLogAdapter. Port of [log](https://github.com/charmbracelet/log) |
@@ -66,7 +66,7 @@ Thirty-one libraries grouped by layer:
 
 | | App | Role |
 |---|---|---|
-| <img src="media/icons/candy-mold.png" width="48" alt=""> | **[CandyMold](candy-mold/)** | `composer create-project candycore/candy-mold my-app` — bootstrap skeleton with a working counter Model. Port of [bubbletea-app-template](https://github.com/charmbracelet/bubbletea-app-template). |
+| <img src="media/icons/candy-mold.png" width="48" alt=""> | **[CandyMold](candy-mold/)** | `composer create-project sugarcraft/candy-mold my-app` — bootstrap skeleton with a working counter Model. Port of [bubbletea-app-template](https://github.com/charmbracelet/bubbletea-app-template). |
 | <img src="media/icons/candy-tetris.png" width="48" alt=""> | **[CandyTetris](candy-tetris/)** | Tetris clone — SRS rules, 7-bag, ghost piece, NES scoring, level-driven gravity. Port of [tetrigo](https://github.com/Broderick-Westrope/tetrigo). |
 | <img src="media/icons/super-candy.png" width="48" alt=""> | **[SuperCandy](super-candy/)** | Dual-pane file manager — Midnight Commander style, multi-select, sort, delete-with-confirm. Port of [superfile](https://github.com/yorukot/superfile). |
 | <img src="media/icons/sugar-crush.png" width="48" alt=""> | **[SugarCrush](sugar-crush/)** | AI coding-assistant chat shell — pluggable backend (EchoBackend offline; CommandBackend for Anthropic / OpenAI / Ollama via a wrapper script). Port of [crush](https://github.com/charmbracelet/crush). |
@@ -83,8 +83,8 @@ its public API.
 ## Quickstart — a counter app
 
 ```php
-use CandyCore\Core\{Cmd, KeyType, Model, Msg, Program};
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\{Cmd, KeyType, Model, Msg, Program};
+use SugarCraft\Core\Msg\KeyMsg;
 
 final class Counter implements Model
 {

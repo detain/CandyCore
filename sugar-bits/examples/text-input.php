@@ -13,8 +13,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\TextInput\EchoMode;
-use CandyCore\Bits\TextInput\TextInput;
+use SugarCraft\Bits\TextInput\EchoMode;
+use SugarCraft\Bits\TextInput\TextInput;
 
 $inputs = [
     'empty + placeholder' => TextInput::new()

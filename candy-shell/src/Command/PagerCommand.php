@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Shell\Model\PagerModel;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Shell\Model\PagerModel;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -49,7 +49,7 @@ final class PagerCommand extends Command
         // without horizontal scroll.
         if ((bool) $input->getOption('soft-wrap')) {
             $width = (int) $input->getOption('width');
-            $raw = \CandyCore\Core\Util\Width::wrap($raw, max(1, $width));
+            $raw = \SugarCraft\Core\Util\Width::wrap($raw, max(1, $width));
         }
 
         $model   = PagerModel::fromContent(

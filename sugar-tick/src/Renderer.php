@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick;
+namespace SugarCraft\Tick;
 
-use CandyCore\Charts\Sparkline\Sparkline;
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Position;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Charts\Sparkline\Sparkline;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Position;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Pure view function. Three sections stacked vertically: header,

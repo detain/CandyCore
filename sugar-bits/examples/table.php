@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Table\Table;
+use SugarCraft\Bits\Table\Table;
 
 $headers = ['Lang', 'Stars', 'Year'];
 $rows = [

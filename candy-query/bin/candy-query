@@ -15,10 +15,10 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Query\App;
-use CandyCore\Query\Database;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Query\App;
+use SugarCraft\Query\Database;
 
 $argv = $argv ?? [];
 $path = $argv[1] ?? null;

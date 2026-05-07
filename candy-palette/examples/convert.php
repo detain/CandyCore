@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Palette\Color;
-use CandyCore\Palette\Profile;
+use SugarCraft\Palette\Color;
+use SugarCraft\Palette\Profile;
 
 echo "=== Color Conversion Demo ===\n\n";
 

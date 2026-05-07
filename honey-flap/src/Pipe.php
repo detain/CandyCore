@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap;
+namespace SugarCraft\Flap;
 
 /**
  * One scrolling pipe pair. The gap between the upper and lower

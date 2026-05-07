@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Cursor;
+namespace SugarCraft\Bits\Tests\Cursor;
 
-use CandyCore\Bits\Cursor\BlinkMsg;
-use CandyCore\Bits\Cursor\Cursor;
-use CandyCore\Bits\Cursor\Mode;
-use CandyCore\Core\TickRequest;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Bits\Cursor\BlinkMsg;
+use SugarCraft\Bits\Cursor\Cursor;
+use SugarCraft\Bits\Cursor\Mode;
+use SugarCraft\Core\TickRequest;
+use SugarCraft\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class CursorTest extends TestCase

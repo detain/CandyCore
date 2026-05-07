@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
 /**
  * Score / level / lines tracker. Standard NES Tetris scoring:
@@ -47,7 +47,7 @@ final class Score
      * Frames-per-row gravity at the current level. Cribbed from
      * NES Tetris: starts at 48 frames/row at level 0, ramps down
      * to 1 frame/row past level 29. We're frame-rate-agnostic
-     * (CandyCore uses a wall-clock tick), so consumers convert
+     * (SugarCraft uses a wall-clock tick), so consumers convert
      * this to a microsecond delay via `framesPerRow() * 16667`
      * (i.e. 60 fps).
      */

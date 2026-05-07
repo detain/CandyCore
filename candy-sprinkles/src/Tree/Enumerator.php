@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tree;
+namespace SugarCraft\Sprinkles\Tree;
 
 /**
  * Connector character set used by {@see Tree}. Each preset bundles four
