@@ -160,6 +160,18 @@ final class BarChart
         return $this;
     }
 
+    // Short-form aliases.
+    /** @param iterable<Bar|array{string,float|int}> $bars */
+    public function bars(iterable $bars): self    { return $this->withBars($bars); }
+    public function size(int $w, int $h): self    { return $this->withSize($w, $h); }
+    public function min(?float $m): self          { return $this->withMin($m); }
+    public function max(?float $m): self          { return $this->withMax($m); }
+    public function showLabels(bool $on = true): self { return $this->withShowLabels($on); }
+    public function horizontal(bool $on = true): self { return $this->withHorizontal($on); }
+    public function showAxis(bool $on = true): self   { return $this->withShowAxis($on); }
+    public function barWidth(?int $width): self   { return $this->withBarWidth($width); }
+    public function barGap(?int $gap): self       { return $this->withBarGap($gap); }
+
     public function view(): string
     {
         if ($this->bars === [] || $this->width === 0 || $this->height === 0) {

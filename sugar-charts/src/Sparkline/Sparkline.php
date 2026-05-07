@@ -92,6 +92,13 @@ final class Sparkline
         return new self($this->data, $this->width, $this->min, $this->max, $this->style, !$disable);
     }
 
+    // Short-form aliases.
+    /** @param list<float|int> $data */
+    public function data(array $data): self     { return $this->withData($data); }
+    public function width(int $w): self         { return $this->withWidth($w); }
+    public function min(?float $m): self        { return $this->withMin($m); }
+    public function max(?float $m): self        { return $this->withMax($m); }
+
     /**
      * Append a single sample. Mirrors ntcharts'
      * `Sparkline::Push(value)`. The window slide in {@see view()}

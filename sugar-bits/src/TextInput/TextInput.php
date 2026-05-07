@@ -298,6 +298,18 @@ final class TextInput implements Model
         );
     }
 
+    // Short-form aliases.
+    public function placeholder(string $p): self  { return $this->withPlaceholder($p); }
+    public function prompt(string $p): self       { return $this->withPrompt($p); }
+    public function charLimit(int $n): self       { return $this->withCharLimit($n); }
+    public function width(int $w): self           { return $this->withWidth($w); }
+    public function echoMode(EchoMode $m): self   { return $this->withEchoMode($m); }
+    public function echoChar(string $c): self     { return $this->withEchoChar($c); }
+    /** @param list<string> $candidates */
+    public function suggest(array $candidates): self { return $this->withSuggestions($candidates); }
+    public function validator(?\Closure $fn): self   { return $this->withValidator($fn); }
+    public function styles(?Styles $styles): self    { return $this->withStyles($styles); }
+
     /** Latest validator error or null. */
     public function err(): ?string
     {

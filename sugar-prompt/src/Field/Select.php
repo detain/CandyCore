@@ -44,6 +44,12 @@ final class Select implements Field
     public function withDescription(string $d): self  { return $this->mutate(description: $d); }
     public function withHeight(int $h): self          { return $this->mutate(list: $this->list->setSize($this->list->width, max(1, $h))); }
 
+    // Short-form aliases.
+    public function title(string $t): self                { return $this->withTitle($t); }
+    public function desc(string $d): self                 { return $this->withDescription($d); }
+    public function height(int $h): self                  { return $this->withHeight($h); }
+    public function options(string ...$options): self    { return $this->withOptions(...$options); }
+
     public function key(): string  { return $this->key; }
     public function value(): mixed
     {

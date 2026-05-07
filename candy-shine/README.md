@@ -20,6 +20,12 @@ Markdown → ANSI renderer built on `league/commonmark` and CandySprinkles.
 composer require sugarcraft/candy-shine
 ```
 
+> The `Renderer` exposes short-form aliases on every option:
+> `theme` / `wordWrap` / `hyperlinks` / `baseURL` / `tableWrap` /
+> `inlineTableLinks` / `preservedNewLines` / `emoji` / `standardStyle`.
+> The upstream-mirroring `with*` long forms still work — pick whichever
+> reads better at the call site.
+
 ## Quickstart
 
 ```php

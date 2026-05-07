@@ -62,6 +62,13 @@ final class Confirm implements Field
         return $clone->revalidate();
     }
 
+    // Short-form aliases.
+    public function title(string $t): self                { return $this->withTitle($t); }
+    public function desc(string $d): self                 { return $this->withDescription($d); }
+    public function labels(string $yes, string $no): self { return $this->withLabels($yes, $no); }
+    public function default(bool $v): self                { return $this->withDefault($v); }
+    public function validator(?\Closure $fn): self        { return $this->withValidator($fn); }
+
     /** @internal */
     private function revalidate(): self
     {

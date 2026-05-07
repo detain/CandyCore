@@ -35,6 +35,12 @@ echo BarChart::new([['cpu', 0.7], ['mem', 0.4], ['disk', 0.9]], 20, 5)->view() .
 echo LineChart::new([1, 4, 2, 8, 6, 3, 7], 30, 6)->view() . PHP_EOL;
 ```
 
+> Charts also expose short-form aliases on the most-used setters:
+> `data` / `size` / `min` / `max` / `point` / `xRange` / `yRange` /
+> `colors` / `palette` / `bars` / `barWidth` / `showLabels` / `showAxis`,
+> etc. The upstream-mirroring `with*` long forms still work; pick the
+> form that reads best at the call site.
+
 ## Components
 
 | Component | Role | Notable knobs |

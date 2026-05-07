@@ -72,6 +72,13 @@ final class Note implements Field
         return new self($this->key, $this->title, $this->description, $this->height, $this->next, $label, $this->focused);
     }
 
+    // Short-form aliases.
+    public function title(string $t): self        { return $this->withTitle($t); }
+    public function desc(string $d): self         { return $this->withDescription($d); }
+    public function height(int $rows): self       { return $this->withHeight($rows); }
+    public function next(bool $on = true): self   { return $this->withNext($on); }
+    public function nextLabel(string $l): self    { return $this->withNextLabel($l); }
+
     /** Resolved button label (post-default). */
     public function getNextLabel(): string { return $this->nextLabel; }
     /** True when the Next button is rendered & participates in nav. */

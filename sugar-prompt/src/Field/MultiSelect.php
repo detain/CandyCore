@@ -84,6 +84,14 @@ final class MultiSelect implements Field
         return $this->mutate(min: 0, max: $n);
     }
 
+    // Short-form aliases.
+    public function title(string $t): self                { return $this->withTitle($t); }
+    public function desc(string $d): self                 { return $this->withDescription($d); }
+    public function options(string ...$options): self    { return $this->withOptions(...$options); }
+    public function min(int $n): self                     { return $this->withMin($n); }
+    public function max(int $n): self                     { return $this->withMax($n); }
+    public function limit(int $n): self                   { return $this->withLimit($n); }
+
     public function key(): string { return $this->key; }
 
     /** @return list<string> selected option strings in declaration order */

@@ -183,6 +183,24 @@ final class LineChart
         return $this->copy(yLabels: array_values($labels));
     }
 
+    // Short-form aliases.
+    /** @param list<float|int> $data */
+    public function data(array $data): self          { return $this->withData($data); }
+    public function size(int $w, int $h): self       { return $this->withSize($w, $h); }
+    public function min(?float $m): self             { return $this->withMin($m); }
+    public function max(?float $m): self             { return $this->withMax($m); }
+    public function point(string $rune): self        { return $this->withPoint($rune); }
+    public function yRange(?float $min, ?float $max): self           { return $this->withYRange($min, $max); }
+    public function xRange(?float $min, ?float $max): self           { return $this->withXRange($min, $max); }
+    public function xyRange(?float $xMin, ?float $xMax, ?float $yMin, ?float $yMax): self {
+        return $this->withXYRange($xMin, $xMax, $yMin, $yMax);
+    }
+    public function axes(bool $on = true): self      { return $this->withAxes($on); }
+    /** @param list<string> $labels */
+    public function xLabels(array $labels): self     { return $this->withXLabels($labels); }
+    /** @param list<string> $labels */
+    public function yLabels(array $labels): self     { return $this->withYLabels($labels); }
+
     public function view(): string
     {
         if ($this->width === 0 || $this->height === 0 || ($this->data === [] && $this->datasets === [])) {

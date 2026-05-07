@@ -58,6 +58,15 @@ final class Text implements Field
         return new self($this->key, $this->area, $this->title, $this->description, $this->error, $fn);
     }
 
+    // Short-form aliases.
+    public function title(string $t): self        { return $this->withTitle($t); }
+    public function desc(string $d): self         { return $this->withDescription($d); }
+    public function placeholder(string $p): self  { return $this->withPlaceholder($p); }
+    public function charLimit(int $n): self       { return $this->withCharLimit($n); }
+    public function width(int $w): self           { return $this->withWidth($w); }
+    public function height(int $h): self          { return $this->withHeight($h); }
+    public function validator(\Closure $fn): self { return $this->withValidator($fn); }
+
     public function key(): string  { return $this->key; }
     public function value(): mixed { return $this->area->value(); }
 

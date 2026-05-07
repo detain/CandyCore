@@ -56,6 +56,17 @@ final class Input implements Field
     public function withCharLimit(int $n): self      { return $this->mutate(input: $this->input->withCharLimit($n)); }
     public function withWidth(int $w): self          { return $this->mutate(input: $this->input->withWidth($w)); }
 
+    // Short-form aliases: same behavior, less typing.
+    public function title(string $t): self        { return $this->withTitle($t); }
+    public function desc(string $d): self         { return $this->withDescription($d); }
+    public function placeholder(string $p): self  { return $this->withPlaceholder($p); }
+    public function prompt(string $p): self       { return $this->withPrompt($p); }
+    public function charLimit(int $n): self       { return $this->withCharLimit($n); }
+    public function width(int $w): self           { return $this->withWidth($w); }
+    public function password(bool $on = true, string $echoChar = '*'): self { return $this->withPassword($on, $echoChar); }
+    public function suggest(array $candidates): self { return $this->withSuggestions($candidates); }
+    public function validator(\Closure $fn): self { return $this->withValidator($fn); }
+
     /**
      * Mask the rendered value with a fixed echo character. Mirrors huh's
      * `Password()` modifier — handy for token / passphrase prompts.

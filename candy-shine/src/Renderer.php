@@ -220,6 +220,17 @@ final class Renderer
         return $this->copy(expandEmoji: $on);
     }
 
+    // Short-form aliases.
+    public function theme(Theme $theme): self            { return $this->withTheme($theme); }
+    public function wordWrap(?int $cols): self           { return $this->withWordWrap($cols); }
+    public function hyperlinks(bool $on = true): self    { return $this->withHyperlinks($on); }
+    public function baseURL(?string $url): self          { return $this->withBaseURL($url); }
+    public function tableWrap(bool $on = true): self     { return $this->withTableWrap($on); }
+    public function inlineTableLinks(bool $on = true): self { return $this->withInlineTableLinks($on); }
+    public function preservedNewLines(bool $on = true): self { return $this->withPreservedNewLines($on); }
+    public function emoji(bool $on = true): self         { return $this->withEmoji($on); }
+    public function standardStyle(string $name): self    { return $this->withStandardStyle($name); }
+
     /** @internal copy-with-overrides for chainable builders. */
     private function copy(
         ?Theme $theme = null,

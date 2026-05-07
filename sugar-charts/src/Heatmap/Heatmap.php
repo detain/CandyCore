@@ -187,6 +187,17 @@ final class Heatmap
 
     public function getAutoValueRange(): bool { return $this->autoValueRange; }
 
+    // Short-form aliases.
+    public function size(int $w, int $h): self    { return $this->withSize($w, $h); }
+    public function min(?float $m): self          { return $this->withMin($m); }
+    public function max(?float $m): self          { return $this->withMax($m); }
+    public function rune(string $r): self         { return $this->withRune($r); }
+    public function colors(Color $cold, Color $hot): self     { return $this->withColors($cold, $hot); }
+    /** @param list<Color> $stops */
+    public function palette(array $stops): self   { return $this->withPalette($stops); }
+    public function legend(bool $on = true): self { return $this->withLegend($on); }
+    public function cellStyle(?Style $style): self { return $this->withCellStyle($style); }
+
     public function view(): string
     {
         if ($this->grid === [] || $this->width === 0 || $this->height === 0) {

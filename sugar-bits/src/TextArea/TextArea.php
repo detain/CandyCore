@@ -296,6 +296,16 @@ final class TextArea implements Model
         );
     }
 
+    // Short-form aliases.
+    public function placeholder(string $p): self  { return $this->withPlaceholder($p); }
+    public function charLimit(int $n): self       { return $this->withCharLimit($n); }
+    public function width(int $w): self           { return $this->withWidth($w); }
+    public function height(int $h): self          { return $this->withHeight($h); }
+    public function maxWidth(int $w): self        { return $this->withMaxWidth($w); }
+    public function maxHeight(int $h): self       { return $this->withMaxHeight($h); }
+    public function prompt(string $p): self       { return $this->withPrompt($p); }
+    public function validator(?\Closure $fn): self { return $this->withValidator($fn); }
+
     public function err(): ?string { return $this->err; }
 
     /** Move the cursor to (`$row`, `$col`); both clamp to range. */

@@ -47,6 +47,16 @@ final class FilePicker implements Field
     public function withFileAllowed(bool $on): self { return $this->mutate(picker: $this->picker->withFileAllowed($on)); }
     public function withHeight(int $h): self        { return $this->mutate(picker: $this->picker->withHeight($h)); }
 
+    // Short-form aliases.
+    public function title(string $t): self            { return $this->withTitle($t); }
+    public function desc(string $d): self             { return $this->withDescription($d); }
+    public function showHidden(bool $on): self        { return $this->withShowHidden($on); }
+    /** @param list<string> $exts */
+    public function exts(array $exts): self           { return $this->withAllowedExtensions($exts); }
+    public function dirAllowed(bool $on): self        { return $this->withDirAllowed($on); }
+    public function fileAllowed(bool $on): self       { return $this->withFileAllowed($on); }
+    public function height(int $h): self              { return $this->withHeight($h); }
+
     public function key(): string  { return $this->key; }
     public function value(): mixed { return $this->picker->selected(); }
 
