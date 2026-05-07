@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\ColorProfile;
 
 /**
  * Per-writer rendering context. Mirrors lipgloss's `Renderer` —
@@ -87,7 +87,7 @@ final class Renderer
      * Bind this renderer's `hasDarkBackground` to a {@see LightDark}
      * picker. Equivalent to `LightDark::picker($r->hasDarkBackground)`.
      *
-     * @return \Closure(\CandyCore\Core\Util\Color, \CandyCore\Core\Util\Color): \CandyCore\Core\Util\Color
+     * @return \Closure(\SugarCraft\Core\Util\Color, \SugarCraft\Core\Util\Color): \SugarCraft\Core\Util\Color
      */
     public function lightDark(): \Closure
     {
@@ -99,7 +99,7 @@ final class Renderer
      * flag. Mirrors lipgloss `Renderer.HasDarkBackground` + adaptive
      * pick.
      */
-    public function resolveAdaptive(AdaptiveColor $color): \CandyCore\Core\Util\Color
+    public function resolveAdaptive(AdaptiveColor $color): \SugarCraft\Core\Util\Color
     {
         return $color->pick($this->hasDarkBackground);
     }

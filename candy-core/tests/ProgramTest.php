@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\ColorProfileMsg;
-use CandyCore\Core\Msg\EnvMsg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Msg\QuitMsg;
-use CandyCore\Core\Msg\WindowSizeMsg;
-use CandyCore\Core\Cursor;
-use CandyCore\Core\CursorShape;
-use CandyCore\Core\MouseMode;
-use CandyCore\Core\PrintMsg;
-use CandyCore\Core\Progress;
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Core\ProgressBarState;
-use CandyCore\Core\RawMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\View;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\ColorProfileMsg;
+use SugarCraft\Core\Msg\EnvMsg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\QuitMsg;
+use SugarCraft\Core\Msg\WindowSizeMsg;
+use SugarCraft\Core\Cursor;
+use SugarCraft\Core\CursorShape;
+use SugarCraft\Core\MouseMode;
+use SugarCraft\Core\PrintMsg;
+use SugarCraft\Core\Progress;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Core\ProgressBarState;
+use SugarCraft\Core\RawMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\View;
 use PHPUnit\Framework\TestCase;
 use React\EventLoop\StreamSelectLoop;
 
@@ -94,7 +94,7 @@ final class ProgramTest extends TestCase
         // the queued KeyMsg, so quit after the 4th.
         $model = new RecordingModel(quitAfter: 4);
         $program = new Program($model, $this->makeOptions($in, $out, $loop));
-        $program->send(new KeyMsg(\CandyCore\Core\KeyType::Char, 'q'));
+        $program->send(new KeyMsg(\SugarCraft\Core\KeyType::Char, 'q'));
 
         // Safety net: stop the loop after 2s if our quit logic is broken.
         $loop->addTimer(2.0, static fn() => $loop->stop());
@@ -304,19 +304,19 @@ final class ProgramTest extends TestCase
 
         // Inject something distinctive into the env so we can assert
         // it round-tripped into EnvMsg::vars.
-        putenv('CANDYCORE_TEST_ENV_FLAG=42');
+        putenv('SUGARCRAFT_TEST_ENV_FLAG=42');
 
         $model = new RecordingModel(quitAfter: PHP_INT_MAX);
         $program = new Program($model, $this->makeOptions($in, $out, $loop));
         $program->quit();
         $final = $program->run();
 
-        putenv('CANDYCORE_TEST_ENV_FLAG'); // unset
+        putenv('SUGARCRAFT_TEST_ENV_FLAG'); // unset
 
         /** @var EnvMsg $env */
         $env = $final->log[1];
         $this->assertInstanceOf(EnvMsg::class, $env);
-        $this->assertSame('42', $env->get('CANDYCORE_TEST_ENV_FLAG'));
+        $this->assertSame('42', $env->get('SUGARCRAFT_TEST_ENV_FLAG'));
         $this->assertNull($env->get('NOT_SET_DEFAULT_NULL'));
         $this->assertSame('fallback', $env->get('NOT_SET_DEFAULT_VALUE', 'fallback'));
 
@@ -337,7 +337,7 @@ final class ProgramTest extends TestCase
 
         $msg = $final->log[2];
         $this->assertInstanceOf(ColorProfileMsg::class, $msg);
-        $this->assertInstanceOf(\CandyCore\Core\Util\ColorProfile::class, $msg->profile);
+        $this->assertInstanceOf(\SugarCraft\Core\Util\ColorProfile::class, $msg->profile);
 
         fclose($writer);
         fclose($in);
@@ -354,10 +354,10 @@ final class ProgramTest extends TestCase
             cursor: new Cursor(row: 5, col: 7, shape: CursorShape::Bar, blink: true),
             windowTitle: 'demo',
         );
-        $model = new class($view) implements \CandyCore\Core\Model {
+        $model = new class($view) implements \SugarCraft\Core\Model {
             public function __construct(private readonly View $v) {}
             public function init(): ?\Closure { return null; }
-            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function update(\SugarCraft\Core\Msg $msg): array { return [$this, null]; }
             public function view(): View { return $this->v; }
         };
 
@@ -399,10 +399,10 @@ final class ProgramTest extends TestCase
             foregroundColor: Color::hex('#ff0000'),
             backgroundColor: Color::hex('#00ff00'),
         );
-        $model = new class($view) implements \CandyCore\Core\Model {
+        $model = new class($view) implements \SugarCraft\Core\Model {
             public function __construct(private readonly View $v) {}
             public function init(): ?\Closure { return null; }
-            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function update(\SugarCraft\Core\Msg $msg): array { return [$this, null]; }
             public function view(): View { return $this->v; }
         };
 
@@ -442,10 +442,10 @@ final class ProgramTest extends TestCase
             reportFocus: true,
             bracketedPaste: true,
         );
-        $model = new class($view) implements \CandyCore\Core\Model {
+        $model = new class($view) implements \SugarCraft\Core\Model {
             public function __construct(private readonly View $v) {}
             public function init(): ?\Closure { return null; }
-            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function update(\SugarCraft\Core\Msg $msg): array { return [$this, null]; }
             public function view(): View { return $this->v; }
         };
 
@@ -490,7 +490,7 @@ final class ProgramTest extends TestCase
             input: $in,
             output: $out,
             loop: $loop,
-            environment: ['CANDYCORE_TEST_ONLY' => 'yes'],
+            environment: ['SUGARCRAFT_TEST_ONLY' => 'yes'],
         );
         $program = new Program(new RecordingModel(quitAfter: PHP_INT_MAX), $opts);
         $program->quit();
@@ -498,7 +498,7 @@ final class ProgramTest extends TestCase
 
         /** @var EnvMsg $env */
         $env = $final->log[1];
-        $this->assertSame('yes', $env->get('CANDYCORE_TEST_ONLY'));
+        $this->assertSame('yes', $env->get('SUGARCRAFT_TEST_ONLY'));
         // The override REPLACES (doesn't merge with) the live env.
         $this->assertNull($env->get('PATH'));
 
@@ -547,7 +547,7 @@ final class ProgramTest extends TestCase
             input: $in,
             output: $out,
             loop: $loop,
-            colorProfile: \CandyCore\Core\Util\ColorProfile::Ansi,
+            colorProfile: \SugarCraft\Core\Util\ColorProfile::Ansi,
         );
         $program = new Program(new RecordingModel(quitAfter: PHP_INT_MAX), $opts);
         $program->quit();
@@ -555,7 +555,7 @@ final class ProgramTest extends TestCase
 
         $msg = $final->log[2];
         $this->assertInstanceOf(ColorProfileMsg::class, $msg);
-        $this->assertSame(\CandyCore\Core\Util\ColorProfile::Ansi, $msg->profile);
+        $this->assertSame(\SugarCraft\Core\Util\ColorProfile::Ansi, $msg->profile);
 
         fclose($writer);
         fclose($in);
@@ -568,10 +568,10 @@ final class ProgramTest extends TestCase
         $loop = new StreamSelectLoop();
 
         $view = new View(body: 'x', cursor: null);
-        $model = new class($view) implements \CandyCore\Core\Model {
+        $model = new class($view) implements \SugarCraft\Core\Model {
             public function __construct(private readonly View $v) {}
             public function init(): ?\Closure { return null; }
-            public function update(\CandyCore\Core\Msg $msg): array { return [$this, null]; }
+            public function update(\SugarCraft\Core\Msg $msg): array { return [$this, null]; }
             public function view(): View { return $this->v; }
         };
 
@@ -617,9 +617,9 @@ final class ProgramTest extends TestCase
         );
         $program = new Program($model, $opts);
         // Inject a few extra non-WindowSize messages.
-        $loop->addTimer(0.02, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'a')));
-        $loop->addTimer(0.04, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'b')));
-        $loop->addTimer(0.06, static fn() => $program->send(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'c')));
+        $loop->addTimer(0.02, static fn() => $program->send(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, 'a')));
+        $loop->addTimer(0.04, static fn() => $program->send(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, 'b')));
+        $loop->addTimer(0.06, static fn() => $program->send(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, 'c')));
         $loop->addTimer(0.08, static fn() => $program->quit());
         $loop->addTimer(2.0,  static fn() => $loop->stop());
         $finalModel = $program->run();

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze;
+namespace SugarCraft\Freeze;
 
-use CandyCore\Core\Util\Ansi;
+use SugarCraft\Core\Util\Ansi;
 
 /**
  * Renders text (with optional ANSI styling) to an SVG document. The

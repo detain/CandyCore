@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::requestBackgroundColor()}.
+ * Reply to a {@see \SugarCraft\Core\Cmd::requestBackgroundColor()}.
  * Mirrors {@see ForegroundColorMsg} for the OSC 11 query — useful for
  * picking a contrasting theme via {@see self::isDark()}.
  */

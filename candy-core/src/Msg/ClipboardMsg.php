@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::readClipboard()}. The terminal
+ * Reply to a {@see \SugarCraft\Core\Cmd::readClipboard()}. The terminal
  * answers `OSC 52 ; <selection> ; <base64-content> BEL|ST`; the
  * input reader decodes the base64 payload before constructing this
  * Msg.

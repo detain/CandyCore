@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Width as WidthUtil;
+use SugarCraft\Core\Util\Width as WidthUtil;
 
 /**
  * A single positioned layer within a {@see Canvas}. Holds the

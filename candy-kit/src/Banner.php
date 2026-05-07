@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Render a bordered title banner. The title is rendered with the

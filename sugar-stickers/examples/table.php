@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Stickers\Table\{Column, Table};
+use SugarCraft\Stickers\Table\{Column, Table};
 
 $t = (new Table())
     ->addColumn(Column::make('Name',    15))

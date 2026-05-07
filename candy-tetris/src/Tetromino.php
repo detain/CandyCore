@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
 /**
  * The seven Tetris pieces (a.k.a. tetrominoes), with their

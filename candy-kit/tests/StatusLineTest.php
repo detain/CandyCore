@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit\Tests;
+namespace SugarCraft\Kit\Tests;
 
-use CandyCore\Kit\StatusLine;
-use CandyCore\Kit\Theme;
+use SugarCraft\Kit\StatusLine;
+use SugarCraft\Kit\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class StatusLineTest extends TestCase

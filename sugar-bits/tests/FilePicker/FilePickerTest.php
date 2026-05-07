@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\FilePicker;
+namespace SugarCraft\Bits\Tests\FilePicker;
 
-use CandyCore\Bits\FilePicker\Entry;
-use CandyCore\Bits\FilePicker\FilePicker;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\FilePicker\Entry;
+use SugarCraft\Bits\FilePicker\FilePicker;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class FilePickerTest extends TestCase

@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bounce\Spring;
+use SugarCraft\Bounce\Spring;
 
 $frames = 60;
 $target = 100.0;

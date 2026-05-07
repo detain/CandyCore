@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\FilePicker;
+namespace SugarCraft\Bits\FilePicker;
 
 /**
  * One filesystem entry the {@see FilePicker} has discovered.

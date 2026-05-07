@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candy-shine",
+    "name": "sugarcraft/candy-shine",
     "description": "PHP port of charmbracelet/glamour \u2014 Markdown \u2192 ANSI renderer with word-wrap, OSC 8 hyperlinks, syntax highlighting, and 8 stock themes (ansi/plain/dark/light/notty/dracula/tokyo-night/pink).",
     "type": "library",
     "license": "MIT",
@@ -12,7 +12,7 @@
         "glamour",
         "commonmark",
         "syntax-highlighting",
-        "candycore"
+        "sugarcraft"
     ],
     "homepage": "https://github.com/sugarcraft/candy-shine",
     "authors": [
@@ -29,8 +29,8 @@
     },
     "require": {
         "php": "^8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-sprinkles": "@dev",
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
         "league/commonmark": "^2.4"
     },
     "require-dev": {
@@ -173,12 +173,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "CandyCore\\Shine\\": "src/"
+            "SugarCraft\\Shine\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Shine\\Tests\\": "tests/"
+            "SugarCraft\\Shine\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",

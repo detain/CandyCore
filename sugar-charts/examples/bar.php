@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\BarChart\Bar;
-use CandyCore\Charts\BarChart\BarChart;
+use SugarCraft\Charts\BarChart\Bar;
+use SugarCraft\Charts\BarChart\BarChart;
 
 $bars = [
     new Bar('Mon', 12),

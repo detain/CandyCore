@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Paginator;
+namespace SugarCraft\Bits\Tests\Paginator;
 
-use CandyCore\Bits\Paginator\Paginator;
-use CandyCore\Bits\Paginator\Type;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\Paginator\Paginator;
+use SugarCraft\Bits\Paginator\Type;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class PaginatorTest extends TestCase

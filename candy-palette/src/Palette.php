@@ -13,10 +13,10 @@ declare(strict_types=1);
  *
  * @see https://github.com/charmbracelet/colorprofile
  */
-namespace CandyCore\Palette;
+namespace SugarCraft\Palette;
 
-use CandyCore\Palette\Color;
-use CandyCore\Palette\Profile;
+use SugarCraft\Palette\Color;
+use SugarCraft\Palette\Profile;
 
 /**
  * Detect and query the terminal color profile.

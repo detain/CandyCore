@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister;
+namespace SugarCraft\Lister;
 
 /**
  * Generates a per-line suffix string for list rendering.

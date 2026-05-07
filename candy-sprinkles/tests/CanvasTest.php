@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Sprinkles\Canvas;
-use CandyCore\Sprinkles\Layer;
+use SugarCraft\Sprinkles\Canvas;
+use SugarCraft\Sprinkles\Layer;
 use PHPUnit\Framework\TestCase;
 
 final class CanvasTest extends TestCase

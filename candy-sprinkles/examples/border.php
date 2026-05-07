@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Style;
 
 $styles = [
     'normal'  => Border::normal(),

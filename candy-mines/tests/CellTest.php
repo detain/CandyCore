@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines\Tests;
+namespace SugarCraft\Mines\Tests;
 
-use CandyCore\Mines\Cell;
+use SugarCraft\Mines\Cell;
 use PHPUnit\Framework\TestCase;
 
 final class CellTest extends TestCase

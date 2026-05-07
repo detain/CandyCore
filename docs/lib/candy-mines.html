@@ -38,7 +38,7 @@
           <span class="tag-chip accent">port of <a href="https://github.com/maxpaulus43/go-sweep" style="color: inherit;">go-sweep</a></span>
           <span class="tag-chip">game</span>
           <span class="tag-chip">minesweeper</span>
-          <span class="tag-chip">candycore</span>
+          <span class="tag-chip">sugarcraft</span>
           <span class="tag-chip">deterministic-rng</span>
         </div>
       </div>
@@ -47,16 +47,16 @@
     <p class="lede" style="margin-top: 28px;">Customisable board (width / height / mine count), recursive zero-flood-fill, win / lose detection. Pure-state Board class so every reveal is unit-testable without touching the runtime.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-mines</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-mines</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
     <pre class="code"><code>./bin/candy-mines              # 10×10, 12 mines (defaults)
 ./bin/candy-mines 16 16 40     # custom board
 
 // Programmatic:
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Mines\Game;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Mines\Game;
 
 (new Program(Game::start(width: 16, height: 16, mines: 40),
              new ProgramOptions(useAltScreen: true)))-&gt;run();</code></pre>

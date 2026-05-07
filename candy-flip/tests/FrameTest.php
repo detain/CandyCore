@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip\Tests;
+namespace SugarCraft\Flip\Tests;
 
-use CandyCore\Flip\Frame;
+use SugarCraft\Flip\Frame;
 use PHPUnit\Framework\TestCase;
 
 final class FrameTest extends TestCase

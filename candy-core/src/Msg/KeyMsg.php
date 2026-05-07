@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Modifiers;
-use CandyCore\Core\Msg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Modifiers;
+use SugarCraft\Core\Msg;
 
 /**
  * A single keypress. For named keys (arrows, function keys, etc.) the

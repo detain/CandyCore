@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Boxer\{Node, SugarBoxer};
+use SugarCraft\Boxer\{Node, SugarBoxer};
 
 $boxer = SugarBoxer::new();
 

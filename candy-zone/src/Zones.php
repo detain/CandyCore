@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone;
+namespace SugarCraft\Zone;
 
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
 
 /**
  * Package-level facade over a single shared {@see Manager} instance.
@@ -20,7 +20,7 @@ use CandyCore\Core\Msg;
  * shared manager returned by {@see defaultManager()}.
  *
  * ```php
- * use CandyCore\Zone\Zones;
+ * use SugarCraft\Zone\Zones;
  *
  * // mark / scan with the package-level default manager.
  * $rendered = Zones::mark('header', $header)

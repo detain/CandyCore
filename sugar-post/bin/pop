@@ -12,11 +12,11 @@ declare(strict_types=1);
  *
  * Env: RESEND_API_KEY, POP_FROM, POP_SMTP_HOST/PORT/USERNAME/PASSWORD, POP_SIGNATURE
  */
-namespace CandyCore\Post;
+namespace SugarCraft\Post;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Post\{Email, Mailer, ResendTransport, SmtpTransport};
+use SugarCraft\Post\{Email, Mailer, ResendTransport, SmtpTransport};
 
 // Parse arguments manually (no getopt dependence on platform)
 $args = parseArgs($argv);

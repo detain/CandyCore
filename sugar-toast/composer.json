@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-toast",
+    "name": "sugarcraft/sugar-toast",
     "description": "PHP port of DaltonSW/bubbleup \u2014 floating alert notification component for terminal UIs. Supports error/warning/info/success alerts at 6 screen positions, dynamic width, NerdFont/Unicode/ASCII symbols, auto-dismiss timers.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "toast", "notification", "alert", "bubble", "candycore"],
+    "keywords": ["tui", "toast", "notification", "alert", "bubble", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-toast",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -51,10 +51,10 @@
         { "type": "path", "url": "../sugar-stickers",  "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Toast\\": "src/" }
+        "psr-4": { "SugarCraft\\Toast\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Toast\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Toast\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

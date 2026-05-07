@@ -10,10 +10,10 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Query\App;
-use CandyCore\Query\Database;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Query\App;
+use SugarCraft\Query\Database;
 
 $pdo = new PDO('sqlite::memory:');
 $pdo->exec('CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT, role TEXT)');

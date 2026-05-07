@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Canvas;
-use CandyCore\Sprinkles\Layer;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Canvas;
+use SugarCraft\Sprinkles\Layer;
+use SugarCraft\Sprinkles\Style;
 
 // 1. Base view: a 50×10 grid of dimmed dots.
 $baseLines = [];

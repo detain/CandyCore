@@ -16,11 +16,11 @@ declare(strict_types=1);
  *   soft-serve help                    Show this help
  */
 
-namespace CandyCore\Serve\Bin;
+namespace SugarCraft\Serve\Bin;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Serve\{AccessControl, Config, Repo, SSH\SSHServer, User};
+use SugarCraft\Serve\{AccessControl, Config, Repo, SSH\SSHServer, User};
 
 const VERSION = '0.1.0';
 

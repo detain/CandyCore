@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Backend;
+namespace SugarCraft\Crush\Backend;
 
-use CandyCore\Crush\Backend;
-use CandyCore\Crush\Message;
+use SugarCraft\Crush\Backend;
+use SugarCraft\Crush\Message;
 
 /**
  * Backend that shells out to an external command. The command

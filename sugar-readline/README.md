@@ -21,7 +21,7 @@ PHP port of [erikgeiser/promptkit](https://github.com/erikgeiser/promptkit) — 
 ## Install
 
 ```bash
-composer require candycore/sugar-readline
+composer require sugarcraft/sugar-readline
 ```
 
 ## Quick Start
@@ -29,7 +29,7 @@ composer require candycore/sugar-readline
 ### Text Prompt
 
 ```php
-use CandyCore\Readline\TextPrompt;
+use SugarCraft\Readline\TextPrompt;
 
 $prompt = TextPrompt::new('Enter your name:');
 $prompt = $prompt->WithDefault('Anonymous');
@@ -46,7 +46,7 @@ echo $prompt->Value();  // 'Al'
 ### Selection Prompt
 
 ```php
-use CandyCore\Readline\SelectionPrompt;
+use SugarCraft\Readline\SelectionPrompt;
 
 $prompt = SelectionPrompt::new('Choose a fruit:', ['Apple', 'Banana', 'Cherry', 'Date']);
 $prompt = $prompt->Filter('an');  // filter by 'an' -> Banana
@@ -57,7 +57,7 @@ echo $prompt->SelectedValue();  // 'Banana'
 ### Confirmation Prompt
 
 ```php
-use CandyCore\Readline\ConfirmationPrompt;
+use SugarCraft\Readline\ConfirmationPrompt;
 
 $prompt = ConfirmationPrompt::new('Delete file?');
 $prompt = $prompt->Confirm();   // true

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\CapabilityMsg;
-use CandyCore\Core\Msg\ModeReportMsg;
-use CandyCore\Core\Msg\TerminalVersionMsg;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\CapabilityMsg;
+use SugarCraft\Core\Msg\ModeReportMsg;
+use SugarCraft\Core\Msg\TerminalVersionMsg;
 use PHPUnit\Framework\TestCase;
 
 final class CapabilityMsgTest extends TestCase

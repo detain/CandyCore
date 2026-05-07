@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist;
+namespace SugarCraft\Wishlist;
 
-use CandyCore\Core\Util\Ansi;
+use SugarCraft\Core\Util\Ansi;
 
 /**
  * Tiny terminal picker — renders a numbered list of {@see Endpoint}s,

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine;
+namespace SugarCraft\Shine;
 
 /**
  * Lightweight regex-based syntax highlighter for fenced code blocks.

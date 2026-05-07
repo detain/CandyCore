@@ -8,8 +8,8 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Flap\Game;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Flap\Game;
 
 (new Program(Game::start(), new ProgramOptions(useAltScreen: true)))->run();

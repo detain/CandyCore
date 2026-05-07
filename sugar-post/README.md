@@ -24,7 +24,7 @@ PHP port of [charmbracelet/pop](https://github.com/charmbracelet/pop) — send e
 ## Install
 
 ```bash
-composer require candycore/sugar-post
+composer require sugarcraft/sugar-post
 ```
 
 ## Quick Start
@@ -32,7 +32,7 @@ composer require candycore/sugar-post
 ### Resend API
 
 ```php
-use CandyCore\Post\{Email, Mailer, ResendTransport};
+use SugarCraft\Post\{Email, Mailer, ResendTransport};
 
 $transport = new ResendTransport('re_xxxxxxxxxxxxx');
 $mailer = new Mailer($transport);
@@ -50,7 +50,7 @@ $mailer->send($email);
 ### SMTP
 
 ```php
-use CandyCore\Post\{Email, Mailer, SmtpTransport};
+use SugarCraft\Post\{Email, Mailer, SmtpTransport};
 
 $transport = new SmtpTransport('smtp.gmail.com', 587, 'username', 'password');
 $mailer = new Mailer($transport);

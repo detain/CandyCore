@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Veil\{Position, Veil};
+use SugarCraft\Veil\{Position, Veil};
 
 $veil = Veil::new();
 

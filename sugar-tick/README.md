@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-tick)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-tick)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-tick?label=packagist)](https://packagist.org/packages/candycore/sugar-tick)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-tick?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-tick)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -44,7 +44,7 @@ By default heartbeats land in `$XDG_DATA_HOME/sugar-tick` (or
 | `Heartbeat`   | Value object — one activity sample (project, language, file, duration).       |
 | `Store`       | JSONL-backed reader / appender. One file per day under the data dir.          |
 | `Stats`       | Pure folder — totals per project / language + per-day timeline buckets.       |
-| `Dashboard`   | CandyCore Model — renders the report, ←/→ shifts the window, r reloads.       |
+| `Dashboard`   | SugarCraft Model — renders the report, ←/→ shifts the window, r reloads.       |
 | `Renderer`    | View — header + ranking panes side-by-side + Sparkline timeline (SugarCharts).|
 
 The Store is intentionally append-only at the file level, so editor plug-ins can `>>` echo a JSON line directly without coordinating with the dashboard. The dashboard reads at `r` / on launch / when the day shifts — never holds a file lock.

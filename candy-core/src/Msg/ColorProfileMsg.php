@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Util\ColorProfile;
 
 /**
  * Emitted once at startup with the auto-detected colour profile of

@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Veil\Veil;
+use SugarCraft\Veil\Veil;
 
 // Simulated base terminal content
 $base = implode("\n", [

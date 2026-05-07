@@ -1,5 +1,5 @@
 {
-    "name": "candycore/sugar-glow",
+    "name": "sugarcraft/sugar-glow",
     "description": "PHP port of charmbracelet/glow \u2014 Markdown CLI viewer / pager composing CandyShine + Viewport. 8 stock themes, word-wrap, OSC 8 hyperlinks.",
     "type": "library",
     "license": "MIT",
@@ -11,7 +11,7 @@
         "glow",
         "ansi",
         "tui",
-        "candycore"
+        "sugarcraft"
     ],
     "homepage": "https://github.com/sugarcraft/sugar-glow",
     "authors": [
@@ -31,9 +31,9 @@
     ],
     "require": {
         "php": "^8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-shine": "@dev",
-        "candycore/sugar-bits": "@dev",
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-shine": "@dev",
+        "sugarcraft/sugar-bits": "@dev",
         "symfony/console": "^6.4 || ^7.0"
     },
     "require-dev": {
@@ -176,12 +176,12 @@
     ],
     "autoload": {
         "psr-4": {
-            "CandyCore\\Glow\\": "src/"
+            "SugarCraft\\Glow\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Glow\\Tests\\": "tests/"
+            "SugarCraft\\Glow\\Tests\\": "tests/"
         }
     },
     "minimum-stability": "dev",

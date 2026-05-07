@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Table\{Column, Row, RowData, StyledCell, Table};
+use SugarCraft\Table\{Column, Row, RowData, StyledCell, Table};
 
 echo "=== Basic Table ===\n";
 $t = Table::withColumns([

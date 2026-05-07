@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Picture;
+namespace SugarCraft\Charts\Tests\Picture;
 
-use CandyCore\Charts\Picture\Sixel;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Picture\Sixel;
+use SugarCraft\Core\Util\Color;
 use PHPUnit\Framework\TestCase;
 
 final class SixelTest extends TestCase

@@ -10,12 +10,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\ItemList\ItemList;
-use CandyCore\Bits\ItemList\StringItem;
+use SugarCraft\Bits\ItemList\ItemList;
+use SugarCraft\Bits\ItemList\StringItem;
 
 $items = array_map(
     fn(string $s) => new StringItem($s),
-    ['CandyCore', 'CandySprinkles', 'HoneyBounce', 'CandyZone',
+    ['SugarCraft', 'CandySprinkles', 'HoneyBounce', 'CandyZone',
      'SugarBits', 'SugarCharts', 'SugarPrompt', 'CandyShell',
      'CandyShine', 'CandyKit', 'CandyFreeze', 'SugarGlow',
      'SugarSpark', 'CandyWish', 'SugarWishlist', 'CandyMetrics'],

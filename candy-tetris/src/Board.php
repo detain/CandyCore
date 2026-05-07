@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
 /**
  * The 10×20 Tetris playfield (the "well"), plus a 4-row hidden

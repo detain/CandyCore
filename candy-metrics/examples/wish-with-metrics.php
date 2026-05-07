@@ -10,14 +10,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Metrics\Backend\InMemoryBackend;
-use CandyCore\Metrics\Backend\MultiBackend;
-use CandyCore\Metrics\Backend\PrometheusFileBackend;
-use CandyCore\Metrics\Middleware\SessionMetrics;
-use CandyCore\Metrics\Registry;
-use CandyCore\Wish\Middleware\Logger;
-use CandyCore\Wish\Server;
-use CandyCore\Wish\Session;
+use SugarCraft\Metrics\Backend\InMemoryBackend;
+use SugarCraft\Metrics\Backend\MultiBackend;
+use SugarCraft\Metrics\Backend\PrometheusFileBackend;
+use SugarCraft\Metrics\Middleware\SessionMetrics;
+use SugarCraft\Metrics\Registry;
+use SugarCraft\Wish\Middleware\Logger;
+use SugarCraft\Wish\Server;
+use SugarCraft\Wish\Session;
 
 $tally = new InMemoryBackend();
 $registry = new Registry(new MultiBackend(
@@ -28,7 +28,7 @@ $registry = new Registry(new MultiBackend(
 Server::new()
     ->use(new Logger())
     ->use(new SessionMetrics($registry))
-    ->use(new class implements \CandyCore\Wish\Middleware {
+    ->use(new class implements \SugarCraft\Wish\Middleware {
         public function handle(Session $s, callable $next): void
         {
             echo "Hello, {$s->user}!\n";

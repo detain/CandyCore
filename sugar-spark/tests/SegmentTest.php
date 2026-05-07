@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark\Tests;
+namespace SugarCraft\Spark\Tests;
 
-use CandyCore\Spark\Segment;
-use CandyCore\Spark\SequenceSegment;
-use CandyCore\Spark\TextSegment;
+use SugarCraft\Spark\Segment;
+use SugarCraft\Spark\SequenceSegment;
+use SugarCraft\Spark\TextSegment;
 use PHPUnit\Framework\TestCase;
 
 final class SegmentTest extends TestCase

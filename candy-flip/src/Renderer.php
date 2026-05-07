@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip;
+namespace SugarCraft\Flip;
 
 /**
  * Render a {@see Frame} as ANSI-coloured Unicode block-glyphs.

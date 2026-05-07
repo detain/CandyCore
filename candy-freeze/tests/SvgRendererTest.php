@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze\Tests;
+namespace SugarCraft\Freeze\Tests;
 
-use CandyCore\Freeze\SvgRenderer;
-use CandyCore\Freeze\Theme;
+use SugarCraft\Freeze\SvgRenderer;
+use SugarCraft\Freeze\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class SvgRendererTest extends TestCase

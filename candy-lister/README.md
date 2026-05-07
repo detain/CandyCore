@@ -1,7 +1,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-lister)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-lister)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-lister?label=packagist)](https://packagist.org/packages/candycore/candy-lister)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-lister?label=packagist)](https://packagist.org/packages/sugarcraft/candy-lister)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -25,13 +25,13 @@ PHP port of [treilik/bubblelister](https://github.com/treilik/bubblelister) — 
 ## Install
 
 ```bash
-composer require candycore/candy-lister
+composer require sugarcraft/candy-lister
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Lister\{Model, StringItem, DefaultPrefixer, DefaultSuffixer};
+use SugarCraft\Lister\{Model, StringItem, DefaultPrefixer, DefaultSuffixer};
 
 $model = Model::new();
 $model->setWidth(80)->setHeight(24);
@@ -61,7 +61,7 @@ $model->addItem(new MyItem());
 ## Custom Prefixer
 
 ```php
-use CandyCore\Lister\{Prefixer, Model};
+use SugarCraft\Lister\{Prefixer, Model};
 
 $model->setPrefixer(new class implements Prefixer {
     public function initPrefixer(
@@ -79,7 +79,7 @@ $model->setPrefixer(new class implements Prefixer {
 ## Custom Suffixer
 
 ```php
-use CandyCore\Lister\{Suffixer, Model};
+use SugarCraft\Lister\{Suffixer, Model};
 
 $model->setSuffixer(new class implements Suffixer {
     public function initSuffixer(

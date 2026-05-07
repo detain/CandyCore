@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Model;
+namespace SugarCraft\Shell\Tests\Model;
 
-use CandyCore\Shell\Model\FileModel;
+use SugarCraft\Shell\Model\FileModel;
 use PHPUnit\Framework\TestCase;
 
 final class FileModelTest extends TestCase

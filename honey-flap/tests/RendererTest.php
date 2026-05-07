@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap\Tests;
+namespace SugarCraft\Flap\Tests;
 
-use CandyCore\Flap\Game;
-use CandyCore\Flap\Renderer;
+use SugarCraft\Flap\Game;
+use SugarCraft\Flap\Renderer;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

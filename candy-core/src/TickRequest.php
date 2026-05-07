@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Internal sentinel returned by {@see Cmd::tick()}. The Program intercepts

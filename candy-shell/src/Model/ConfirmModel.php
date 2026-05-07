@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Prompt\Field\Confirm;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Prompt\Field\Confirm;
 
 /**
- * Yes/no prompt used by {@see \CandyCore\Shell\Command\ConfirmCommand}.
+ * Yes/no prompt used by {@see \SugarCraft\Shell\Command\ConfirmCommand}.
  * Wraps {@see Confirm}; Enter / `y` / `n` commit, Esc/Ctrl-C aborts.
  *
  * On exit the host process maps {@see answer()} to the conventional

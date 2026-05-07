@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister;
+namespace SugarCraft\Lister;
 
 /**
  * Default suffixer — shows a < marker on the first line of the cursor item,

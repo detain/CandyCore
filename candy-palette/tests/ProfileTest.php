@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Palette\Tests;
+namespace SugarCraft\Palette\Tests;
 
-use CandyCore\Palette\Profile;
+use SugarCraft\Palette\Profile;
 use PHPUnit\Framework\TestCase;
 
 final class ProfileTest extends TestCase

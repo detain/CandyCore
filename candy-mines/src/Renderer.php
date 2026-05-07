@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines;
+namespace SugarCraft\Mines;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Pure view function: takes a {@see Game} and returns the framebuffer

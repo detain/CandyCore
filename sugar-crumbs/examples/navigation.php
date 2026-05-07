@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Crumbs\NavStack;
+use SugarCraft\Crumbs\NavStack;
 
 echo "=== NavStack — push / pop / back navigation ===\n\n";
 
@@ -46,6 +46,6 @@ echo "Filter 'dis': " . $nav2->filter('dis')->view() . "\n";
 echo "Total items: " . $nav2->depth() . ", Filtered: " . $nav2->filter('dis')->depth() . "\n\n";
 
 echo "--- Shell integration (auto-detect directory changes) ---\n";
-$shell = new \CandyCore\Crumbs\Shell();
+$shell = new \SugarCraft\Crumbs\Shell();
 $shell = $shell->pushDirectory('/home/user/projects/sugarcraft/src');
 echo "Shell crumb: " . $shell->view() . "\n";

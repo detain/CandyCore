@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query\Tests;
+namespace SugarCraft\Query\Tests;
 
-use CandyCore\Query\Pane;
+use SugarCraft\Query\Pane;
 use PHPUnit\Framework\TestCase;
 
 final class PaneEnumTest extends TestCase

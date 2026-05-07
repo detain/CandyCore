@@ -11,11 +11,11 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Prompt\Field\Input;
-use CandyCore\Prompt\Field\Select;
-use CandyCore\Prompt\Form;
-use CandyCore\Prompt\Group;
-use CandyCore\Prompt\Theme;
+use SugarCraft\Prompt\Field\Input;
+use SugarCraft\Prompt\Field\Select;
+use SugarCraft\Prompt\Form;
+use SugarCraft\Prompt\Group;
+use SugarCraft\Prompt\Theme;
 
 $themes = [
     'base'       => Theme::base(),

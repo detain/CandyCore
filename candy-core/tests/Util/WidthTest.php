@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Util;
+namespace SugarCraft\Core\Tests\Util;
 
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Util\Width;
 use PHPUnit\Framework\TestCase;
 
 final class WidthTest extends TestCase

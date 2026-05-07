@@ -5,13 +5,13 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-metrics)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-metrics)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-metrics?label=packagist)](https://packagist.org/packages/candycore/candy-metrics)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-metrics?label=packagist)](https://packagist.org/packages/sugarcraft/candy-metrics)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
 
 
-Lightweight telemetry primitives for CandyCore / CandyWish servers. Counters, gauges, histograms with pluggable backends — drop-in middleware for SSH session metrics.
+Lightweight telemetry primitives for SugarCraft / CandyWish servers. Counters, gauges, histograms with pluggable backends — drop-in middleware for SSH session metrics.
 
 ## Concepts
 
@@ -26,8 +26,8 @@ A `Registry` is the application-facing facade; it forwards every emit to the con
 ## Usage
 
 ```php
-use CandyCore\Metrics\Registry;
-use CandyCore\Metrics\Backend\StatsdBackend;
+use SugarCraft\Metrics\Registry;
+use SugarCraft\Metrics\Backend\StatsdBackend;
 
 $reg = new Registry(new StatsdBackend('127.0.0.1', 8125));
 
@@ -88,10 +88,10 @@ $reg = new Registry(new MultiBackend(
 Wires session telemetry into a CandyWish stack:
 
 ```php
-use CandyCore\Wish\Server;
-use CandyCore\Metrics\Registry;
-use CandyCore\Metrics\Backend\PrometheusFileBackend;
-use CandyCore\Metrics\Middleware\SessionMetrics;
+use SugarCraft\Wish\Server;
+use SugarCraft\Metrics\Registry;
+use SugarCraft\Metrics\Backend\PrometheusFileBackend;
+use SugarCraft\Metrics\Middleware\SessionMetrics;
 
 $reg = new Registry(new PrometheusFileBackend('/var/lib/wish/metrics.prom'));
 

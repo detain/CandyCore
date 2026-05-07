@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 /**
  * Terminal color capability tiers, matching charmbracelet/colorprofile.

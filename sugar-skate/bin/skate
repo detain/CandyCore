@@ -15,11 +15,11 @@ declare(strict_types=1);
  *
  * Database suffix: key@dbname
  */
-namespace CandyCore\Skate;
+namespace SugarCraft\Skate;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Skate\Store;
+use SugarCraft\Skate\Store;
 
 $bin = basename($argv[0]);
 

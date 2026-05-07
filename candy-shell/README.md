@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-shell)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-shell)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-shell?label=packagist)](https://packagist.org/packages/candycore/candy-shell)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-shell?label=packagist)](https://packagist.org/packages/sugarcraft/candy-shell)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -14,7 +14,7 @@
 ![demo](.vhs/style.gif)
 
 PHP port of [charmbracelet/gum](https://github.com/charmbracelet/gum) —
-a composer-installable CLI of CandyCore TUI primitives, useful for
+a composer-installable CLI of SugarCraft TUI primitives, useful for
 shell scripts.
 
 ```sh

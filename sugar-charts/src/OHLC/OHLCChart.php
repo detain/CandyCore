@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\OHLC;
+namespace SugarCraft\Charts\OHLC;
 
-use CandyCore\Charts\Canvas\Canvas;
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Charts\Canvas\Canvas;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * OHLC / candlestick chart drawn onto a {@see Canvas}. Each bar gets

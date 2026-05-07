@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Prompt\Field\MultiSelect;
+use SugarCraft\Prompt\Field\MultiSelect;
 
 $field = MultiSelect::new('toppings')
     ->withTitle('Toppings')

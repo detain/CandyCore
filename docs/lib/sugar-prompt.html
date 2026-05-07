@@ -43,14 +43,14 @@
       </div>
     </div>
 
-    <p class="lede" style="margin-top: 28px;">Form library built on CandyCore + SugarBits. Multi-page Group wizards, six themes, per-field validators, conditional skip predicates. The form is itself a Model — drop it into a Program.</p>
+    <p class="lede" style="margin-top: 28px;">Form library built on SugarCraft + SugarBits. Multi-page Group wizards, six themes, per-field validators, conditional skip predicates. The form is itself a Model — drop it into a Program.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/sugar-prompt</code></pre>
+    <pre class="code"><code>composer require sugarcraft/sugar-prompt</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Prompt\Form;
-use CandyCore\Prompt\Field\{Input, Confirm, Select, Note};
+    <pre class="code"><code>use SugarCraft\Prompt\Form;
+use SugarCraft\Prompt\Field\{Input, Confirm, Select, Note};
 
 $form = Form::new(
     Note::new('welcome')
@@ -66,7 +66,7 @@ $form = Form::new(
         -&gt;withTitle('Favorite language?')
         -&gt;withOptions('PHP', 'Go', 'Rust', 'Python'),
 );
-// $form is a CandyCore Model — drop it into a Program.</code></pre>
+// $form is a SugarCraft Model — drop it into a Program.</code></pre>
 
     <h3 style="margin-top: 32px;">What's in the box</h3>
     <div class="feature-grid">

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine\Tests;
+namespace SugarCraft\Shine\Tests;
 
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase
@@ -220,7 +220,7 @@ MD;
 
     public function testStrikethroughEmitsSgrInAnsiTheme(): void
     {
-        $r = (new \CandyCore\Shine\Renderer(\CandyCore\Shine\Theme::ansi()))
+        $r = (new \SugarCraft\Shine\Renderer(\SugarCraft\Shine\Theme::ansi()))
             ->withHyperlinks(false);
         $out = $r->render('a ~~b~~ c');
         $this->assertStringContainsString("\x1b[9m", $out); // SGR 9 = strikethrough
@@ -232,7 +232,7 @@ MD;
         $out = $this->plain()->withWordWrap(15)->render($md);
         // Each line should be <= 15 visible cells.
         foreach (explode("\n", $out) as $line) {
-            $this->assertLessThanOrEqual(15, \CandyCore\Core\Util\Width::string($line));
+            $this->assertLessThanOrEqual(15, \SugarCraft\Core\Util\Width::string($line));
         }
         $this->assertGreaterThan(1, substr_count($out, "\n"));
     }
@@ -244,44 +244,44 @@ MD;
         // Blockquote prefix '▎ ' eats 2 cells; each rendered line should
         // still respect the 15-cell budget overall.
         foreach (explode("\n", $out) as $line) {
-            $this->assertLessThanOrEqual(15, \CandyCore\Core\Util\Width::string($line));
+            $this->assertLessThanOrEqual(15, \SugarCraft\Core\Util\Width::string($line));
         }
     }
 
     public function testThemeDarkPreset(): void
     {
-        $t = \CandyCore\Shine\Theme::dark();
+        $t = \SugarCraft\Shine\Theme::dark();
         $this->assertNotNull($t->strike);
         $this->assertNotNull($t->linkText);
     }
 
     public function testThemeLightPreset(): void
     {
-        $t = \CandyCore\Shine\Theme::light();
+        $t = \SugarCraft\Shine\Theme::light();
         $this->assertNotNull($t->strike);
     }
 
     public function testThemeDraculaPreset(): void
     {
-        $t = \CandyCore\Shine\Theme::dracula();
+        $t = \SugarCraft\Shine\Theme::dracula();
         $this->assertNotNull($t->strike);
     }
 
     public function testThemeTokyoNightPreset(): void
     {
-        $t = \CandyCore\Shine\Theme::tokyoNight();
+        $t = \SugarCraft\Shine\Theme::tokyoNight();
         $this->assertNotNull($t->strike);
     }
 
     public function testThemePinkPreset(): void
     {
-        $t = \CandyCore\Shine\Theme::pink();
+        $t = \SugarCraft\Shine\Theme::pink();
         $this->assertNotNull($t->strike);
     }
 
     public function testThemeNottyIsPlain(): void
     {
-        $r = (new \CandyCore\Shine\Renderer(\CandyCore\Shine\Theme::notty()))
+        $r = (new \SugarCraft\Shine\Renderer(\SugarCraft\Shine\Theme::notty()))
             ->withHyperlinks(false);
         $out = $r->render('# Hello');
         $this->assertSame('# Hello', $out);

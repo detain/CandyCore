@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Listing\Enumerator;
-use CandyCore\Sprinkles\Listing\ItemList;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Listing\Enumerator;
+use SugarCraft\Sprinkles\Listing\ItemList;
+use SugarCraft\Sprinkles\Style;
 
 echo "\x1b[36mDefault\x1b[0m\n";
 echo ItemList::new()

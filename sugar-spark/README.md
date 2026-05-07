@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=sugar-spark)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=sugar-spark)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/sugar-spark?label=packagist)](https://packagist.org/packages/candycore/sugar-spark)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/sugar-spark?label=packagist)](https://packagist.org/packages/sugarcraft/sugar-spark)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -18,7 +18,7 @@ an ANSI escape-sequence inspector. Pipe styled output through it and each
 escape becomes a labelled line.
 
 ```sh
-composer require candycore/sugar-spark
+composer require sugarcraft/sugar-spark
 ```
 
 ## CLI
@@ -44,7 +44,7 @@ ESC[?2026h  enable synchronized output
 ## Library
 
 ```php
-use CandyCore\Spark\Inspector;
+use SugarCraft\Spark\Inspector;
 
 foreach (Inspector::parse("\e[1;31mboom\e[0m") as $segment) {
     echo $segment->describe(), "\n";

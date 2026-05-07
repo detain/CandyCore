@@ -31,9 +31,9 @@ the script's hard-coded constants if you want to embed it differently.
 ### Sparkline that paints itself blue
 
 ```php
-use CandyCore\Charts\Sparkline\Sparkline;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Core\Util\{Color, ColorProfile};
+use SugarCraft\Charts\Sparkline\Sparkline;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Core\Util\{Color, ColorProfile};
 
 $style = Style::new()
     ->foreground(Color::hex('#4488ff'))
@@ -47,7 +47,7 @@ echo Sparkline::new([1, 5, 3, 8, 4, 7, 2, 9], 8)
 ### Time series pinned to a working-day window
 
 ```php
-use CandyCore\Charts\LineChart\TimeSeries;
+use SugarCraft\Charts\LineChart\TimeSeries;
 
 $start = new \DateTimeImmutable('2026-01-01 09:00:00');
 $end   = new \DateTimeImmutable('2026-01-01 17:00:00');
@@ -61,8 +61,8 @@ echo TimeSeries::new($points, 60, 12)
 ### Heatmap with a custom multi-stop palette
 
 ```php
-use CandyCore\Charts\Heatmap\Heatmap;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Heatmap\Heatmap;
+use SugarCraft\Core\Util\Color;
 
 echo Heatmap::new($grid, 60, 16)
     ->withPalette([
@@ -78,7 +78,7 @@ echo Heatmap::new($grid, 60, 16)
 ### Sub-cell scatter with `BrailleGrid`
 
 ```php
-use CandyCore\Charts\Canvas\{Canvas, BrailleGrid, Graph};
+use SugarCraft\Charts\Canvas\{Canvas, BrailleGrid, Graph};
 
 $canvas = new Canvas(40, 8);
 $grid   = new BrailleGrid(40, 8);

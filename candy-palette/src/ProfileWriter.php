@@ -12,10 +12,10 @@ declare(strict_types=1);
  *   $w = ProfileWriter::wrap(STDOUT);
  *   fwrite($w, \"\\x1b[38;2;255;0;0mred\\x1b[0m\"); // auto-degrades if terminal is ANSI256/ANSI
  */
-namespace CandyCore\Palette;
+namespace SugarCraft\Palette;
 
-use CandyCore\Palette\Palette;
-use CandyCore\Palette\Profile;
+use SugarCraft\Palette\Palette;
+use SugarCraft\Palette\Profile;
 
 /**
  * Wraps a stream and degrades color escape sequences to match the target profile.

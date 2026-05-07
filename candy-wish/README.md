@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-wish)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-wish)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-wish?label=packagist)](https://packagist.org/packages/candycore/candy-wish)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-wish?label=packagist)](https://packagist.org/packages/sugarcraft/candy-wish)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -18,7 +18,7 @@ PHP port of [`charmbracelet/wish`](https://github.com/charmbracelet/wish) — an
 CandyWish leans on the host's OpenSSH daemon rather than implementing the SSH wire protocol from scratch. The deployment shape is:
 
 ```
-[client] ─ssh─▶ [sshd] ─ForceCommand──▶ [php server.php] ──▶ [middleware stack] ──▶ [CandyCore Program]
+[client] ─ssh─▶ [sshd] ─ForceCommand──▶ [php server.php] ──▶ [middleware stack] ──▶ [SugarCraft Program]
 ```
 
 Each connection forks a fresh PHP process under `sshd`. The PHP entry script builds a `Server`, registers middleware, calls `serve()`, and returns when the user disconnects. This trades implementing SSH (key exchange, ciphers, host keys, fail2ban hooks, audit logs) for delegating it to the production-grade implementation already on every server.
@@ -45,11 +45,11 @@ Then `systemctl reload sshd`.
 <?php // /opt/wish/server.php
 require '/opt/wish/vendor/autoload.php';
 
-use CandyCore\Wish\Server;
-use CandyCore\Wish\Middleware\Logger;
-use CandyCore\Wish\Middleware\Auth;
-use CandyCore\Wish\Middleware\RateLimit;
-use CandyCore\Wish\Middleware\BubbleTea;
+use SugarCraft\Wish\Server;
+use SugarCraft\Wish\Middleware\Logger;
+use SugarCraft\Wish\Middleware\Auth;
+use SugarCraft\Wish\Middleware\RateLimit;
+use SugarCraft\Wish\Middleware\BubbleTea;
 
 Server::new()
     ->use(new Logger('/var/log/wish.jsonl'))
@@ -72,9 +72,9 @@ ssh wishuser@your-host
 | `Logger`      | One-line JSON event at session start + end, with elapsed time and connection meta. |
 | `Auth`        | Username allowlist, public-key fingerprint allowlist (or both).                    |
 | `RateLimit`   | Per-IP token-bucket persisted to a JSON state file with `flock(LOCK_EX)`.          |
-| `BubbleTea`   | Terminal middleware. Mounts a CandyCore Program for the connected user.            |
+| `BubbleTea`   | Terminal middleware. Mounts a SugarCraft Program for the connected user.            |
 
-You can write your own — implement `CandyCore\Wish\Middleware`:
+You can write your own — implement `SugarCraft\Wish\Middleware`:
 
 ```php
 final class HelloBanner implements Middleware

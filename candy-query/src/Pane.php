@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query;
+namespace SugarCraft\Query;
 
 enum Pane: string
 {

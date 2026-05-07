@@ -10,10 +10,10 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Flip\Decoder;
-use CandyCore\Flip\Player;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Flip\Decoder;
+use SugarCraft\Flip\Player;
 
 if (!extension_loaded('gd')) {
     fwrite(STDERR, "candy-flip example: ext-gd is required\n");

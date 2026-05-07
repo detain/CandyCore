@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Tests\Backend;
+namespace SugarCraft\Crush\Tests\Backend;
 
-use CandyCore\Crush\Backend\CommandBackend;
-use CandyCore\Crush\Message;
+use SugarCraft\Crush\Backend\CommandBackend;
+use SugarCraft\Crush\Message;
 use PHPUnit\Framework\TestCase;
 
 final class CommandBackendTest extends TestCase

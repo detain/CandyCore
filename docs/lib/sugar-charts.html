@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SugarCharts — SugarCraft</title>
-<meta name="description" content="SugarCharts: Terminal charts for CandyCore. PHP port of ntcharts.">
+<meta name="description" content="SugarCharts: Terminal charts for SugarCraft. PHP port of ntcharts.">
 <meta property="og:title" content="SugarCharts — SugarCraft">
-<meta property="og:description" content="Terminal charts for CandyCore. Port of ntcharts.">
+<meta property="og:description" content="Terminal charts for SugarCraft. Port of ntcharts.">
 <meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-charts.png">
 <link rel="icon" type="image/png" href="../img/icons/sugar-charts.png">
 <link rel="stylesheet" href="../css/style.css">
@@ -33,7 +33,7 @@
       <img class="detail-icon" src="../img/icons/sugar-charts.png" alt="SugarCharts">
       <div>
         <h2>📊 SugarCharts</h2>
-        <p class="detail-sub">Terminal charts for CandyCore</p>
+        <p class="detail-sub">Terminal charts for SugarCraft</p>
         <div class="detail-meta">
           <span class="tag-chip accent">port of <a href="https://github.com/NimbleMarkets/ntcharts" style="color: inherit;">ntcharts</a></span>
           <span class="tag-chip">charts</span>
@@ -49,12 +49,12 @@
     <p class="lede" style="margin-top: 28px;">Sparkline, Bar, Line, Heatmap, Scatter, TimeSeries, Streamline, Waveline, OHLC, plus inline image rendering via Sixel / Kitty / iTerm2 protocols. Auto-detects terminal capability.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/sugar-charts</code></pre>
+    <pre class="code"><code>composer require sugarcraft/sugar-charts</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Charts\Sparkline\Sparkline;
-use CandyCore\Charts\BarChart\BarChart;
-use CandyCore\Charts\LineChart\LineChart;
+    <pre class="code"><code>use SugarCraft\Charts\Sparkline\Sparkline;
+use SugarCraft\Charts\BarChart\BarChart;
+use SugarCraft\Charts\LineChart\LineChart;
 
 echo Sparkline::new([1, 3, 2, 8, 5, 4, 7, 6], 8)-&gt;view() . PHP_EOL;
 // ▁▃▂█▅▄▇▆

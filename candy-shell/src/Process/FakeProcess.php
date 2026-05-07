@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Process;
+namespace SugarCraft\Shell\Process;
 
 /**
  * Test double for {@see Process}. Holds a mutable `$exitCode` (null while

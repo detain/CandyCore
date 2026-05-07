@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query\Tests;
+namespace SugarCraft\Query\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Query\App;
-use CandyCore\Query\Database;
-use CandyCore\Query\Pane;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Query\App;
+use SugarCraft\Query\Database;
+use SugarCraft\Query\Pane;
 use PHPUnit\Framework\TestCase;
 
 final class AppTest extends TestCase

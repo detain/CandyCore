@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Process;
+namespace SugarCraft\Shell\Tests\Process;
 
-use CandyCore\Shell\Process\RealProcess;
+use SugarCraft\Shell\Process\RealProcess;
 use PHPUnit\Framework\TestCase;
 
 final class RealProcessTest extends TestCase

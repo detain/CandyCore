@@ -14,7 +14,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Skate\Store;
+use SugarCraft\Skate\Store;
 
 $tmp = sys_get_temp_dir() . '/skate-glob-demo-' . uniqid();
 $store = new Store($tmp);

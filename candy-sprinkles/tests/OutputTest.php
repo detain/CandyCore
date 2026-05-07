@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Sprinkles\Output;
+use SugarCraft\Sprinkles\Output;
 use PHPUnit\Framework\TestCase;
 
 final class OutputTest extends TestCase

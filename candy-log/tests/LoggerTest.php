@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log\Tests;
+namespace SugarCraft\Log\Tests;
 
-use CandyCore\Log\Logger;
-use CandyCore\Log\Level;
-use CandyCore\Log\Formatter\JsonFormatter;
-use CandyCore\Log\Formatter\LogfmtFormatter;
+use SugarCraft\Log\Log;
+use SugarCraft\Log\Logger;
+use SugarCraft\Log\Level;
+use SugarCraft\Log\Formatter\JsonFormatter;
+use SugarCraft\Log\Formatter\LogfmtFormatter;
 use PHPUnit\Framework\TestCase;
 
 final class LoggerTest extends TestCase
@@ -204,9 +205,9 @@ final class LoggerTest extends TestCase
     {
         $stream = \fopen($this->tempPath, 'w');
         $log = Logger::new(stream: $stream, level: Level::Debug, reportTimestamp: false);
-        Logger::setLogger($log);
+        Log::setLogger($log);
 
-        Logger::info('global hello', ['key' => 'val']);
+        Log::info('global hello', ['key' => 'val']);
         \fclose($stream);
 
         $content = \file_get_contents($this->tempPath);

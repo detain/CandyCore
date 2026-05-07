@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist\Tests;
+namespace SugarCraft\Wishlist\Tests;
 
-use CandyCore\Wishlist\Endpoint;
-use CandyCore\Wishlist\Picker;
+use SugarCraft\Wishlist\Endpoint;
+use SugarCraft\Wishlist\Picker;
 use PHPUnit\Framework\TestCase;
 
 /**

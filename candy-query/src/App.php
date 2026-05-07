@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query;
+namespace SugarCraft\Query;
 
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * SQLite browser as a CandyCore Model. Three panes:
+ * SQLite browser as a SugarCraft Model. Three panes:
  *
  *   - Tables: a list of tables. Enter loads its rows into the
  *             rows pane; the rows pane's title updates accordingly.

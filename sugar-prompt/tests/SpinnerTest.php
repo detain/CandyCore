@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Tests;
+namespace SugarCraft\Prompt\Tests;
 
-use CandyCore\Bits\Spinner\Style as SpinnerStyle;
-use CandyCore\Prompt\Spinner;
+use SugarCraft\Bits\Spinner\Style as SpinnerStyle;
+use SugarCraft\Prompt\Spinner;
 use PHPUnit\Framework\TestCase;
 
 final class SpinnerTest extends TestCase

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * DECSCUSR cursor-shape values used by {@see View::$cursor} and the
- * {@see \CandyCore\Core\Util\Ansi::cursorShape()} helper.
+ * {@see \SugarCraft\Core\Util\Ansi::cursorShape()} helper.
  */
 enum CursorShape: int
 {

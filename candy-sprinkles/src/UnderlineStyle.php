@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
 /**
  * Underline-line style — drives the SGR 4:N sub-parameter that

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table;
+namespace SugarCraft\Table;
 
 /**
  * Row data as a key-value map.

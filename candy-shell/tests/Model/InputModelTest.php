@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Model;
+namespace SugarCraft\Shell\Tests\Model;
 
-use CandyCore\Bits\TextInput\EchoMode;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Shell\Model\InputModel;
+use SugarCraft\Bits\TextInput\EchoMode;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Shell\Model\InputModel;
 use PHPUnit\Framework\TestCase;
 
 final class InputModelTest extends TestCase

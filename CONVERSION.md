@@ -1,6 +1,6 @@
-# CandyCore — Charmbracelet → PHP Conversion Roadmap
+# SugarCraft — Charmbracelet → PHP Conversion Roadmap
 
-CandyCore is the umbrella project for porting the [Charmbracelet](https://charm.sh)
+SugarCraft is the umbrella project for porting the [Charmbracelet](https://charm.sh)
 Go TUI ecosystem (plus `bubblezone` and `ntcharts`) to modern PHP. Each Go library
 becomes its own PHP library — eventually its own repository — but during the
 porting phase they live as subdirectories of this repo and are wired together
@@ -22,16 +22,16 @@ and styling, `Sugar*` for components / data / forms, `Honey*` for math/physics.
 
 | # | Source (Go) | PHP port | Subdir / Composer pkg | PSR-4 namespace | Role |
 |---|---|---|---|---|---|
-| 1 | [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) | **CandySprinkles** | `candy-sprinkles/` → `candycore/candy-sprinkles` | `CandyCore\Sprinkles` | Styling, layout, borders, tables/lists/trees |
-| 2 | [charmbracelet/harmonica](https://github.com/charmbracelet/harmonica) | **HoneyBounce** | `honey-bounce/` → `candycore/honey-bounce` | `CandyCore\Bounce` | Spring-physics animation |
-| 3 | [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) | **CandyCore** | `candy-core/` → `candycore/candy-core` | `CandyCore\Core` | Elm-architecture TUI runtime |
-| 4 | [lrstanley/bubblezone](https://github.com/lrstanley/bubblezone) | **CandyZone** | `candy-zone/` → `candycore/candy-zone` | `CandyCore\Zone` | Mouse-zone tracker |
-| 5 | [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) | **SugarBits** | `sugar-bits/` → `candycore/sugar-bits` | `CandyCore\Bits` | Pre-built components |
-| 6 | [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) | **SugarCharts** | `sugar-charts/` → `candycore/sugar-charts` | `CandyCore\Charts` | Line / bar / sparkline / heatmap |
-| 7 | [charmbracelet/huh](https://github.com/charmbracelet/huh) | **SugarPrompt** | `sugar-prompt/` → `candycore/sugar-prompt` | `CandyCore\Prompt` | Form library |
-| 8 | [charmbracelet/gum](https://github.com/charmbracelet/gum) | **CandyShell** | `candy-shell/` → `candycore/candy-shell` | `CandyCore\Shell` | CLI tool (composer bin) |
+| 1 | [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) | **CandySprinkles** | `candy-sprinkles/` → `sugarcraft/candy-sprinkles` | `SugarCraft\Sprinkles` | Styling, layout, borders, tables/lists/trees |
+| 2 | [charmbracelet/harmonica](https://github.com/charmbracelet/harmonica) | **HoneyBounce** | `honey-bounce/` → `sugarcraft/honey-bounce` | `SugarCraft\Bounce` | Spring-physics animation |
+| 3 | [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) | **SugarCraft** | `candy-core/` → `sugarcraft/candy-core` | `SugarCraft\Core` | Elm-architecture TUI runtime |
+| 4 | [lrstanley/bubblezone](https://github.com/lrstanley/bubblezone) | **CandyZone** | `candy-zone/` → `sugarcraft/candy-zone` | `SugarCraft\Zone` | Mouse-zone tracker |
+| 5 | [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) | **SugarBits** | `sugar-bits/` → `sugarcraft/sugar-bits` | `SugarCraft\Bits` | Pre-built components |
+| 6 | [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) | **SugarCharts** | `sugar-charts/` → `sugarcraft/sugar-charts` | `SugarCraft\Charts` | Line / bar / sparkline / heatmap |
+| 7 | [charmbracelet/huh](https://github.com/charmbracelet/huh) | **SugarPrompt** | `sugar-prompt/` → `sugarcraft/sugar-prompt` | `SugarCraft\Prompt` | Form library |
+| 8 | [charmbracelet/gum](https://github.com/charmbracelet/gum) | **CandyShell** | `candy-shell/` → `sugarcraft/candy-shell` | `SugarCraft\Shell` | CLI tool (composer bin) |
 
-> Note: "CandyCore" is both the umbrella project / repo name **and** the PHP
+> Note: "SugarCraft" is both the umbrella project / repo name **and** the PHP
 > port of `bubbletea` (the foundation library), in keeping with PROJECT_NAMES.md.
 
 ---
@@ -47,7 +47,7 @@ and styling, `Sugar*` for components / data / forms, `Honey*` for math/physics.
 | **Repo split** | When a library hits **v1.0**, its subdir is extracted into its own repo with full git history (`git filter-repo`) and published on Packagist. Until then, all live here. |
 | **Strict types** | `declare(strict_types=1)` everywhere. |
 | **Style** | PSR-12 + readonly DTOs; immutable `Style`/`Model` objects with `with*()` returning a new instance (matches lipgloss/bubbletea idioms). |
-| **Testing** | PHPUnit 10. Snapshot ANSI rendering tests for CandySprinkles; scripted-input event tests for CandyCore. |
+| **Testing** | PHPUnit 10. Snapshot ANSI rendering tests for CandySprinkles; scripted-input event tests for SugarCraft. |
 | **TTY layer** | PHP FFI to libc termios where available; `stty` shell-out fallback for portability. Windows support via VT processing on Win10+ only. |
 | **Unicode width** | `symfony/string` grapheme handling + a small width table port from `clipperhouse/displaywidth`. |
 | **Color** | Port of `colorprofile` for capability detection; downsample TrueColor → 256 → 16 → mono as needed. |
@@ -59,7 +59,7 @@ and styling, `Sugar*` for components / data / forms, `Honey*` for math/physics.
 Bottom-up — never block on a missing dep. The user asked to start with
 `bubbletea`, but it depends on rendering primitives (color profile, width
 calc, ANSI builder); we therefore stand up Phase 0 + CandySprinkles in parallel
-with CandyCore so neither blocks the other.
+with SugarCraft so neither blocks the other.
 
 ```
 Phase 0  Foundation utilities  (lives under candy-core/src/Util)
@@ -70,7 +70,7 @@ Phase 0  Foundation utilities  (lives under candy-core/src/Util)
 
 Phase 1  CandySprinkles   (lipgloss)           — pure rendering, deps Phase 0
 Phase 2  HoneyBounce  (harmonica)          — pure math, no deps
-Phase 3  CandyCore    (bubbletea)          — Phase 0 + ReactPHP/Amp
+Phase 3  SugarCraft    (bubbletea)          — Phase 0 + ReactPHP/Amp
 Phase 4  CandyZone    (bubblezone)         — Phase 1 + Phase 3
 Phase 5  SugarBits    (bubbles)            — Phases 1 + 2 + 3
 Phase 6  SugarCharts  (ntcharts)           — Phases 1 + 3 + 4
@@ -97,7 +97,7 @@ Each library tracks the same checklist:
 ### 1. CandySprinkles  ←  lipgloss
 
 - **Source:** https://github.com/charmbracelet/lipgloss
-- **Subdir:** `candy-sprinkles/`  ·  **Package:** `candycore/candy-sprinkles`  ·  **NS:** `CandyCore\Sprinkles`
+- **Subdir:** `candy-sprinkles/`  ·  **Package:** `sugarcraft/candy-sprinkles`  ·  **NS:** `SugarCraft\Sprinkles`
 - **Scope:** Declarative styled text, padding/margins/borders, alignment,
   color, gradients, joins. Sub-namespaces `Sprinkles\Listing`, `Sprinkles\Table`, `Sprinkles\Tree`.
 - **Public surface to cover:**
@@ -110,17 +110,17 @@ Each library tracks the same checklist:
 ### 2. HoneyBounce  ←  harmonica
 
 - **Source:** https://github.com/charmbracelet/harmonica
-- **Subdir:** `honey-bounce/`  ·  **Package:** `candycore/honey-bounce`  ·  **NS:** `CandyCore\Bounce`
+- **Subdir:** `honey-bounce/`  ·  **Package:** `sugarcraft/honey-bounce`  ·  **NS:** `SugarCraft\Bounce`
 - **Scope:** Damped simple-harmonic-oscillator spring physics for animation.
 - **Public surface:** `Spring(dt, frequency, dampingRatio)`, `update($pos, $vel, $target): array{0:float,1:float}`, `fps(int): float`.
 - **PHP risks:** Floating-point parity with the Go reference (test against
   fixture vectors). Otherwise trivial — language-agnostic math.
 - **Status:** `[ ] [ ] [ ] [ ] [ ] [ ] [ ]`
 
-### 3. CandyCore  ←  bubbletea
+### 3. SugarCraft  ←  bubbletea
 
 - **Source:** https://github.com/charmbracelet/bubbletea
-- **Subdir:** `candy-core/`  ·  **Package:** `candycore/candy-core`  ·  **NS:** `CandyCore\Core`
+- **Subdir:** `candy-core/`  ·  **Package:** `sugarcraft/candy-core`  ·  **NS:** `SugarCraft\Core`
 - **Scope:** Elm-architecture runtime. Reads input, dispatches `Msg`s to the
   user `Model`'s `update()`, runs returned `Cmd`s, renders `view()` to the
   terminal at 60 FPS.
@@ -137,7 +137,7 @@ Each library tracks the same checklist:
 ### 4. CandyZone  ←  bubblezone
 
 - **Source:** https://github.com/lrstanley/bubblezone
-- **Subdir:** `candy-zone/`  ·  **Package:** `candycore/candy-zone`  ·  **NS:** `CandyCore\Zone`
+- **Subdir:** `candy-zone/`  ·  **Package:** `sugarcraft/candy-zone`  ·  **NS:** `SugarCraft\Zone`
 - **Scope:** Wraps rendered chunks with zero-width ANSI markers so mouse
   events can be mapped back to logical UI elements.
 - **Public surface:** `Manager::newGlobal()`, `mark(string $id, string $content)`,
@@ -149,7 +149,7 @@ Each library tracks the same checklist:
 ### 5. SugarBits  ←  bubbles
 
 - **Source:** https://github.com/charmbracelet/bubbles
-- **Subdir:** `sugar-bits/`  ·  **Package:** `candycore/sugar-bits`  ·  **NS:** `CandyCore\Bits`
+- **Subdir:** `sugar-bits/`  ·  **Package:** `sugarcraft/sugar-bits`  ·  **NS:** `SugarCraft\Bits`
 - **Scope:** 14 ready-made components, each its own sub-namespace:
   `cursor`, `filepicker`, `help`, `key`, `list`, `paginator`, `progress`,
   `spinner`, `stopwatch`, `table`, `textarea`, `textinput`, `timer`, `viewport`.
@@ -166,7 +166,7 @@ Each library tracks the same checklist:
 ### 6. SugarCharts  ←  ntcharts
 
 - **Source:** https://github.com/NimbleMarkets/ntcharts
-- **Subdir:** `sugar-charts/`  ·  **Package:** `candycore/sugar-charts`  ·  **NS:** `CandyCore\Charts`
+- **Subdir:** `sugar-charts/`  ·  **Package:** `sugarcraft/sugar-charts`  ·  **NS:** `SugarCraft\Charts`
 - **Scope:** Canvas + 9 chart types: `barchart`, `linechart` (regular, scatter,
   streamline, time-series, waveline), `heatmap`, `sparkline`, `picture`.
 - **Public surface:** `Canvas` (`new()`, `setCell($x, $y, $rune, $style)`,
@@ -180,8 +180,8 @@ Each library tracks the same checklist:
 ### 7. SugarPrompt  ←  huh
 
 - **Source:** https://github.com/charmbracelet/huh
-- **Subdir:** `sugar-prompt/`  ·  **Package:** `candycore/sugar-prompt`  ·  **NS:** `CandyCore\Prompt`
-- **Scope:** High-level form builder over CandyCore + SugarBits. Groups,
+- **Subdir:** `sugar-prompt/`  ·  **Package:** `sugarcraft/sugar-prompt`  ·  **NS:** `SugarCraft\Prompt`
+- **Scope:** High-level form builder over SugarCraft + SugarBits. Groups,
   pages, conditional visibility, validation, themes.
 - **Public surface:** `Form::new()`, `Group::new()`, field constructors
   (`Input`, `Text`, `Select`, `MultiSelect`, `Confirm`, `FilePicker`),
@@ -193,7 +193,7 @@ Each library tracks the same checklist:
 ### 8. CandyShell  ←  gum
 
 - **Source:** https://github.com/charmbracelet/gum
-- **Subdir:** `candy-shell/`  ·  **Package:** `candycore/candy-shell`  ·  **NS:** `CandyCore\Shell`
+- **Subdir:** `candy-shell/`  ·  **Package:** `sugarcraft/candy-shell`  ·  **NS:** `SugarCraft\Shell`
 - **Scope:** Composer-installable bin (`vendor/bin/candyshell`) wrapping the
   TUI primitives for shell scripts. 13 subcommands: `choose`, `confirm`,
   `file`, `filter`, `format`, `input`, `join`, `log`, `pager`, `spin`,
@@ -209,19 +209,19 @@ Each library tracks the same checklist:
 
 ## Cross-cutting concerns
 
-- **TTY handling.** Single shared abstraction in `CandyCore\Core\Tty` so every
+- **TTY handling.** Single shared abstraction in `SugarCraft\Core\Tty` so every
   library that needs raw mode / size queries / cursor control goes through it.
   FFI-based termios with an `stty` shell-out fallback. Windows: require
   Win10+ VT processing.
 - **ANSI compatibility.** Centralize escape-sequence emission in
-  `CandyCore\Core\Ansi`. CandySprinkles depends on it; never hand-roll escapes
+  `SugarCraft\Core\Ansi`. CandySprinkles depends on it; never hand-roll escapes
   inside individual components.
 - **Input parsing.** A single ANSI/CSI parser (with bracketed-paste, mouse
   SGR, focus-in/out, Kitty keyboard protocol where available) lives in
-  CandyCore and emits typed `Msg` objects.
+  SugarCraft and emits typed `Msg` objects.
 - **Testing.**
   - CandySprinkles: PHPUnit snapshot tests of `Render()` output (raw bytes).
-  - CandyCore: scripted input feeder + assertion on emitted `view()` frames.
+  - SugarCraft: scripted input feeder + assertion on emitted `view()` frames.
   - SugarBits/SugarCharts/SugarPrompt: integration tests built on the above.
 - **CI.** GitHub Actions matrix (PHP 8.1 / 8.2 / 8.3 / 8.4) running `phpstan`
   (level 8), `phpunit`, and `php-cs-fixer --dry-run`.
@@ -240,7 +240,7 @@ Update this table as work proceeds. Status legend:
 | 0 | Foundation utilities (ansi / color / width / tty) | 🟢 | 100% | `Util\Ansi` covers SGR / cursor / erase / scroll region (DECSTBM) / scroll up-down (CSI S/T) / insert+delete line/char / OSC 7 / 8 hyperlinks / 9;4 progress / 10/11/12/52 colour & clipboard / DCS XTVERSION / Kitty keyboard / DECRQM / tab stops / SCO save-restore. `Util\Width` adds `wrap` / `wrapAnsi` / `pad{Left,Right,Center}`. `Util\Color` adds HSL/HSV / lighten / darken / alpha / blend / blend1d / blend2d / complementary / luminance / isDark. `Util\ColorProfile` consults TTY + FORCE_COLOR + TERM_PROGRAM (iTerm/WezTerm/etc.) + WT_SESSION + CI/GitHub-Actions/etc. NEW `Util\Parser` + `Util\Token` — tokenising state machine for terminal byte streams (CSI / OSC / DCS / APC / SOS / PM). `Util\Tty::onResize` + `drainSignals`. (PR #50) |
 | 1 | CandySprinkles | 🟢 | 100% | `Style` (every lipgloss prop including `MaxWidth`/`MaxHeight`/`Inline`/`Transform`/`MarginBackground`/`TabWidth`/`ColorWhitespace`, per-side border colours, 21 getters, 15 `Unset*` resetters, `copy()`). NEW `Sprinkles\Layout` ports lipgloss's package-level helpers: `Place`/`PlaceHorizontal`/`PlaceVertical`/`JoinHorizontal`/`JoinVertical`/`Width`/`Height`/`Size` + `Position::TOP/CENTER/RIGHT/BOTTOM`. `Listing\Enumerator` adds `roman`/`romanUpper`/`decimal`; `ItemList` accepts nested sublists + `itemStyle`/`itemStyleFunc`/`enumeratorStyle`. `Tree\Enumerator` (default/rounded/ascii) + `Tree::indenter`/`rootStyle`/`itemStyle`/`enumeratorStyle`/`hide`. `Table::styleFunc` for per-cell styling, plus per-side border + offset + width-cap. (PR #51) |
 | 2 | HoneyBounce | 🟢 | 100% | `Spring` (under/critically/over-damped + `fps()`). NEW `Vector` + `Point` value objects, `Projectile` Newtonian simulator with `update()` returning a fresh instance, `GRAVITY` + `TERMINAL_GRAVITY` constants and `gravity()`/`terminalGravity()` factory vectors. (PR #52) |
-| 3 | CandyCore (runtime) | 🟢 | 100% | All Bubble Tea v2 Cmds shipped: `Suspend`/`Interrupt`/`Resume` (with SIGTSTP/SIGCONT handlers), `Exec`/`ExecProcess` (TTY release + restore around external command), `Sequence`, `Every` (wall-clock-aligned), `Printf`, plus stateful helpers (`enterAltScreen`/`exitAltScreen`/`clearScreen`/`show`/`hideCursor`/mouse-mode toggles/focus + bracketed-paste toggles/scroll up-down/colour set+reset). NEW Msgs: `Suspend`/`Resume`/`Interrupt`/`Exec`. ProgramOptions adds `catchPanics`, `withoutRenderer`, `filter` (Msg pre-processor closure). (PR #53) |
+| 3 | SugarCraft (runtime) | 🟢 | 100% | All Bubble Tea v2 Cmds shipped: `Suspend`/`Interrupt`/`Resume` (with SIGTSTP/SIGCONT handlers), `Exec`/`ExecProcess` (TTY release + restore around external command), `Sequence`, `Every` (wall-clock-aligned), `Printf`, plus stateful helpers (`enterAltScreen`/`exitAltScreen`/`clearScreen`/`show`/`hideCursor`/mouse-mode toggles/focus + bracketed-paste toggles/scroll up-down/colour set+reset). NEW Msgs: `Suspend`/`Resume`/`Interrupt`/`Exec`. ProgramOptions adds `catchPanics`, `withoutRenderer`, `filter` (Msg pre-processor closure). (PR #53) |
 | 4 | CandyZone | 🟢 | 100% | `Manager::newPrefix()` namespaces zones across composed components via an atomic counter (or explicit prefix). `Manager::setEnabled(false)` makes `mark()` a pass-through and `scan()` an identity for non-interactive output. `prefix()` accessor. (PR #54) |
 | 5 | SugarBits | 🟢 | 95% | TextInput: autocomplete (`setSuggestions`/`showSuggestions`/`matchedSuggestions`/`currentSuggestion`/`next/prevSuggestion`/`acceptSuggestion`) + validators (`withValidator`/`err`) + cursor accessors + `paste`. TextArea: `showLineNumbers`/`withEndOfBufferCharacter`/`withPrompt`/`withMaxWidth`/`withMaxHeight`/`withValidator`/`setCursor`/`setCursorColumn`/`insertString`/`lineInfo`. ItemList: `newStatusMessage`+`withStatusMessageLifetime`/`status()`/`withShowStatusBar`/`withShowHelp`/`withShowFilter`/`withInfiniteScrolling`. Spinner: jump/moon/monkey/hamburger/ellipsis (now matches Bubbles' 12-style library). Progress: `incrPercent`/`decrPercent`/`withGradient`/`withSolidFill`/`withDefaultGradient`/`withPercentFormat`/`viewAs`. Table: `Column` value object + `setColumns`/`columns` + `gotoTop`/`gotoBottom`/`moveUp`/`moveDown`. FilePicker: `Entry::icon()`/`formatSize()`, `withShowIcons`/`withShowSize`/`withSortMode`+`SortMode` enum, `error()` accessor. Viewport: `MouseWheelMsg` handler + `withMouseWheelEnabled`/`withMouseWheelDelta`, `setYOffset`/`yOffset`, `withScrollbar`+`withScrollbarRunes`. (PR #56) |
 | 6 | SugarCharts | 🟢 | 95% | NEW `Canvas\Graph` ports the entire ntcharts canvas/graph primitive set: `drawHLine`/`VLine`/`XYAxis`/`XYAxisLabel` (last X label right-anchored to avoid clipping), `drawString`, `drawLine` (Bresenham), `drawLinePoints` (slope-glyph connectors), `fillRect`, `drawColumn`, `getCirclePoints` + `LINE_THIN/THICK/DOUBLE` rune presets. LineChart: `withAxes` + `withXLabels`/`withYLabels` + `withDataset`/`withDatasetPoint` (multi-series on shared axes). BarChart: `withHorizontal` (one-row-per-bar mode) + `withShowAxis` (the README's previously-fictional axis). NEW `LineChart\TimeSeries` accepts `[DateTimeImmutable, value]` tuples with PHP `date()` formatted X labels. Heatmap: `withPalette` (multi-stop colour scale) + `withLegend` (gradient strip with min/max labels). (PR #57) |
@@ -326,7 +326,7 @@ COLUMNS/LINES/`stty size`, raw mode via `stty -g` + `-icanon -echo`.
 
 **Top priorities.**
 1. `Util\Parser` — tokenising input parser. Unblocks reliable consumption
-   of every reply CandyCore queries for.
+   of every reply SugarCraft queries for.
 2. `Ansi::hyperlink()` (OSC 8) + scroll region / scroll / insert-delete
    line. Unblocks CandyShine + a real Viewport / Pager.
 3. `Width::wrap()` — needed by CandyShine and any text-heavy SugarBits
@@ -397,7 +397,7 @@ over-damped, negative-damping clamp, and a frame-30 fixture matching Go.
 gravity constants + a `ProjectileTest` against Go reference values. One
 sitting.
 
-### Phase 3 — CandyCore runtime (`candy-core/`)
+### Phase 3 — SugarCraft runtime (`candy-core/`)
 
 **Done.** Options: `WithAltScreen`, `WithoutSignalHandler`, `WithFPS`,
 `WithReportFocus`, `WithBracketedPaste`, `WithInput`, `WithOutput`,
@@ -624,7 +624,7 @@ inner-key ownership, `init()` Cmd propagation, `values()` collector.
 - **Per-field option gaps.**
   - `Input`: `withEchoMode` (password masking with `*`), `withSuggestions`.
   - `Text`: `withEditor` (external `$EDITOR` shell-out — depends on
-    CandyCore `Exec`).
+    SugarCraft `Exec`).
   - `Select`/`MultiSelect`: `withValue`, `withTitleFunc`, `withOptionsFunc`,
     `withFiltering` toggle (filter is always-on).
   - `MultiSelect`: `withLimit` (combined cap), `withHeight`.
@@ -738,7 +738,7 @@ SGR flags, partial overrides fall through to `Style::new()`).
 
 These don't belong to any single phase; they showed up across multiple.
 
-- **Input parser as a shared lib (`Util\Parser`).** CandyCore's
+- **Input parser as a shared lib (`Util\Parser`).** SugarCraft's
   `InputReader` rolls its own parsing; CandyShine and any future pager
   need OSC reply parsing. Promote to a single tokeniser in
   `candy-core/src/Util/Parser.php` and have everyone consume it.
@@ -747,12 +747,12 @@ These don't belong to any single phase; they showed up across multiple.
   and CandySprinkles (`MaxWidth`).
 - **OSC 8 hyperlinks** are needed by CandyShine *and* any SugarBits log
   / list / textarea that ought to render clickable URLs.
-- **`Exec`/`ExecProcess` in CandyCore** is the foundation that
+- **`Exec`/`ExecProcess` in SugarCraft** is the foundation that
   `SugarPrompt::withEditor` and several SugarBits actions depend on.
   Schedule before SugarPrompt theming.
 - **Theme abstraction.** Both CandyShine and SugarPrompt want a Theme
   system; CandyShell wants per-element style overrides. Worth
-  considering a single `CandyCore\Theme` value object with named
+  considering a single `SugarCraft\Theme` value object with named
   Style slots that all three consume, instead of three independent
   parallel implementations.
 
@@ -783,18 +783,18 @@ and the dependencies on phases 0–8.
 
 | # | Source (Go) | Proposed PHP port | Subdir / Composer pkg | PSR-4 namespace | Role | Depends on |
 |---|---|---|---|---|---|---|
-|  9 | [charmbracelet/glamour](https://github.com/charmbracelet/glamour) | **CandyShine** | `candy-shine/` → `candycore/candy-shine` | `CandyCore\Shine` | Markdown → ANSI renderer (table-driven styles, syntax highlighting). Unblocks Phase 8's `format` subcommand. | 0, 1 |
-| 10 | [charmbracelet/glow](https://github.com/charmbracelet/glow) | **SugarGlow** ✅ | `sugar-glow/` → `candycore/sugar-glow` | `CandyCore\Glow` | Markdown CLI viewer / pager. Library + `bin/sugarglow` CLI shipped — single Symfony Console default command renders Markdown via CandyShine and either prints to stdout (default) or opens a fullscreen `Viewport` pager (`-p` / `--pager`) sized to the terminal. `--theme ansi\|plain\|dark\|light\|notty\|dracula\|tokyo-night\|pink` (full CandyShine theme set), `--style/-s` alias, `--theme-config` for custom JSON themes, `--width/-w` word-wrap, `--no-hyperlinks` to disable OSC 8. Reads from a file argument or stdin. | 1, 3, 5, 9 |
-| 11 | [charmbracelet/freeze](https://github.com/charmbracelet/freeze) | **CandyFreeze** ✅ | `candy-freeze/` → `candycore/candy-freeze` | `CandyCore\Freeze` | Code → SVG screenshot. SVG-only first cut (no `ext-gd`/Imagick required); supports macOS-style traffic-light window controls, drop shadow, rounded-corner frame, optional gutter line numbers, and inline ANSI SGR colour parsing (16-color / 256-color / 24-bit truecolor + bold/italic/underline). 5 stock themes (`dark`/`light`/`dracula`/`tokyoNight`/`nord`). Library + `bin/candyfreeze` CLI shipped. | 1 |
-| 12 | [charmbracelet/sequin](https://github.com/charmbracelet/sequin) | **SugarSpark** ✅ | `sugar-spark/` → `candycore/sugar-spark` | `CandyCore\Spark` | Inspect / pretty-print ANSI escape sequences. Library + `bin/sugarspark` CLI shipped — labels SGR (foreground / background / 256-color / truecolor / attributes), CSI cursor moves, erase, DEC private mode toggles (mouse, focus, alt screen, bracketed paste, **synchronized output 2026, unicode mode 2027**), CSI ~ keys (Home/End/Delete/PgUp/PgDn/F1-F12), **scroll region (DECSTBM), scroll up/down, tab forward/backward, insert chars, DECSCUSR cursor shape, DECRQM/DECRPM mode query/reply, kitty keyboard query/push/pop, XTVERSION request, cursor position request**, SS3, OSC (title / icon / cwd / hyperlink / OSC 52 / **palette / progress / colour set + reset**), 2-byte ESC, **DCS** (XTVERSION reply, DECRPSS, sixel), **APC** (CandyZone markers, kitty graphics). Unrecognised sequences fall back to a generic descriptor so nothing is silently swallowed. | 0 |
-| 13 | [charmbracelet/fang](https://github.com/charmbracelet/fang) | **CandyKit** ✅ | `candy-kit/` → `candycore/candy-kit` | `CandyCore\Kit` | Opinionated CLI presentation helpers shipped: `Theme` (success/error/warn/info/prompt/accent/muted Style palette, **ansi / plain / charm / dracula / nord / catppuccin** factories), `StatusLine` (✓/✗/⚠/ℹ/? glyph + message), `Banner::title($title, $subtitle)` (rounded-bordered title block, custom Border supported), **`Section::header / rule`** (`── LABEL ────`), **`Stage::step / subStep`** (numbered build-script lines + tree-style sub-steps), **`HelpText::render`** (fang-style `--help` page from a `usage + sections` map). Library-only — no Symfony Console requirement so any Composer project can drop it in. | 1 |
-| 14 | [charmbracelet/wish](https://github.com/charmbracelet/wish) | **CandyWish** ✅ | `candy-wish/` → `candycore/candy-wish` | `CandyCore\Wish` | SSH-server middleware framework. Lean on host `sshd` via `ForceCommand`; PHP entry script runs the middleware chain (`Logger` / `Auth` / `RateLimit` / `BubbleTea`) per connection. Trade-off avoids re-implementing the SSH wire protocol — battle-tested cipher / host-key / fail2ban handling stays with OpenSSH. (PR #77) | 3 |
-| 15 | [charmbracelet/wishlist](https://github.com/charmbracelet/wishlist) | **SugarWishlist** ✅ | `sugar-wishlist/` → `candycore/sugar-wishlist` | `CandyCore\Wishlist` | SSH endpoint launcher. YAML / JSON directory of `ssh user@host` shortcuts, interactive picker (j/k or arrows, type-to-filter), then `pcntl_exec` into the chosen `ssh` so host-key prompts / agent forwarding / MOTD all flow through unchanged. Library + `bin/wishlist` CLI shipped. (PR #78) | — |
-| 16 | [charmbracelet/promwish](https://github.com/charmbracelet/promwish) | **CandyMetrics** ✅ | `candy-metrics/` → `candycore/candy-metrics` | `CandyCore\Metrics` | Telemetry primitives + CandyWish session middleware. `Registry` facade with `counter` / `gauge` / `histogram` / `time` / `withTags`; four backends (`InMemoryBackend`, `JsonStreamBackend`, `StatsdBackend` (etsy + DogStatsD), `PrometheusFileBackend` (atomic textfile-collector rewrite), `MultiBackend` for fanout). `SessionMetrics` middleware emits `wish.session.{connect,duration,error}` with user / term tags. (PR #79) | 14 |
-| 17 | [charmbracelet/crush](https://github.com/charmbracelet/crush) | **SugarCrush** ✅ | `sugar-crush/` → `candycore/sugar-crush` | `CandyCore\Crush` | Chat-shell TUI for AI coding assistants. Pluggable `Backend` interface (EchoBackend offline default, CommandBackend for shell-out wrappers — Anthropic/OpenAI/Ollama via a small wrapper script). Markdown replies via CandyShine, scrollback above a fixed input box, inFlight gate, UTF-8-aware backspace. (PR #86) | 0, 1, 3, 9 |
-| 18 | [charmbracelet/bubbletea-app-template](https://github.com/charmbracelet/bubbletea-app-template) | **CandyMold** ✅ | `candy-mold/` → `candycore/candy-mold` (Composer create-project) | `App\` (user-facing) | Skeleton repo for bootstrapping a CandyCore TUI app. `composer create-project candycore/candy-mold my-app` ships a working counter Model + bin/start + tests. (PR #82, renamed in #83) | 0, 3 |
-| 19 | [Broderick-Westrope/tetrigo](https://github.com/Broderick-Westrope/tetrigo) | **CandyTetris** ✅ | `candy-tetris/` → `candycore/candy-tetris` | `CandyCore\Tetris` | Tetris clone. Standard SRS rules — 7-bag RNG, ghost piece, hard drop, NES scoring (40/100/300/1200 × level+1), level-driven gravity ramp. Six pure-state classes covered by 41 tests / 1535 assertions. (PR #84) | 1, 3 |
-| 20 | [yorukot/superfile](https://github.com/yorukot/superfile) | **SuperCandy** ✅ | `super-candy/` → `candycore/super-candy` | `CandyCore\SuperCandy` | Dual-pane file manager. Tab-swap focus, vim/arrow keys, multi-select, sort cycling (name/mtime/size × asc/desc), hidden-file toggle, delete with explicit `y`-confirm gate. Filesystem injected as a closure so the entire transition layer is unit-testable without tmp dirs. (PR #85) | 1, 3 |
+|  9 | [charmbracelet/glamour](https://github.com/charmbracelet/glamour) | **CandyShine** | `candy-shine/` → `sugarcraft/candy-shine` | `SugarCraft\Shine` | Markdown → ANSI renderer (table-driven styles, syntax highlighting). Unblocks Phase 8's `format` subcommand. | 0, 1 |
+| 10 | [charmbracelet/glow](https://github.com/charmbracelet/glow) | **SugarGlow** ✅ | `sugar-glow/` → `sugarcraft/sugar-glow` | `SugarCraft\Glow` | Markdown CLI viewer / pager. Library + `bin/sugarglow` CLI shipped — single Symfony Console default command renders Markdown via CandyShine and either prints to stdout (default) or opens a fullscreen `Viewport` pager (`-p` / `--pager`) sized to the terminal. `--theme ansi\|plain\|dark\|light\|notty\|dracula\|tokyo-night\|pink` (full CandyShine theme set), `--style/-s` alias, `--theme-config` for custom JSON themes, `--width/-w` word-wrap, `--no-hyperlinks` to disable OSC 8. Reads from a file argument or stdin. | 1, 3, 5, 9 |
+| 11 | [charmbracelet/freeze](https://github.com/charmbracelet/freeze) | **CandyFreeze** ✅ | `candy-freeze/` → `sugarcraft/candy-freeze` | `SugarCraft\Freeze` | Code → SVG screenshot. SVG-only first cut (no `ext-gd`/Imagick required); supports macOS-style traffic-light window controls, drop shadow, rounded-corner frame, optional gutter line numbers, and inline ANSI SGR colour parsing (16-color / 256-color / 24-bit truecolor + bold/italic/underline). 5 stock themes (`dark`/`light`/`dracula`/`tokyoNight`/`nord`). Library + `bin/candyfreeze` CLI shipped. | 1 |
+| 12 | [charmbracelet/sequin](https://github.com/charmbracelet/sequin) | **SugarSpark** ✅ | `sugar-spark/` → `sugarcraft/sugar-spark` | `SugarCraft\Spark` | Inspect / pretty-print ANSI escape sequences. Library + `bin/sugarspark` CLI shipped — labels SGR (foreground / background / 256-color / truecolor / attributes), CSI cursor moves, erase, DEC private mode toggles (mouse, focus, alt screen, bracketed paste, **synchronized output 2026, unicode mode 2027**), CSI ~ keys (Home/End/Delete/PgUp/PgDn/F1-F12), **scroll region (DECSTBM), scroll up/down, tab forward/backward, insert chars, DECSCUSR cursor shape, DECRQM/DECRPM mode query/reply, kitty keyboard query/push/pop, XTVERSION request, cursor position request**, SS3, OSC (title / icon / cwd / hyperlink / OSC 52 / **palette / progress / colour set + reset**), 2-byte ESC, **DCS** (XTVERSION reply, DECRPSS, sixel), **APC** (CandyZone markers, kitty graphics). Unrecognised sequences fall back to a generic descriptor so nothing is silently swallowed. | 0 |
+| 13 | [charmbracelet/fang](https://github.com/charmbracelet/fang) | **CandyKit** ✅ | `candy-kit/` → `sugarcraft/candy-kit` | `SugarCraft\Kit` | Opinionated CLI presentation helpers shipped: `Theme` (success/error/warn/info/prompt/accent/muted Style palette, **ansi / plain / charm / dracula / nord / catppuccin** factories), `StatusLine` (✓/✗/⚠/ℹ/? glyph + message), `Banner::title($title, $subtitle)` (rounded-bordered title block, custom Border supported), **`Section::header / rule`** (`── LABEL ────`), **`Stage::step / subStep`** (numbered build-script lines + tree-style sub-steps), **`HelpText::render`** (fang-style `--help` page from a `usage + sections` map). Library-only — no Symfony Console requirement so any Composer project can drop it in. | 1 |
+| 14 | [charmbracelet/wish](https://github.com/charmbracelet/wish) | **CandyWish** ✅ | `candy-wish/` → `sugarcraft/candy-wish` | `SugarCraft\Wish` | SSH-server middleware framework. Lean on host `sshd` via `ForceCommand`; PHP entry script runs the middleware chain (`Logger` / `Auth` / `RateLimit` / `BubbleTea`) per connection. Trade-off avoids re-implementing the SSH wire protocol — battle-tested cipher / host-key / fail2ban handling stays with OpenSSH. (PR #77) | 3 |
+| 15 | [charmbracelet/wishlist](https://github.com/charmbracelet/wishlist) | **SugarWishlist** ✅ | `sugar-wishlist/` → `sugarcraft/sugar-wishlist` | `SugarCraft\Wishlist` | SSH endpoint launcher. YAML / JSON directory of `ssh user@host` shortcuts, interactive picker (j/k or arrows, type-to-filter), then `pcntl_exec` into the chosen `ssh` so host-key prompts / agent forwarding / MOTD all flow through unchanged. Library + `bin/wishlist` CLI shipped. (PR #78) | — |
+| 16 | [charmbracelet/promwish](https://github.com/charmbracelet/promwish) | **CandyMetrics** ✅ | `candy-metrics/` → `sugarcraft/candy-metrics` | `SugarCraft\Metrics` | Telemetry primitives + CandyWish session middleware. `Registry` facade with `counter` / `gauge` / `histogram` / `time` / `withTags`; four backends (`InMemoryBackend`, `JsonStreamBackend`, `StatsdBackend` (etsy + DogStatsD), `PrometheusFileBackend` (atomic textfile-collector rewrite), `MultiBackend` for fanout). `SessionMetrics` middleware emits `wish.session.{connect,duration,error}` with user / term tags. (PR #79) | 14 |
+| 17 | [charmbracelet/crush](https://github.com/charmbracelet/crush) | **SugarCrush** ✅ | `sugar-crush/` → `sugarcraft/sugar-crush` | `SugarCraft\Crush` | Chat-shell TUI for AI coding assistants. Pluggable `Backend` interface (EchoBackend offline default, CommandBackend for shell-out wrappers — Anthropic/OpenAI/Ollama via a small wrapper script). Markdown replies via CandyShine, scrollback above a fixed input box, inFlight gate, UTF-8-aware backspace. (PR #86) | 0, 1, 3, 9 |
+| 18 | [charmbracelet/bubbletea-app-template](https://github.com/charmbracelet/bubbletea-app-template) | **CandyMold** ✅ | `candy-mold/` → `sugarcraft/candy-mold` (Composer create-project) | `App\` (user-facing) | Skeleton repo for bootstrapping a SugarCraft TUI app. `composer create-project sugarcraft/candy-mold my-app` ships a working counter Model + bin/start + tests. (PR #82, renamed in #83) | 0, 3 |
+| 19 | [Broderick-Westrope/tetrigo](https://github.com/Broderick-Westrope/tetrigo) | **CandyTetris** ✅ | `candy-tetris/` → `sugarcraft/candy-tetris` | `SugarCraft\Tetris` | Tetris clone. Standard SRS rules — 7-bag RNG, ghost piece, hard drop, NES scoring (40/100/300/1200 × level+1), level-driven gravity ramp. Six pure-state classes covered by 41 tests / 1535 assertions. (PR #84) | 1, 3 |
+| 20 | [yorukot/superfile](https://github.com/yorukot/superfile) | **SuperCandy** ✅ | `super-candy/` → `sugarcraft/super-candy` | `SugarCraft\SuperCandy` | Dual-pane file manager. Tab-swap focus, vim/arrow keys, multi-select, sort cycling (name/mtime/size × asc/desc), hidden-file toggle, delete with explicit `y`-confirm gate. Filesystem injected as a closure so the entire transition layer is unit-testable without tmp dirs. (PR #85) | 1, 3 |
 
 ### Sequencing notes
 
@@ -876,20 +876,20 @@ Each shipped library gets the same treatment:
 - [ ] **GitHub repo polish:**
       - Description matches the composer.json description.
       - Topics tagged generously.
-      - Social preview image (CandyCore-themed).
+      - Social preview image (SugarCraft-themed).
       - Issue + PR templates.
       - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`.
       - Releases tagged with semver from v1.0.0 onward.
       - Discussions enabled.
 - [ ] **Packagist publish** (after split-out from monorepo): all libs
       under the `sugarcraft/` vendor namespace once available, otherwise
-      `candycore/` until then.
+      `sugarcraft/` until then.
 
 ### Website — sugarcraft.github.io
 
 - [ ] **Hero**: big animated banner showing CandyShell + SugarBits +
       SugarPrompt running side-by-side via VHS recordings.
-- [ ] **Library grid**: one tile per library (CandyCore, CandySprinkles,
+- [ ] **Library grid**: one tile per library (SugarCraft, CandySprinkles,
       SugarBits, etc.) with the package's signature glyph, one-line
       description, and "view on GitHub" / "view docs" / "view demo"
       links. Hover effect: rounded card lifts and glows.
@@ -897,7 +897,7 @@ Each shipped library gets the same treatment:
       that drop into a working `Counter` model in 10 lines.
 - [ ] **Showcase**: example apps using the stack — SugarCrush demo,
       CandyTetris playable embed, SuperCandy file manager screenshot.
-- [ ] **Why CandyCore?**: feature/comparison page (vs. plain
+- [ ] **Why SugarCraft?**: feature/comparison page (vs. plain
       Symfony Console, vs. raw `readline`, vs. Go bubbletea — for
       the curious).
 - [ ] **Docs portal**: a single search-friendly site stitching every
@@ -926,7 +926,7 @@ Each shipped library gets the same treatment:
 1. Pick the visual palette + a SugarCraft logo (one-shot design pass).
 2. Build the website skeleton (static, deployable to any CDN — GitHub
    Pages, Netlify, Vercel; whichever needs least ops).
-3. Wire up the VHS workflow on **CandyCore** first (most-watched repo;
+3. Wire up the VHS workflow on **SugarCraft** first (most-watched repo;
    sets the precedent for the rest).
 4. Roll the polish checklist library-by-library, easiest first
    (CandySprinkles, HoneyBounce — both pure-PHP, no I/O).
@@ -978,7 +978,7 @@ Status legend per feature:
 - 🔴 **missing — port**
 - ⚪ **N/A or skip** (with reason)
 
-### CandyCore (← Bubble Tea v2)
+### SugarCraft (← Bubble Tea v2)
 
 #### Runtime + IO
 
@@ -1057,7 +1057,7 @@ Status legend per feature:
 | Lipgloss is now pure (no I/O) — Bubble Tea owns all I/O | ✅ | We always made `Style::render()` pure; no I/O at all. |
 | `lipgloss.Color()` returns `color.Color` interface | ⚪ | We use `Color` value object directly; no migration. |
 | `lipgloss.Println` / `Printf` / `Sprint` / `Fprint` writers | ✅ | All four shipped on `Sprinkles\Style`: `sprint(...)` (concatenates with spaces and renders), `printfSprint($fmt, ...)` (sprintf wrapper), `println(...)` / `print(...)` (write rendered output to STDOUT), `fprint($stream, ...)` (caller-supplied stream). |
-| `HasDarkBackground(stdin, stdout)` | ✅ | `BackgroundColorMsg::isDark()` (relative-luminance Y < 0.5) on the OSC 11 reply parsed by CandyCore. Models call `Cmd::requestBackgroundColor()` from `init()` and check the reply. |
+| `HasDarkBackground(stdin, stdout)` | ✅ | `BackgroundColorMsg::isDark()` (relative-luminance Y < 0.5) on the OSC 11 reply parsed by SugarCraft. Models call `Cmd::requestBackgroundColor()` from `init()` and check the reply. |
 | `LightDark(isDark)` helper returning the right colour | ✅ | `Sprinkles\LightDark::pick(isDark, light, dark)` and `LightDark::picker(isDark)` (curried). Plus `Sprinkles\AdaptiveColor` value object and `Style::foregroundAdaptive()` / `backgroundAdaptive()` that resolve via `Style::resolveAdaptive(bool)` — explicit `foreground()` always wins, matching lipgloss precedence. |
 | `Complete(profile)` colour completion | ✅ | `Sprinkles\CompleteColor` value object holding a TrueColor / ANSI256 / ANSI triple with `pick(ColorProfile)`. `Style::foregroundComplete()` / `backgroundComplete()` setters store it; `Style::resolveProfile()` collapses to concrete fg/bg using the live `colorProfile()`. Explicit colours win, mirroring lipgloss precedence. |
 | `compat.AdaptiveColor` / `CompleteColor` / `CompleteAdaptiveColor` | ✅ | All three value objects ship in `Sprinkles\`: `AdaptiveColor` (light/dark pair, picks by `isDark` bool), `CompleteColor` (TrueColor/ANSI256/ANSI triple, picks by `ColorProfile`), and `CompleteAdaptiveColor` (combines both — picks the dark-bg or light-bg triple, then the right tier within it). |
@@ -1123,7 +1123,7 @@ The v2 parity work is **medium-term**, not urgent. Recommended order:
    side-effect escapes on change. Remaining per-frame fields
    (alt screen / mouse mode / focus / progress bar / colour profile)
    migrate one-by-one in follow-ups. Advanced compositing (layered
-   pop-overs) still scheduled for a CandyCore 2.0.
+   pop-overs) still scheduled for a SugarCraft 2.0.
 8. **Kitty keyboard protocol**: nice-to-have. Ship after the View
    struct so `KeyboardEnhancements` lives on the View where v2 puts
    it.
@@ -1158,7 +1158,7 @@ real-world workloads beyond the original Charmbracelet roster.
 
 Each app follows the same SugarCraft monorepo conventions:
 
-- `composer.json` with a `candycore/<slug>` name, `@dev` constraints
+- `composer.json` with a `sugarcraft/<slug>` name, `@dev` constraints
   on the libs it pulls from, path-repo entries for every monorepo
   sibling.
 - `bin/<slug>` — autoload bootstrap then `Program::run()`.

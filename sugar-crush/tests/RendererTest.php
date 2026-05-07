@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Tests;
+namespace SugarCraft\Crush\Tests;
 
-use CandyCore\Crush\Chat;
-use CandyCore\Crush\Message;
-use CandyCore\Crush\Renderer;
+use SugarCraft\Crush\Chat;
+use SugarCraft\Crush\Message;
+use SugarCraft\Crush\Renderer;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

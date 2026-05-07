@@ -15,11 +15,11 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Tick\Dashboard;
-use CandyCore\Tick\Heartbeat;
-use CandyCore\Tick\Store;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Tick\Dashboard;
+use SugarCraft\Tick\Heartbeat;
+use SugarCraft\Tick\Store;
 
 $argv = $argv ?? [];
 $cmd = $argv[1] ?? 'dashboard';

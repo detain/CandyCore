@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Marks the start of a bracketed-paste region. Emitted by
- * {@see \CandyCore\Core\InputReader} as soon as the `CSI 200 ~`
+ * {@see \SugarCraft\Core\InputReader} as soon as the `CSI 200 ~`
  * start marker is seen — *before* any of the pasted bytes are
  * collected.
  *

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Table;
+namespace SugarCraft\Sprinkles\Table;
 
 /**
  * Row-reader contract consumed by {@see Table::data()}. Any data

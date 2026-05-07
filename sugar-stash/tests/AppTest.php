@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash\Tests;
+namespace SugarCraft\Stash\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Stash\App;
-use CandyCore\Stash\GitDriver;
-use CandyCore\Stash\Pane;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Stash\App;
+use SugarCraft\Stash\GitDriver;
+use SugarCraft\Stash\Pane;
 use PHPUnit\Framework\TestCase;
 
 final class FixtureGit implements GitDriver

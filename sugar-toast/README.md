@@ -23,13 +23,13 @@ PHP port of [DaltonSW/bubbleup](https://github.com/daltonsw/bubbleup) — floati
 ## Install
 
 ```bash
-composer require candycore/sugar-toast
+composer require sugarcraft/sugar-toast
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Toast\{Position, Toast, ToastType};
+use SugarCraft\Toast\{Position, Toast, ToastType};
 
 $toast = Toast::new(50)  // max width 50
     ->withPosition(Position::TopRight)

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick;
+namespace SugarCraft\Tick;
 
 /**
  * Pure-state aggregator — folds a list of heartbeats into the

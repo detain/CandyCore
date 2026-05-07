@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\BarChart;
+namespace SugarCraft\Charts\BarChart;
 
 /**
  * Vertical bar chart drawn with `█` blocks. Bars are spaced one column

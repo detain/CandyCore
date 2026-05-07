@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris\Tests;
+namespace SugarCraft\Tetris\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Tetris\Bag;
-use CandyCore\Tetris\Game;
-use CandyCore\Tetris\GravityMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Tetris\Bag;
+use SugarCraft\Tetris\Game;
+use SugarCraft\Tetris\GravityMsg;
 use PHPUnit\Framework\TestCase;
 
 final class GameTest extends TestCase

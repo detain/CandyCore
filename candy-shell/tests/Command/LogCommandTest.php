@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Shell\Command\LogCommand;
+use SugarCraft\Shell\Command\LogCommand;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -61,7 +61,7 @@ final class LogCommandTest extends TestCase
         // Sanity check: passing 'kitchen' through formatLine should
         // produce a time fragment matching PHP's `g:ia` pattern, not
         // the literal string 'kitchen'.
-        $line = LogCommand::formatLine(\CandyCore\Shell\Log\LogLevel::Info, 'hi', '', 'kitchen', 'logfmt');
+        $line = LogCommand::formatLine(\SugarCraft\Shell\Log\LogLevel::Info, 'hi', '', 'kitchen', 'logfmt');
         $this->assertStringContainsString('time=', $line);
         $this->assertDoesNotMatchRegularExpression('/time=kitchen/', $line);
     }

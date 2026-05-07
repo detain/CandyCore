@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
-use CandyCore\Bits\Spinner\Spinner as BitsSpinner;
-use CandyCore\Bits\Spinner\Style as SpinnerStyle;
+use SugarCraft\Bits\Spinner\Spinner as BitsSpinner;
+use SugarCraft\Bits\Spinner\Style as SpinnerStyle;
 
 /**
  * Blocking "loading" prompt with a spinner. Mirrors huh's

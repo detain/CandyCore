@@ -12,8 +12,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Spinner\Style as SpinnerStyle;
-use CandyCore\Prompt\Spinner;
+use SugarCraft\Bits\Spinner\Style as SpinnerStyle;
+use SugarCraft\Prompt\Spinner;
 
 echo "Starting work...\n";
 

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine;
+namespace SugarCraft\Shine;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * A {@see Renderer} stylesheet — one {@see Style} per Markdown element

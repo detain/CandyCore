@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
 /**
  * Render a numbered "stage" line — an arrow / marker glyph + step

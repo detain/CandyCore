@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query;
+namespace SugarCraft\Query;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Position;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Position;
+use SugarCraft\Sprinkles\Style;
 
 final class Renderer
 {

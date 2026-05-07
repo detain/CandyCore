@@ -21,13 +21,13 @@ PHP port of [rmhubbert/bubbletea-overlay](https://github.com/rmhubbert/bubbletea
 ## Install
 
 ```bash
-composer require candycore/sugar-veil
+composer require sugarcraft/sugar-veil
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Veil\Veil;
+use SugarCraft\Veil\Veil;
 
 $veil = Veil::new();
 

@@ -1,5 +1,5 @@
 {
-    "name": "candycore/candy-flip",
+    "name": "sugarcraft/candy-flip",
     "description": "ASCII GIF viewer \u2014 port of namzug16/gifterm on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
@@ -9,7 +9,7 @@
         "gif",
         "ascii-art",
         "gifterm",
-        "candycore",
+        "sugarcraft",
         "sugarcraft"
     ],
     "homepage": "https://sugarcraft.github.io/lib/candy-flip.html",
@@ -30,8 +30,8 @@
     ],
     "require": {
         "php": ">=8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-sprinkles": "@dev",
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
         "ext-gd": "*"
     },
     "require-dev": {
@@ -39,12 +39,12 @@
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Flip\\": "src/"
+            "SugarCraft\\Flip\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Flip\\Tests\\": "tests/"
+            "SugarCraft\\Flip\\Tests\\": "tests/"
         }
     },
     "repositories": [

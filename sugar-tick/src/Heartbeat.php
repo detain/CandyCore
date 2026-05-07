@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick;
+namespace SugarCraft\Tick;
 
 /**
  * One activity sample. The editor plug-ins POST these via a tiny

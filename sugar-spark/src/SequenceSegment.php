@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark;
+namespace SugarCraft\Spark;
 
 /**
  * One ANSI escape sequence — its raw bytes paired with a decoded label

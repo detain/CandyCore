@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Cursor;
+namespace SugarCraft\Bits\Cursor;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /** Cursor blink pulse for the cursor with id {@see $id}. */
 final class BlinkMsg implements Msg

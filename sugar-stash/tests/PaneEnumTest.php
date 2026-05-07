@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash\Tests;
+namespace SugarCraft\Stash\Tests;
 
-use CandyCore\Stash\Pane;
+use SugarCraft\Stash\Pane;
 use PHPUnit\Framework\TestCase;
 
 final class PaneEnumTest extends TestCase

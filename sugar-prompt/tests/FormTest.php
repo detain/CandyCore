@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Tests;
+namespace SugarCraft\Prompt\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Prompt\Field\Confirm;
-use CandyCore\Prompt\Field\Input;
-use CandyCore\Prompt\Field\MultiSelect;
-use CandyCore\Prompt\Field\Note;
-use CandyCore\Prompt\Field\Select;
-use CandyCore\Prompt\Field\Text;
-use CandyCore\Prompt\Form;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Prompt\Field\Confirm;
+use SugarCraft\Prompt\Field\Input;
+use SugarCraft\Prompt\Field\MultiSelect;
+use SugarCraft\Prompt\Field\Note;
+use SugarCraft\Prompt\Field\Select;
+use SugarCraft\Prompt\Field\Text;
+use SugarCraft\Prompt\Form;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class FormTest extends TestCase
@@ -256,8 +256,8 @@ final class FormTest extends TestCase
     public function testGroupsCreatesMultiPageForm(): void
     {
         $form = Form::groups(
-            \CandyCore\Prompt\Group::new(Input::new('a')),
-            \CandyCore\Prompt\Group::new(Input::new('b')),
+            \SugarCraft\Prompt\Group::new(Input::new('a')),
+            \SugarCraft\Prompt\Group::new(Input::new('b')),
         );
         $this->assertSame(2, $form->totalGroups());
         $this->assertSame(0, $form->activeGroupIndex());
@@ -269,10 +269,10 @@ final class FormTest extends TestCase
     public function testGroupHideFuncSkipsGroup(): void
     {
         $form = Form::groups(
-            \CandyCore\Prompt\Group::new(Input::new('a')),
-            \CandyCore\Prompt\Group::new(Input::new('b'))
+            \SugarCraft\Prompt\Group::new(Input::new('a')),
+            \SugarCraft\Prompt\Group::new(Input::new('b'))
                 ->withHideFunc(static fn(array $values): bool => true),
-            \CandyCore\Prompt\Group::new(Input::new('c')),
+            \SugarCraft\Prompt\Group::new(Input::new('c')),
         );
         // Tab from group 0 → should jump to group 2 (group 1 hidden).
         [$form, ] = $form->update(new KeyMsg(KeyType::Tab));
@@ -282,8 +282,8 @@ final class FormTest extends TestCase
     public function testWithThemeSwapsTheme(): void
     {
         $form = Form::new(Input::new('a'))
-            ->withTheme(\CandyCore\Prompt\Theme::dracula());
-        $this->assertSame(\CandyCore\Prompt\Theme::dracula()::class, $form->theme::class);
+            ->withTheme(\SugarCraft\Prompt\Theme::dracula());
+        $this->assertSame(\SugarCraft\Prompt\Theme::dracula()::class, $form->theme::class);
     }
 
     public function testWithAccessibleSwitchesViewToPlainText(): void
@@ -310,10 +310,10 @@ final class FormTest extends TestCase
     public function testGroupViewIncludesTitleAndDescription(): void
     {
         $form = Form::groups(
-            \CandyCore\Prompt\Group::new(Input::new('a'))
+            \SugarCraft\Prompt\Group::new(Input::new('a'))
                 ->withTitle('Step 1')
                 ->withDescription('First page'),
-        )->withTheme(\CandyCore\Prompt\Theme::plain());
+        )->withTheme(\SugarCraft\Prompt\Theme::plain());
         $out = $form->view();
         $this->assertStringContainsString('Step 1',     $out);
         $this->assertStringContainsString('First page', $out);
@@ -467,8 +467,8 @@ final class FormTest extends TestCase
     public function testKeyBindsAddsPagingForMultiGroup(): void
     {
         $form = Form::groups(
-            \CandyCore\Prompt\Group::new(Input::new('a')),
-            \CandyCore\Prompt\Group::new(Input::new('b')),
+            \SugarCraft\Prompt\Group::new(Input::new('a')),
+            \SugarCraft\Prompt\Group::new(Input::new('b')),
         );
         $labels = array_map(static fn ($b) => $b[0], $form->keyBinds());
         $this->assertContains('next page', $labels);
@@ -527,15 +527,15 @@ final class FormTest extends TestCase
 
     public function testActiveThemePrefersGroupOverride(): void
     {
-        $custom = \CandyCore\Prompt\Theme::ansi();
+        $custom = \SugarCraft\Prompt\Theme::ansi();
         $form = Form::groups(
-            \CandyCore\Prompt\Group::new(Input::new('a'))->withTheme($custom),
+            \SugarCraft\Prompt\Group::new(Input::new('a'))->withTheme($custom),
         );
         // Group override wins.
         $this->assertSame($custom, $form->activeTheme());
 
         // Group with no override falls back to form theme.
-        $form2 = Form::groups(\CandyCore\Prompt\Group::new(Input::new('a')));
+        $form2 = Form::groups(\SugarCraft\Prompt\Group::new(Input::new('a')));
         $this->assertSame($form2->theme, $form2->activeTheme());
     }
 }

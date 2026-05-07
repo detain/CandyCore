@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Palette;
+namespace SugarCraft\Palette;
 
 /**
  * RGBA color value object.

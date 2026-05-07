@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Freeze;
+namespace SugarCraft\Freeze;
 
 /**
  * Visual theme for {@see SvgRenderer}. Carries the colours of every

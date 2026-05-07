@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Post\Tests;
+namespace SugarCraft\Post\Tests;
 
-use CandyCore\Post\Attachment;
+use SugarCraft\Post\Attachment;
 use PHPUnit\Framework\TestCase;
 
 final class AttachmentTest extends TestCase

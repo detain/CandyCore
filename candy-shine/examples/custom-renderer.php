@@ -11,10 +11,10 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
+use SugarCraft\Sprinkles\Style;
 
 // Start from the dark stock theme, then override one slot.
 $base = Theme::dark();

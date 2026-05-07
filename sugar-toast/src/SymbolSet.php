@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Toast;
+namespace SugarCraft\Toast;
 
 /**
  * Symbol set used for toast icon prefixes.

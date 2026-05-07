@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Field;
+namespace SugarCraft\Prompt\Field;
 
-use CandyCore\Bits\TextInput\TextInput;
-use CandyCore\Core\Msg;
-use CandyCore\Prompt\Field;
-use CandyCore\Prompt\HasDynamicLabels;
-use CandyCore\Prompt\HasHideFunc;
+use SugarCraft\Bits\TextInput\TextInput;
+use SugarCraft\Core\Msg;
+use SugarCraft\Prompt\Field;
+use SugarCraft\Prompt\HasDynamicLabels;
+use SugarCraft\Prompt\HasHideFunc;
 
 /**
  * Single-line text field. Wraps a {@see TextInput} and exposes an
@@ -65,10 +65,10 @@ final class Input implements Field
     {
         if ($on) {
             $next = $this->input
-                ->withEchoMode(\CandyCore\Bits\TextInput\EchoMode::Password)
+                ->withEchoMode(\SugarCraft\Bits\TextInput\EchoMode::Password)
                 ->withEchoChar($echoChar === '' ? '*' : $echoChar);
         } else {
-            $next = $this->input->withEchoMode(\CandyCore\Bits\TextInput\EchoMode::Normal);
+            $next = $this->input->withEchoMode(\SugarCraft\Bits\TextInput\EchoMode::Normal);
         }
         return $this->mutate(input: $next);
     }

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Util;
+namespace SugarCraft\Core\Util;
 
 /**
  * Minimal portable TTY control. Uses `stty` shell-out on POSIX; FFI/termios
  * is a future optimization. Windows support is deferred until VT-mode toggling
- * is wired up in CandyCore\Core\Program.
+ * is wired up in SugarCraft\Core\Program.
  */
 final class Tty
 {

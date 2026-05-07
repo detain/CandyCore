@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\Viewport\Viewport;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Ansi;
+use SugarCraft\Bits\Viewport\Viewport;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Ansi;
 
 /**
- * Read-only pager used by {@see \CandyCore\Shell\Command\PagerCommand}.
+ * Read-only pager used by {@see \SugarCraft\Shell\Command\PagerCommand}.
  * Wraps a {@see Viewport}; Esc / `q` / Ctrl-C exit. Standard navigation
  * keys (↑/↓/jk, PgUp/PgDn/space/b/f, Home/g/End/G, Ctrl-U/D) come from
  * Viewport's own update().

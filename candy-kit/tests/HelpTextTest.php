@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit\Tests;
+namespace SugarCraft\Kit\Tests;
 
-use CandyCore\Kit\HelpText;
-use CandyCore\Kit\Theme;
+use SugarCraft\Kit\HelpText;
+use SugarCraft\Kit\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class HelpTextTest extends TestCase

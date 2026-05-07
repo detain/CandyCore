@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Sprinkles\Align;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Table\Table;
+use SugarCraft\Sprinkles\Align;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Table\Table;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Render CSV / TSV from a file or stdin as a styled
- * {@see \CandyCore\Sprinkles\Table\Table}.
+ * {@see \SugarCraft\Sprinkles\Table\Table}.
  *
  *   $ ps -axo pid,comm | candyshell table --header --separator $'\t'
  *

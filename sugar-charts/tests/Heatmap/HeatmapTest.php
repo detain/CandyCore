@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Heatmap;
+namespace SugarCraft\Charts\Tests\Heatmap;
 
-use CandyCore\Charts\Heatmap\Heatmap;
-use CandyCore\Charts\Heatmap\HeatPoint;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Heatmap\Heatmap;
+use SugarCraft\Charts\Heatmap\HeatPoint;
+use SugarCraft\Core\Util\Color;
 use PHPUnit\Framework\TestCase;
 
 final class HeatmapTest extends TestCase
@@ -156,7 +156,7 @@ final class HeatmapTest extends TestCase
 
     public function testWithCellStyleAppliesAdditionalAttributes(): void
     {
-        $bold = \CandyCore\Sprinkles\Style::new()->bold();
+        $bold = \SugarCraft\Sprinkles\Style::new()->bold();
         $h = Heatmap::new([[0.5]])->withCellStyle($bold);
         $this->assertSame($bold, $h->getCellStyle());
         // Bold ANSI escape (\e[1m) should appear in rendered output.
@@ -165,7 +165,7 @@ final class HeatmapTest extends TestCase
 
     public function testWithCellStyleNullClears(): void
     {
-        $bold = \CandyCore\Sprinkles\Style::new()->bold();
+        $bold = \SugarCraft\Sprinkles\Style::new()->bold();
         $h = Heatmap::new([[0.5]])->withCellStyle($bold)->withCellStyle(null);
         $this->assertNull($h->getCellStyle());
     }

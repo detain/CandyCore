@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Spinner;
+namespace SugarCraft\Bits\Spinner;
 
 /**
  * A spinner style: an ordered list of frames and a per-frame interval.

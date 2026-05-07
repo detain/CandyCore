@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Per-status palette used by {@see StatusLine} and {@see Banner}.

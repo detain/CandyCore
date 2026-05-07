@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash\Tests;
+namespace SugarCraft\Stash\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Stash\App;
-use CandyCore\Stash\Renderer;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Stash\App;
+use SugarCraft\Stash\Renderer;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase
@@ -67,7 +67,7 @@ final class RendererTest extends TestCase
 
     public function testRenderShowsErrorBanner(): void
     {
-        $g = new class implements \CandyCore\Stash\GitDriver {
+        $g = new class implements \SugarCraft\Stash\GitDriver {
             public function status(): array   { throw new \RuntimeException('fatal: not a git repository'); }
             public function branches(): array { return []; }
             public function log(int $limit = 25): array { return []; }

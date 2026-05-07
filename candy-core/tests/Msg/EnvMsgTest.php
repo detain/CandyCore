@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\Msg\EnvMsg;
+use SugarCraft\Core\Msg\EnvMsg;
 use PHPUnit\Framework\TestCase;
 
 final class EnvMsgTest extends TestCase

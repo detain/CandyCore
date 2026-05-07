@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\LineChart;
+namespace SugarCraft\Charts\Tests\LineChart;
 
-use CandyCore\Charts\LineChart\Waveline;
+use SugarCraft\Charts\LineChart\Waveline;
 use PHPUnit\Framework\TestCase;
 
 final class WavelineTest extends TestCase

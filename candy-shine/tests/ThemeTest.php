@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shine\Tests;
+namespace SugarCraft\Shine\Tests;
 
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\Theme;
 use PHPUnit\Framework\TestCase;
 
 final class ThemeTest extends TestCase

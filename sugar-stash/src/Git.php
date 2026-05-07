@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash;
+namespace SugarCraft\Stash;
 
 /**
  * Thin wrapper around `git` invocations. Everything that mutates a

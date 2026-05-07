@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\Msg\KeyboardEnhancementsMsg;
+use SugarCraft\Core\Msg\KeyboardEnhancementsMsg;
 use PHPUnit\Framework\TestCase;
 
 final class KeyboardEnhancementsMsgTest extends TestCase

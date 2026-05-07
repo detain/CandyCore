@@ -1,16 +1,16 @@
-# Contributing to CandyCore
+# Contributing to SugarCraft
 
-Thanks for your interest in CandyCore! Bug reports, feature requests,
+Thanks for your interest in SugarCraft! Bug reports, feature requests,
 and PRs are all welcome.
 
 ## Development setup
 
-CandyCore is a monorepo of 13 PHP libraries. Each library has its own
+SugarCraft is a monorepo of 13 PHP libraries. Each library has its own
 `composer.json` + `vendor/` and is tested independently.
 
 ```sh
 git clone https://github.com/detain/sugarcraft.git
-cd CandyCore
+cd SugarCraft
 
 # Install deps + run tests for one library:
 cd candy-core
@@ -70,12 +70,12 @@ immediately in `candy-shine`'s test run with no rebuild step.
 
 ## Adding a new library port
 
-CandyCore is also happy to host PHP ports of additional Charmbracelet
+SugarCraft is also happy to host PHP ports of additional Charmbracelet
 (or Charmbracelet-adjacent) libraries. The flow:
 
 1. Open an issue proposing the port. Include the upstream URL, a
    one-line role summary, and the expected dependencies on existing
-   CandyCore phases.
+   SugarCraft phases.
 2. Decide on a name following the `Candy*` / `Sugar*` / `Honey*` +
    technical-suffix pattern documented in
    [`PROJECT_NAMES.md`](./PROJECT_NAMES.md).
@@ -88,7 +88,7 @@ CandyCore is also happy to host PHP ports of additional Charmbracelet
    ├── composer.json     # canonical metadata (see existing libs)
    ├── phpunit.xml
    ├── README.md         # composer require + quickstart
-   ├── src/              # PSR-4 under CandyCore\NewLib\
+   ├── src/              # PSR-4 under SugarCraft\NewLib\
    └── tests/
    ```
 

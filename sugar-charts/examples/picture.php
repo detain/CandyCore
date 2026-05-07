@@ -15,9 +15,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\Picture\Picture;
-use CandyCore\Charts\Picture\Protocol;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Picture\Picture;
+use SugarCraft\Charts\Picture\Protocol;
+use SugarCraft\Core\Util\Color;
 
 // 16×6 gradient (red→blue, top→bottom darker)
 $pixels = [];

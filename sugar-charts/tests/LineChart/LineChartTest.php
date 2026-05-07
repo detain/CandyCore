@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\LineChart;
+namespace SugarCraft\Charts\Tests\LineChart;
 
-use CandyCore\Charts\LineChart\LineChart;
+use SugarCraft\Charts\LineChart\LineChart;
 use PHPUnit\Framework\TestCase;
 
 final class LineChartTest extends TestCase

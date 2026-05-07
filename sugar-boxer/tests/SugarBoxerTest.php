@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Boxer\Tests;
+namespace SugarCraft\Boxer\Tests;
 
-use CandyCore\Boxer\{Node, SugarBoxer};
+use SugarCraft\Boxer\{Node, SugarBoxer};
 use PHPUnit\Framework\TestCase;
 
 final class SugarBoxerTest extends TestCase

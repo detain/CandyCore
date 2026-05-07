@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Palette\Tests;
+namespace SugarCraft\Palette\Tests;
 
-use CandyCore\Palette\Color;
-use CandyCore\Palette\Palette;
-use CandyCore\Palette\Profile;
-use CandyCore\Palette\ProfileWriter;
+use SugarCraft\Palette\Color;
+use SugarCraft\Palette\Palette;
+use SugarCraft\Palette\Profile;
+use SugarCraft\Palette\ProfileWriter;
 use PHPUnit\Framework\TestCase;
 
 final class PaletteTest extends TestCase

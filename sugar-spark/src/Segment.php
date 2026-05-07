@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark;
+namespace SugarCraft\Spark;
 
 /**
  * Base class for the chunks produced by {@see Inspector::parse()}. Every

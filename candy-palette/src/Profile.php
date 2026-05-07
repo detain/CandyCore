@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Palette;
+namespace SugarCraft\Palette;
 
 /**
  * Terminal color profile — the level of color support the terminal provides.

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flap;
+namespace SugarCraft\Flap;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
  * Frame-tick. Fired every ~33ms (≈30 fps) by a `Cmd::tick(...)` the

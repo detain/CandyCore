@@ -22,8 +22,8 @@ foreach ([__DIR__ . '/../vendor/autoload.php', $root . '/vendor/autoload.php'] a
     }
 }
 
-use CandyCore\Freeze\SvgRenderer;
-use CandyCore\Freeze\Theme;
+use SugarCraft\Freeze\SvgRenderer;
+use SugarCraft\Freeze\Theme;
 
 $argv = $_SERVER['argv'] ?? $argv ?? [];
 array_shift($argv);

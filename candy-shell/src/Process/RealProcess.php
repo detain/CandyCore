@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Process;
+namespace SugarCraft\Shell\Process;
 
 /**
  * Production {@see Process} backed by `proc_open`. The child's stdout

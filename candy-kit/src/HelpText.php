@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Build a fang-style `--help` page from structured input. Each

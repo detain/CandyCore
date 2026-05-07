@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Freeze\SvgRenderer;
+use SugarCraft\Freeze\SvgRenderer;
 
 $code = <<<'PHP'
 <?php

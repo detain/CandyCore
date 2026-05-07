@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Key;
+namespace SugarCraft\Bits\Key;
 
 /**
  * Implement this on your application's keymap so the Help component can

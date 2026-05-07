@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Tests\Backend;
+namespace SugarCraft\Crush\Tests\Backend;
 
-use CandyCore\Crush\Backend\EchoBackend;
-use CandyCore\Crush\Message;
-use CandyCore\Crush\Role;
+use SugarCraft\Crush\Backend\EchoBackend;
+use SugarCraft\Crush\Message;
+use SugarCraft\Crush\Role;
 use PHPUnit\Framework\TestCase;
 
 final class EchoBackendTest extends TestCase

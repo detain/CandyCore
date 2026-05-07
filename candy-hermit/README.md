@@ -1,7 +1,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-hermit)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-hermit)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-hermit?label=packagist)](https://packagist.org/packages/candycore/candy-hermit)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-hermit?label=packagist)](https://packagist.org/packages/sugarcraft/candy-hermit)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -21,13 +21,13 @@ PHP port of [Genekkion/theHermit](https://github.com/Genekkion/theHermit) — fu
 ## Install
 
 ```bash
-composer require candycore/candy-hermit
+composer require sugarcraft/candy-hermit
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Hermit\Hermit;
+use SugarCraft\Hermit\Hermit;
 
 // Items to filter
 $items = ['apple', 'banana', 'cherry', 'date', 'elderberry'];
@@ -59,7 +59,7 @@ $h = $h->hide();
 Implement the `Model` interface to use Hermit inside a larger Bubble-Tea-style application:
 
 ```php
-use CandyCore\Hermit\Model;
+use SugarCraft\Hermit\Model;
 
 class MyModel implements Model {
     public function update(Hermit $hermit, string $msg): Model { ... }

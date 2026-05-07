@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crumbs;
+namespace SugarCraft\Crumbs;
 
 /**
  * Shell — combines NavStack + Breadcrumb into a single navigation component.

@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Lister\{Model, StringItem, DefaultPrefixer, DefaultSuffixer};
+use SugarCraft\Lister\{Model, StringItem, DefaultPrefixer, DefaultSuffixer};
 
 $model = Model::new()
     ->setViewport(60, 30)    // narrow viewport to trigger wrapping

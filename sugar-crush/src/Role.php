@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush;
+namespace SugarCraft\Crush;
 
 /**
  * Conversation role for a {@see Message}. Mirrors the Anthropic /

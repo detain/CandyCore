@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Field;
+namespace SugarCraft\Prompt\Field;
 
-use CandyCore\Bits\FilePicker\FilePicker as PickerWidget;
-use CandyCore\Core\Msg;
-use CandyCore\Prompt\Field;
-use CandyCore\Prompt\HasDynamicLabels;
-use CandyCore\Prompt\HasHideFunc;
+use SugarCraft\Bits\FilePicker\FilePicker as PickerWidget;
+use SugarCraft\Core\Msg;
+use SugarCraft\Prompt\Field;
+use SugarCraft\Prompt\HasDynamicLabels;
+use SugarCraft\Prompt\HasHideFunc;
 
 /**
  * File-system picker field. Wraps {@see PickerWidget}; the field's value
@@ -94,13 +94,13 @@ final class FilePicker implements Field
      */
     public function consumes(Msg $msg): bool
     {
-        if (!$this->picker->focused || !$msg instanceof \CandyCore\Core\Msg\KeyMsg) {
+        if (!$this->picker->focused || !$msg instanceof \SugarCraft\Core\Msg\KeyMsg) {
             return false;
         }
-        return $msg->type === \CandyCore\Core\KeyType::Enter
-            || $msg->type === \CandyCore\Core\KeyType::Backspace
-            || $msg->type === \CandyCore\Core\KeyType::Up
-            || $msg->type === \CandyCore\Core\KeyType::Down;
+        return $msg->type === \SugarCraft\Core\KeyType::Enter
+            || $msg->type === \SugarCraft\Core\KeyType::Backspace
+            || $msg->type === \SugarCraft\Core\KeyType::Up
+            || $msg->type === \SugarCraft\Core\KeyType::Down;
     }
 
     private function mutate(?PickerWidget $picker = null, ?string $title = null, ?string $description = null): self

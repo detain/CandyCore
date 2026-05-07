@@ -28,7 +28,7 @@ declare -A DESCRIPTIONS=(
     [candy-wish]="SSH server middleware framework — port of charmbracelet/wish."
     [sugar-wishlist]="TUI directory of SSH endpoints — port of charmbracelet/wishlist."
     [candy-metrics]="Telemetry primitives — port of charmbracelet/promwish on the SugarCraft stack."
-    [candy-mold]="Starter skeleton for CandyCore apps — port of bubbletea-app-template."
+    [candy-mold]="Starter skeleton for SugarCraft apps — port of bubbletea-app-template."
     [candy-tetris]="Tetris on the SugarCraft stack — port of Broderick-Westrope/tetrigo."
     [super-candy]="Dual-pane terminal file manager — port of yorukot/superfile."
     [sugar-crush]="AI coding-assistant chat shell — port of charmbracelet/crush."
@@ -42,7 +42,7 @@ declare -A DESCRIPTIONS=(
 
 # Default topic set for every repo — the sync-sugarcraft workflow
 # expects these to exist so each push doesn't have to re-tag.
-TOPICS=(php tui terminal candycore sugarcraft composer)
+TOPICS=(php tui terminal sugarcraft sugarcraft composer)
 
 if ! command -v gh >/dev/null 2>&1; then
     echo "error: gh CLI not found — install https://cli.github.com" >&2
@@ -63,7 +63,7 @@ for slug in "${!DESCRIPTIONS[@]}"; do
     # Topics + features.
     gh api -X PUT "/repos/$ORG/$slug/topics" \
         -F "names[]=php" -F "names[]=tui" -F "names[]=terminal" \
-        -F "names[]=candycore" -F "names[]=sugarcraft" -F "names[]=composer" \
+        -F "names[]=sugarcraft" -F "names[]=sugarcraft" -F "names[]=composer" \
         -H "Accept: application/vnd.github.mercy-preview+json" >/dev/null
     gh api -X PATCH "/repos/$ORG/$slug" \
         -F has_issues=true \

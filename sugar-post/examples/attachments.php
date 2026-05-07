@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Post\{Email, Mailer, ResendTransport};
+use SugarCraft\Post\{Email, Mailer, ResendTransport};
 
 // Create a dummy attachment file
 $tmpDir = sys_get_temp_dir() . '/pop-demo-' . uniqid();

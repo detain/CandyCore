@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Middleware;
+namespace SugarCraft\Wish\Middleware;
 
-use CandyCore\Wish\Middleware;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware;
+use SugarCraft\Wish\Session;
 
 /**
  * Connect / disconnect logger.

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Heatmap;
+namespace SugarCraft\Charts\Heatmap;
 
-use CandyCore\Charts\Canvas\Canvas;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Charts\Canvas\Canvas;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * 2D heatmap rendered onto a {@see Canvas}. Each grid cell becomes one

@@ -24,13 +24,13 @@ PHP port of [charmbracelet/skate](https://github.com/charmbracelet/skate) — a 
 ## Install
 
 ```bash
-composer require candycore/sugar-skate
+composer require sugarcraft/sugar-skate
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Skate\Store;
+use SugarCraft\Skate\Store;
 
 $skate = new Store();
 

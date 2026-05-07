@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table;
+namespace SugarCraft\Table;
 
 /**
  * A single table row wrapping RowData + optional styles.

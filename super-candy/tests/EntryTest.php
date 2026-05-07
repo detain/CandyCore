@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy\Tests;
+namespace SugarCraft\SuperCandy\Tests;
 
-use CandyCore\SuperCandy\Entry;
+use SugarCraft\SuperCandy\Entry;
 use PHPUnit\Framework\TestCase;
 
 final class EntryTest extends TestCase

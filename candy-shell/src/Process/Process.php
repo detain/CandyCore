@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Process;
+namespace SugarCraft\Shell\Process;
 
 /**
- * Abstraction over a child process so {@see \CandyCore\Shell\Model\SpinModel}
+ * Abstraction over a child process so {@see \SugarCraft\Shell\Model\SpinModel}
  * can be tested without spawning a real OS process.
  *
  * Implementations:

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish;
+namespace SugarCraft\Wish;
 
 /**
  * SSH session entry point.
@@ -29,7 +29,7 @@ namespace CandyCore\Wish;
  *      then walks the stack: each middleware decides whether to
  *      continue to `$next` or stop. The terminal middleware is
  *      typically {@see Middleware\BubbleTea} which mounts a
- *      CandyCore Program and runs until the user disconnects.
+ *      SugarCraft Program and runs until the user disconnects.
  *
  * **Example sshd snippet** (`/etc/ssh/sshd_config.d/wish.conf`):
  *

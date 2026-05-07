@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy\Tests;
+namespace SugarCraft\SuperCandy\Tests;
 
-use CandyCore\SuperCandy\Entry;
-use CandyCore\SuperCandy\Pane;
-use CandyCore\SuperCandy\Sort;
+use SugarCraft\SuperCandy\Entry;
+use SugarCraft\SuperCandy\Pane;
+use SugarCraft\SuperCandy\Sort;
 use PHPUnit\Framework\TestCase;
 
 final class PaneTest extends TestCase

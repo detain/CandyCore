@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log;
+namespace SugarCraft\Log;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Styles for log level rendering in text output.

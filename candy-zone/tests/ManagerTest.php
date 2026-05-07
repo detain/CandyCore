@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Zone\Tests;
+namespace SugarCraft\Zone\Tests;
 
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
-use CandyCore\Core\Msg\MouseMsg;
-use CandyCore\Zone\Manager;
-use CandyCore\Zone\Zone;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
+use SugarCraft\Core\Msg\MouseMsg;
+use SugarCraft\Zone\Manager;
+use SugarCraft\Zone\Zone;
 use PHPUnit\Framework\TestCase;
 
 final class ManagerTest extends TestCase
@@ -289,7 +289,7 @@ final class ManagerTest extends TestCase
     {
         $m = Manager::newGlobal();
         $m->scan($m->mark('btn', 'OK'));
-        $this->assertNull($m->anyInBounds(new \CandyCore\Core\Msg\KeyMsg(\CandyCore\Core\KeyType::Char, 'a')));
+        $this->assertNull($m->anyInBounds(new \SugarCraft\Core\Msg\KeyMsg(\SugarCraft\Core\KeyType::Char, 'a')));
     }
 
     public function testAnyInBoundsAndUpdateRoutesHitToModelAsMsgZoneInBounds(): void
@@ -320,19 +320,19 @@ final class ManagerTest extends TestCase
     }
 }
 
-final class ZoneRoutingModel implements \CandyCore\Core\Model
+final class ZoneRoutingModel implements \SugarCraft\Core\Model
 {
-    public ?\CandyCore\Zone\MsgZoneInBounds $lastInBoundsHit  = null;
-    public ?\CandyCore\Core\Msg\MouseMsg    $lastPlainMouse   = null;
+    public ?\SugarCraft\Zone\MsgZoneInBounds $lastInBoundsHit  = null;
+    public ?\SugarCraft\Core\Msg\MouseMsg    $lastPlainMouse   = null;
 
     public function init(): ?\Closure { return null; }
 
-    public function update(\CandyCore\Core\Msg $msg): array
+    public function update(\SugarCraft\Core\Msg $msg): array
     {
         $next = clone $this;
-        if ($msg instanceof \CandyCore\Zone\MsgZoneInBounds) {
+        if ($msg instanceof \SugarCraft\Zone\MsgZoneInBounds) {
             $next->lastInBoundsHit = $msg;
-        } elseif ($msg instanceof \CandyCore\Core\Msg\MouseMsg) {
+        } elseif ($msg instanceof \SugarCraft\Core\Msg\MouseMsg) {
             $next->lastPlainMouse = $msg;
         }
         return [$next, null];

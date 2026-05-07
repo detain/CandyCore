@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Tests\Middleware;
+namespace SugarCraft\Wish\Tests\Middleware;
 
-use CandyCore\Wish\Middleware\Logger;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware\Logger;
+use SugarCraft\Wish\Session;
 use PHPUnit\Framework\TestCase;
 
 final class LoggerTest extends TestCase

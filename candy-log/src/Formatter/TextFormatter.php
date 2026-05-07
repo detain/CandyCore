@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Log\Formatter;
+namespace SugarCraft\Log\Formatter;
 
-use CandyCore\Log\Formatter;
-use CandyCore\Log\Level;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Log\Formatter;
+use SugarCraft\Log\Level;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Human-readable text formatter with optional color styling.

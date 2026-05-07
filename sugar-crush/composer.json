@@ -1,10 +1,10 @@
 {
-    "name": "candycore/sugar-crush",
+    "name": "sugarcraft/sugar-crush",
     "description": "Chat-shell TUI for AI coding assistants \u2014 port of charmbracelet/crush. Pluggable Backend interface (ship your own Anthropic / OpenAI / Ollama / shell-out adapter). Markdown rendering of replies via CandyShine, scrollback viewport via SugarBits, input area via SugarBits TextArea.",
     "type": "project",
     "license": "MIT",
     "keywords": [
-        "candycore",
+        "sugarcraft",
         "sugarcrush",
         "crush",
         "ai",
@@ -33,9 +33,9 @@
     ],
     "require": {
         "php": ">=8.1",
-        "candycore/candy-core": "@dev",
-        "candycore/candy-sprinkles": "@dev",
-        "candycore/candy-shine": "@dev"
+        "sugarcraft/candy-core": "@dev",
+        "sugarcraft/candy-sprinkles": "@dev",
+        "sugarcraft/candy-shine": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0"
@@ -45,12 +45,12 @@
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Crush\\": "src/"
+            "SugarCraft\\Crush\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Crush\\Tests\\": "tests/"
+            "SugarCraft\\Crush\\Tests\\": "tests/"
         }
     },
     "repositories": [

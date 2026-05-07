@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Calendar\DatePicker;
+use SugarCraft\Calendar\DatePicker;
 
 echo "=== Calendar navigation and selection demo ===\n\n";
 

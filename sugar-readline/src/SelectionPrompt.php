@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Readline;
+namespace SugarCraft\Readline;
 
 /**
  * Filterable selection prompt with cursor navigation and pagination.

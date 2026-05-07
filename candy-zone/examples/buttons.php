@@ -11,12 +11,12 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
-use CandyCore\Core\Msg\MouseMsg;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
-use CandyCore\Zone\Manager;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
+use SugarCraft\Core\Msg\MouseMsg;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
+use SugarCraft\Zone\Manager;
 
 $mgr = Manager::newGlobal();
 

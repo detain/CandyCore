@@ -1,7 +1,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=candy-palette)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=candy-palette)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/candy-palette?label=packagist)](https://packagist.org/packages/candycore/candy-palette)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/candy-palette?label=packagist)](https://packagist.org/packages/sugarcraft/candy-palette)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -22,15 +22,15 @@ PHP port of [charmbracelet/colorprofile](https://github.com/charmbracelet/colorp
 ## Install
 
 ```bash
-composer require candycore/candy-palette
+composer require sugarcraft/candy-palette
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Palette\Palette;
-use CandyCore\Palette\Profile;
-use CandyCore\Palette\Color;
+use SugarCraft\Palette\Palette;
+use SugarCraft\Palette\Profile;
+use SugarCraft\Palette\Color;
 
 // Detect the terminal's color profile
 $profile = Palette::detect();
@@ -63,9 +63,9 @@ fwrite($writer, "\x1b[38;2;107;80;255mFancy text\x1b[0m\n");
 ## Color Degradation
 
 ```php
-use CandyCore\Palette\Palette;
-use CandyCore\Palette\Profile;
-use CandyCore\Palette\Color;
+use SugarCraft\Palette\Palette;
+use SugarCraft\Palette\Profile;
+use SugarCraft\Palette\Color;
 
 $color = new Color(100, 50, 255, 255);
 

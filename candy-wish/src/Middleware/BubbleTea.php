@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wish\Middleware;
+namespace SugarCraft\Wish\Middleware;
 
-use CandyCore\Wish\Middleware;
-use CandyCore\Wish\Session;
+use SugarCraft\Wish\Middleware;
+use SugarCraft\Wish\Session;
 
 /**
- * Terminal middleware that mounts a CandyCore Program for the
+ * Terminal middleware that mounts a SugarCraft Program for the
  * connected user.
  *
  * Pass a factory callable that returns the Program implementation

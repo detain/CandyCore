@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Viewport;
+namespace SugarCraft\Bits\Viewport;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Msg\MouseWheelMsg;
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\MouseWheelMsg;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Scrollable text area. Holds a fixed-size window over arbitrarily long

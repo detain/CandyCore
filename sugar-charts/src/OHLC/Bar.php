@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\OHLC;
+namespace SugarCraft\Charts\OHLC;
 
 /**
  * One Open / High / Low / Close bar for {@see OHLCChart}. Immutable.

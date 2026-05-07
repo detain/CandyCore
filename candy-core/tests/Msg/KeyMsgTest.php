@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Modifiers;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Modifiers;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class KeyMsgTest extends TestCase

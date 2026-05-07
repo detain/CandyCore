@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\Spinner;
+namespace SugarCraft\Bits\Tests\Spinner;
 
-use CandyCore\Bits\Spinner\Spinner;
-use CandyCore\Bits\Spinner\Style;
-use CandyCore\Bits\Spinner\TickMsg;
-use CandyCore\Core\TickRequest;
+use SugarCraft\Bits\Spinner\Spinner;
+use SugarCraft\Bits\Spinner\Style;
+use SugarCraft\Bits\Spinner\TickMsg;
+use SugarCraft\Core\TickRequest;
 use PHPUnit\Framework\TestCase;
 
 final class SpinnerTest extends TestCase

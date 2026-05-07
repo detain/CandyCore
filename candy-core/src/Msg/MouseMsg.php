@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
 
 /**
  * A single mouse event (press, release, motion, or wheel). Coordinates are

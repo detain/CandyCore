@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Canvas;
+namespace SugarCraft\Charts\Tests\Canvas;
 
-use CandyCore\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\Canvas;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -90,7 +90,7 @@ final class CanvasOpsTest extends TestCase
         $c = new Canvas(2, 1);
         $c->setCell(0, 0, 'X');
         $this->assertNull($c->getCellStyle(0, 0));
-        $style = \CandyCore\Sprinkles\Style::new()->bold();
+        $style = \SugarCraft\Sprinkles\Style::new()->bold();
         $c->setCellStyle(0, 0, $style);
         $this->assertSame($style, $c->getCellStyle(0, 0));
     }

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Timer\Timer;
+use SugarCraft\Bits\Timer\Timer;
 
 foreach ([300.0, 60.0, 10.5, 0.0] as $remaining) {
     printf("  remaining = %6.2fs  →  %s\n", $remaining, Timer::format($remaining));

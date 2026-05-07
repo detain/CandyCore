@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tetris;
+namespace SugarCraft\Tetris;
 
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Layout;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Layout;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Pure view function for {@see Game}. Returns the rendered frame
- * string ready to hand to the CandyCore Renderer.
+ * string ready to hand to the SugarCraft Renderer.
  *
  * Decomposes the screen into three side-by-side blocks:
  *

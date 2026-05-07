@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Canvas;
+namespace SugarCraft\Charts\Canvas;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * One cell of a {@see Canvas}: a single visible rune plus an optional

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Canvas;
+namespace SugarCraft\Charts\Tests\Canvas;
 
-use CandyCore\Charts\Canvas\BrailleGrid;
-use CandyCore\Charts\Canvas\Canvas;
+use SugarCraft\Charts\Canvas\BrailleGrid;
+use SugarCraft\Charts\Canvas\Canvas;
 use PHPUnit\Framework\TestCase;
 
 final class BrailleGridTest extends TestCase

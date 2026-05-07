@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Glow;
+namespace SugarCraft\Glow;
 
 use Symfony\Component\Console\Application as SymfonyApplication;
 

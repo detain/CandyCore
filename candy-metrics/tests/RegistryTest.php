@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Tests;
+namespace SugarCraft\Metrics\Tests;
 
-use CandyCore\Metrics\Backend\InMemoryBackend;
-use CandyCore\Metrics\Registry;
+use SugarCraft\Metrics\Backend\InMemoryBackend;
+use SugarCraft\Metrics\Registry;
 use PHPUnit\Framework\TestCase;
 
 final class RegistryTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Calendar\Tests;
+namespace SugarCraft\Calendar\Tests;
 
-use CandyCore\Calendar\DatePicker;
+use SugarCraft\Calendar\DatePicker;
 use PHPUnit\Framework\TestCase;
 
 final class DatePickerTest extends TestCase

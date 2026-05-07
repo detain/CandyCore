@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick\Tests;
+namespace SugarCraft\Tick\Tests;
 
-use CandyCore\Tick\Heartbeat;
+use SugarCraft\Tick\Heartbeat;
 use PHPUnit\Framework\TestCase;
 
 final class HeartbeatTest extends TestCase

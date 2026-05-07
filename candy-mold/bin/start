@@ -2,7 +2,7 @@
 <?php
 
 /**
- * `start` — entry point for the bootstrapped CandyCore app.
+ * `start` — entry point for the bootstrapped SugarCraft app.
  *
  * Replace the `Counter` import below with your own Model once you've
  * forked this template. The Program harness (event loop, render
@@ -25,6 +25,6 @@ declare(strict_types=1);
 })();
 
 use App\Counter;
-use CandyCore\Core\Program;
+use SugarCraft\Core\Program;
 
 (new Program(new Counter()))->run();

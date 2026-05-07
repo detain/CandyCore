@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist;
+namespace SugarCraft\Wishlist;
 
 /**
  * Replaces the current PHP process with `ssh(1)` connecting to the

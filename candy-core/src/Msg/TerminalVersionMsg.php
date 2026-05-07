@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::requestTerminalVersion()}. The
+ * Reply to a {@see \SugarCraft\Core\Cmd::requestTerminalVersion()}. The
  * terminal answers `ESC P > | <terminal name and version> ESC \`
  * (XTVERSION). The `version` field carries everything between the
  * `>|` marker and the ST terminator (e.g. `xterm(367)`,

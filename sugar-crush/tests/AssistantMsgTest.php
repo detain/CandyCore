@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Tests;
+namespace SugarCraft\Crush\Tests;
 
-use CandyCore\Core\Msg;
-use CandyCore\Crush\AssistantMsg;
-use CandyCore\Crush\Message;
-use CandyCore\Crush\Role;
+use SugarCraft\Core\Msg;
+use SugarCraft\Crush\AssistantMsg;
+use SugarCraft\Crush\Message;
+use SugarCraft\Crush\Role;
 use PHPUnit\Framework\TestCase;
 
 final class AssistantMsgTest extends TestCase

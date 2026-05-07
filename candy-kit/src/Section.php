@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Kit;
+namespace SugarCraft\Kit;
 
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Render a section header — a label sandwiched between two horizontal

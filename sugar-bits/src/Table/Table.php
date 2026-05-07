@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Table;
+namespace SugarCraft\Bits\Table;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\Width;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\Width;
 
 /**
  * Selectable, scrollable data table.
  *
- * Distinct from {@see \CandyCore\Sprinkles\Table\Table}, which is a static
+ * Distinct from {@see \SugarCraft\Sprinkles\Table\Table}, which is a static
  * styled renderer. This component holds a moving selection cursor,
  * scrolls vertically when the row count exceeds {@see $height}, and
  * draws an underlined header.

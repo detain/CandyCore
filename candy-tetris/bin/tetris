@@ -15,8 +15,8 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Tetris\Game;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Tetris\Game;
 
 (new Program(Game::start(), new ProgramOptions(useAltScreen: true)))->run();

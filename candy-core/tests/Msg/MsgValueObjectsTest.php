@@ -2,34 +2,34 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests\Msg;
+namespace SugarCraft\Core\Tests\Msg;
 
-use CandyCore\Core\ModeState;
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
-use CandyCore\Core\Msg\BlurMsg;
-use CandyCore\Core\Msg\ClipboardMsg;
-use CandyCore\Core\Msg\ColorProfileMsg;
-use CandyCore\Core\Msg\CursorPositionMsg;
-use CandyCore\Core\Msg\ExecMsg;
-use CandyCore\Core\Msg\FocusMsg;
-use CandyCore\Core\Msg\InterruptMsg;
-use CandyCore\Core\Msg\ModeReportMsg;
-use CandyCore\Core\Msg\MouseClickMsg;
-use CandyCore\Core\Msg\MouseMotionMsg;
-use CandyCore\Core\Msg\MouseMsg;
-use CandyCore\Core\Msg\MouseReleaseMsg;
-use CandyCore\Core\Msg\MouseWheelMsg;
-use CandyCore\Core\Msg\PasteEndMsg;
-use CandyCore\Core\Msg\PasteMsg;
-use CandyCore\Core\Msg\PasteStartMsg;
-use CandyCore\Core\Msg\QuitMsg;
-use CandyCore\Core\Msg\ResumeMsg;
-use CandyCore\Core\Msg\SuspendMsg;
-use CandyCore\Core\Msg\TerminalVersionMsg;
-use CandyCore\Core\Msg\WindowSizeMsg;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\ModeState;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
+use SugarCraft\Core\Msg\BlurMsg;
+use SugarCraft\Core\Msg\ClipboardMsg;
+use SugarCraft\Core\Msg\ColorProfileMsg;
+use SugarCraft\Core\Msg\CursorPositionMsg;
+use SugarCraft\Core\Msg\ExecMsg;
+use SugarCraft\Core\Msg\FocusMsg;
+use SugarCraft\Core\Msg\InterruptMsg;
+use SugarCraft\Core\Msg\ModeReportMsg;
+use SugarCraft\Core\Msg\MouseClickMsg;
+use SugarCraft\Core\Msg\MouseMotionMsg;
+use SugarCraft\Core\Msg\MouseMsg;
+use SugarCraft\Core\Msg\MouseReleaseMsg;
+use SugarCraft\Core\Msg\MouseWheelMsg;
+use SugarCraft\Core\Msg\PasteEndMsg;
+use SugarCraft\Core\Msg\PasteMsg;
+use SugarCraft\Core\Msg\PasteStartMsg;
+use SugarCraft\Core\Msg\QuitMsg;
+use SugarCraft\Core\Msg\ResumeMsg;
+use SugarCraft\Core\Msg\SuspendMsg;
+use SugarCraft\Core\Msg\TerminalVersionMsg;
+use SugarCraft\Core\Msg\WindowSizeMsg;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Util\ColorProfile;
 use PHPUnit\Framework\TestCase;
 
 final class MsgValueObjectsTest extends TestCase

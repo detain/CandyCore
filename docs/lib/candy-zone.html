@@ -46,11 +46,11 @@
     <p class="lede" style="margin-top: 28px;">Wrap rendered chunks with named markers, let CandyZone discover their bounding boxes, then ask zones whether a MouseMsg fell inside them. Markers are APC escape sequences — terminals ignore them, so they don't affect layout.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-zone</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-zone</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Zone\Manager;
-use CandyCore\Sprinkles\Style;
+    <pre class="code"><code>use SugarCraft\Zone\Manager;
+use SugarCraft\Sprinkles\Style;
 
 $z = Manager::newGlobal();
 
@@ -74,7 +74,7 @@ if ($z-&gt;get('btn:ok')?-&gt;inBounds($mouseMsg)) {
       <div class="feature"><strong>Bounds query</strong><span><code>$z->get('btn:ok')?->inBounds($mouseMsg)</code> — clean predicate, no coordinate math.</span></div>
       <div class="feature"><strong>ANSI-aware</strong><span>Width calculation honours SGR + Unicode grapheme widths; emojis, CJK, combining marks all account correctly.</span></div>
       <div class="feature"><strong>Manager isolation</strong><span>Manager::newGlobal() for app-wide; or per-component managers for nested mouse handling.</span></div>
-      <div class="feature"><strong>Plays with CandyCore</strong><span>Drop into your Model — every <code>view()</code> call rescans, every MouseMsg routes.</span></div>
+      <div class="feature"><strong>Plays with SugarCraft</strong><span>Drop into your Model — every <code>view()</code> call rescans, every MouseMsg routes.</span></div>
     </div>
 
     <h3 style="margin-top: 40px;">Source &amp; demos</h3>

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Progress;
+namespace SugarCraft\Bits\Progress;
 
-use CandyCore\Bounce\Spring;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Bounce\Spring;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
 
 /**
  * Spring-physics-driven progress bar.

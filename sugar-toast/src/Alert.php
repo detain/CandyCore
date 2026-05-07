@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Toast;
+namespace SugarCraft\Toast;
 
 /**
  * A single alert entry in the queue.

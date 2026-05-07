@@ -9,7 +9,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Table\{Table, Column, Row, RowData, StyledCell};
+use SugarCraft\Table\{Table, Column, Row, RowData, StyledCell};
 
 echo "=== Wide table with frozen column and pagination ===\n\n";
 

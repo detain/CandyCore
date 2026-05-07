@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip\Tests;
+namespace SugarCraft\Flip\Tests;
 
-use CandyCore\Flip\Decoder;
+use SugarCraft\Flip\Decoder;
 use PHPUnit\Framework\TestCase;
 
 final class DecoderTest extends TestCase
@@ -53,7 +53,7 @@ final class DecoderTest extends TestCase
             $this->markTestSkipped('ext-gd not available');
         }
         $frames = Decoder::decode($this->gifPath, 2, 2);
-        $this->assertInstanceOf(\CandyCore\Flip\Frame::class, $frames[0]);
+        $this->assertInstanceOf(\SugarCraft\Flip\Frame::class, $frames[0]);
         $this->assertSame(2, $frames[0]->width());
         $this->assertSame(2, $frames[0]->height());
     }

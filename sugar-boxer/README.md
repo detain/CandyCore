@@ -24,13 +24,13 @@ PHP port of [treilik/bubbleboxer](https://github.com/treilik/bubbleboxer) — bo
 ## Install
 
 ```bash
-composer require candycore/sugar-boxer
+composer require sugarcraft/sugar-boxer
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Boxer\SugarBoxer;
+use SugarCraft\Boxer\SugarBoxer;
 
 $boxer = SugarBoxer::new();
 

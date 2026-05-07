@@ -10,7 +10,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Prompt\Field\Select;
+use SugarCraft\Prompt\Field\Select;
 
 $field = Select::new('shell')
     ->withTitle('Default shell')

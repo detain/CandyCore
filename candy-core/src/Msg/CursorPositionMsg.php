@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Reply to a {@see \CandyCore\Core\Cmd::requestCursorPosition()}. The
+ * Reply to a {@see \SugarCraft\Core\Cmd::requestCursorPosition()}. The
  * terminal answers `CSI <row> ; <col> R` (1-based, like all CSI cursor
- * coordinates) and {@see \CandyCore\Core\InputReader} converts it into
+ * coordinates) and {@see \SugarCraft\Core\InputReader} converts it into
  * this Msg.
  */
 final class CursorPositionMsg implements Msg

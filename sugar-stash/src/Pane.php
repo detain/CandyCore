@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stash;
+namespace SugarCraft\Stash;
 
 /**
  * Which pane has focus. The Tab key cycles forward through them; the

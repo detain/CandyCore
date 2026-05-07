@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Width as WidthUtil;
+use SugarCraft\Core\Util\Width as WidthUtil;
 
 /**
  * Multi-layer compositor — port of Bubble Tea v2's `lipgloss.Canvas`.
@@ -31,7 +31,7 @@ use CandyCore\Core\Util\Width as WidthUtil;
  *
  * Z-ties are broken by insertion order (later wins). The output is
  * a single string with `\n` separators — drop straight into a
- * {@see \CandyCore\Core\Renderer} or `echo` directly.
+ * {@see \SugarCraft\Core\Renderer} or `echo` directly.
  */
 final class Canvas
 {
@@ -60,8 +60,8 @@ final class Canvas
      *      growing it as later layers extend below or beyond.
      *   3. For each subsequent layer, paste its lines into the
      *      canvas grid at (x, y), splicing each base row with
-     *      {@see \CandyCore\Core\Util\Width::truncateAnsi()} +
-     *      {@see \CandyCore\Core\Util\Width::dropAnsi()} so the
+     *      {@see \SugarCraft\Core\Util\Width::truncateAnsi()} +
+     *      {@see \SugarCraft\Core\Util\Width::dropAnsi()} so the
      *      cell counts line up regardless of ANSI / wide-character
      *      content.
      */

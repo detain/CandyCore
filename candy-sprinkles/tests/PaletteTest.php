@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Sprinkles\Palette;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Sprinkles\Palette;
 use PHPUnit\Framework\TestCase;
 
 final class PaletteTest extends TestCase

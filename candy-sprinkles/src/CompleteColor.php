@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles;
+namespace SugarCraft\Sprinkles;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
 
 /**
  * Profile-aware colour triple. Lets the designer pick the *exact*

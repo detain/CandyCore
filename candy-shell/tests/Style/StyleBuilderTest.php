@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Style;
+namespace SugarCraft\Shell\Tests\Style;
 
-use CandyCore\Shell\Style\StyleBuilder;
+use SugarCraft\Shell\Style\StyleBuilder;
 use PHPUnit\Framework\TestCase;
 
 final class StyleBuilderTest extends TestCase

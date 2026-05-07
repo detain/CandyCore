@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Tests;
+namespace SugarCraft\Sprinkles\Tests;
 
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Sprinkles\AdaptiveColor;
-use CandyCore\Sprinkles\Renderer;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Sprinkles\AdaptiveColor;
+use SugarCraft\Sprinkles\Renderer;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Sprinkles\Listing;
+namespace SugarCraft\Sprinkles\Listing;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Renders an enumerated list — bullet, dash, numbered, alphabet, etc.

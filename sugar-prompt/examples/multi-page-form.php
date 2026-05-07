@@ -10,14 +10,14 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Prompt\Field\Confirm;
-use CandyCore\Prompt\Field\Input;
-use CandyCore\Prompt\Field\Note;
-use CandyCore\Prompt\Field\Select;
-use CandyCore\Prompt\Form;
-use CandyCore\Prompt\Group;
-use CandyCore\Prompt\Theme;
+use SugarCraft\Core\Program;
+use SugarCraft\Prompt\Field\Confirm;
+use SugarCraft\Prompt\Field\Input;
+use SugarCraft\Prompt\Field\Note;
+use SugarCraft\Prompt\Field\Select;
+use SugarCraft\Prompt\Form;
+use SugarCraft\Prompt\Group;
+use SugarCraft\Prompt\Theme;
 
 $form = Form::groups(
     Group::new(

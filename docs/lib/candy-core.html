@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CandyCore — SugarCraft</title>
-<meta name="description" content="CandyCore: Elm-architecture TUI runtime. PHP port of bubbletea.">
-<meta property="og:title" content="CandyCore — SugarCraft">
+<title>SugarCraft — SugarCraft</title>
+<meta name="description" content="SugarCraft: Elm-architecture TUI runtime. PHP port of bubbletea.">
+<meta property="og:title" content="SugarCraft — SugarCraft">
 <meta property="og:description" content="Elm-architecture TUI runtime. Port of bubbletea.">
 <meta property="og:image" content="https://sugarcraft.github.io/img/icons/candy-core.png">
 <link rel="icon" type="image/png" href="../img/icons/candy-core.png">
@@ -30,9 +30,9 @@
     <p style="color: var(--ink-2); margin: 0 0 16px 0;"><a href="../#libraries">← All libraries</a></p>
 
     <div class="detail-header">
-      <img class="detail-icon" src="../img/icons/candy-core.png" alt="CandyCore">
+      <img class="detail-icon" src="../img/icons/candy-core.png" alt="SugarCraft">
       <div>
-        <h2>🍬 CandyCore</h2>
+        <h2>🍬 SugarCraft</h2>
         <p class="detail-sub">Elm-architecture TUI runtime</p>
         <div class="detail-meta">
           <span class="tag-chip accent">port of <a href="https://github.com/charmbracelet/bubbletea" style="color: inherit;">bubbletea</a></span>
@@ -48,11 +48,11 @@
     <p class="lede" style="margin-top: 28px;">Model / Msg / Cmd / Program. The runtime everything else builds on. Includes the cursed cell-diff renderer ported from Bubble Tea v2 — meaningful SSH bandwidth savings for slow-changing UIs.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-core</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-core</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
-    <pre class="code"><code>use CandyCore\Core\{Cmd, KeyType, Model, Msg, Program};
-use CandyCore\Core\Msg\KeyMsg;
+    <pre class="code"><code>use SugarCraft\Core\{Cmd, KeyType, Model, Msg, Program};
+use SugarCraft\Core\Msg\KeyMsg;
 
 final class Counter implements Model {
     public function __construct(public readonly int $count = 0) {}

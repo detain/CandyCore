@@ -15,9 +15,9 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Mines\Game;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Mines\Game;
 
 // Optional CLI: candy-mines [width] [height] [mines]
 $argv2 = $argv ?? [];

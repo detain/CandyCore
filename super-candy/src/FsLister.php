@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy;
+namespace SugarCraft\SuperCandy;
 
 /**
  * Default `Pane` lister — reads a directory off the live

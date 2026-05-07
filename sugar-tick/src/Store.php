@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Tick;
+namespace SugarCraft\Tick;
 
 /**
  * JSONL-backed heartbeat store. One file per day under

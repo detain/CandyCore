@@ -10,8 +10,8 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Charts\Heatmap\Heatmap;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Heatmap\Heatmap;
+use SugarCraft\Core\Util\Color;
 
 // Build a 30×10 grid of sin(x)*cos(y) values.
 $grid = [];

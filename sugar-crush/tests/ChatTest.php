@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush\Tests;
+namespace SugarCraft\Crush\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Crush\AssistantMsg;
-use CandyCore\Crush\Backend\EchoBackend;
-use CandyCore\Crush\Chat;
-use CandyCore\Crush\Message;
-use CandyCore\Crush\Role;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Crush\AssistantMsg;
+use SugarCraft\Crush\Backend\EchoBackend;
+use SugarCraft\Crush\Chat;
+use SugarCraft\Crush\Message;
+use SugarCraft\Crush\Role;
 use PHPUnit\Framework\TestCase;
 
 final class ChatTest extends TestCase
@@ -112,7 +112,7 @@ final class ChatTest extends TestCase
     public function testNonKeyMessageIgnored(): void
     {
         $chat = new Chat(inputBuf: 'x');
-        $msg = new \CandyCore\Core\Msg\WindowSizeMsg(80, 24);
+        $msg = new \SugarCraft\Core\Msg\WindowSizeMsg(80, 24);
         [$next, $cmd] = $chat->update($msg);
         $this->assertSame($chat, $next);
         $this->assertNull($cmd);

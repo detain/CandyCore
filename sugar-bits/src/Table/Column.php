@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Table;
+namespace SugarCraft\Bits\Table;
 
 /**
  * Header column for {@see Table::setColumns()}. `$width = 0` lets the

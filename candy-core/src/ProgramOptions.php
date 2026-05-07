@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\ColorProfile;
 use React\EventLoop\LoopInterface;
 
 /**

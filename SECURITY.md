@@ -2,7 +2,7 @@
 
 ## Reporting a vulnerability
 
-If you discover a security vulnerability in any CandyCore library,
+If you discover a security vulnerability in any SugarCraft library,
 **please do not open a public issue**. Instead, email
 **detain@interserver.net** with:
 
@@ -21,7 +21,7 @@ You can expect:
 
 ## Supported versions
 
-CandyCore is currently under active pre-1.0 development. Security
+SugarCraft is currently under active pre-1.0 development. Security
 fixes ship against `master` only; pre-1.0 tagged releases are not
 patched. Once the libraries split into their own repos at v1.0, each
 will publish a stable branch and follow semver — at that point we'll
@@ -30,20 +30,20 @@ final minor.
 
 ## Scope
 
-The CandyCore libraries are TUI / CLI components. Practical attack
+The SugarCraft libraries are TUI / CLI components. Practical attack
 surfaces:
 
-- **Input parsing** (`CandyCore\Core\Util\Parser`,
-  `CandyCore\Core\InputReader`) — malformed terminal input shouldn't
+- **Input parsing** (`SugarCraft\Core\Util\Parser`,
+  `SugarCraft\Core\InputReader`) — malformed terminal input shouldn't
   crash a program or smuggle escape sequences past the parser.
-- **Markdown rendering** (`CandyCore\Shine\Renderer`) — input is
+- **Markdown rendering** (`SugarCraft\Shine\Renderer`) — input is
   user-supplied; the renderer must not let markdown payloads emit raw
   ANSI sequences they didn't author.
-- **Shell-out paths** (`CandyCore\Shell\Process\RealProcess`,
-  `CandyCore\Core\Cmd::exec`) — `proc_open` invocations should never
+- **Shell-out paths** (`SugarCraft\Shell\Process\RealProcess`,
+  `SugarCraft\Core\Cmd::exec`) — `proc_open` invocations should never
   execute arbitrary user input through a shell when the caller
   supplies an argv list.
-- **OSC 8 hyperlinks** (`CandyCore\Core\Util\Ansi::hyperlink`) — URLs
+- **OSC 8 hyperlinks** (`SugarCraft\Core\Util\Ansi::hyperlink`) — URLs
   should be passed through verbatim; we don't sanitise the URL but we
   do escape it inside the OSC envelope.
 

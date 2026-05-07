@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Calendar;
+namespace SugarCraft\Calendar;
 
 /**
  * Interactive date picker component.

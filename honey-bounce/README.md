@@ -5,7 +5,7 @@
 <!-- BADGES:BEGIN -->
 [![CI](https://github.com/detain/sugarcraft/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/detain/sugarcraft/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/detain/sugarcraft/branch/master/graph/badge.svg?flag=honey-bounce)](https://app.codecov.io/gh/detain/sugarcraft?flags%5B0%5D=honey-bounce)
-[![Packagist Version](https://img.shields.io/packagist/v/candycore/honey-bounce?label=packagist)](https://packagist.org/packages/candycore/honey-bounce)
+[![Packagist Version](https://img.shields.io/packagist/v/sugarcraft/honey-bounce?label=packagist)](https://packagist.org/packages/sugarcraft/honey-bounce)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![PHP](https://img.shields.io/badge/php-%E2%89%A58.1-8892bf.svg)](https://www.php.net/)
 <!-- BADGES:END -->
@@ -16,7 +16,7 @@ damped-spring physics + Newtonian projectile simulation for animation.
 Pure math; no terminal dependency.
 
 ```sh
-composer require candycore/honey-bounce
+composer require sugarcraft/honey-bounce
 ```
 
 ## Spring
@@ -26,7 +26,7 @@ Damped harmonic oscillator (Ryan-Juckett's algorithm). Choose `dampingRatio`:
 over-damped.
 
 ```php
-use CandyCore\Bounce\Spring;
+use SugarCraft\Bounce\Spring;
 
 $spring = new Spring(
     deltaTime:        Spring::fps(60),  // 1/60 of a second
@@ -51,7 +51,7 @@ same `$n` per-second simulation cadence.
 Newtonian-physics simulator for arcs / bouncing balls / particle effects.
 
 ```php
-use CandyCore\Bounce\{Point, Projectile, Vector};
+use SugarCraft\Bounce\{Point, Projectile, Vector};
 
 $p = Projectile::new(
     deltaTime:    Spring::fps(60),
@@ -70,7 +70,7 @@ Gravity constants: `Projectile::GRAVITY` (9.81) and
 `Projectile::gravity()` and `Projectile::terminalGravity()` return Y-axis
 `Vector` instances ready to drop into the constructor.
 
-`CandyCore\Bounce\Gravity` exposes the same vectors as static
+`SugarCraft\Bounce\Gravity` exposes the same vectors as static
 accessors at the package level — `Gravity::standard()`,
 `Gravity::terminal()`, `Gravity::standardYDown()`,
 `Gravity::terminalYDown()` — so call sites translating from harmonica's

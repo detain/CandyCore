@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\SuperCandy\Tests;
+namespace SugarCraft\SuperCandy\Tests;
 
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\SuperCandy\Entry;
-use CandyCore\SuperCandy\Manager;
-use CandyCore\SuperCandy\Pane;
-use CandyCore\SuperCandy\Renderer;
-use CandyCore\SuperCandy\Sort;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\SuperCandy\Entry;
+use SugarCraft\SuperCandy\Manager;
+use SugarCraft\SuperCandy\Pane;
+use SugarCraft\SuperCandy\Renderer;
+use SugarCraft\SuperCandy\Sort;
 use PHPUnit\Framework\TestCase;
 
 final class RendererTest extends TestCase

@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-readline",
+    "name": "sugarcraft/sugar-readline",
     "description": "PHP port of erikgeiser/promptkit \u2014 interactive line-editing prompt library. Supports text input with validation/completion/hidden-password mode, selection prompts with filtering/pagination/cursor navigation, confirmation prompts, and textarea multi-line input.",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "prompt", "readline", "input", "selection", "interactive", "candycore"],
+    "keywords": ["tui", "prompt", "readline", "input", "selection", "interactive", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-readline",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -53,10 +53,10 @@
         { "type": "path", "url": "../sugar-calendar",  "options": { "symlink": true } }
     ],
     "autoload": {
-        "psr-4": { "CandyCore\\Readline\\": "src/" }
+        "psr-4": { "SugarCraft\\Readline\\": "src/" }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Readline\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Readline\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Tests\Command;
+namespace SugarCraft\Shell\Tests\Command;
 
-use CandyCore\Shell\Command\JoinCommand;
+use SugarCraft\Shell\Command\JoinCommand;
 use PHPUnit\Framework\TestCase;
 
 final class JoinCommandTest extends TestCase

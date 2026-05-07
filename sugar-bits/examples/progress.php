@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Progress\Progress;
+use SugarCraft\Bits\Progress\Progress;
 
 // Animate fill 0 → 100.
 $p = Progress::new()->withWidth(40)->withShowPercent(true);

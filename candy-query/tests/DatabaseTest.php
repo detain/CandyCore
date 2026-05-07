@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Query\Tests;
+namespace SugarCraft\Query\Tests;
 
-use CandyCore\Query\Database;
+use SugarCraft\Query\Database;
 use PHPUnit\Framework\TestCase;
 
 final class DatabaseTest extends TestCase

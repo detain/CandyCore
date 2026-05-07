@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce;
+namespace SugarCraft\Bounce;
 
 /**
  * 3D point. Same shape as {@see Vector}; kept as a distinct type for

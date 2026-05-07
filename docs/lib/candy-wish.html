@@ -47,14 +47,14 @@
     <p class="lede" style="margin-top: 28px;">Build TUIs anyone can <code>ssh user@host</code> to run. Leans on the host's OpenSSH daemon (ForceCommand) rather than re-implementing the SSH wire protocol. sshd handles auth, ciphers, host keys, fail2ban, audit logs.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-wish</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-wish</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
     <pre class="code"><code>// /opt/wish/server.php — invoked by sshd ForceCommand
 require '/opt/wish/vendor/autoload.php';
 
-use CandyCore\Wish\Server;
-use CandyCore\Wish\Middleware\{Logger, Auth, RateLimit, BubbleTea};
+use SugarCraft\Wish\Server;
+use SugarCraft\Wish\Middleware\{Logger, Auth, RateLimit, BubbleTea};
 
 Server::new()
     -&gt;use(new Logger('/var/log/wish.jsonl'))
@@ -73,7 +73,7 @@ Server::new()
       <div class="feature"><strong>Logger middleware</strong><span>Structured JSONL session log to stdout / file.</span></div>
       <div class="feature"><strong>Auth middleware</strong><span>Allowlist by username; denied connections close cleanly.</span></div>
       <div class="feature"><strong>RateLimit middleware</strong><span>Token-bucket per username, persisted to JSON. Burst + rate configurable.</span></div>
-      <div class="feature"><strong>BubbleTea middleware</strong><span>Mount a CandyCore Program at the end of the chain.</span></div>
+      <div class="feature"><strong>BubbleTea middleware</strong><span>Mount a SugarCraft Program at the end of the chain.</span></div>
       <div class="feature"><strong>Custom middleware</strong><span>Anything implementing <code>Middleware::handle($session, $next)</code>.</span></div>
     </div>
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\Picture;
+namespace SugarCraft\Charts\Tests\Picture;
 
-use CandyCore\Charts\Picture\Picture;
-use CandyCore\Charts\Picture\Protocol;
-use CandyCore\Core\Util\Color;
+use SugarCraft\Charts\Picture\Picture;
+use SugarCraft\Charts\Picture\Protocol;
+use SugarCraft\Core\Util\Color;
 use PHPUnit\Framework\TestCase;
 
 final class PictureTest extends TestCase

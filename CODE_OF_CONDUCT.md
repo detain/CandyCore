@@ -1,11 +1,11 @@
 # Code of Conduct
 
-CandyCore follows the [Contributor Covenant](https://www.contributor-covenant.org/),
+SugarCraft follows the [Contributor Covenant](https://www.contributor-covenant.org/),
 version 2.1.
 
 ## Our pledge
 
-We pledge to make participation in CandyCore a harassment-free experience
+We pledge to make participation in SugarCraft a harassment-free experience
 for everyone, regardless of age, body size, visible or invisible disability,
 ethnicity, sex characteristics, gender identity and expression, level of
 experience, education, socio-economic status, nationality, personal

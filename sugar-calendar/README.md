@@ -22,14 +22,14 @@ PHP port of [EthanEFung/bubble-datepicker](https://github.com/EthanEFung/bubble-
 ## Install
 
 ```bash
-composer require candycore/sugar-calendar
+composer require sugarcraft/sugar-calendar
 ```
 
 ## Quick Start
 
 ```php
-use CandyCore\Calendar\Model;
-use CandyCore\Calendar\DatePicker;
+use SugarCraft\Calendar\Model;
+use SugarCraft\Calendar\DatePicker;
 
 $picker = DatePicker::new(new \DateTimeImmutable('2026-05-01'));
 $picker = $picker->SelectDate();  // enter "select mode"

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Msg;
+namespace SugarCraft\Core\Msg;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 /**
- * Signals the {@see \CandyCore\Core\Program} to tear down and exit.
- * Returned from a Cmd or sent via {@see \CandyCore\Core\Program::quit()}.
+ * Signals the {@see \SugarCraft\Core\Program} to tear down and exit.
+ * Returned from a Cmd or sent via {@see \SugarCraft\Core\Program::quit()}.
  */
 final class QuitMsg implements Msg
 {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\FilePicker;
+namespace SugarCraft\Bits\FilePicker;
 
 /**
  * Sort criterion for {@see FilePicker::withSortMode()}. Directories

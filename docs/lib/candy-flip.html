@@ -47,17 +47,17 @@
     <p class="lede" style="margin-top: 28px;">Decodes a <code>.gif</code> on disk via <code>ext-gd</code>, downsamples each frame to a configurable cell grid, and renders the animation as ANSI-coloured Unicode block-glyphs. Two presets: solid 24-bit blocks or a luminance-ramp ASCII rendering.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-flip</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-flip</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
     <pre class="code"><code>candy-flip my-animation.gif         # solid blocks (default)
 candy-flip my-animation.gif density # luminance ramp
 
 // Programmatic:
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Flip\Decoder;
-use CandyCore\Flip\Player;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Flip\Decoder;
+use SugarCraft\Flip\Player;
 
 $frames = Decoder::decode('cat.gif', cellsW: 80, cellsH: 30);
 (new Program(new Player($frames),

@@ -9,7 +9,7 @@
 
 ### ✅ Strong (keep / build around)
 
-* **CandyCore** → excellent foundation name (framework/kernel)
+* **SugarCraft** → excellent foundation name (framework/kernel)
 * **SugarBits** → great for components (very clear metaphor)
 * **CandyDrops** → nice for small UI elements or helpers
 * **HoneyComb** → good for layout/grid (very fitting metaphor)
@@ -33,7 +33,7 @@ You want names that:
 
 # 🔥 Strong refined set (based on yours)
 
-* **CandyCore** → framework
+* **SugarCraft** → framework
 * **SugarBits** → components
 * **HoneyComb** → layout/grid
 * **CandyDrops** → small utilities/effects

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Mines;
+namespace SugarCraft\Mines;
 
 /**
  * One cell on the minefield. Immutable value object — every transition

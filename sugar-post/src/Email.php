@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Post;
+namespace SugarCraft\Post;
 
 /**
  * Immutable email message value object.

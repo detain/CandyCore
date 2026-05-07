@@ -47,16 +47,16 @@
     <p class="lede" style="margin-top: 28px;">Composer-installable SQLite TUI: connect, browse tables, peek at row data, run ad-hoc queries — all on the SugarCraft stack. SQLite-only at v1; the storage layer is a sealed concrete class today, promote-to-interface the day a non-SQLite driver lands.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
-    <pre class="code"><code>composer require candycore/candy-query</code></pre>
+    <pre class="code"><code>composer require sugarcraft/candy-query</code></pre>
 
     <h3 style="margin-top: 32px;">Quickstart</h3>
     <pre class="code"><code>candy-query path/to/db.sqlite
 
 // Or wire it up programmatically:
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Query\App;
-use CandyCore\Query\Database;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Query\App;
+use SugarCraft\Query\Database;
 
 $db = Database::open('app.sqlite');
 (new Program(App::start($db), new ProgramOptions(useAltScreen: true)))-&gt;run();</code></pre>

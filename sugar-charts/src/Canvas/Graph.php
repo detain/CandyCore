@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Canvas;
+namespace SugarCraft\Charts\Canvas;
 
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Drawing primitives for {@see Canvas}. Mirrors ntcharts' `canvas/graph`

@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Serve\Tests;
+namespace SugarCraft\Serve\Tests;
 
-use CandyCore\Serve\{AccessControl, Config, Repo, User};
+use SugarCraft\Serve\{AccessControl, Config, Repo, User};
 use PHPUnit\Framework\TestCase;
 
 final class ServeTest extends TestCase

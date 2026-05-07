@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests;
 
 use App\Counter;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Core\Msg\WindowSizeMsg;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\WindowSizeMsg;
 use PHPUnit\Framework\TestCase;
 
 final class CounterTest extends TestCase

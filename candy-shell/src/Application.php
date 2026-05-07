@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell;
+namespace SugarCraft\Shell;
 
-use CandyCore\Shell\Command\ChooseCommand;
-use CandyCore\Shell\Command\ConfirmCommand;
-use CandyCore\Shell\Command\FileCommand;
-use CandyCore\Shell\Command\FilterCommand;
-use CandyCore\Shell\Command\FormatCommand;
-use CandyCore\Shell\Command\InputCommand;
-use CandyCore\Shell\Command\JoinCommand;
-use CandyCore\Shell\Command\LogCommand;
-use CandyCore\Shell\Command\PagerCommand;
-use CandyCore\Shell\Command\SpinCommand;
-use CandyCore\Shell\Command\StyleCommand;
-use CandyCore\Shell\Command\TableCommand;
-use CandyCore\Shell\Command\WriteCommand;
+use SugarCraft\Shell\Command\ChooseCommand;
+use SugarCraft\Shell\Command\ConfirmCommand;
+use SugarCraft\Shell\Command\FileCommand;
+use SugarCraft\Shell\Command\FilterCommand;
+use SugarCraft\Shell\Command\FormatCommand;
+use SugarCraft\Shell\Command\InputCommand;
+use SugarCraft\Shell\Command\JoinCommand;
+use SugarCraft\Shell\Command\LogCommand;
+use SugarCraft\Shell\Command\PagerCommand;
+use SugarCraft\Shell\Command\SpinCommand;
+use SugarCraft\Shell\Command\StyleCommand;
+use SugarCraft\Shell\Command\TableCommand;
+use SugarCraft\Shell\Command\WriteCommand;
 use Symfony\Component\Console\Application as SymfonyApplication;
 
 /**

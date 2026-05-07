@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt;
+namespace SugarCraft\Prompt;
 
 /**
  * Mixin trait for {@see Field} implementations: provides a chainable

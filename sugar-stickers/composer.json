@@ -1,9 +1,9 @@
 {
-    "name": "candycore/sugar-stickers",
+    "name": "sugarcraft/sugar-stickers",
     "description": "PHP port of 76creates/stickers \u2014 Lipgloss utility components. FlexBox (CSS flexbox-like responsive grid layout) and Table (sortable, filterable data table with column definitions).",
     "type": "library",
     "license": "MIT",
-    "keywords": ["tui", "flexbox", "table", "layout", "grid", "candycore"],
+    "keywords": ["tui", "flexbox", "table", "layout", "grid", "sugarcraft"],
     "homepage": "https://github.com/sugarcraft/sugar-stickers",
     "authors": [
         { "name": "Joe Huss", "email": "detain@interserver.net", "role": "Maintainer" }
@@ -51,13 +51,13 @@
     ],
     "autoload": {
         "psr-4": {
-            "CandyCore\\Stickers\\": "src/",
-            "CandyCore\\Stickers\\Flex\\": "src/Flex/",
-            "CandyCore\\Stickers\\Table\\": "src/Table/"
+            "SugarCraft\\Stickers\\": "src/",
+            "SugarCraft\\Stickers\\Flex\\": "src/Flex/",
+            "SugarCraft\\Stickers\\Table\\": "src/Table/"
         }
     },
     "autoload-dev": {
-        "psr-4": { "CandyCore\\Stickers\\Tests\\": "tests/" }
+        "psr-4": { "SugarCraft\\Stickers\\Tests\\": "tests/" }
     },
     "minimum-stability": "dev",
     "prefer-stable": true

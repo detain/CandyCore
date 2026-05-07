@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crumbs;
+namespace SugarCraft\Crumbs;
 
 /**
  * A single item on the navigation stack.

@@ -11,7 +11,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\FilePicker\FilePicker;
+use SugarCraft\Bits\FilePicker\FilePicker;
 
 $dir = __DIR__ . '/..';
 

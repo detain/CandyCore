@@ -31,13 +31,13 @@ PHP port of [76creates/stickers](https://github.com/76creates/stickers) — Lipg
 ## Install
 
 ```bash
-composer require candycore/sugar-stickers
+composer require sugarcraft/sugar-stickers
 ```
 
 ## FlexBox Quick Start
 
 ```php
-use CandyCore\Stickers\Flex\{FlexBox, FlexItem};
+use SugarCraft\Stickers\Flex\{FlexBox, FlexItem};
 
 $box = FlexBox::row(
     FlexItem::new('Panel A')->withRatio(1),
@@ -51,7 +51,7 @@ echo $box->render(80, 24);
 ## Table Quick Start
 
 ```php
-use CandyCore\Stickers\Table\{Table, Column};
+use SugarCraft\Stickers\Table\{Table, Column};
 
 $table = new Table();
 $table->addColumn(Column::make('Name', 20));

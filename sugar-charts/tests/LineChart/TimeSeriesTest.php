@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Charts\Tests\LineChart;
+namespace SugarCraft\Charts\Tests\LineChart;
 
-use CandyCore\Charts\LineChart\TimeSeries;
+use SugarCraft\Charts\LineChart\TimeSeries;
 use PHPUnit\Framework\TestCase;
 
 final class TimeSeriesTest extends TestCase

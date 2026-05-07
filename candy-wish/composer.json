@@ -1,10 +1,10 @@
 {
-    "name": "candycore/candy-wish",
-    "description": "SSH server middleware framework \u2014 port of charmbracelet/wish. Build TUIs that anyone can `ssh user@host` to run, with composable middleware (auth, logging, rate-limiting, ext-ssh2 client wrappers, mount a CandyCore Program).",
+    "name": "sugarcraft/candy-wish",
+    "description": "SSH server middleware framework \u2014 port of charmbracelet/wish. Build TUIs that anyone can `ssh user@host` to run, with composable middleware (auth, logging, rate-limiting, ext-ssh2 client wrappers, mount a SugarCraft Program).",
     "type": "library",
     "license": "MIT",
     "keywords": [
-        "candycore",
+        "sugarcraft",
         "wish",
         "ssh",
         "server",
@@ -29,7 +29,7 @@
     },
     "require": {
         "php": ">=8.1",
-        "candycore/candy-core": "@dev"
+        "sugarcraft/candy-core": "@dev"
     },
     "require-dev": {
         "phpunit/phpunit": "^10.0"
@@ -39,12 +39,12 @@
     },
     "autoload": {
         "psr-4": {
-            "CandyCore\\Wish\\": "src/"
+            "SugarCraft\\Wish\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "CandyCore\\Wish\\Tests\\": "tests/"
+            "SugarCraft\\Wish\\Tests\\": "tests/"
         }
     },
     "repositories": [

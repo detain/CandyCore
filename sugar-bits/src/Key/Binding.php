@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Key;
+namespace SugarCraft\Bits\Key;
 
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
  * A keybinding: a list of accepted key strings (matched against

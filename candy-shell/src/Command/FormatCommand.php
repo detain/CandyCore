@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Command;
+namespace SugarCraft\Shell\Command;
 
-use CandyCore\Shine\Renderer;
-use CandyCore\Shine\Theme;
+use SugarCraft\Shine\Renderer;
+use SugarCraft\Shine\Theme;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -15,7 +15,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Render a Markdown file (or stdin) as styled ANSI text using
- * {@see \CandyCore\Shine\Renderer}. Non-interactive — produces output
+ * {@see \SugarCraft\Shine\Renderer}. Non-interactive — produces output
  * straight to stdout so it pipelines naturally:
  *
  *   $ candyshell format README.md

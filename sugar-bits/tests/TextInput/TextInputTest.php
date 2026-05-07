@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\TextInput;
+namespace SugarCraft\Bits\Tests\TextInput;
 
-use CandyCore\Bits\TextInput\EchoMode;
-use CandyCore\Bits\TextInput\Styles;
-use CandyCore\Bits\TextInput\TextInput;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Bits\TextInput\EchoMode;
+use SugarCraft\Bits\TextInput\Styles;
+use SugarCraft\Bits\TextInput\TextInput;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
+use SugarCraft\Sprinkles\Style;
 use PHPUnit\Framework\TestCase;
 
 final class TextInputTest extends TestCase

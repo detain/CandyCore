@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Backend;
+namespace SugarCraft\Metrics\Backend;
 
-use CandyCore\Metrics\Backend;
+use SugarCraft\Metrics\Backend;
 
 /**
  * Fanout to multiple backends. Useful for emitting to the live

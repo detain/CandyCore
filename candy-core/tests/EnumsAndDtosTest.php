@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core\Tests;
+namespace SugarCraft\Core\Tests;
 
-use CandyCore\Core\Cursor;
-use CandyCore\Core\CursorShape;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\ModeState;
-use CandyCore\Core\MouseAction;
-use CandyCore\Core\MouseButton;
-use CandyCore\Core\MouseMode;
-use CandyCore\Core\Progress;
-use CandyCore\Core\ProgressBarState;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Core\Util\Color;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Core\View;
+use SugarCraft\Core\Cursor;
+use SugarCraft\Core\CursorShape;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\ModeState;
+use SugarCraft\Core\MouseAction;
+use SugarCraft\Core\MouseButton;
+use SugarCraft\Core\MouseMode;
+use SugarCraft\Core\Progress;
+use SugarCraft\Core\ProgressBarState;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Core\Util\Color;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Core\View;
 use PHPUnit\Framework\TestCase;
 
 final class EnumsAndDtosTest extends TestCase

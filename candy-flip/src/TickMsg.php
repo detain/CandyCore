@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip;
+namespace SugarCraft\Flip;
 
-use CandyCore\Core\Msg;
+use SugarCraft\Core\Msg;
 
 final class TickMsg implements Msg
 {

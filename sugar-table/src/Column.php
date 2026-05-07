@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table;
+namespace SugarCraft\Table;
 
 /**
  * A table column with key, title, width, and optional style.

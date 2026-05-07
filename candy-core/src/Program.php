@@ -2,19 +2,19 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
-use CandyCore\Core\Msg\ColorProfileMsg;
-use CandyCore\Core\Msg\EnvMsg;
-use CandyCore\Core\Msg\ExecMsg;
-use CandyCore\Core\Msg\InterruptMsg;
-use CandyCore\Core\Msg\QuitMsg;
-use CandyCore\Core\Msg\ResumeMsg;
-use CandyCore\Core\Msg\SuspendMsg;
-use CandyCore\Core\Msg\WindowSizeMsg;
-use CandyCore\Core\Util\Ansi;
-use CandyCore\Core\Util\ColorProfile;
-use CandyCore\Core\Util\Tty;
+use SugarCraft\Core\Msg\ColorProfileMsg;
+use SugarCraft\Core\Msg\EnvMsg;
+use SugarCraft\Core\Msg\ExecMsg;
+use SugarCraft\Core\Msg\InterruptMsg;
+use SugarCraft\Core\Msg\QuitMsg;
+use SugarCraft\Core\Msg\ResumeMsg;
+use SugarCraft\Core\Msg\SuspendMsg;
+use SugarCraft\Core\Msg\WindowSizeMsg;
+use SugarCraft\Core\Util\Ansi;
+use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Core\Util\Tty;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
 

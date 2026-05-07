@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Shell\Model;
+namespace SugarCraft\Shell\Model;
 
-use CandyCore\Bits\TextArea\TextArea;
-use CandyCore\Core\Cmd;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Model;
-use CandyCore\Core\Msg;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\TextArea\TextArea;
+use SugarCraft\Core\Cmd;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Model;
+use SugarCraft\Core\Msg;
+use SugarCraft\Core\Msg\KeyMsg;
 
 /**
- * Multi-line editor used by {@see \CandyCore\Shell\Command\WriteCommand}.
+ * Multi-line editor used by {@see \SugarCraft\Shell\Command\WriteCommand}.
  * Wraps {@see TextArea}; **Ctrl+D** submits (Enter inserts a newline,
  * matching most multi-line editors), **Esc / Ctrl+C** abort.
  */

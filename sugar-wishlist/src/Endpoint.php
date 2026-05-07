@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Wishlist;
+namespace SugarCraft\Wishlist;
 
 /**
  * One row in a wishlist directory — a host the user can pick to

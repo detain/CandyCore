@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table;
+namespace SugarCraft\Table;
 
 /**
  * Customizable interactive table component.

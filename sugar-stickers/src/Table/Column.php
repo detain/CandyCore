@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Stickers\Table;
+namespace SugarCraft\Stickers\Table;
 
 /**
  * Column definition for a Table.

@@ -11,9 +11,9 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Bits\Help\Help;
-use CandyCore\Bits\Key\Binding;
-use CandyCore\Bits\Key\KeyMap;
+use SugarCraft\Bits\Help\Help;
+use SugarCraft\Bits\Key\Binding;
+use SugarCraft\Bits\Key\KeyMap;
 
 $bind = static fn(string $key, string $desc) =>
     (new Binding([$key]))->withHelp($key, $desc);

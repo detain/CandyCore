@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Table;
+namespace SugarCraft\Table;
 
 /**
  * A cell with explicit ANSI style, overriding column/row styles.

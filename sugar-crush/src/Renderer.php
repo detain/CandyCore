@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Crush;
+namespace SugarCraft\Crush;
 
-use CandyCore\Shine\Renderer as Markdown;
-use CandyCore\Sprinkles\Border;
-use CandyCore\Sprinkles\Style;
+use SugarCraft\Shine\Renderer as Markdown;
+use SugarCraft\Sprinkles\Border;
+use SugarCraft\Sprinkles\Style;
 
 /**
  * Pure view function for {@see Chat}. Lays out the conversation

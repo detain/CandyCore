@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bounce;
+namespace SugarCraft\Bounce;
 
 /**
  * Package-level gravity {@see Vector} constants.
@@ -15,7 +15,7 @@ namespace CandyCore\Bounce;
  * for callers translating Go reference code.
  *
  * ```php
- * use CandyCore\Bounce\Gravity;
+ * use SugarCraft\Bounce\Gravity;
  *
  * $proj = Projectile::new(
  *     deltaTime:    Spring::fps(60),

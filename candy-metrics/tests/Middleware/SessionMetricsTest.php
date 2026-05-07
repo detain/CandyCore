@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Metrics\Tests\Middleware;
+namespace SugarCraft\Metrics\Tests\Middleware;
 
-use CandyCore\Metrics\Backend\InMemoryBackend;
-use CandyCore\Metrics\Middleware\SessionMetrics;
-use CandyCore\Metrics\Registry;
-use CandyCore\Wish\Session;
+use SugarCraft\Metrics\Backend\InMemoryBackend;
+use SugarCraft\Metrics\Middleware\SessionMetrics;
+use SugarCraft\Metrics\Registry;
+use SugarCraft\Wish\Session;
 use PHPUnit\Framework\TestCase;
 
 final class SessionMetricsTest extends TestCase

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Flip;
+namespace SugarCraft\Flip;
 
 /**
  * One downsampled GIF frame. Stored as a 2-D grid of RGB triples in

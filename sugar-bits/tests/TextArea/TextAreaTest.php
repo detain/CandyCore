@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Bits\Tests\TextArea;
+namespace SugarCraft\Bits\Tests\TextArea;
 
-use CandyCore\Bits\TextArea\TextArea;
-use CandyCore\Core\KeyType;
-use CandyCore\Core\Msg\KeyMsg;
+use SugarCraft\Bits\TextArea\TextArea;
+use SugarCraft\Core\KeyType;
+use SugarCraft\Core\Msg\KeyMsg;
 use PHPUnit\Framework\TestCase;
 
 final class TextAreaTest extends TestCase

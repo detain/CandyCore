@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Toast\Tests;
+namespace SugarCraft\Toast\Tests;
 
-use CandyCore\Toast\{Alert, Position, SymbolSet, Toast, ToastType};
+use SugarCraft\Toast\{Alert, Position, SymbolSet, Toast, ToastType};
 use PHPUnit\Framework\TestCase;
 
 final class ToastTest extends TestCase

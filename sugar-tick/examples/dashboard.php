@@ -9,11 +9,11 @@ declare(strict_types=1);
  */
 require __DIR__ . '/../vendor/autoload.php';
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Tick\Dashboard;
-use CandyCore\Tick\Heartbeat;
-use CandyCore\Tick\Store;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Tick\Dashboard;
+use SugarCraft\Tick\Heartbeat;
+use SugarCraft\Tick\Store;
 
 $dir = sys_get_temp_dir() . '/sugar-tick-demo';
 if (!is_dir($dir)) {

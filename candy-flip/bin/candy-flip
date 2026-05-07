@@ -15,11 +15,11 @@ declare(strict_types=1);
     exit(1);
 })();
 
-use CandyCore\Core\Program;
-use CandyCore\Core\ProgramOptions;
-use CandyCore\Flip\Decoder;
-use CandyCore\Flip\Player;
-use CandyCore\Flip\Renderer;
+use SugarCraft\Core\Program;
+use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Flip\Decoder;
+use SugarCraft\Flip\Player;
+use SugarCraft\Flip\Renderer;
 
 $argv = $argv ?? [];
 $path  = $argv[1] ?? null;

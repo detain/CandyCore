@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Lister\Tests;
+namespace SugarCraft\Lister\Tests;
 
-use CandyCore\Lister\{DefaultPrefixer, DefaultSuffixer, Model, StringItem};
+use SugarCraft\Lister\{DefaultPrefixer, DefaultSuffixer, Model, StringItem};
 use PHPUnit\Framework\TestCase;
 
 final class ModelTest extends TestCase

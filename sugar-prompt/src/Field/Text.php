@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Prompt\Field;
+namespace SugarCraft\Prompt\Field;
 
-use CandyCore\Bits\TextArea\TextArea;
-use CandyCore\Core\Msg;
-use CandyCore\Prompt\Field;
-use CandyCore\Prompt\HasDynamicLabels;
-use CandyCore\Prompt\HasHideFunc;
+use SugarCraft\Bits\TextArea\TextArea;
+use SugarCraft\Core\Msg;
+use SugarCraft\Prompt\Field;
+use SugarCraft\Prompt\HasDynamicLabels;
+use SugarCraft\Prompt\HasHideFunc;
 
 /**
  * Multi-line text field. Wraps a {@see TextArea}; Enter inserts a newline
@@ -104,12 +104,12 @@ final class Text implements Field
      */
     public function consumes(Msg $msg): bool
     {
-        if (!$this->area->focused || !$msg instanceof \CandyCore\Core\Msg\KeyMsg) {
+        if (!$this->area->focused || !$msg instanceof \SugarCraft\Core\Msg\KeyMsg) {
             return false;
         }
-        return $msg->type === \CandyCore\Core\KeyType::Enter
-            || $msg->type === \CandyCore\Core\KeyType::Up
-            || $msg->type === \CandyCore\Core\KeyType::Down;
+        return $msg->type === \SugarCraft\Core\KeyType::Enter
+            || $msg->type === \SugarCraft\Core\KeyType::Up
+            || $msg->type === \SugarCraft\Core\KeyType::Down;
     }
 
     private function validate(): self

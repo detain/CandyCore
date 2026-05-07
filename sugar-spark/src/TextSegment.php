@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Spark;
+namespace SugarCraft\Spark;
 
 /**
  * Visible text between escape sequences. {@see describe()} returns the

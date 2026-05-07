@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace CandyCore\Core;
+namespace SugarCraft\Core;
 
 /**
  * Reply states from a DECRPM (Mode Report) reply, returned in
- * {@see \CandyCore\Core\Msg\ModeReportMsg::$state}. Mirrors the values
+ * {@see \SugarCraft\Core\Msg\ModeReportMsg::$state}. Mirrors the values
  * defined in xterm's ctlseqs reference and ECMA-48.
  */
 enum ModeState: int
