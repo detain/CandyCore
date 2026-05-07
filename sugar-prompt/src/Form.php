@@ -91,11 +91,20 @@ final class Form implements Model
         );
     }
 
+    /**
+     * Cmd returned the first time the runtime polls — typically the
+     * focused field's focus-Cmd (cursor blink, autocomplete preload).
+     * Mirrors candy-core's {@see Model::init()}.
+     */
     public function init(): ?\Closure
     {
         return $this->initCmd;
     }
 
+    /**
+     * Set the global theme. Per-{@see Group} overrides take priority
+     * via {@see activeTheme()}. Mirrors huh's `WithTheme`.
+     */
     public function withTheme(Theme $theme): self
     {
         return $this->mutate(theme: $theme);
@@ -183,12 +192,18 @@ final class Form implements Model
         return $this->groups[$this->groupIndex]->theme ?? $this->theme;
     }
 
+    /**
+     * Advance to the next non-hidden group. No-op (returns the same
+     * instance) when already on the last group. Validators / hide-funcs
+     * on the current group are evaluated before the move.
+     */
     public function nextGroup(): self
     {
         [$next, ] = $this->advanceGroup(+1);
         return $next;
     }
 
+    /** Mirror of {@see nextGroup()} stepping backwards. */
     public function prevGroup(): self
     {
         [$next, ] = $this->advanceGroup(-1);
@@ -201,18 +216,28 @@ final class Form implements Model
     /** Total number of groups (including hidden ones). */
     public function totalGroups(): int { return count($this->groups); }
 
+    /** The {@see Group} struct that owns the currently-focused field. */
     public function activeGroup(): Group
     {
         return $this->groups[$this->groupIndex];
     }
 
-    /** Field list for the active group. */
+    /**
+     * Field list for the active group, in declaration order.
+     *
+     * @return list<Field>
+     */
     public function activeFields(): array
     {
         return $this->fieldsByGroup[$this->groupIndex];
     }
 
     /**
+     * Bubble-Tea {@see Model} update entry point. Routes the message
+     * to the focused field, applies form-level navigation (Tab /
+     * Shift-Tab / Up / Down) + abort (Esc / Ctrl-C) + submit (Enter
+     * on the last field), and returns `[$next, $cmd]`.
+     *
      * @return array{0:Model, 1:?\Closure}
      */
     public function update(Msg $msg): array
@@ -276,6 +301,12 @@ final class Form implements Model
         return $this->forward($msg);
     }
 
+    /**
+     * Render the form as a multi-line ANSI string. Honours the
+     * {@see withAccessible()} switch — when on, degrades to a single
+     * "label: value" line for the focused field (screen-reader
+     * friendly).
+     */
     public function view(): string
     {
         if ($this->accessible) {
@@ -322,7 +353,14 @@ final class Form implements Model
         return $err !== null ? $line . "\n! " . $err : $line;
     }
 
-    /** @return array<string, mixed> */
+    /**
+     * Final value map keyed on each field's {@see Field::key()}.
+     * Hidden groups and skippable fields (notes, separators) are
+     * excluded — only fields that participate in the user-driven flow
+     * appear in the result.
+     *
+     * @return array<string, mixed>
+     */
     public function values(): array
     {
         $out = [];
@@ -447,8 +485,12 @@ final class Form implements Model
         return [$v];
     }
 
+    /** True after the last interactive field's Enter — `values()` is final. */
     public function isSubmitted(): bool { return $this->submitted; }
+    /** True after Esc / Ctrl-C — partial values may still be available via `values()`. */
     public function isAborted(): bool   { return $this->aborted; }
+
+    /** The focused field, or null when the form is empty / submitted / aborted. */
     public function focusedField(): ?Field
     {
         return $this->fieldsByGroup[$this->groupIndex][$this->focusedIndex] ?? null;

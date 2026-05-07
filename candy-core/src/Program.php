@@ -57,6 +57,14 @@ final class Program
     private ?bool $activeFocusReporting = null;
     private ?bool $activeBracketedPaste = null;
 
+    /**
+     * Wrap a {@see Model} with runtime options.
+     *
+     * The default {@see ProgramOptions} hits sane defaults: STDIN /
+     * STDOUT, alt-screen on, raw mode on, mouse off, signal handlers
+     * installed. Override per-field for inline mode, custom streams,
+     * or to wire a non-default {@see Loop}.
+     */
     public function __construct(
         Model $initialModel,
         private readonly ProgramOptions $options = new ProgramOptions(),
@@ -178,6 +186,12 @@ final class Program
         });
     }
 
+    /**
+     * Cooperative shutdown — enqueues a {@see QuitMsg}. The next
+     * `update()` cycle observes it; the model can react to QuitMsg
+     * before the runtime tears down. Pair with {@see kill()} when
+     * you need an immediate hard-stop with no model interaction.
+     */
     public function quit(): void
     {
         $this->send(new QuitMsg());

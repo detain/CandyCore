@@ -57,11 +57,13 @@ final class Group
         return new self(array_values($fields), '', '', null);
     }
 
+    /** Set the page title rendered above the field list. */
     public function withTitle(string $title): self
     {
         return new self($this->fields, $title, $this->description, $this->hideFunc, $this->showHelp, $this->theme);
     }
 
+    /** Set the page description (sub-line under the title). */
     public function withDescription(string $desc): self
     {
         return new self($this->fields, $this->title, $desc, $this->hideFunc, $this->showHelp, $this->theme);
@@ -101,13 +103,24 @@ final class Group
         return new self($this->fields, $this->title, $this->description, $fn, $this->showHelp, $this->theme);
     }
 
-    /** @param array<string,mixed> $values */
+    /**
+     * Evaluate {@see withHideFunc()} against the values collected so
+     * far. Returns true when the predicate is set and returned true
+     * — false otherwise (no predicate ⇒ never hidden).
+     *
+     * @param array<string,mixed> $values
+     */
     public function isHidden(array $values): bool
     {
         return $this->hideFunc !== null && ($this->hideFunc)($values) === true;
     }
 
-    /** @param list<Field>|null $fields */
+    /**
+     * Replace the field list. Useful when building groups from
+     * runtime data (e.g. one Confirm per row of a query result).
+     *
+     * @param list<Field> $fields
+     */
     public function withFields(array $fields): self
     {
         return new self(array_values($fields), $this->title, $this->description, $this->hideFunc, $this->showHelp, $this->theme);
