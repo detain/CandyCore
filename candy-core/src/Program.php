@@ -385,9 +385,16 @@ final class Program
         $stderr = '';
 
         try {
+            // Use the program's configured input/output where possible — only
+            // fall back to STDIN/STDOUT/STDERR when those resources are gone
+            // (e.g. tests that closed the streams). Mirrors upstream bubbletea
+            // PR #1680 — avoid a panic when the program was started with a
+            // null/closed input handle.
+            $childIn  = is_resource($this->input)  ? $this->input  : STDIN;
+            $childOut = is_resource($this->output) ? $this->output : STDOUT;
             $descriptors = $req->captureOutput
-                ? [0 => STDIN, 1 => ['pipe', 'w'], 2 => ['pipe', 'w']]
-                : [0 => STDIN, 1 => STDOUT, 2 => STDERR];
+                ? [0 => $childIn, 1 => ['pipe', 'w'], 2 => ['pipe', 'w']]
+                : [0 => $childIn, 1 => $childOut, 2 => STDERR];
             $cmd = is_array($req->command) ? $req->command : (string) $req->command;
             $proc = @proc_open($cmd, $descriptors, $pipes);
             if (!is_resource($proc)) {
