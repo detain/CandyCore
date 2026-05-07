@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Log;
 
+use SugarCraft\Core\Util\Color;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -12,7 +13,7 @@ use SugarCraft\Sprinkles\Style;
  */
 final class Styles
 {
-    /** @var array<Level, Style> */
+    /** @var array<int, Style> keyed by Level->value */
     public array $levels = [];
 
     /** @var array<string, Style> */
@@ -28,18 +29,18 @@ final class Styles
 
     public function __construct()
     {
-        $this->timestamp = Style::new()->foreground(8);
-        $this->prefix = Style::new()->foreground(5);
-        $this->caller = Style::new()->foreground(8);
+        $this->timestamp = Style::new()->foreground(Color::ansi(8));
+        $this->prefix = Style::new()->foreground(Color::ansi(5));
+        $this->caller = Style::new()->foreground(Color::ansi(8));
         $this->message = Style::new();
 
         foreach (Level::cases() as $level) {
-            $this->levels[$level] = match ($level) {
-                Level::Debug => Style::new()->foreground(8),
-                Level::Info  => Style::new()->foreground(4),
-                Level::Warn  => Style::new()->foreground(3),
-                Level::Error => Style::new()->foreground(1)->bold(),
-                Level::Fatal => Style::new()->foreground(7)->background(1)->bold(),
+            $this->levels[$level->value] = match ($level) {
+                Level::Debug => Style::new()->foreground(Color::ansi(8)),
+                Level::Info  => Style::new()->foreground(Color::ansi(4)),
+                Level::Warn  => Style::new()->foreground(Color::ansi(3)),
+                Level::Error => Style::new()->foreground(Color::ansi(1))->bold(),
+                Level::Fatal => Style::new()->foreground(Color::ansi(7))->background(Color::ansi(1))->bold(),
             };
         }
     }
