@@ -168,12 +168,14 @@ final class DatePicker
 
     /**
      * Enter selection mode and set the selected date to the cursor date.
+     * Falls back to the first of the viewed month when the cursor is on
+     * an empty cell (before the 1st or past the last day of the month).
      */
     public function SelectDate(): self
     {
         $clone = clone $this;
         $clone->selecting = true;
-        $clone->selectedDate = $clone->dateAtCursor();
+        $clone->selectedDate = $clone->dateAtCursor() ?? $clone->firstOfViewMonth();
         return $clone;
     }
 
@@ -223,19 +225,35 @@ final class DatePicker
     }
 
     /**
-     * Get the date at the current cursor position (may be outside current month).
+     * Get the date at the current cursor position, or null when the cursor
+     * sits on an empty cell (before the 1st of the month or past the last
+     * day in the 6×7 grid).
      */
     public function dateAtCursor(): ?\DateTimeImmutable
     {
-        $firstOfMonth = \DateTimeImmutable::createFromFormat(
-            'Y-m-d', \sprintf('%04d-%02d-01', $this->viewYear, $this->viewMonth)
+        $firstOfMonth = $this->firstOfViewMonth();
+        if ($firstOfMonth === null) return null;
+
+        $firstDow    = (int) $firstOfMonth->format('w'); // 0=Sun
+        $daysInMonth = (int) $firstOfMonth->format('t');
+        $dayNum      = $this->cursorIndex - $firstDow + 1;
+
+        if ($dayNum < 1 || $dayNum > $daysInMonth) {
+            return null;
+        }
+
+        // dayNum=1 is the 1st itself, hence offset = dayNum - 1.
+        return $firstOfMonth->modify('+' . ($dayNum - 1) . ' days');
+    }
+
+    private function firstOfViewMonth(): ?\DateTimeImmutable
+    {
+        // Leading "!" zeroes time-of-day so cursor dates are at 00:00:00
+        // instead of inheriting the current wall clock from createFromFormat.
+        $d = \DateTimeImmutable::createFromFormat(
+            '!Y-m-d', \sprintf('%04d-%02d-01', $this->viewYear, $this->viewMonth)
         );
-        if ($firstOfMonth === false) return null;
-
-        $firstDow = (int) $firstOfMonth->format('w'); // 0=Sun
-        $dayNum = $this->cursorIndex - $firstDow + 1;
-
-        return $firstOfMonth->modify("+{$dayNum} days");
+        return $d === false ? null : $d;
     }
 
     // -------------------------------------------------------------------------
