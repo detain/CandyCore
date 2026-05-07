@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Lister;
 
+use SugarCraft\Core\Util\Width;
+
 /**
  * Core list model — stores items, renders visible lines within a viewport.
  *
@@ -468,9 +470,9 @@ final class Model
         return "\x1b[{$codes}m{$s}\x1b[0m";
     }
 
-    /** Compute printable (non-ANSI) width. */
+    /** Compute printable (non-ANSI) cell width. */
     private function ansiWidth(string $s): int
     {
-        return \strlen(\preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?: '');
+        return Width::string($s);
     }
 }
