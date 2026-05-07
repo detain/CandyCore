@@ -26,7 +26,7 @@ composer require sugarcraft/sugarcraft
 
 ## What's in the box
 
-Thirty-one libraries grouped by layer:
+Twenty-three libraries grouped by layer:
 
 | | Library | Role |
 |---|---|---|
@@ -37,14 +37,9 @@ Thirty-one libraries grouped by layer:
 | <img src="media/icons/sugar-bits.png" width="48" alt=""> | **[SugarBits](sugar-bits/)** | 14 components: TextInput, TextArea, ItemList, Table, Viewport, FilePicker, Progress, Spinner, Cursor, Help, Key, Paginator, Stopwatch, Timer. Port of [bubbles](https://github.com/charmbracelet/bubbles). |
 | <img src="media/icons/sugar-charts.png" width="48" alt=""> | **[SugarCharts](sugar-charts/)** | Canvas + Sparkline, Bar, Line, Heatmap, Scatter, TimeSeries, Streamline, Waveline, OHLC, Picture (Sixel/Kitty/iTerm2). Port of [ntcharts](https://github.com/NimbleMarkets/ntcharts). |
 | <img src="media/icons/sugar-prompt.png" width="48" alt=""> | **[SugarPrompt](sugar-prompt/)** | Form library — Note, Input, Confirm, Select, MultiSelect, Text, FilePicker; multi-page Groups; 6 themes. Port of [huh](https://github.com/charmbracelet/huh). |
-| <img src="media/icons/candy-shell.png" width="48" alt=""> | **[CandyShell](candy-shell/)** | Composer-installable CLI of all 13 subcommands (choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write). Port of [gum](https://github.com/charmbracelet/gum). |
 | <img src="media/icons/candy-shine.png" width="48" alt=""> | **[CandyShine](candy-shine/)** | Markdown → ANSI renderer with word-wrap, OSC 8 hyperlinks, 8 themes. Port of [glamour](https://github.com/charmbracelet/glamour). |
 | <img src="media/icons/candy-kit.png" width="48" alt=""> | **[CandyKit](candy-kit/)** | CLI presentation helpers — StatusLine, Banner, Section, Stage, HelpText. Port of [fang](https://github.com/charmbracelet/fang). |
-| <img src="media/icons/candy-freeze.png" width="48" alt=""> | **[CandyFreeze](candy-freeze/)** | Code → SVG screenshot generator (no `ext-gd` required). Port of [freeze](https://github.com/charmbracelet/freeze). |
-| <img src="media/icons/sugar-glow.png" width="48" alt=""> | **[SugarGlow](sugar-glow/)** | Markdown CLI viewer / pager. Port of [glow](https://github.com/charmbracelet/glow). |
-| <img src="media/icons/sugar-spark.png" width="48" alt=""> | **[SugarSpark](sugar-spark/)** | ANSI escape-sequence inspector. Port of [sequin](https://github.com/charmbracelet/sequin). |
 | <img src="media/icons/candy-wish.png" width="48" alt=""> | **[CandyWish](candy-wish/)** | SSH server middleware — Logger, Auth, RateLimit, BubbleTea (mount a SugarCraft Program over `ForceCommand`). Port of [wish](https://github.com/charmbracelet/wish). |
-| <img src="media/icons/sugar-wishlist.png" width="48" alt=""> | **[SugarWishlist](sugar-wishlist/)** | TUI directory of SSH endpoints — YAML/JSON config + `pcntl_exec` into the chosen `ssh`. Port of [wishlist](https://github.com/charmbracelet/wishlist). |
 | <img src="media/icons/candy-metrics.png" width="48" alt=""> | **[CandyMetrics](candy-metrics/)** | Telemetry primitives — counters, gauges, histograms with InMemory / JSON / StatsD / Prometheus textfile / Multi backends, plus a CandyWish session middleware. Port of [promwish](https://github.com/charmbracelet/promwish). |
 | <img src="media/icons/candy-log.png" width="48" alt=""> | **[CandyLog](candy-log/)** | Colorful leveled logger — Debug / Info / Warn / Error / Fatal with structured context, Text / JSON / Logfmt formatters, sub-loggers, and StandardLogAdapter. Port of [log](https://github.com/charmbracelet/log) |
 | <img src="media/icons/candy-palette.png" width="48" alt=""> | **[CandyPalette](candy-palette/)** | Terminal color profile detection + ANSI / ANSI256 / TrueColor conversion. StandardColors and ProfileWriter. Port of [colorprofile](https://github.com/charmbracelet/colorprofile) |
@@ -58,15 +53,20 @@ Thirty-one libraries grouped by layer:
 | <img src="media/icons/sugar-calendar.png" width="48" alt=""> | **[SugarCalendar](sugar-calendar/)** | Interactive month-grid date picker — keyboard navigation, min/max date constraints, locale day names, ANSI rendering. Port of [bubble-datepicker](https://github.com/EthanEFung/bubble-datepicker) |
 | <img src="media/icons/sugar-readline.png" width="48" alt=""> | **[SugarReadline](sugar-readline/)** | Interactive prompts — Text, Confirm, Selection, MultiSelect, Textarea. State-machine model, no external readline dependency. Port of [promptkit](https://github.com/erikgeiser/promptkit) |
 | <img src="media/icons/sugar-table.png" width="48" alt=""> | **[SugarTable](sugar-table/)** | Full-featured interactive data table — column definitions, StyledCell ANSI formatting, pagination, frozen rows/cols. Port of [bubble-table](https://github.com/Evertras/bubble-table) |
-| <img src="media/icons/sugar-skate.png" width="48" alt=""> | **[SugarSkate](sugar-skate/)** | In-memory key/value store with plugin backends — Memory, SQLite, Badger. Glob listing, TTL, batch operations. Port of [skate](https://github.com/charmbracelet/skate) |
-| <img src="media/icons/sugar-post.png" width="48" alt=""> | **[SugarPost](sugar-post/)** | Email sending library — SMTP + Resend API transports, attachments, HTML + plain-text multipart, fluent interface. Port of [skate](https://github.com/charmbracelet/skate) |
-| <img src="media/icons/candy-serve.png" width="48" alt=""> | **[CandyServe](candy-serve/)** | Self-hostable Git server over SSH (authorized keys), Git daemon, and HTTP. Users, repos, access control, optional LFS. Port of [soft-serve](https://github.com/charmbracelet/soft-serve) |
 
 ## Apps built on the stack
 
 | | App | Role |
 |---|---|---|
 | <img src="media/icons/candy-mold.png" width="48" alt=""> | **[CandyMold](candy-mold/)** | `composer create-project sugarcraft/candy-mold my-app` — bootstrap skeleton with a working counter Model. Port of [bubbletea-app-template](https://github.com/charmbracelet/bubbletea-app-template). |
+| <img src="media/icons/candy-shell.png" width="48" alt=""> | **[CandyShell](candy-shell/)** | Composer-installable CLI of all 13 subcommands (choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write). Port of [gum](https://github.com/charmbracelet/gum). |
+| <img src="media/icons/candy-freeze.png" width="48" alt=""> | **[CandyFreeze](candy-freeze/)** | Code → SVG screenshot generator (no `ext-gd` required). Port of [freeze](https://github.com/charmbracelet/freeze). |
+| <img src="media/icons/sugar-glow.png" width="48" alt=""> | **[SugarGlow](sugar-glow/)** | Markdown CLI viewer / pager. Port of [glow](https://github.com/charmbracelet/glow). |
+| <img src="media/icons/sugar-spark.png" width="48" alt=""> | **[SugarSpark](sugar-spark/)** | ANSI escape-sequence inspector. Port of [sequin](https://github.com/charmbracelet/sequin). |
+| <img src="media/icons/sugar-wishlist.png" width="48" alt=""> | **[SugarWishlist](sugar-wishlist/)** | TUI directory of SSH endpoints — YAML/JSON config + `pcntl_exec` into the chosen `ssh`. Port of [wishlist](https://github.com/charmbracelet/wishlist). |
+| <img src="media/icons/sugar-skate.png" width="48" alt=""> | **[SugarSkate](sugar-skate/)** | In-memory key/value store with plugin backends — Memory, SQLite, Badger. Glob listing, TTL, batch operations. Port of [skate](https://github.com/charmbracelet/skate) |
+| <img src="media/icons/sugar-post.png" width="48" alt=""> | **[SugarPost](sugar-post/)** | Email sending library — SMTP + Resend API transports, attachments, HTML + plain-text multipart, fluent interface. Port of [skate](https://github.com/charmbracelet/skate) |
+| <img src="media/icons/candy-serve.png" width="48" alt=""> | **[CandyServe](candy-serve/)** | Self-hostable Git server over SSH (authorized keys), Git daemon, and HTTP. Users, repos, access control, optional LFS. Port of [soft-serve](https://github.com/charmbracelet/soft-serve) |
 | <img src="media/icons/candy-tetris.png" width="48" alt=""> | **[CandyTetris](candy-tetris/)** | Tetris clone — SRS rules, 7-bag, ghost piece, NES scoring, level-driven gravity. Port of [tetrigo](https://github.com/Broderick-Westrope/tetrigo). |
 | <img src="media/icons/super-candy.png" width="48" alt=""> | **[SuperCandy](super-candy/)** | Dual-pane file manager — Midnight Commander style, multi-select, sort, delete-with-confirm. Port of [superfile](https://github.com/yorukot/superfile). |
 | <img src="media/icons/sugar-crush.png" width="48" alt=""> | **[SugarCrush](sugar-crush/)** | AI coding-assistant chat shell — pluggable backend (EchoBackend offline; CommandBackend for Anthropic / OpenAI / Ollama via a wrapper script). Port of [crush](https://github.com/charmbracelet/crush). |
