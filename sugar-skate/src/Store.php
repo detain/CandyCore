@@ -61,6 +61,8 @@ final class Store
         if (!\is_dir($this->dataDir)) {
             \mkdir($this->dataDir, 0o700, true);
         }
+
+        $this->database($this->defaultDb);
     }
 
     // -------------------------------------------------------------------------
@@ -78,7 +80,8 @@ final class Store
     public function set(string $key, string $value, bool $binary = false): Entry
     {
         [$dbName, $entryKey] = $this->parseKey($key);
-        return $this->database($dbName)->set($entryKey, $value, $binary);
+        $stored = $binary ? \base64_encode($value) : $value;
+        return $this->database($dbName)->set($entryKey, $stored, $binary);
     }
 
     /**
@@ -275,6 +278,6 @@ final class Store
      */
     private function isPattern(string $key): bool
     {
-        return \strcspns($key, '*?', 0) < \strlen($key);
+        return \strcspn($key, '*?') < \strlen($key);
     }
 }

@@ -60,7 +60,7 @@ final class Database
         $result = $stmt->execute();
 
         $row = $result->fetchArray(\SQLITE3_ASSOC);
-        $stmt->free();
+        $stmt->close();
 
         return $row ? Entry::fromRow($row) : null;
     }
@@ -90,7 +90,7 @@ final class Database
         $stmt->bindValue(':created', $now, \SQLITE3_TEXT);
         $stmt->bindValue(':modified', $now, \SQLITE3_TEXT);
         $stmt->execute();
-        $stmt->free();
+        $stmt->close();
 
         return $this->get($key) ?? throw new \RuntimeException('Entry set but not readable');
     }
@@ -105,7 +105,7 @@ final class Database
         $stmt->bindValue(':key', $key, \SQLITE3_TEXT);
         $stmt->execute();
         $changes = $this->db->changes();
-        $stmt->free();
+        $stmt->close();
 
         return $changes > 0;
     }
@@ -148,7 +148,7 @@ final class Database
                 default  => $entry,
             };
         }
-        $stmt->free();
+        $stmt->close();
     }
 
     /**
