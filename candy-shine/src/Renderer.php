@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shine;
 
+use SugarCraft\Shine\Lang;
 use SugarCraft\Core\Util\Ansi;
 use SugarCraft\Core\Util\Width;
 use SugarCraft\Sprinkles\Border;
@@ -202,7 +203,7 @@ final class Renderer
     {
         $theme = Theme::byName($name);
         if ($theme === null) {
-            throw new \InvalidArgumentException("unknown standard style: $name");
+            throw new \InvalidArgumentException(Lang::t('renderer.unknown_style', ['name' => $name]));
         }
         return $this->copy(theme: $theme);
     }

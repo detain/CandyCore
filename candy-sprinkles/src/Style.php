@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Sprinkles;
 
+use SugarCraft\Sprinkles\Lang;
 use SugarCraft\Core\Util\Ansi;
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Core\Util\ColorProfile;
@@ -335,7 +336,7 @@ final class Style
     public function width(?int $w): self
     {
         if ($w !== null && $w < 0) {
-            throw new \InvalidArgumentException('width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('style.width_nonneg'));
         }
         return $this->with(width: $w, widthSet: true, propsAdded: ['width']);
     }
@@ -343,7 +344,7 @@ final class Style
     public function height(?int $h): self
     {
         if ($h !== null && $h < 0) {
-            throw new \InvalidArgumentException('height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('style.height_nonneg'));
         }
         return $this->with(height: $h, heightSet: true, propsAdded: ['height']);
     }
@@ -356,7 +357,7 @@ final class Style
     public function maxWidth(?int $w): self
     {
         if ($w !== null && $w < 0) {
-            throw new \InvalidArgumentException('maxWidth must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('style.maxwidth_nonneg'));
         }
         return $this->with(maxWidth: $w, maxWidthSet: true, propsAdded: ['maxWidth']);
     }
@@ -368,7 +369,7 @@ final class Style
     public function maxHeight(?int $h): self
     {
         if ($h !== null && $h < 0) {
-            throw new \InvalidArgumentException('maxHeight must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('style.maxheight_nonneg'));
         }
         return $this->with(maxHeight: $h, maxHeightSet: true, propsAdded: ['maxHeight']);
     }
@@ -440,7 +441,7 @@ final class Style
     public function tabWidth(int $w): self
     {
         if ($w < 0) {
-            throw new \InvalidArgumentException('tabWidth must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('style.tabwidth_nonneg'));
         }
         return $this->with(tabWidth: $w, propsAdded: ['tabWidth']);
     }
@@ -478,7 +479,7 @@ final class Style
             2 => [$sides[0], $sides[1], $sides[0], $sides[1]],
             4 => [$sides[0], $sides[1], $sides[2], $sides[3]],
             default => throw new \InvalidArgumentException(
-                'border() side toggles take 0, 2, or 4 bools; got ' . count($sides)
+                Lang::t('style.border_toggles_count', ['count' => count($sides)])
             ),
         };
         return $this->with(border: $b, borderSet: true, borderSides: $expanded, propsAdded: ['border', 'borderSides']);
@@ -1114,7 +1115,7 @@ final class Style
     private static function setSide(array $cur, int $idx, int $value, string $label): array
     {
         if ($value < 0) {
-            throw new \InvalidArgumentException("$label values must be >= 0");
+            throw new \InvalidArgumentException(Lang::t('style.label_nonneg', ['label' => $label]));
         }
         $cur[$idx] = $value;
         return $cur;
@@ -1131,12 +1132,12 @@ final class Style
             2 => [$sides[0], $sides[1], $sides[0], $sides[1]],
             4 => [$sides[0], $sides[1], $sides[2], $sides[3]],
             default => throw new \InvalidArgumentException(
-                "$label() takes 1, 2, or 4 ints; got " . count($sides)
+                Lang::t('style.expand_sides_count', ['label' => $label, 'count' => count($sides)])
             ),
         };
         foreach ($out as $v) {
             if ($v < 0) {
-                throw new \InvalidArgumentException("$label values must be >= 0");
+                throw new \InvalidArgumentException(Lang::t('style.label_nonneg', ['label' => $label]));
             }
         }
         return $out;

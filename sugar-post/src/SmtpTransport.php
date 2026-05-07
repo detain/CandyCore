@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Post;
 
+use SugarCraft\Post\Lang;
+
 /**
  * Sends email via direct SMTP (TCP/TLS).
  *
@@ -53,7 +55,7 @@ final class SmtpTransport implements Transport
             $this->quit();
         } catch (\Throwable $e) {
             $this->disconnect();
-            throw new \RuntimeException("SMTP send failed: {$e->getMessage()}", 0, $e);
+            throw new \RuntimeException(Lang::t('smtp.send_failed', ['message' => $e->getMessage()]), 0, $e);
         }
     }
 
@@ -78,7 +80,7 @@ final class SmtpTransport implements Transport
         );
 
         if ($this->socket === false) {
-            throw new \RuntimeException("Cannot connect to {$addr}: {$errstr} ({$errno})");
+            throw new \RuntimeException(Lang::t('smtp.connect_failed', ['addr' => $addr, 'errstr' => (string) $errstr, 'errno' => (string) $errno]));
         }
 
         \stream_set_timeout($this->socket, $this->timeout);
@@ -105,7 +107,7 @@ final class SmtpTransport implements Transport
 
             $crypto = \stream_socket_enable_crypto($this->socket, true, \STREAM_CRYPTO_METHOD_TLS_CLIENT);
             if ($crypto === false) {
-                throw new \RuntimeException('STARTTLS negotiation failed');
+                throw new \RuntimeException(Lang::t('smtp.starttls_failed'));
             }
 
             // Re-EHLO after TLS
@@ -280,7 +282,7 @@ final class SmtpTransport implements Transport
     private function sendRaw(string $data): void
     {
         if ($this->socket === null) {
-            throw new \RuntimeException('Not connected');
+            throw new \RuntimeException(Lang::t('smtp.not_connected'));
         }
         \fwrite($this->socket, $data);
     }
@@ -288,19 +290,19 @@ final class SmtpTransport implements Transport
     private function readResponse(int $expectedCode): void
     {
         if ($this->socket === null) {
-            throw new \RuntimeException('Not connected');
+            throw new \RuntimeException(Lang::t('smtp.not_connected'));
         }
 
         $line = \fgets($this->socket);
         if ($line === false) {
-            throw new \RuntimeException('Server sent no response');
+            throw new \RuntimeException(Lang::t('smtp.no_response'));
         }
 
         $this->lastResponse = \trim($line);
 
         $code = (int) \substr($this->lastResponse, 0, 3);
         if ($code !== $expectedCode) {
-            throw new \RuntimeException("SMTP unexpected response: {$this->lastResponse}");
+            throw new \RuntimeException(Lang::t('smtp.unexpected_response', ['response' => $this->lastResponse]));
         }
     }
 

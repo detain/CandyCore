@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shell\Style;
 
+use SugarCraft\Shell\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -55,7 +56,7 @@ final class SubStyleParser
             $eq = strpos($raw, '=');
             if ($eq === false) {
                 throw new \InvalidArgumentException(
-                    "--style entries must be 'key=value' or 'element.prop=value'; got '{$raw}'",
+                    Lang::t('style.bad_entry', ['raw' => $raw]),
                 );
             }
             $key   = substr($raw, 0, $eq);
@@ -109,7 +110,7 @@ final class SubStyleParser
                 default => null,
             };
             if ($known === null) {
-                throw new \InvalidArgumentException("unknown style prop: '{$prop}'");
+                throw new \InvalidArgumentException(Lang::t('style.unknown_prop', ['prop' => $prop]));
             }
             if ($known === 'bool') {
                 $out[$prop] = self::truthy((string) $value);

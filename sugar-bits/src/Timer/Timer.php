@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Timer;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Core\Cmd;
 use SugarCraft\Core\Model;
 use SugarCraft\Core\Msg;
@@ -36,10 +37,10 @@ final class Timer implements Model
     public static function new(float $duration, float $interval = 1.0): self
     {
         if ($duration < 0.0) {
-            throw new \InvalidArgumentException('timer duration must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('timer.duration_nonneg'));
         }
         if ($interval <= 0.0) {
-            throw new \InvalidArgumentException('timer interval must be > 0');
+            throw new \InvalidArgumentException(Lang::t('timer.interval_positive'));
         }
         return new self($duration, $interval, false, false);
     }
@@ -146,7 +147,7 @@ final class Timer implements Model
     public function withInterval(float $interval): self
     {
         if ($interval <= 0.0) {
-            throw new \InvalidArgumentException('timer interval must be > 0');
+            throw new \InvalidArgumentException(Lang::t('timer.interval_positive'));
         }
         return new self($this->remaining, $interval, $this->running, $this->timedOut, $this->id);
     }

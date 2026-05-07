@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\Scatter;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Charts\Canvas\Canvas;
 
 /**
@@ -30,7 +31,7 @@ final class Scatter
         public readonly string $rune,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('scatter width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('scatter.dim_nonneg'));
         }
     }
 
@@ -50,7 +51,7 @@ final class Scatter
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('scatter width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('scatter.dim_nonneg'));
         }
         return new self($this->points, $w, $h, $this->minX, $this->maxX, $this->minY, $this->maxY, $this->rune);
     }

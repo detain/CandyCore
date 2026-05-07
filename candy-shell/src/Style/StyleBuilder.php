@@ -6,6 +6,7 @@ namespace SugarCraft\Shell\Style;
 
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Core\Util\ColorProfile;
+use SugarCraft\Shell\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -150,7 +151,7 @@ final class StyleBuilder
     {
         $v = trim($v);
         if ($v === '') {
-            throw new \InvalidArgumentException('empty color');
+            throw new \InvalidArgumentException(Lang::t('style.empty_color'));
         }
         if ($v[0] === '#') {
             return [Color::hex($v), ColorProfile::TrueColor];
@@ -165,7 +166,7 @@ final class StyleBuilder
         if (preg_match('/^[0-9a-fA-F]{6}$/', $v) === 1 || preg_match('/^[0-9a-fA-F]{3}$/', $v) === 1) {
             return [Color::hex('#' . $v), ColorProfile::TrueColor];
         }
-        throw new \InvalidArgumentException("unrecognised color: $v");
+        throw new \InvalidArgumentException(Lang::t('style.unrecognised_color', ['value' => $v]));
     }
 
     /**
@@ -186,7 +187,7 @@ final class StyleBuilder
             // Accept optional leading sign + at least one digit, nothing else.
             if (preg_match('/^-?\d+$/', $token) !== 1) {
                 throw new \InvalidArgumentException(
-                    "padding/margin token must be an integer; got: '$token'",
+                    Lang::t('style.padding_token_int', ['token' => $token]),
                 );
             }
             $ints[] = (int) $token;
@@ -194,7 +195,7 @@ final class StyleBuilder
 
         if (!in_array(count($ints), [1, 2, 4], true)) {
             throw new \InvalidArgumentException(
-                'padding/margin needs 1, 2, or 4 integers; got: ' . count($ints),
+                Lang::t('style.padding_count', ['count' => count($ints)]),
             );
         }
         return $ints;

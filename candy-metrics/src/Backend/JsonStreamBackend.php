@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Metrics\Backend;
 
+use SugarCraft\Metrics\Lang;
 use SugarCraft\Metrics\Backend;
 
 /**
@@ -29,7 +30,7 @@ final class JsonStreamBackend implements Backend
         if (is_string($target)) {
             $stream = fopen($target, 'a');
             if ($stream === false) {
-                throw new \RuntimeException("cannot open metrics target: {$target}");
+                throw new \RuntimeException(Lang::t('jsonstream.cannot_open_target', ['target' => $target]));
             }
             $this->stream = $stream;
             $this->owns = true;
@@ -38,14 +39,14 @@ final class JsonStreamBackend implements Backend
         if ($target === null) {
             $stream = fopen('php://stderr', 'a');
             if ($stream === false) {
-                throw new \RuntimeException('cannot open php://stderr');
+                throw new \RuntimeException(Lang::t('jsonstream.cannot_open_stderr'));
             }
             $this->stream = $stream;
             $this->owns = true;
             return;
         }
         if (!is_resource($target)) {
-            throw new \InvalidArgumentException('target must be path, resource, or null');
+            throw new \InvalidArgumentException(Lang::t('jsonstream.invalid_target'));
         }
         $this->stream = $target;
     }

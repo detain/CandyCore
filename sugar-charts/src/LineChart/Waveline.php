@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\LineChart;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Charts\Canvas\Canvas;
 
 /**
@@ -38,7 +39,7 @@ final class Waveline
         public readonly string $point,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('waveline width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('waveline.dim_nonneg'));
         }
     }
 
@@ -98,7 +99,7 @@ final class Waveline
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('waveline width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('waveline.dim_nonneg'));
         }
         return new self($this->points, $w, $h, $this->xMin, $this->xMax, $this->yMin, $this->yMax, $this->point);
     }

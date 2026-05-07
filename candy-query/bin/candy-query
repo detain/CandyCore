@@ -19,11 +19,12 @@ use SugarCraft\Core\Program;
 use SugarCraft\Core\ProgramOptions;
 use SugarCraft\Query\App;
 use SugarCraft\Query\Database;
+use SugarCraft\Query\Lang;
 
 $argv = $argv ?? [];
 $path = $argv[1] ?? null;
 if ($path === null) {
-    fwrite(STDERR, "usage: candy-query <sqlite-file>\n");
+    fwrite(STDERR, Lang::t('cli.usage') . "\n");
     exit(1);
 }
 

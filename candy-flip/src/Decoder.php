@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Flip;
 
+use SugarCraft\Flip\Lang;
+
 /**
  * Decode a GIF on disk into a list of {@see Frame}s using ext-gd's
  * `imagecreatefromgif` (which only returns the first frame) plus the
@@ -21,15 +23,15 @@ final class Decoder
     public static function decode(string $path, int $cellsW, int $cellsH): array
     {
         if (!is_file($path)) {
-            throw new \RuntimeException("candy-flip: no such file: $path");
+            throw new \RuntimeException(Lang::t('decoder.no_file', ['path' => $path]));
         }
         if (!extension_loaded('gd')) {
-            throw new \RuntimeException('candy-flip: ext-gd is required');
+            throw new \RuntimeException(Lang::t('decoder.no_gd'));
         }
         $bytes = file_get_contents($path);
         if ($bytes === false || strlen($bytes) < 6
             || (substr($bytes, 0, 6) !== 'GIF87a' && substr($bytes, 0, 6) !== 'GIF89a')) {
-            throw new \RuntimeException('candy-flip: not a GIF');
+            throw new \RuntimeException(Lang::t('decoder.not_gif'));
         }
         $offsets = self::findFrameOffsets($bytes);
         $frames = [];

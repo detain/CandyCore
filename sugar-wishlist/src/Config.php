@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Wishlist;
 
+use SugarCraft\Wishlist\Lang;
+
 /**
  * Loads a wishlist directory from disk.
  *
@@ -40,7 +42,7 @@ final class Config
     public static function load(string $path): array
     {
         if (!is_file($path)) {
-            throw new \RuntimeException("wishlist config not found: {$path}");
+            throw new \RuntimeException(Lang::t('config.not_found', ['path' => $path]));
         }
         $raw = (string) file_get_contents($path);
         return self::parse($raw, $path);
@@ -69,12 +71,12 @@ final class Config
     {
         $decoded = json_decode($raw, true);
         if (!is_array($decoded)) {
-            throw new \RuntimeException('wishlist json: top-level value must be an array');
+            throw new \RuntimeException(Lang::t('config.json_top_level'));
         }
         $out = [];
         foreach ($decoded as $row) {
             if (!is_array($row)) {
-                throw new \RuntimeException('wishlist json: each entry must be an object');
+                throw new \RuntimeException(Lang::t('config.json_entry_object'));
             }
             $out[] = $row;
         }
@@ -133,7 +135,7 @@ final class Config
             }
             if (preg_match('/^\s+(\w+):\s*(.*)$/', $line, $m)) {
                 if ($current === null) {
-                    throw new \RuntimeException("wishlist yaml: continuation before any '- name:' block");
+                    throw new \RuntimeException(Lang::t('config.yaml_continuation'));
                 }
                 if ($m[2] === '') {
                     $current[$m[1]] = [];
@@ -143,7 +145,7 @@ final class Config
                 }
                 continue;
             }
-            throw new \RuntimeException("wishlist yaml: unparseable line: {$rawLine}");
+            throw new \RuntimeException(Lang::t('config.yaml_unparseable', ['line' => $rawLine]));
         }
         if ($current !== null) {
             $rows[] = $current;
@@ -175,7 +177,7 @@ final class Config
     private static function buildEndpoint(array $row): Endpoint
     {
         if (!isset($row['name'], $row['host'])) {
-            throw new \RuntimeException('wishlist entry missing required field: name or host');
+            throw new \RuntimeException(Lang::t('config.entry_missing_field'));
         }
         $opts = [];
         if (isset($row['options']) && is_array($row['options'])) {

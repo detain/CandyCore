@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Stopwatch;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Bits\Timer\Timer;
 use SugarCraft\Core\Cmd;
 use SugarCraft\Core\Model;
@@ -32,7 +33,7 @@ final class Stopwatch implements Model
     public static function new(float $interval = 1.0): self
     {
         if ($interval <= 0.0) {
-            throw new \InvalidArgumentException('stopwatch interval must be > 0');
+            throw new \InvalidArgumentException(Lang::t('stopwatch.interval_positive'));
         }
         return new self(0.0, $interval, false);
     }
@@ -122,7 +123,7 @@ final class Stopwatch implements Model
     public function withInterval(float $interval): self
     {
         if ($interval <= 0.0) {
-            throw new \InvalidArgumentException('stopwatch interval must be > 0');
+            throw new \InvalidArgumentException(Lang::t('stopwatch.interval_positive'));
         }
         return new self($this->elapsed, $interval, $this->running, $this->id);
     }

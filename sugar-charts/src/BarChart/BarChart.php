@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\BarChart;
 
+use SugarCraft\Charts\Lang;
+
 /**
  * Vertical bar chart drawn with `█` blocks. Bars are spaced one column
  * apart and labels are written underneath, truncated to fit when too
@@ -30,13 +32,13 @@ final class BarChart
         public readonly ?int $barGap     = null,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('bar chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('barchart.dim_nonneg'));
         }
         if ($barWidth !== null && $barWidth < 1) {
-            throw new \InvalidArgumentException('barWidth must be >= 1');
+            throw new \InvalidArgumentException(Lang::t('barchart.bar_width_min'));
         }
         if ($barGap !== null && $barGap < 0) {
-            throw new \InvalidArgumentException('barGap must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('barchart.bar_gap_nonneg'));
         }
     }
 
@@ -94,7 +96,7 @@ final class BarChart
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('bar chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('barchart.dim_nonneg'));
         }
         return new self($this->bars, $w, $h, $this->min, $this->max, $this->showLabels);
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\OHLC;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Charts\Canvas\Canvas;
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Sprinkles\Style;
@@ -43,7 +44,7 @@ final class OHLCChart
         public readonly ?Color $bearishColor,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('OHLC chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('ohlc.dim_nonneg'));
         }
     }
 
@@ -78,7 +79,7 @@ final class OHLCChart
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('OHLC chart width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('ohlc.dim_nonneg'));
         }
         return $this->copy(width: $w, height: $h);
     }

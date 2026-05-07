@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Sprinkles\Table;
 
+use SugarCraft\Sprinkles\Lang;
 use SugarCraft\Core\Util\Width;
 use SugarCraft\Sprinkles\Align;
 use SugarCraft\Sprinkles\Border;
@@ -192,7 +193,7 @@ final class Table
     public function width(?int $cells): self
     {
         if ($cells !== null && $cells < 0) {
-            throw new \InvalidArgumentException('width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('table.width_nonneg'));
         }
         $c = clone $this;
         $c->widthCap = $cells;

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\Heatmap;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Charts\Canvas\Canvas;
 use SugarCraft\Core\Util\Color;
 use SugarCraft\Core\Util\ColorProfile;
@@ -51,7 +52,7 @@ final class Heatmap
         public readonly bool $autoValueRange = true,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('heatmap width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('heatmap.dim_nonneg'));
         }
     }
 
@@ -76,7 +77,7 @@ final class Heatmap
     public function withSize(int $w, int $h): self
     {
         if ($w < 0 || $h < 0) {
-            throw new \InvalidArgumentException('heatmap width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('heatmap.dim_nonneg'));
         }
         return $this->copy(width: $w, height: $h);
     }
@@ -93,7 +94,7 @@ final class Heatmap
     public function pushPoint(HeatPoint $p): self
     {
         if ($p->x < 0 || $p->y < 0) {
-            throw new \InvalidArgumentException('heat point coordinates must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('heatmap.coords_nonneg'));
         }
         $grid = $this->grid;
         // Pad rows up to y inclusive.
@@ -145,7 +146,7 @@ final class Heatmap
     public function withPalette(array $stops): self
     {
         if ($stops !== [] && count($stops) < 2) {
-            throw new \InvalidArgumentException('palette needs at least 2 colours (or empty to disable)');
+            throw new \InvalidArgumentException(Lang::t('heatmap.palette_min'));
         }
         return $this->copy(palette: array_values($stops));
     }

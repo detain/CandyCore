@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Metrics\Backend;
 
+use SugarCraft\Metrics\Lang;
 use SugarCraft\Metrics\Backend;
 
 /**
@@ -87,7 +88,7 @@ final class PrometheusFileBackend implements Backend
         $tmp = $this->path . '.tmp';
         $fh = fopen($tmp, 'c+');
         if ($fh === false) {
-            throw new \RuntimeException("prometheus textfile: cannot open {$tmp}");
+            throw new \RuntimeException(Lang::t('prom.cannot_open', ['path' => $tmp]));
         }
         try {
             flock($fh, LOCK_EX);
@@ -99,7 +100,7 @@ final class PrometheusFileBackend implements Backend
             fclose($fh);
         }
         if (!@rename($tmp, $this->path)) {
-            throw new \RuntimeException("prometheus textfile: rename failed: {$tmp} -> {$this->path}");
+            throw new \RuntimeException(Lang::t('prom.rename_failed', ['tmp' => $tmp, 'dest' => $this->path]));
         }
     }
 

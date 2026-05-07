@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Wishlist;
 
+use SugarCraft\Wishlist\Lang;
+
 /**
  * Replaces the current PHP process with `ssh(1)` connecting to the
  * chosen {@see Endpoint}. Uses `pcntl_exec()` so file descriptors,
@@ -32,11 +34,11 @@ final class Launcher
             // pcntl_exec wants the binary path + arg list (without
             // argv[0]). On success it never returns.
             if (!function_exists('pcntl_exec')) {
-                throw new \RuntimeException('pcntl_exec unavailable; ext-pcntl required');
+                throw new \RuntimeException(Lang::t('launcher.no_pcntl'));
             }
             \pcntl_exec($bin, $args);
             // If we got here, exec failed.
-            throw new \RuntimeException("failed to exec {$bin}");
+            throw new \RuntimeException(Lang::t('launcher.exec_failed', ['bin' => $bin]));
         };
     }
 

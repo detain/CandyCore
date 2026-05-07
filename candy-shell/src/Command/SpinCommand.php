@@ -7,6 +7,7 @@ namespace SugarCraft\Shell\Command;
 use SugarCraft\Bits\Spinner\Style as SpinStyle;
 use SugarCraft\Core\Program;
 use SugarCraft\Core\ProgramOptions;
+use SugarCraft\Shell\Lang;
 use SugarCraft\Shell\Model\SpinModel;
 use SugarCraft\Shell\Process\RealProcess;
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -114,7 +115,7 @@ final class SpinCommand extends Command
             'monkey'    => SpinStyle::monkey(),
             'hamburger' => SpinStyle::hamburger(),
             'ellipsis'  => SpinStyle::ellipsis(),
-            default     => throw new \InvalidArgumentException("unknown spinner style: $name"),
+            default     => throw new \InvalidArgumentException(Lang::t('spinner.unknown_style', ['name' => $name])),
         };
     }
 }

@@ -4,6 +4,7 @@
 declare(strict_types=1);
 
 use SugarCraft\Spark\Inspector;
+use SugarCraft\Spark\Lang;
 
 $autoloadCandidates = [
     __DIR__ . '/../vendor/autoload.php',     // dev: standalone
@@ -25,7 +26,7 @@ if (!empty($argv[1])) {
 }
 
 if ($input === '') {
-    fwrite(STDERR, "usage: sugarspark [file]\n  or:  cmd | sugarspark\n");
+    fwrite(STDERR, Lang::t('cli.usage') . "\n");
     exit(1);
 }
 

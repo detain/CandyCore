@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Tree;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Core\KeyType;
 use SugarCraft\Core\Model;
 use SugarCraft\Core\Msg;
@@ -86,7 +87,7 @@ final class Tree implements Model
         string $leafGlyph = '  ',
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('tree width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('tree.dim_nonneg'));
         }
         $this->roots = array_values($roots);
         $this->cursor = $cursor;

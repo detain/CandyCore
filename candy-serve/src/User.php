@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Serve;
 
+use SugarCraft\Serve\Lang;
+
 /**
  * User account with SSH public key authentication.
  *
@@ -78,7 +80,7 @@ final class User
 
         // Validate format: type base64data [comment]
         if (!\preg_match('/^(ssh-[a-z0-9-]+)\s+([A-Za-z0-9+\/=]+)(\s+.+)?$/', $key)) {
-            throw new \InvalidArgumentException("Invalid SSH public key format");
+            throw new \InvalidArgumentException(Lang::t('user.invalid_ssh_key'));
         }
 
         $keys = $this->authorizedKeys === '' ? [] : \explode("\n", \rtrim($this->authorizedKeys, "\n"));

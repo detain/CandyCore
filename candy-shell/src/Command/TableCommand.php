@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Shell\Command;
 
+use SugarCraft\Shell\Lang;
 use SugarCraft\Sprinkles\Align;
 use SugarCraft\Sprinkles\Border;
 use SugarCraft\Sprinkles\Table\Table;
@@ -188,7 +189,7 @@ final class TableCommand extends Command
             'double'      => Border::double(),
             'ascii'       => Border::ascii(),
             'hidden'      => Border::hidden(),
-            default       => throw new \InvalidArgumentException("unknown border style: $name"),
+            default       => throw new \InvalidArgumentException(Lang::t('border.unknown', ['name' => $name])),
         };
     }
 

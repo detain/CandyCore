@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Wish\Middleware;
 
+use SugarCraft\Wish\Lang;
 use SugarCraft\Wish\Middleware;
 use SugarCraft\Wish\Session;
 
@@ -32,7 +33,7 @@ final class Logger implements Middleware
         if ($target === null) {
             $stream = fopen('php://stderr', 'a');
             if ($stream === false) {
-                throw new \RuntimeException('cannot open php://stderr');
+                throw new \RuntimeException(Lang::t('middleware.cannot_open_stderr'));
             }
             $this->stream = $stream;
             $this->owns = true;
@@ -41,14 +42,14 @@ final class Logger implements Middleware
         if (is_string($target)) {
             $stream = fopen($target, 'a');
             if ($stream === false) {
-                throw new \RuntimeException("cannot open log target: {$target}");
+                throw new \RuntimeException(Lang::t('logger.cannot_open_target', ['target' => $target]));
             }
             $this->stream = $stream;
             $this->owns = true;
             return;
         }
         if (!is_resource($target)) {
-            throw new \InvalidArgumentException('Logger target must be a path, resource, or null');
+            throw new \InvalidArgumentException(Lang::t('logger.invalid_target'));
         }
         $this->stream = $target;
     }

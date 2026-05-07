@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\Canvas;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -29,7 +30,7 @@ final class BrailleGrid
         public readonly int $rows,
     ) {
         if ($cols <= 0 || $rows <= 0) {
-            throw new \InvalidArgumentException('BrailleGrid cols/rows must be > 0');
+            throw new \InvalidArgumentException(Lang::t('braillegrid.dim_positive'));
         }
     }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Post;
 
+use SugarCraft\Post\Lang;
+
 /**
  * Sends email via the Resend REST API.
  *
@@ -41,13 +43,14 @@ final class ResendTransport implements Transport
         \curl_close($ch);
 
         if ($error !== '') {
-            throw new \RuntimeException("Resend network error: {$error}");
+            throw new \RuntimeException(Lang::t('resend.network_error', ['error' => $error]));
         }
 
         if ($code < 200 || $code >= 300) {
-            throw new \RuntimeException(
-                "Resend API error {$code}: " . \substr($body, 0, 500)
-            );
+            throw new \RuntimeException(Lang::t('resend.api_error', [
+                'status' => $code,
+                'body'   => \substr($body, 0, 500),
+            ]));
         }
     }
 

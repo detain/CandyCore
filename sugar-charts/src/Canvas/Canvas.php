@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Charts\Canvas;
 
+use SugarCraft\Charts\Lang;
 use SugarCraft\Sprinkles\Style;
 
 /**
@@ -24,7 +25,7 @@ final class Canvas
         public readonly int $height,
     ) {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('canvas width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('canvas.dim_nonneg'));
         }
         $this->clear();
     }

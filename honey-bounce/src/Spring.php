@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bounce;
 
+use SugarCraft\Bounce\Lang;
+
 /**
  * Damped harmonic oscillator (Ryan Juckett's "Damped Springs"), with
  * under-/critically-/over-damped branches chosen by {@see $dampingRatio}.
@@ -113,7 +115,7 @@ final class Spring
     public static function fps(int $n): float
     {
         if ($n <= 0) {
-            throw new \InvalidArgumentException("fps must be > 0; got $n");
+            throw new \InvalidArgumentException(Lang::t('spring.fps_positive', ['fps' => $n]));
         }
         return 1.0 / $n;
     }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Bits\Viewport;
 
+use SugarCraft\Bits\Lang;
 use SugarCraft\Core\KeyType;
 use SugarCraft\Core\Model;
 use SugarCraft\Core\Msg;
@@ -42,7 +43,7 @@ final class Viewport implements Model
     public static function new(int $width = 80, int $height = 24): self
     {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('viewport width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('viewport.dim_nonneg'));
         }
         return new self($width, $height, [''], 0);
     }
@@ -131,7 +132,7 @@ final class Viewport implements Model
     public function withSize(int $width, int $height): self
     {
         if ($width < 0 || $height < 0) {
-            throw new \InvalidArgumentException('viewport width/height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('viewport.dim_nonneg'));
         }
         return $this->copy(width: $width, height: $height)->clamp();
     }
@@ -145,7 +146,7 @@ final class Viewport implements Model
     public function setWidth(int $width): self
     {
         if ($width < 0) {
-            throw new \InvalidArgumentException('viewport width must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('viewport.width_nonneg'));
         }
         return $this->copy(width: $width)->clamp();
     }
@@ -157,7 +158,7 @@ final class Viewport implements Model
     public function setHeight(int $height): self
     {
         if ($height < 0) {
-            throw new \InvalidArgumentException('viewport height must be >= 0');
+            throw new \InvalidArgumentException(Lang::t('viewport.height_nonneg'));
         }
         return $this->copy(height: $height)->clamp();
     }
