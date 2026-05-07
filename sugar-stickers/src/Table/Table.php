@@ -19,7 +19,20 @@ final class Table
     /** @var list<Column> */
     private array $columns = [];
 
-    /** @var list<list<string>> */
+    /**
+     * Canonical, unfiltered, original-insertion-order rows.
+     * Source of truth — only mutated by addRow().
+     *
+     * @var list<list<string>>
+     */
+    private array $allRows = [];
+
+    /**
+     * Visible row view: $allRows with the current sort + filter applied.
+     * Rebuilt by rebuildView() whenever sort or filter state changes.
+     *
+     * @var list<list<string>>
+     */
     private array $rows = [];
 
     private int $sortColIndex = -1;
@@ -50,7 +63,8 @@ final class Table
     public function addRow(array $values): self
     {
         $clone = clone $this;
-        $clone->rows[] = \array_values(\array_map('strval', $values));
+        $clone->allRows[] = \array_values(\array_map('strval', $values));
+        $clone->rebuildView();
         return $clone;
     }
 
@@ -59,7 +73,7 @@ final class Table
         $clone = clone $this;
         $clone->sortColIndex = $colIndex;
         $clone->sortAscending = $ascending;
-        $clone->sortRows();
+        $clone->rebuildView();
         return $clone;
     }
 
@@ -77,7 +91,7 @@ final class Table
     {
         $clone = clone $this;
         $clone->filterText = $text;
-        $clone->sortRows();
+        $clone->rebuildView();
         return $clone;
     }
 
@@ -203,36 +217,38 @@ final class Table
     // Internal
     // -------------------------------------------------------------------------
 
-    private function sortRows(): void
+    /**
+     * Rebuild the visible $rows view from $allRows by applying the current
+     * sort and filter state. Called whenever rows, sort, or filter change so
+     * that filter('') (clearFilter) restores the full set instead of operating
+     * on already-shrunk data.
+     */
+    private function rebuildView(): void
     {
-        if ($this->sortColIndex < 0 || $this->sortColIndex >= \count($this->columns)) {
-            if ($this->filterText !== '') {
-                $this->rows = $this->applyFilter($this->rows);
-            }
-            return;
+        $rows = $this->allRows;
+
+        if ($this->sortColIndex >= 0 && $this->sortColIndex < \count($this->columns)) {
+            $colIdx = $this->sortColIndex;
+            $asc    = $this->sortAscending;
+
+            \usort($rows, function (array $a, array $b) use ($colIdx, $asc): int {
+                $va = $a[$colIdx] ?? '';
+                $vb = $b[$colIdx] ?? '';
+
+                $na = \is_numeric($va) ? (float) $va : null;
+                $nb = \is_numeric($vb) ? (float) $vb : null;
+
+                if ($na !== null && $nb !== null) {
+                    $cmp = $na <=> $nb;
+                } else {
+                    $cmp = \strcasecmp((string) $va, (string) $vb);
+                }
+
+                return $asc ? $cmp : -$cmp;
+            });
         }
 
-        $colIdx = $this->sortColIndex;
-        $asc    = $this->sortAscending;
-
-        \usort($this->rows, function (array $a, array $b) use ($colIdx, $asc): int {
-            $va = $a[$colIdx] ?? '';
-            $vb = $b[$colIdx] ?? '';
-
-            // Try numeric first
-            $na = \is_numeric($va) ? (float) $va : null;
-            $nb = \is_numeric($vb) ? (float) $vb : null;
-
-            if ($na !== null && $nb !== null) {
-                $cmp = $na <=> $nb;
-            } else {
-                $cmp = \strcasecmp((string) $va, (string) $vb);
-            }
-
-            return $asc ? $cmp : -$cmp;
-        });
-
-        $this->rows = $this->applyFilter($this->rows);
+        $this->rows = $this->applyFilter($rows);
         $this->cursorRow = 0;
     }
 

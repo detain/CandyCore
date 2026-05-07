@@ -146,11 +146,14 @@ final class FlexBox
         $items = $this->items;
         $gap   = $this->gap;
 
-        // Measure each item
+        // Measure each item — pull ratio/basis off the FlexItem so the
+        // array_column lookups below actually find them.
         $measured = \array_map(fn(FlexItem $item): array => [
             'item'   => $item,
             'width'  => $this->measureWidth($item),
             'height' => $this->measureHeight($item),
+            'ratio'  => $item->ratio,
+            'basis'  => $item->basis,
         ], $items);
 
         $totalRatio    = \array_sum(\array_column($measured, 'ratio'));
@@ -189,9 +192,10 @@ final class FlexBox
         }
 
         $resultLines = [];
+        $heights = \array_column($measured, 'height');
         $maxHeight = $this->align === Align::Stretch
             ? $totalHeight
-            : \max(...\array_column($measured, 'height'));
+            : ($heights === [] ? 0 : \max($heights));
 
         for ($line = 0; $line < $maxHeight; $line++) {
             $lineStr = '';
@@ -232,6 +236,8 @@ final class FlexBox
             'item'   => $item,
             'width'  => $this->measureWidth($item),
             'height' => $this->measureHeight($item),
+            'ratio'  => $item->ratio,
+            'basis'  => $item->basis,
         ], $items);
 
         $totalRatio   = \array_sum(\array_column($measured, 'ratio'));
@@ -288,7 +294,7 @@ final class FlexBox
     {
         $lines = \explode("\n", $item->content);
         $widths = \array_map('strlen', $lines);
-        return $widths === [] ? 0 : \max(...$widths);
+        return $widths === [] ? 0 : \max($widths);
     }
 
     private function measureHeight(FlexItem $item): int
