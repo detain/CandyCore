@@ -386,40 +386,36 @@ code, pre, .mono {
 .lib-card .lib-source a:hover { color: var(--pink); }
 
 .lib-card p.summary {
-    margin: 12px 22px 0 22px;
+    margin: 12px 22px 22px 22px;
     color: var(--ink-2);
     font-size: 0.95rem;
     line-height: 1.5;
-    /* Anchor the links row to the card bottom regardless of how much
-       text the description takes — gives every card the same shape. */
+    /* Push everything above against the icon-row + header so the
+       summary anchors itself to the bottom; keeps every card the
+       same shape regardless of description length. */
     flex-grow: 1;
 }
 
-.lib-card .links {
-    display: flex;
-    gap: 8px;
-    font-size: 0.82rem;
-    flex-wrap: wrap;
-    margin: 16px 22px 22px 22px;
-}
-
-/* Inner links — render as compact pills instead of inline text. The
-   markup nests `<a>` inside `<a class="lib-card">` which browsers
-   render but treat as a single link target; the JS in the page
-   intercepts clicks on these pills and follows them individually. */
-.lib-card .links a {
+/* GitHub pill rendered inline with the title in .lib-icon-row.
+   Nested <a> inside <a class="lib-card"> is invalid HTML so it
+   ships as a <span data-href="…">; main.js promotes the click. */
+.lib-card .lib-github {
+    margin-left: auto;
     display: inline-flex;
     align-items: center;
-    padding: 5px 10px;
+    padding: 4px 10px;
     border: 1px solid var(--line);
     border-radius: 999px;
+    font-size: 0.78rem;
     color: var(--ink-2);
     background: transparent;
     transition: border-color .15s ease, color .15s ease, background .15s ease;
-    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
 }
 
-.lib-card .links a:hover {
+.lib-card .lib-github:hover {
     color: var(--ink);
     border-color: var(--pink);
     background: rgba(255, 95, 135, 0.08);
@@ -666,7 +662,7 @@ pre.code .num  { color: #fcd5b4; }
     padding: 18px 22px 0 22px;
 }
 
-.lib-card .lib-icon-row h3 { margin: 0; }
+.lib-card .lib-icon-row h3 { margin: 0; min-width: 0; }
 
 /* ── Lib detail page header ────────────────────────────────────── */
 .detail-header {

@@ -85,6 +85,7 @@ Form::groups(
 | `withShowErrors(bool)` | Toggle the inline `! error` line on validation failures. |
 | `withWidth(int)`, `withHeight(int)` | Pin the rendered geometry. |
 | `withTimeout(int $ms)` | Auto-abort after `$ms` of wall clock. |
+| `keyMap(KeyMap)` / `withKeyMap(KeyMap)` | Override the bindings for `Next` / `Prev` / `Submit` / `Quit` (and per-field nav) on a single form. Mirrors upstream huh #272. |
 
 ### Reading values after submit
 

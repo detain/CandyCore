@@ -14,7 +14,9 @@
 ![demo](.vhs/spinners.gif)
 
 PHP port of [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) —
-14 pre-built TUI components for SugarCraft.
+15 pre-built TUI components for SugarCraft, including the interactive
+`Tree` (mirrors upstream Bubbles #233), dynamic-height `TextArea`
+(mirrors #910), and per-cell `Table::styleFunc(...)` (mirrors #246).
 
 ```sh
 composer require sugarcraft/sugar-bits
