@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-zone",
-    "description": "PHP port of lrstanley/bubblezone \u2014 mouse zone tracker for TUI apps.",
+    "description": "PHP port of lrstanley/bubblezone — mouse zone tracker for TUI apps.",
     "type": "library",
     "license": "MIT",
     "keywords": [

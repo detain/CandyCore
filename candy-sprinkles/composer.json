@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-sprinkles",
-    "description": "PHP port of charmbracelet/lipgloss \u2014 declarative terminal styling and layout.",
+    "description": "PHP port of charmbracelet/lipgloss — declarative terminal styling and layout.",
     "type": "library",
     "license": "MIT",
     "keywords": [

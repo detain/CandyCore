@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-freeze",
-    "description": "PHP port of charmbracelet/freeze \u2014 render code or terminal output to SVG screenshots with macOS-style window controls, drop shadow, line numbers, and inline ANSI SGR colour parsing.",
+    "description": "PHP port of charmbracelet/freeze — render code or terminal output to SVG screenshots with macOS-style window controls, drop shadow, line numbers, and inline ANSI SGR colour parsing.",
     "type": "library",
     "license": "MIT",
     "keywords": [

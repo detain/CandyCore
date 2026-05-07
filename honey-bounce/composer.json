@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/honey-bounce",
-    "description": "PHP port of charmbracelet/harmonica \u2014 damped spring physics + Newtonian projectile simulation for terminal animation.",
+    "description": "PHP port of charmbracelet/harmonica — damped spring physics + Newtonian projectile simulation for terminal animation.",
     "type": "library",
     "license": "MIT",
     "keywords": [

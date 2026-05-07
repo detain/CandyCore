@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-stickers",
-    "description": "PHP port of 76creates/stickers \u2014 Lipgloss utility components. FlexBox (CSS flexbox-like responsive grid layout) and Table (sortable, filterable data table with column definitions).",
+    "description": "PHP port of 76creates/stickers — Lipgloss utility components. FlexBox (CSS flexbox-like responsive grid layout) and Table (sortable, filterable data table with column definitions).",
     "type": "library",
     "license": "MIT",
     "keywords": ["tui", "flexbox", "table", "layout", "grid", "sugarcraft"],

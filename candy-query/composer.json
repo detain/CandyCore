@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-query",
-    "description": "Terminal SQLite browser \u2014 port of jorgerojas26/lazysql on the SugarCraft stack.",
+    "description": "Terminal SQLite browser — port of jorgerojas26/lazysql on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
     "keywords": [

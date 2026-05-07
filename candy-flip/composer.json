@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-flip",
-    "description": "ASCII GIF viewer \u2014 port of namzug16/gifterm on the SugarCraft stack.",
+    "description": "ASCII GIF viewer — port of namzug16/gifterm on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-skate",
-    "description": "PHP port of charmbracelet/skate \u2014 a personal key/value store with multi-database support, binary data, and glob/list filtering.",
+    "description": "PHP port of charmbracelet/skate — a personal key/value store with multi-database support, binary data, and glob/list filtering.",
     "type": "library",
     "license": "MIT",
     "keywords": ["key-value", "store", "database", "sqlite", "skate", "sugarcraft"],

@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-crumbs",
-    "description": "PHP port of KevM/bubbleo \u2014 NavStack and Breadcrumb components. Push/pop navigation stack with hierarchical breadcrumb rendering for terminal UIs.",
+    "description": "PHP port of KevM/bubbleo — NavStack and Breadcrumb components. Push/pop navigation stack with hierarchical breadcrumb rendering for terminal UIs.",
     "type": "library",
     "license": "MIT",
     "keywords": ["tui", "navigation", "breadcrumbs", "navstack", "sugarcraft"],

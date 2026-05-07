@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-serve",
-    "description": "PHP port of charmbracelet/soft-serve \u2014 self-hostable Git server over SSH, Git daemon, and HTTP. Supports user management via SSH public keys, repo access control (public/private), collaborators, on-demand repo creation, Git LFS, and an SSH-accessible TUI for browsing repos/files/commits.",
+    "description": "PHP port of charmbracelet/soft-serve — self-hostable Git server over SSH, Git daemon, and HTTP. Supports user management via SSH public keys, repo access control (public/private), collaborators, on-demand repo creation, Git LFS, and an SSH-accessible TUI for browsing repos/files/commits.",
     "type": "project",
     "license": "MIT",
     "keywords": ["git", "git-server", "self-hosted", "ssh", "lfs", "sugarcraft"],

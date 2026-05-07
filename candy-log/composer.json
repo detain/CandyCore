@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-log",
-    "description": "PHP port of charmbracelet/log \u2014 minimal, colorful leveled logging with structured human-readable output, text/JSON/logfmt formatters, and stdlog adapter.",
+    "description": "PHP port of charmbracelet/log — minimal, colorful leveled logging with structured human-readable output, text/JSON/logfmt formatters, and stdlog adapter.",
     "type": "library",
     "license": "MIT",
     "keywords": ["logging", "cli", "console", "colorful", "structured", "log", "sugarcraft"],

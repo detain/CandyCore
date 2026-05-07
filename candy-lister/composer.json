@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-lister",
-    "description": "PHP port of treilik/bubblelister \u2014 tree-list view component with customisable prefix/suffix rendering, line wrapping, cursor navigation, and per-item styling hooks.",
+    "description": "PHP port of treilik/bubblelister — tree-list view component with customisable prefix/suffix rendering, line wrapping, cursor navigation, and per-item styling hooks.",
     "type": "library",
     "license": "MIT",
     "keywords": ["tui", "list", "tree", "bubble", "terminal", "sugarcraft"],

@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-metrics",
-    "description": "Telemetry primitives for SugarCraft / CandyWish \u2014 counters, gauges, histograms with pluggable backends (in-memory, StatsD UDP, Prometheus textfile, JSON stream). Drop-in middleware for SSH session metrics.",
+    "description": "Telemetry primitives for SugarCraft / CandyWish — counters, gauges, histograms with pluggable backends (in-memory, StatsD UDP, Prometheus textfile, JSON stream). Drop-in middleware for SSH session metrics.",
     "type": "library",
     "license": "MIT",
     "keywords": [
