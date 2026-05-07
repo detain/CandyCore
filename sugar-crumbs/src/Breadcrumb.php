@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Crumbs;
 
+use SugarCraft\Core\Util\Width;
+
 /**
  * Renders a NavStack as a breadcrumb string.
  *
@@ -126,8 +128,9 @@ final class Breadcrumb
         return $result;
     }
 
+    /** Visible cell width — delegates to candy-core's grapheme-aware util. */
     private function effectiveWidth(string $s): int
     {
-        return \strlen(\preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?: '');
+        return Width::string($s);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Boxer;
 
+use SugarCraft\Core\Util\Width;
+
 /**
  * Box-drawing layout renderer.
  *
@@ -401,9 +403,9 @@ final class SugarBoxer
     // Helpers
     // -------------------------------------------------------------------------
 
+    /** Visible width — delegates to candy-core's grapheme/width-aware util. */
     private function strWidth(string $s): int
     {
-        $clean = \preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?? '';
-        return \mb_strlen($clean, 'UTF-8');
+        return Width::string($s);
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Lister;
 
+use SugarCraft\Core\Util\Width;
+
 /**
  * Default box-drawing prefixer with line numbers and tree-style borders.
  *
@@ -96,9 +98,9 @@ final class DefaultPrefixer implements Prefixer
     // Helpers
     // -------------------------------------------------------------------------
 
-    /** Compute the printable (non-ANSI) width of a string. */
+    /** Compute the printable (non-ANSI) cell width of a string. */
     public static function ansiWidth(string $s): int
     {
-        return \strlen(\preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?? '');
+        return Width::string($s);
     }
 }
