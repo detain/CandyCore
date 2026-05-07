@@ -98,7 +98,7 @@ final class Color
     {
         // Greyscale: map to the 24-step grey ramp (232-255)
         if ($this->isGreyscale()) {
-            $grey = (int) \round($this->luminance() * 23);
+            $grey = (int) \round($this->luminance() / 255 * 23);
             return 232 + $grey;
         }
 
