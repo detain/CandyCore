@@ -112,4 +112,13 @@ final class Group
     {
         return new self(array_values($fields), $this->title, $this->description, $this->hideFunc, $this->showHelp, $this->theme);
     }
+
+    // Short-form aliases.
+    public function title(string $t): self            { return $this->withTitle($t); }
+    public function desc(string $d): self             { return $this->withDescription($d); }
+    public function showHelp(bool $on = true): self   { return $this->withShowHelp($on); }
+    public function theme(?Theme $t): self            { return $this->withTheme($t); }
+    public function hideIf(?\Closure $fn): self       { return $this->withHideFunc($fn); }
+    /** @param list<Field> $fields */
+    public function fields(array $fields): self       { return $this->withFields($fields); }
 }

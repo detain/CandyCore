@@ -21,16 +21,18 @@ use SugarCraft\Prompt\Form;
 use SugarCraft\Prompt\Field\{Input, Confirm, Select, Note};
 
 $form = Form::new(
-    Note::new('welcome')->withTitle('Onboarding')
-        ->withDescription('A few quick questions.'),
-    Input::new('name')->withTitle('Your name?')->withPlaceholder('Ada Lovelace'),
-    Confirm::new('newsletter')->withTitle('Subscribe to the newsletter?'),
-    Select::new('lang')
-        ->withTitle('Favorite language?')
-        ->withOptions('PHP', 'Go', 'Rust', 'Python'),
+    Note::new('welcome')->title('Onboarding')->desc('A few quick questions.'),
+    Input::new('name')->title('Your name?')->placeholder('Ada Lovelace'),
+    Confirm::new('newsletter')->title('Subscribe to the newsletter?'),
+    Select::new('lang')->title('Favorite language?')->options('PHP', 'Go', 'Rust', 'Python'),
 );
 // $form is a SugarCraft Model — drop it into a Program.
 ```
+
+> Every field exposes short-form aliases (`title`, `desc`, `placeholder`,
+> `width`, `height`, `validator`, `options`, `min`, `max`, …). The
+> upstream-mirroring long forms (`withTitle`, `withDescription`, …)
+> work identically — pick whichever reads better at the call site.
 
 ## Field types
 

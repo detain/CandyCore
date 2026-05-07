@@ -161,6 +161,15 @@ final class Form implements Model
         return $this->mutate(timeoutMs: max(0, $ms));
     }
 
+    // Short-form aliases.
+    public function theme(Theme $t): self          { return $this->withTheme($t); }
+    public function accessible(bool $on = true): self { return $this->withAccessible($on); }
+    public function showHelp(bool $on = true): self   { return $this->withShowHelp($on); }
+    public function showErrors(bool $on = true): self { return $this->withShowErrors($on); }
+    public function width(int $cells): self        { return $this->withWidth($cells); }
+    public function height(int $rows): self        { return $this->withHeight($rows); }
+    public function timeout(int $ms): self         { return $this->withTimeout($ms); }
+
     /** Configured timeout in milliseconds; 0 means none. */
     public function timeoutMs(): int { return $this->timeoutMs; }
 

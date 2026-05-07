@@ -97,6 +97,12 @@ final class Help
         return $this->copy(fullSeparator: $s);
     }
 
+    // Short-form aliases.
+    public function styles(?Styles $styles): self     { return $this->withStyles($styles); }
+    public function separator(string $s): self        { return $this->withSeparator($s); }
+    public function ellipsis(string $glyph): self     { return $this->withEllipsis($glyph); }
+    public function fullSeparator(string $s): self    { return $this->withFullSeparator($s); }
+
     /**
      * Bubble-Tea-style update: when the supplied Msg is a KeyMsg whose
      * keys match the binding returned by {@see KeyMap::getToggleHelp()},
