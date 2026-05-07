@@ -15,6 +15,9 @@ PHP port of [lrstanley/bubblezone](https://github.com/lrstanley/bubblezone) —
 mouse-zone tracker for TUI apps. Wrap rendered chunks with named markers,
 let CandyZone discover their bounding boxes, then ask zones whether a
 {@see \SugarCraft\Core\Msg\MouseMsg} fell inside them.
+```sh
+composer require sugarcraft/candy-zone
+```
 
 ```php
 use SugarCraft\Zone\Manager;

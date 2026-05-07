@@ -12,6 +12,9 @@
 
 
 ![demo](.vhs/form.gif)
+```sh
+composer require sugarcraft/sugar-prompt
+```
 
 PHP port of [charmbracelet/huh](https://github.com/charmbracelet/huh) —
 interactive form library built on top of SugarCraft + SugarBits.
