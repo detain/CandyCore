@@ -11,6 +11,8 @@ adding a new lib, skip to the [Audit-driven PR section](#audit-driven-prs).
 > app: [`MATCHUPS.md`](./MATCHUPS.md) (upstream → SugarCraft mapping),
 > [`PROJECT_NAMES.md`](./PROJECT_NAMES.md) (naming-decision history),
 > [`CONVERSION.md`](./CONVERSION.md) (architectural roadmap),
+> [`LOCALES.md`](./LOCALES.md) (translation locale codes — pick a code
+> from here when adding `lang/*.php` files),
 > [`docs/index.html`](./docs/index.html) (homepage tile),
 > [`docs/lib/<slug>.html`](./docs/lib/) (per-lib detail page),
 > and the audit file when an audit pass exists.

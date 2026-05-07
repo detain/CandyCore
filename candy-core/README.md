@@ -146,8 +146,9 @@ only add a regional file (e.g. `pt-br.php`) when the wording genuinely
 diverges from the base language. A forgotten string is visible, never
 a fatal error.
 
-See [`lang/LOCALES.md`](lang/LOCALES.md) for the recommended set of
-codes plus a list of every base language a contributor can target.
+See [`LOCALES.md`](https://github.com/detain/sugarcraft/blob/master/LOCALES.md)
+in the SugarCraft monorepo for the recommended set of codes plus a list
+of every base language a contributor can target.
 
 ### Application-level overrides
 
