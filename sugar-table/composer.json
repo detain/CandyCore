@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-table",
-    "description": "PHP port of Evertras/bubble-table \u2014 customizable interactive table component for terminal UIs. Supports column definitions with keys/titles/widths, rows as key-value maps, styled cells, selection, pagination, sorting, filtering, frozen columns, horizontal scrolling, zebra striping, and ANSI border styling.",
+    "description": "PHP port of Evertras/bubble-table — customizable interactive table component for terminal UIs. Supports column definitions with keys/titles/widths, rows as key-value maps, styled cells, selection, pagination, sorting, filtering, frozen columns, horizontal scrolling, zebra striping, and ANSI border styling.",
     "type": "library",
     "license": "MIT",
     "keywords": ["tui", "table", "grid", "interactive", "pagination", "sorting", "sugarcraft"],

@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-tick",
-    "description": "Privacy-first coding-time tracker \u2014 port of Rtarun3606k/TakaTime on the SugarCraft stack.",
+    "description": "Privacy-first coding-time tracker — port of Rtarun3606k/TakaTime on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
     "keywords": [

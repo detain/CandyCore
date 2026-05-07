@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-boxer",
-    "description": "PHP port of treilik/bubbleboxer \u2014 box-drawing layout engine. Compose terminal content into H/V panels with box-drawing borders, padding, and dynamic dimension calculation.",
+    "description": "PHP port of treilik/bubbleboxer — box-drawing layout engine. Compose terminal content into H/V panels with box-drawing borders, padding, and dynamic dimension calculation.",
     "type": "library",
     "license": "MIT",
     "keywords": ["tui", "box", "layout", "panel", "border", "terminal", "sugarcraft"],

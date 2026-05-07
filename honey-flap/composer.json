@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/honey-flap",
-    "description": "Flappy-Bird-style game \u2014 port of kbrgl/flapioca on the SugarCraft stack.",
+    "description": "Flappy-Bird-style game — port of kbrgl/flapioca on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
     "keywords": [

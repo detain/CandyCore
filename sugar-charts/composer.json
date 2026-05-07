@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-charts",
-    "description": "PHP port of NimbleMarkets/ntcharts \u2014 terminal charts (canvas, sparkline, bar, line, heatmap, scatter, time-series, OHLC, streamline, waveline) for SugarCraft.",
+    "description": "PHP port of NimbleMarkets/ntcharts — terminal charts (canvas, sparkline, bar, line, heatmap, scatter, time-series, OHLC, streamline, waveline) for SugarCraft.",
     "type": "library",
     "license": "MIT",
     "keywords": [

@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-stash",
-    "description": "Terminal Git client \u2014 port of jesseduffield/lazygit on the SugarCraft stack.",
+    "description": "Terminal Git client — port of jesseduffield/lazygit on the SugarCraft stack.",
     "type": "project",
     "license": "MIT",
     "keywords": [

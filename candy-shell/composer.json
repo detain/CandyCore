@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/candy-shell",
-    "description": "PHP port of charmbracelet/gum \u2014 composer-installable CLI of SugarCraft TUI primitives. 13 subcommands: choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write.",
+    "description": "PHP port of charmbracelet/gum — composer-installable CLI of SugarCraft TUI primitives. 13 subcommands: choose, confirm, file, filter, format, input, join, log, pager, spin, style, table, write.",
     "type": "library",
     "license": "MIT",
     "keywords": [

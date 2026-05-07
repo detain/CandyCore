@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-spark",
-    "description": "PHP port of charmbracelet/sequin \u2014 ANSI escape-sequence inspector. Decodes SGR / CSI / OSC / DCS / APC / SS3 sequences into human-readable labels.",
+    "description": "PHP port of charmbracelet/sequin — ANSI escape-sequence inspector. Decodes SGR / CSI / OSC / DCS / APC / SS3 sequences into human-readable labels.",
     "type": "library",
     "license": "MIT",
     "keywords": [

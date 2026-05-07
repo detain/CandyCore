@@ -1,6 +1,6 @@
 {
     "name": "sugarcraft/sugar-post",
-    "description": "PHP port of charmbracelet/pop \u2014 send emails from PHP via Resend API or direct SMTP. Compose from stdin, attach files, supports CC/BCC, HTML body.",
+    "description": "PHP port of charmbracelet/pop — send emails from PHP via Resend API or direct SMTP. Compose from stdin, attach files, supports CC/BCC, HTML body.",
     "type": "library",
     "license": "MIT",
     "keywords": ["email", "smtp", "resend", "mailer", "send", "sugarcraft"],
