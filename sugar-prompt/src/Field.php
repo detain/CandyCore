@@ -19,26 +19,45 @@ use SugarCraft\Core\Msg;
  */
 interface Field
 {
+    /** Stable identifier used by the form to key {@see Form::values()}. */
     public function key(): string;
 
+    /** Current value (string / bool / array / etc., field-specific). */
     public function value(): mixed;
 
-    /** @return array{0:Field, 1:?\Closure} */
+    /**
+     * Take focus. Returns the new (focused) field plus an optional
+     * Cmd the runtime should schedule (cursor-blink, autocomplete-fetch,
+     * etc.).
+     *
+     * @return array{0:Field, 1:?\Closure}
+     */
     public function focus(): array;
 
+    /** Release focus. Returns a new (unfocused) field. */
     public function blur(): Field;
 
-    /** @return array{0:Field, 1:?\Closure} */
+    /**
+     * Apply a Bubble-Tea message and return `[$next, $cmd]`. Mirrors the
+     * upstream `Update(msg)` shape.
+     *
+     * @return array{0:Field, 1:?\Closure}
+     */
     public function update(Msg $msg): array;
 
+    /** Render the field as a multi-line ANSI string. */
     public function view(): string;
 
+    /** True while this field currently holds keyboard focus. */
     public function isFocused(): bool;
 
+    /** Static title (the `*Func` form is resolved separately at view time). */
     public function getTitle(): string;
 
+    /** Static description, same shape as {@see getTitle()}. */
     public function getDescription(): string;
 
+    /** Latest validator error, or null when the value passes validation. */
     public function getError(): ?string;
 
     /** Notes / separators / hidden fields skip Tab navigation. */
