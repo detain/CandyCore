@@ -5,126 +5,140 @@ declare(strict_types=1);
 namespace SugarCraft\Readline;
 
 /**
- * Yes/No confirmation prompt.
+ * Yes / No confirmation prompt.
  *
- * Port of erikgeiser/promptkit Confirmation.
- *
- * @see https://github.com/erikgeiser/promptkit
+ * Selection and submission are decoupled: y / n / left / right / tab change
+ * the selected value but do NOT auto-submit. Call {@see submit()} (or feed
+ * {@see Key::Enter}) to commit. {@see result()} is meaningful only after
+ * {@see isSubmitted()} returns true.
  */
 final class ConfirmationPrompt
 {
-    private string $label;
+    private bool $value;       // tracks current selection
+    private bool $submitted = false;
+    private bool $aborted   = false;
+
     private string $confirmLabel = 'Yes';
     private string $cancelLabel  = 'No';
     private string $hint         = '[y/n]';
-    private bool $selected       = true;  // true = Yes (confirm), false = No (cancel)
-    private bool $confirmed      = false;
-    private bool $cancelled      = false;
+    private string $labelStyle    = '1;36';
+    private string $selectedStyle = '1;32';
 
-    private string $selectedStyle = '1;32'; // bold green
-    private string $labelStyle    = '1;36'; // bold cyan
-
-    public function __construct(string $label)
+    public function __construct(private readonly string $label, bool $defaultValue = true)
     {
-        $this->label = $label;
+        $this->value = $defaultValue;
     }
 
-    public static function new(string $label): self
+    public static function new(string $label, bool $defaultValue = true): self
     {
-        return new self($label);
+        return new self($label, $defaultValue);
     }
 
-    public function WithConfirmLabel(string $s): self
+    // -------------------------------------------------------------------------
+    // Configuration
+    // -------------------------------------------------------------------------
+
+    public function withConfirmLabel(string $label): self
     {
         $clone = clone $this;
-        $clone->confirmLabel = $s;
+        $clone->confirmLabel = $label;
         return $clone;
     }
 
-    public function WithCancelLabel(string $s): self
+    public function withCancelLabel(string $label): self
     {
         $clone = clone $this;
-        $clone->cancelLabel = $s;
+        $clone->cancelLabel = $label;
         return $clone;
     }
 
-    public function HandleKey(string $key): self
+    public function withHint(string $hint): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        $clone = clone $this;
+        $clone->hint = $hint;
+        return $clone;
+    }
+
+    // -------------------------------------------------------------------------
+    // Input
+    // -------------------------------------------------------------------------
+
+    public function handleKey(string $key): self
+    {
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
 
         return match ($key) {
-            'left', 'up', 'h', 'k' => $this->selectConfirm(),
-            'right', 'down', 'l', 'j' => $this->selectCancel(),
-            'enter' => $this->finalizeConfirm(),
-            'y', 'Y' => $this->selectConfirm()->confirm(),
-            'n', 'N' => $this->selectCancel()->confirm(),
-            'esc', 'ctrl_c' => $this->finalizeCancel(),
-            default => $this,
+            'y', 'Y', Key::Left  => $this->select(true),
+            'n', 'N', Key::Right => $this->select(false),
+            Key::Tab             => $this->select(!$this->value),
+            Key::Enter           => $this->submit(),
+            Key::Escape, Key::CtrlC => $this->abort(),
+            default              => $this,
         };
     }
 
-    public function Confirm(): self
+    public function submit(): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->confirmed = true;
+        $clone->submitted = true;
         return $clone;
     }
 
-    public function Cancel(): self
+    public function abort(): self
     {
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cancelled = true;
+        $clone->aborted = true;
         return $clone;
     }
 
-    public function Result(): bool
+    // -------------------------------------------------------------------------
+    // Queries
+    // -------------------------------------------------------------------------
+
+    /** Final boolean answer. False when aborted or before submission. */
+    public function result(): bool
     {
-        if ($this->cancelled) return false;
-        if (!$this->confirmed) return false;
-        return $this->selected;
+        return $this->submitted && $this->value;
     }
 
-    public function IsConfirmed(): bool  { return $this->confirmed; }
-    public function IsCancelled(): bool  { return $this->cancelled; }
+    /** Currently selected value, regardless of submission state. */
+    public function currentValue(): bool { return $this->value; }
 
-    public function View(): string
+    public function isSubmitted(): bool { return $this->submitted; }
+    public function isAborted(): bool   { return $this->aborted; }
+
+    // -------------------------------------------------------------------------
+    // Rendering
+    // -------------------------------------------------------------------------
+
+    public function view(): string
     {
-        $confirmStr = $this->selected ? $this->ansi($this->confirmLabel, $this->selectedStyle)
-                                      : $this->confirmLabel;
-        $cancelStr  = !$this->selected ? $this->ansi($this->cancelLabel, $this->selectedStyle)
-                                       : $this->cancelLabel;
+        $yes = $this->value
+            ? Ansi::wrap('[' . $this->confirmLabel . ']', $this->selectedStyle)
+            : ' ' . $this->confirmLabel . ' ';
+        $no  = !$this->value
+            ? Ansi::wrap('[' . $this->cancelLabel . ']', $this->selectedStyle)
+            : ' ' . $this->cancelLabel . ' ';
 
-        return $this->label . ' ' . $confirmStr . ' / ' . $cancelStr . ' ' . $this->hint;
+        return Ansi::wrap($this->label, $this->labelStyle)
+             . ' ' . $yes . ' / ' . $no . ' ' . $this->hint;
     }
 
-    private function selectConfirm(): self
+    private function select(bool $value): self
     {
+        if ($value === $this->value) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->selected = true;
+        $clone->value = $value;
         return $clone;
-    }
-
-    private function selectCancel(): self
-    {
-        $clone = clone $this;
-        $clone->selected = false;
-        return $clone;
-    }
-
-    private function finalizeConfirm(): self
-    {
-        return $this->Confirm();
-    }
-
-    private function finalizeCancel(): self
-    {
-        return $this->Cancel();
-    }
-
-    private function ansi(string $text, string $codes): string
-    {
-        if ($codes === '') return $text;
-        return "\x1b[{$codes}m{$text}\x1b[0m";
     }
 }

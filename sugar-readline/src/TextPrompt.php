@@ -5,46 +5,43 @@ declare(strict_types=1);
 namespace SugarCraft\Readline;
 
 /**
- * Line-editing text prompt with validation, auto-completion, and hidden/password mode.
+ * Single-line text input with cursor, optional validation, auto-completion,
+ * and hidden (password) display mode.
  *
- * Port of erikgeiser/promptkit TextInput.
+ * State machine: feed character input via {@see handleChar()} and named keys
+ * via {@see handleKey()}. Each call returns a new immutable instance.
+ *
+ * Port-of-spirit (not literal) of erikgeiser/promptkit `textinput`.
  *
  * @see https://github.com/erikgeiser/promptkit
  */
 final class TextPrompt
 {
-    private string $label       = '';
-    private string $buffer      = '';
-    private string $default     = '';
-    private int $cursor         = 0;
-    private bool $hidden        = false;  // password mode
-    private bool $confirmed     = false;
-    private bool $cancelled     = false;
-    private string $message     = '';
-    private string $error       = '';
+    /** Text typed by the user. The label is rendered separately by {@see view()}. */
+    private string $buffer = '';
+
+    /** Cursor column inside {@see $buffer} (in characters, not bytes). */
+    private int $cursor = 0;
+
+    private bool $hidden    = false;
+    private int $charLimit  = 0;       // 0 = unlimited
+    private bool $submitted = false;
+    private bool $aborted   = false;
+    private string $error   = '';
 
     /** @var list<string> */
-    private array $completions  = [];
+    private array $completions = [];
 
-    /** @var callable|null (string): bool */
-    private $validate          = null;
+    /** @var (callable(string): bool)|null */
+    private $validator = null;
 
-    // ANSI style codes
-    private string $labelStyle    = '1;36';  // bold cyan
-    private string $bufferStyle   = '';
-    private string $cursorStyle   = '7';     // reverse
-    private string $errorStyle    = '31';    // red
-    private string $completionStyle = '90';  // bright black
+    private string $labelStyle      = '1;36';   // bold cyan
+    private string $cursorStyle     = '7';      // reverse
+    private string $errorStyle      = '31';     // red
+    private string $completionStyle = '90';     // bright black
+    private string $hideMask        = '*';
 
-    // -------------------------------------------------------------------------
-    // Factory
-    // -------------------------------------------------------------------------
-
-    public function __construct(string $label)
-    {
-        $this->label = $label;
-        $this->buffer = $label;
-    }
+    public function __construct(private readonly string $label) {}
 
     public static function new(string $label): self
     {
@@ -55,130 +52,114 @@ final class TextPrompt
     // Configuration
     // -------------------------------------------------------------------------
 
-    public function WithDefault(string $default): self
+    public function withDefault(string $value): self
     {
         $clone = clone $this;
-        $clone->default = $default;
-        if ($clone->buffer === $clone->label || $clone->buffer === '') {
-            $clone->buffer = $default;
-            $clone->cursor = \strlen($default);
+        $clone->buffer = $value;
+        $clone->cursor = self::charCount($value);
+        return $clone;
+    }
+
+    public function withHidden(bool $hidden = true, string $mask = '*'): self
+    {
+        $clone = clone $this;
+        $clone->hidden   = $hidden;
+        $clone->hideMask = $mask;
+        return $clone;
+    }
+
+    /** @param list<string> $completions */
+    public function withCompletions(array $completions): self
+    {
+        $clone = clone $this;
+        $clone->completions = array_values($completions);
+        return $clone;
+    }
+
+    /** @param callable(string): bool $fn  Receives the user input; return false to reject. */
+    public function withValidator(callable $fn): self
+    {
+        $clone = clone $this;
+        $clone->validator = $fn;
+        return $clone;
+    }
+
+    public function withCharLimit(int $limit): self
+    {
+        $clone = clone $this;
+        $clone->charLimit = max(0, $limit);
+        return $clone;
+    }
+
+    // -------------------------------------------------------------------------
+    // Input
+    // -------------------------------------------------------------------------
+
+    public function handleChar(string $char): self
+    {
+        if ($this->submitted || $this->aborted) {
+            return $this;
         }
-        return $clone;
-    }
-
-    public function WithHidden(bool $hidden = true): self
-    {
-        $clone = clone $this;
-        $clone->hidden = $hidden;
-        return $clone;
-    }
-
-    public function WithCompletions(array $completions): self
-    {
-        $clone = clone $this;
-        $clone->completions = $completions;
-        return $clone;
-    }
-
-    /**
-     * @param callable(string): bool $fn  Return false to signal error
-     */
-    public function WithValidation(callable $fn): self
-    {
-        $clone = clone $this;
-        $clone->validate = $fn;
-        return $clone;
-    }
-
-    // -------------------------------------------------------------------------
-    // Input handling
-    // -------------------------------------------------------------------------
-
-    /**
-     * Handle a single character input.
-     */
-    public function HandleChar(string $char): self
-    {
-        if ($this->confirmed || $this->cancelled) return $this;
-        if (\strlen($char) !== 1) return $this;
+        if ($char === '' || self::charCount($char) !== 1) {
+            return $this;
+        }
+        if ($this->charLimit > 0 && self::charCount($this->buffer) >= $this->charLimit) {
+            return $this;
+        }
 
         $clone = clone $this;
-        $clone->buffer = \substr($clone->buffer, 0, $clone->cursor)
-                      . $char
-                      . \substr($clone->buffer, $clone->cursor);
+        $clone->buffer = self::sliceChars($clone->buffer, 0, $clone->cursor)
+                       . $char
+                       . self::sliceChars($clone->buffer, $clone->cursor);
         $clone->cursor++;
         $clone->error = '';
         return $clone;
     }
 
-    /**
-     * Handle a backspace key.
-     */
-    public function HandleBackspace(): self
+    public function handleKey(string $key): self
     {
-        if ($this->cursor <= \strlen($this->label)) return $this;
-
-        $clone = clone $this;
-        if ($clone->cursor > \strlen($clone->label)) {
-            $clone->buffer = \substr($clone->buffer, 0, $clone->cursor - 1)
-                           . \substr($clone->buffer, $clone->cursor);
-            $clone->cursor--;
+        if ($this->submitted || $this->aborted) {
+            return $this;
         }
-        $clone->error = '';
-        return $clone;
-    }
-
-    /**
-     * Handle an ANSI escape sequence or special key name.
-     *
-     * @param string $key  Key name e.g. 'left', 'right', 'tab', 'enter', 'esc'
-     */
-    public function HandleKey(string $key): self
-    {
-        if ($this->confirmed || $this->cancelled) return $this;
 
         return match ($key) {
-            'left'  => $this->moveCursor(-1),
-            'right' => $this->moveCursor(1),
-            'home'  => $this->moveCursorToStart(),
-            'end'   => $this->moveCursorToEnd(),
-            'tab'   => $this->applyCompletion(),
-            'enter' => $this->finalizeConfirm(),
-            'esc'   => $this->finalizeCancel(),
-            'ctrl_c' => $this->finalizeCancel(),
-            default => $this,
+            Key::Left      => $this->moveCursor(-1),
+            Key::Right     => $this->moveCursor(1),
+            Key::Home      => $this->moveCursorTo(0),
+            Key::End       => $this->moveCursorTo(self::charCount($this->buffer)),
+            Key::Backspace => $this->deleteBeforeCursor(),
+            Key::Delete    => $this->deleteUnderCursor(),
+            Key::CtrlU     => $this->deleteAllBeforeCursor(),
+            Key::CtrlK     => $this->deleteAllAfterCursor(),
+            Key::Tab       => $this->applyCompletion(),
+            Key::Enter     => $this->submit(),
+            Key::Escape, Key::CtrlC => $this->abort(),
+            default        => $this,
         };
     }
 
-    /**
-     * Submit the current input (confirm).
-     */
-    public function Confirm(): self
+    public function submit(): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
-
-        $clone = clone $this;
-        $clone->confirmed = true;
-        $clone->error     = '';
-
-        if ($clone->validate !== null) {
-            $ok = ($clone->validate)($clone->buffer);
-            if (!$ok) {
-                $clone->confirmed = false;
-                $clone->error     = 'Invalid input';
-            }
+        if ($this->submitted || $this->aborted) {
+            return $this;
         }
-
+        $clone = clone $this;
+        if ($clone->validator !== null && !($clone->validator)($clone->buffer)) {
+            $clone->error = 'Invalid input';
+            return $clone;
+        }
+        $clone->submitted = true;
+        $clone->error     = '';
         return $clone;
     }
 
-    /**
-     * Cancel the prompt.
-     */
-    public function Cancel(): self
+    public function abort(): self
     {
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cancelled = true;
+        $clone->aborted = true;
         return $clone;
     }
 
@@ -186,27 +167,27 @@ final class TextPrompt
     // Queries
     // -------------------------------------------------------------------------
 
-    public function Value(): string
+    /** The user's typed input. Empty string when aborted. */
+    public function value(): string
     {
-        if ($this->cancelled) return '';
-        return $this->buffer !== '' ? $this->buffer : $this->default;
+        return $this->aborted ? '' : $this->buffer;
     }
 
-    public function IsConfirmed(): bool  { return $this->confirmed; }
-    public function IsCancelled(): bool  { return $this->cancelled; }
-    public function Cursor(): int        { return $this->cursor; }
-    public function Error(): string      { return $this->error; }
+    /** Cursor column inside {@see value()} (0..length). */
+    public function cursor(): int { return $this->cursor; }
 
-    /**
-     * Get suggested completion at current cursor position.
-     */
-    public function suggestedCompletion(): ?string
+    public function isSubmitted(): bool { return $this->submitted; }
+    public function isAborted(): bool   { return $this->aborted; }
+    public function error(): string     { return $this->error; }
+
+    /** First completion that starts with the current input, or null. */
+    public function suggestion(): ?string
     {
-        $prefix = \substr($this->buffer, \strlen($this->label));
-        if ($prefix === '') return null;
-
+        if ($this->buffer === '') {
+            return null;
+        }
         foreach ($this->completions as $c) {
-            if (\str_starts_with($c, $prefix)) {
+            if (str_starts_with($c, $this->buffer)) {
                 return $c;
             }
         }
@@ -217,40 +198,35 @@ final class TextPrompt
     // Rendering
     // -------------------------------------------------------------------------
 
-    /**
-     * Render the prompt (label + input line + cursor + error).
-     */
-    public function View(): string
+    public function view(): string
     {
-        $prefix = $this->label;
         $display = $this->hidden
-            ? \str_repeat('*', \strlen($this->buffer) - \strlen($prefix))
+            ? str_repeat($this->hideMask, self::charCount($this->buffer))
             : $this->buffer;
 
-        $before = \substr($display, 0, $this->cursor);
-        $after  = \substr($display, $this->cursor);
+        $before = self::sliceChars($display, 0, $this->cursor);
+        $under  = self::sliceChars($display, $this->cursor, 1);
+        $after  = self::sliceChars($display, $this->cursor + 1);
 
-        // Cursor sits between before and after
-        $line = $this->ansi($prefix, $this->labelStyle)
+        $line = Ansi::wrap($this->label, $this->labelStyle)
               . $before
-              . $this->ansi(' ', $this->cursorStyle)
-              . $after
-              . ' ';
+              . Ansi::wrap($under === '' ? ' ' : $under, $this->cursorStyle)
+              . $after;
 
         $lines = [$line];
 
         if ($this->error !== '') {
-            $lines[] = $this->ansi($this->error, $this->errorStyle);
+            $lines[] = Ansi::wrap($this->error, $this->errorStyle);
         }
 
-        // Show completions hint
-        $suggestion = $this->suggestedCompletion();
-        if ($suggestion !== null) {
-            $tab = \str_repeat(' ', \strlen($this->label) + \strlen($prefix) + 1);
-            $lines[] = $tab . $this->ansi($suggestion, $this->completionStyle);
+        $hint = $this->suggestion();
+        if ($hint !== null && $hint !== $this->buffer) {
+            $tail = substr($hint, strlen($this->buffer));
+            $lines[] = str_repeat(' ', self::charCount($this->label) + $this->cursor)
+                     . Ansi::wrap($tail, $this->completionStyle);
         }
 
-        return \implode("\n", $lines);
+        return implode("\n", $lines);
     }
 
     // -------------------------------------------------------------------------
@@ -259,53 +235,91 @@ final class TextPrompt
 
     private function moveCursor(int $delta): self
     {
-        $start = \strlen($this->label);
+        $target = $this->cursor + $delta;
+        return $this->moveCursorTo($target);
+    }
+
+    private function moveCursorTo(int $position): self
+    {
+        $clamped = max(0, min(self::charCount($this->buffer), $position));
+        if ($clamped === $this->cursor) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursor = \max($start, \min(\strlen($clone->buffer), $clone->cursor + $delta));
+        $clone->cursor = $clamped;
         return $clone;
     }
 
-    private function moveCursorToStart(): self
+    private function deleteBeforeCursor(): self
     {
+        if ($this->cursor === 0) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursor = \strlen($this->label);
+        $clone->buffer = self::sliceChars($clone->buffer, 0, $clone->cursor - 1)
+                       . self::sliceChars($clone->buffer, $clone->cursor);
+        $clone->cursor--;
+        $clone->error = '';
         return $clone;
     }
 
-    private function moveCursorToEnd(): self
+    private function deleteUnderCursor(): self
     {
+        if ($this->cursor >= self::charCount($this->buffer)) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursor = \strlen($clone->buffer);
+        $clone->buffer = self::sliceChars($clone->buffer, 0, $clone->cursor)
+                       . self::sliceChars($clone->buffer, $clone->cursor + 1);
+        $clone->error = '';
+        return $clone;
+    }
+
+    private function deleteAllBeforeCursor(): self
+    {
+        if ($this->cursor === 0) {
+            return $this;
+        }
+        $clone = clone $this;
+        $clone->buffer = self::sliceChars($clone->buffer, $clone->cursor);
+        $clone->cursor = 0;
+        $clone->error  = '';
+        return $clone;
+    }
+
+    private function deleteAllAfterCursor(): self
+    {
+        if ($this->cursor >= self::charCount($this->buffer)) {
+            return $this;
+        }
+        $clone = clone $this;
+        $clone->buffer = self::sliceChars($clone->buffer, 0, $clone->cursor);
+        $clone->error  = '';
         return $clone;
     }
 
     private function applyCompletion(): self
     {
-        $suggestion = $this->suggestedCompletion();
-        if ($suggestion === null) return $this;
-
+        $hint = $this->suggestion();
+        if ($hint === null || $hint === $this->buffer) {
+            return $this;
+        }
         $clone = clone $this;
-        $prefix = \substr($clone->buffer, \strlen($this->label));
-        $diff   = \substr($suggestion, \strlen($prefix));
-
-        $clone->buffer = $this->label . $suggestion;
-        $clone->cursor = \strlen($clone->buffer);
+        $clone->buffer = $hint;
+        $clone->cursor = self::charCount($hint);
+        $clone->error  = '';
         return $clone;
     }
 
-    private function finalizeConfirm(): self
+    private static function charCount(string $s): int
     {
-        return $this->Confirm();
+        return mb_strlen($s, 'UTF-8');
     }
 
-    private function finalizeCancel(): self
+    private static function sliceChars(string $s, int $start, ?int $length = null): string
     {
-        return $this->Cancel();
-    }
-
-    private function ansi(string $text, string $codes): string
-    {
-        if ($codes === '') return $text;
-        return "\x1b[{$codes}m{$text}\x1b[0m";
+        return $length === null
+            ? mb_substr($s, $start, null, 'UTF-8')
+            : mb_substr($s, $start, $length, 'UTF-8');
     }
 }

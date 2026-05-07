@@ -5,220 +5,256 @@ declare(strict_types=1);
 namespace SugarCraft\Readline;
 
 /**
- * Multi-line text input prompt.
+ * Multi-line text input with per-line cursor navigation, optional max-line cap,
+ * and a default initial value.
  *
- * Port of erikgeiser/promptkit Textarea.
- *
- * @see https://github.com/erikgeiser/promptkit
+ * Newlines are entered with {@see Key::Enter}; submission is via {@see submit()}
+ * or by feeding {@see Key::CtrlC} (abort) / external trigger. Up / Down move
+ * between lines; Home / End jump within the current line.
  */
 final class TextareaPrompt
 {
-    private string $label;
-    private array $lines = [''];    // content lines
-    private int $cursorLine = 0;
-    private int $cursorCol  = 0;
-    private int $scrollY    = 0;    // vertical scroll offset
-    private bool $confirmed  = false;
-    private bool $cancelled  = false;
-    private int $maxLines    = 0;   // 0 = unlimited
+    /** @var list<string> */
+    private array $lines = [''];
 
-    private string $labelStyle = '1;36';
+    private int $line   = 0;
+    private int $col    = 0;
+    private int $maxLines = 0;     // 0 = unlimited
+    private bool $submitted = false;
+    private bool $aborted   = false;
+
+    private string $labelStyle  = '1;36';
     private string $cursorStyle = '7';
 
-    public function __construct(string $label)
-    {
-        $this->label = $label;
-    }
+    public function __construct(private readonly string $label) {}
 
     public static function new(string $label): self
     {
         return new self($label);
     }
 
-    public function WithDefault(string $text): self
+    // -------------------------------------------------------------------------
+    // Configuration
+    // -------------------------------------------------------------------------
+
+    public function withDefault(string $value): self
     {
         $clone = clone $this;
-        $clone->lines = $text === '' ? [''] : \explode("\n", $text);
+        $clone->lines = explode("\n", $value);
+        $clone->line  = count($clone->lines) - 1;
+        $clone->col   = self::charCount($clone->lines[$clone->line]);
         return $clone;
     }
 
-    public function WithMaxLines(int $n): self
+    public function withMaxLines(int $max): self
     {
         $clone = clone $this;
-        $clone->maxLines = $n;
+        $clone->maxLines = max(0, $max);
         return $clone;
     }
 
-    public function HandleChar(string $char): self
+    // -------------------------------------------------------------------------
+    // Input
+    // -------------------------------------------------------------------------
+
+    public function handleChar(string $char): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
-        if (\strlen($char) !== 1) return $this;
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
+        if ($char === '' || self::charCount($char) !== 1) {
+            return $this;
+        }
 
         $clone = clone $this;
-        $line  = &$clone->lines[$clone->cursorLine];
-        $line  = \substr($line, 0, $clone->cursorCol) . $char . \substr($line, $clone->cursorCol);
-        $clone->cursorCol++;
+        $current = $clone->lines[$clone->line];
+        $clone->lines[$clone->line] = self::sliceChars($current, 0, $clone->col)
+                                    . $char
+                                    . self::sliceChars($current, $clone->col);
+        $clone->col++;
         return $clone;
     }
 
-    public function HandleKey(string $key): self
+    public function handleKey(string $key): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
 
         return match ($key) {
-            'left'      => $this->moveCol(-1),
-            'right'     => $this->moveCol(1),
-            'up'        => $this->moveLine(-1),
-            'down'      => $this->moveLine(1),
-            'home'      => $this->moveColToStart(),
-            'end'       => $this->moveColToEnd(),
-            'enter'     => $this->insertNewline(),
-            'backspace' => $this->handleBackspace(),
-            'ctrl_c', 'esc' => $this->finalizeCancel(),
-            default     => $this,
+            Key::Up        => $this->moveLine(-1),
+            Key::Down      => $this->moveLine(1),
+            Key::Left      => $this->moveCol(-1),
+            Key::Right     => $this->moveCol(1),
+            Key::Home      => $this->moveColTo(0),
+            Key::End       => $this->moveColTo(self::charCount($this->lines[$this->line])),
+            Key::Backspace => $this->deleteBeforeCursor(),
+            Key::Delete    => $this->deleteUnderCursor(),
+            Key::Enter     => $this->insertNewline(),
+            Key::Escape, Key::CtrlC => $this->abort(),
+            default        => $this,
         };
     }
 
-    public function Confirm(): self
+    public function submit(): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->confirmed = true;
+        $clone->submitted = true;
         return $clone;
     }
 
-    public function Cancel(): self
+    public function abort(): self
     {
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cancelled = true;
+        $clone->aborted = true;
         return $clone;
     }
 
-    public function Value(): string
+    // -------------------------------------------------------------------------
+    // Queries
+    // -------------------------------------------------------------------------
+
+    public function value(): string
     {
-        if ($this->cancelled) return '';
-        return \implode("\n", $this->lines);
+        return $this->aborted ? '' : implode("\n", $this->lines);
     }
 
-    public function IsConfirmed(): bool  { return $this->confirmed; }
-    public function IsCancelled(): bool  { return $this->cancelled; }
+    public function isSubmitted(): bool { return $this->submitted; }
+    public function isAborted(): bool   { return $this->aborted; }
 
-    public function View(): string
+    public function cursorLine(): int { return $this->line; }
+    public function cursorCol(): int  { return $this->col; }
+    public function lineCount(): int  { return count($this->lines); }
+
+    // -------------------------------------------------------------------------
+    // Rendering
+    // -------------------------------------------------------------------------
+
+    public function view(): string
     {
-        $lines = [];
-        $lines[] = $this->ansi($this->label, $this->labelStyle);
-
-        $displayHeight = $this->maxLines > 0 ? $this->maxLines : \count($this->lines);
-        $displayLines  = \array_slice($this->lines, $this->scrollY, $displayHeight);
-
-        foreach ($displayLines as $di => $contentLine) {
-            $lineIdx = $this->scrollY + $di;
-            $isCursorLine = ($lineIdx === $this->cursorLine);
-            $cursorInLine = $isCursorLine ? $this->cursorCol : -1;
-
-            $display = \substr($contentLine, 0, $cursorInLine)
-                     . $this->ansi(' ', $this->cursorStyle)
-                     . \substr($contentLine, $cursorInLine);
-            $lines[] = $display;
+        $out = [Ansi::wrap($this->label, $this->labelStyle)];
+        foreach ($this->lines as $i => $text) {
+            if ($i !== $this->line) {
+                $out[] = $text;
+                continue;
+            }
+            $before = self::sliceChars($text, 0, $this->col);
+            $under  = self::sliceChars($text, $this->col, 1);
+            $after  = self::sliceChars($text, $this->col + 1);
+            $out[]  = $before
+                    . Ansi::wrap($under === '' ? ' ' : $under, $this->cursorStyle)
+                    . $after;
         }
-
-        if ($this->maxLines > 0) {
-            $lines[] = \sprintf('(%d/%d lines)', \count($this->lines), $this->maxLines);
-        }
-
-        return \implode("\n", $lines);
+        return implode("\n", $out);
     }
 
     // -------------------------------------------------------------------------
     // Internal
     // -------------------------------------------------------------------------
 
-    private function moveCol(int $delta): self
-    {
-        $clone = clone $this;
-        $maxCol = \strlen($clone->lines[$clone->cursorLine] ?? '');
-        $clone->cursorCol = \max(0, \min($maxCol, $clone->cursorCol + $delta));
-        return $clone;
-    }
-
     private function moveLine(int $delta): self
     {
-        $clone = clone $this;
-        $targetLine = $clone->cursorLine + $delta;
-        $targetLine = \max(0, \min(\count($clone->lines) - 1, $targetLine));
-        $clone->cursorLine = $targetLine;
-        $maxCol = \strlen($clone->lines[$targetLine] ?? '');
-        $clone->cursorCol = \min($clone->cursorCol, $maxCol);
-
-        // Auto-scroll
-        if ($clone->cursorLine < $clone->scrollY) {
-            $clone->scrollY = $clone->cursorLine;
-        } elseif ($clone->cursorLine >= $clone->scrollY + ($clone->maxLines > 0 ? $clone->maxLines : 10)) {
-            $clone->scrollY = $clone->cursorLine - ($clone->maxLines > 0 ? $clone->maxLines - 1 : 9);
+        $target = $this->line + $delta;
+        $clamped = max(0, min(count($this->lines) - 1, $target));
+        if ($clamped === $this->line) {
+            return $this;
         }
-
+        $clone = clone $this;
+        $clone->line = $clamped;
+        $clone->col  = min($clone->col, self::charCount($clone->lines[$clamped]));
         return $clone;
     }
 
-    private function moveColToStart(): self
+    private function moveCol(int $delta): self
     {
+        return $this->moveColTo($this->col + $delta);
+    }
+
+    private function moveColTo(int $position): self
+    {
+        $clamped = max(0, min(self::charCount($this->lines[$this->line]), $position));
+        if ($clamped === $this->col) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursorCol = 0;
+        $clone->col = $clamped;
         return $clone;
     }
 
-    private function moveColToEnd(): self
+    private function deleteBeforeCursor(): self
     {
+        if ($this->col > 0) {
+            $clone = clone $this;
+            $current = $clone->lines[$clone->line];
+            $clone->lines[$clone->line] = self::sliceChars($current, 0, $clone->col - 1)
+                                        . self::sliceChars($current, $clone->col);
+            $clone->col--;
+            return $clone;
+        }
+        // Backspace at column 0: merge with previous line.
+        if ($this->line === 0) {
+            return $this;
+        }
+        $clone   = clone $this;
+        $prev    = $clone->lines[$clone->line - 1];
+        $current = $clone->lines[$clone->line];
+        $clone->lines[$clone->line - 1] = $prev . $current;
+        array_splice($clone->lines, $clone->line, 1);
+        $clone->line--;
+        $clone->col = self::charCount($prev);
+        return $clone;
+    }
+
+    private function deleteUnderCursor(): self
+    {
+        $current = $this->lines[$this->line];
+        if ($this->col < self::charCount($current)) {
+            $clone = clone $this;
+            $clone->lines[$clone->line] = self::sliceChars($current, 0, $clone->col)
+                                        . self::sliceChars($current, $clone->col + 1);
+            return $clone;
+        }
+        // Delete at end of line: merge with next line.
+        if ($this->line >= count($this->lines) - 1) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursorCol = \strlen($clone->lines[$clone->cursorLine] ?? '');
+        $clone->lines[$clone->line] = $current . $clone->lines[$clone->line + 1];
+        array_splice($clone->lines, $clone->line + 1, 1);
         return $clone;
     }
 
     private function insertNewline(): self
     {
-        if ($this->maxLines > 0 && \count($this->lines) >= $this->maxLines) {
-            return $this->Confirm();
+        if ($this->maxLines > 0 && count($this->lines) >= $this->maxLines) {
+            return $this;
         }
-
-        $clone = clone $this;
-        $current = &$clone->lines[$clone->cursorLine];
-        $after   = \substr($current, $clone->cursorCol);
-        $current = \substr($current, 0, $clone->cursorCol);
-
-        \array_splice($clone->lines, $clone->cursorLine + 1, 0, [$after]);
-        $clone->cursorLine++;
-        $clone->cursorCol = 0;
-
+        $clone   = clone $this;
+        $current = $clone->lines[$clone->line];
+        $head    = self::sliceChars($current, 0, $clone->col);
+        $tail    = self::sliceChars($current, $clone->col);
+        $clone->lines[$clone->line] = $head;
+        array_splice($clone->lines, $clone->line + 1, 0, [$tail]);
+        $clone->line++;
+        $clone->col = 0;
         return $clone;
     }
 
-    private function handleBackspace(): self
+    private static function charCount(string $s): int
     {
-        if ($this->cursorCol > 0) {
-            return $this->HandleKey('left')->HandleChar("\x7f");
-        }
-
-        // Merge with previous line
-        if ($this->cursorLine > 0) {
-            $clone = clone $this;
-            $prevLen = \strlen($clone->lines[$clone->cursorLine - 1] ?? '');
-            \array_splice($clone->lines, $clone->cursorLine, 1);
-            $clone->cursorLine--;
-            $clone->cursorCol = $prevLen;
-            return $clone;
-        }
-
-        return $this;
+        return mb_strlen($s, 'UTF-8');
     }
 
-    private function finalizeCancel(): self
+    private static function sliceChars(string $s, int $start, ?int $length = null): string
     {
-        return $this->Cancel();
-    }
-
-    private function ansi(string $text, string $codes): string
-    {
-        if ($codes === '') return $text;
-        return "\x1b[{$codes}m{$text}\x1b[0m";
+        return $length === null
+            ? mb_substr($s, $start, null, 'UTF-8')
+            : mb_substr($s, $start, $length, 'UTF-8');
     }
 }

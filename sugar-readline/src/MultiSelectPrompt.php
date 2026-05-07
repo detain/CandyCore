@@ -5,131 +5,132 @@ declare(strict_types=1);
 namespace SugarCraft\Readline;
 
 /**
- * Multi-item selection prompt with cursor navigation, filtering, pagination,
- * and minimum/maximum selection enforcement.
+ * Multi-choice selection prompt with cursor navigation, filter, pagination,
+ * and minimum / maximum selection enforcement.
  *
- * Port of erikgeiser/promptkit.selection.MultiSelection.
- *
- * @see https://github.com/erikgeiser/promptkit
+ * Marks are tracked by the *original* choice index, so they survive filter
+ * changes. Selected values are returned in original choice order.
  */
 final class MultiSelectPrompt
 {
-    private string $label;
-    private array $allItems = [];
-
     /** @var list<string> */
-    private array $filteredItems = [];
+    private array $choices;
 
-    private string $filterText = '';
-    private int $cursor = 0;
-    private int $page    = 0;
-    private int $perPage = 10;
+    /** @var list<int>  Indices of {@see $choices} that survive {@see $filter}. */
+    private array $filtered;
 
-    /** @var array<int, true> Indices into allItems that are selected */
-    private array $selected = [];
+    /** @var array<int,true>  Set of marked indices into {@see $choices}. */
+    private array $marked = [];
 
-    private int $minSelections = 0;
-    private int $maxSelections = 0;  // 0 = unlimited
+    private string $filter = '';
+    private int $cursor    = 0;
+    private int $page      = 0;
+    private int $pageSize  = 10;
+    private int $minSelect = 0;
+    private int $maxSelect = 0;     // 0 = unlimited
+    private bool $submitted = false;
+    private bool $aborted   = false;
 
-    private bool $confirmed  = false;
-    private bool $cancelled  = false;
+    private string $cursorStyle = '7';
+    private string $labelStyle  = '1;36';
+    private string $markedGlyph   = '◉ ';
+    private string $unmarkedGlyph = '○ ';
 
-    private string $cursorStyle   = '7';    // reverse
-    private string $selectedStyle = '32';   // green
-    private string $labelStyle    = '1;36'; // bold cyan
-    private string $matchedStyle  = '33';   // yellow for filter match highlight
-
-    // -------------------------------------------------------------------------
-    // Factory
-    // -------------------------------------------------------------------------
-
-    public function __construct(string $label, array $items)
+    /** @param list<string> $choices */
+    public function __construct(private readonly string $label, array $choices)
     {
-        $this->label          = $label;
-        $this->allItems       = $items;
-        $this->filteredItems  = $items;
+        $this->choices  = array_values($choices);
+        $this->filtered = array_keys($this->choices);
     }
 
-    public static function new(string $label, array $items): self
+    /** @param list<string> $choices */
+    public static function new(string $label, array $choices): self
     {
-        return new self($label, $items);
+        return new self($label, $choices);
     }
 
     // -------------------------------------------------------------------------
     // Configuration
     // -------------------------------------------------------------------------
 
-    /**
-     * Minimum number of selections required before confirmation is allowed.
-     */
-    public function WithMinSelections(int $min): self
+    public function withMinSelections(int $min): self
     {
         $clone = clone $this;
-        $clone->minSelections = $min;
+        $clone->minSelect = max(0, $min);
         return $clone;
     }
 
-    /**
-     * Maximum number of selections allowed (0 = unlimited).
-     */
-    public function WithMaxSelections(int $max): self
+    public function withMaxSelections(int $max): self
     {
         $clone = clone $this;
-        $clone->maxSelections = $max;
+        $clone->maxSelect = max(0, $max);
         return $clone;
     }
 
-    public function WithPerPage(int $n): self
+    public function withPageSize(int $size): self
     {
         $clone = clone $this;
-        $clone->perPage = $n;
+        $clone->pageSize = max(1, $size);
+        $clone->reclampPage();
         return $clone;
     }
 
-    /**
-     * Style for selected check marker.
-     */
-    public function WithSelectedStyle(string $ansiCodes): self
+    public function withFilter(string $needle): self
     {
         $clone = clone $this;
-        $clone->selectedStyle = $ansiCodes;
+        $clone->filter   = $needle;
+        $clone->filtered = $needle === ''
+            ? array_keys($clone->choices)
+            : array_values(array_filter(
+                array_keys($clone->choices),
+                fn(int $i): bool => stripos($clone->choices[$i], $needle) !== false,
+            ));
+        $clone->cursor = 0;
+        $clone->page   = 0;
         return $clone;
     }
 
     // -------------------------------------------------------------------------
-    // Input handling
+    // Input
     // -------------------------------------------------------------------------
 
-    public function HandleKey(string $key): self
+    public function handleKey(string $key): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
 
         return match ($key) {
-            'up', 'k'       => $this->moveCursor(-1),
-            'down', 'j'     => $this->moveCursor(1),
-            'pageup'        => $this->prevPage(),
-            'pagedown'      => $this->nextPage(),
-            'home'          => $this->moveCursorToStart(),
-            'end'           => $this->moveCursorToEnd(),
-            'space'         => $this->toggleSelect(),
-            'enter'         => $this->finalizeConfirm(),
-            'esc', 'ctrl_c' => $this->finalizeCancel(),
-            default         => $this,
+            Key::Up       => $this->moveCursor(-1),
+            Key::Down     => $this->moveCursor(1),
+            Key::PageUp   => $this->changePage(-1),
+            Key::PageDown => $this->changePage(1),
+            Key::Home     => $this->moveCursorTo(0),
+            Key::End      => $this->moveCursorTo(count($this->filtered) - 1),
+            Key::Space    => $this->toggleCurrent(),
+            Key::Enter    => $this->submit(),
+            Key::Escape, Key::CtrlC => $this->abort(),
+            default       => $this,
         };
     }
 
-    public function Confirm(): self
+    public function submit(): self
     {
-        if ($this->confirmed || $this->cancelled) return $this;
+        if ($this->submitted || $this->aborted || !$this->canSubmit()) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->confirmed = true;
+        $clone->submitted = true;
         return $clone;
     }
 
-    public function Cancel(): self
+    public function abort(): self
     {
+        if ($this->submitted || $this->aborted) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cancelled = true;
+        $clone->aborted = true;
         return $clone;
     }
 
@@ -137,124 +138,103 @@ final class MultiSelectPrompt
     // Queries
     // -------------------------------------------------------------------------
 
-    /**
-     * @return list<string>
-     */
-    public function SelectedValues(): array
+    /** @return list<string> Marked values in original choice order. */
+    public function selectedValues(): array
     {
-        if ($this->cancelled) return [];
-        return \array_values(
-            \array_filter($this->allItems, fn($_, $i): bool =>
-                isset($this->selected[$i]), ARRAY_FILTER_USE_BOTH
-            )
-        );
+        if ($this->aborted) {
+            return [];
+        }
+        $out = [];
+        foreach ($this->choices as $i => $value) {
+            if (isset($this->marked[$i])) {
+                $out[] = $value;
+            }
+        }
+        return $out;
     }
 
-    public function IsConfirmed(): bool { return $this->confirmed; }
-    public function IsCancelled(): bool { return $this->cancelled; }
+    public function selectionCount(): int { return count($this->marked); }
 
-    public function SelectionCount(): int
+    /** True when the current marked set satisfies min / max constraints. */
+    public function canSubmit(): bool
     {
-        return \count($this->selected);
+        $n = count($this->marked);
+        if ($n < $this->minSelect) {
+            return false;
+        }
+        if ($this->maxSelect > 0 && $n > $this->maxSelect) {
+            return false;
+        }
+        return true;
     }
 
-    public function CanConfirm(): bool
+    public function isSubmitted(): bool { return $this->submitted; }
+    public function isAborted(): bool   { return $this->aborted; }
+
+    public function cursor(): int        { return $this->cursor; }
+    public function filteredCount(): int { return count($this->filtered); }
+    public function totalChoices(): int  { return count($this->choices); }
+
+    public function currentPage(): int { return $this->page; }
+
+    public function totalPages(): int
     {
-        $this->getSelectionCount() >= $this->minSelections;
+        return max(1, (int) ceil(count($this->filtered) / $this->pageSize));
     }
 
-    /**
-     * @return list<string>
-     */
-    public function CurrentPageItems(): array
+    /** @return list<string> Slice of filtered choices on the current page. */
+    public function currentPageItems(): array
     {
-        $offset = $this->page * $this->perPage;
-        return \array_slice($this->filteredItems, $offset, $this->perPage);
-    }
-
-    public function TotalPages(): int
-    {
-        return (int) \ceil(\count($this->filteredItems) / $this->perPage);
-    }
-
-    public function CurrentPage(): int { return $this->page; }
-
-    public function FilterMatchCount(): int
-    {
-        return \count($this->filteredItems);
+        $offset = $this->page * $this->pageSize;
+        $slice  = array_slice($this->filtered, $offset, $this->pageSize);
+        return array_map(fn(int $i): string => $this->choices[$i], $slice);
     }
 
     // -------------------------------------------------------------------------
     // Rendering
     // -------------------------------------------------------------------------
 
-    public function View(): string
+    public function view(): string
     {
-        $lines = [];
+        $lines = [Ansi::wrap($this->label, $this->labelStyle)];
 
-        // Label
-        $lines[] = $this->ansi($this->label, $this->labelStyle);
-
-        // Constraint hint
-        $minTxt = $this->minSelections > 0 ? " (min {$this->minSelections})" : '';
-        $maxTxt = $this->maxSelections > 0 ? " (max {$this->maxSelections})" : '';
-        $lines[] = "[multi-select{$minTxt}{$maxTxt}] selected: " . $this->selectionCount();
-
-        // Filter bar
-        $filterBar = '[filter] ' . $this->filterText . ' ';
-        if ($this->filterText !== '') {
-            $filterBar .= \sprintf(' (%d matches)', \count($this->filteredItems));
+        $hint = sprintf('[multi-select] selected: %d', count($this->marked));
+        if ($this->minSelect > 0) {
+            $hint .= sprintf(' (min %d)', $this->minSelect);
         }
-        $lines[] = $filterBar;
+        if ($this->maxSelect > 0) {
+            $hint .= sprintf(' (max %d)', $this->maxSelect);
+        }
+        $lines[] = $hint;
 
-        if ($this->filteredItems === []) {
+        $bar = '[filter] ' . $this->filter;
+        if ($this->filter !== '') {
+            $bar .= sprintf(' (%d match%s)', count($this->filtered), count($this->filtered) === 1 ? '' : 'es');
+        }
+        $lines[] = $bar;
+
+        if ($this->filtered === []) {
             $lines[] = '(no matches)';
-            return \implode("\n", $lines);
+            return implode("\n", $lines);
         }
 
-        // Items
-        $offset = $this->page * $this->perPage;
-        for ($i = 0; $i < $this->perPage; $i++) {
-            $idx = $offset + $i;
-            if (!isset($this->filteredItems[$idx])) break;
-
-            $item        = $this->filteredItems[$idx];
-            // Map filtered index back to allItems index
-            $allIdx      = $this->filteredToAllIndex($idx);
-            $isSelected  = isset($this->selected[$allIdx]);
-            $marker      = $isSelected ? '◉' : '○';
-            $prefix      = $marker . ' ';
-
-            $isCursor = ($idx === $this->cursor);
-
-            $itemStr = $prefix . $item;
-
-            if ($isCursor) {
-                $itemStr = $this->ansi($itemStr, $this->cursorStyle);
-            } elseif ($isSelected) {
-                $itemStr = $this->ansi($itemStr, $this->selectedStyle);
+        $offset = $this->page * $this->pageSize;
+        $end    = min($offset + $this->pageSize, count($this->filtered));
+        for ($i = $offset; $i < $end; $i++) {
+            $choiceIdx = $this->filtered[$i];
+            $glyph     = isset($this->marked[$choiceIdx]) ? $this->markedGlyph : $this->unmarkedGlyph;
+            $line      = $glyph . $this->choices[$choiceIdx];
+            if ($i === $this->cursor) {
+                $line = Ansi::wrap($line, $this->cursorStyle);
             }
-
-            $lines[] = $itemStr;
+            $lines[] = $line;
         }
 
-        // Pagination
-        $total = $this->TotalPages();
-        if ($total > 1) {
-            $lines[] = \sprintf('Page %d/%d', $this->page + 1, $total);
+        if ($this->totalPages() > 1) {
+            $lines[] = sprintf('Page %d/%d', $this->page + 1, $this->totalPages());
         }
 
-        // Confirm hint
-        if ($this->CanConfirm()) {
-            $lines[] = $this->ansi('Press Enter to confirm', '90');
-        } else {
-            $lines[] = $this->ansi(
-                "Select at least {$this->minSelections} item(s)",
-                '90'
-            );
-        }
-
-        return \implode("\n", $lines);
+        return implode("\n", $lines);
     }
 
     // -------------------------------------------------------------------------
@@ -263,110 +243,67 @@ final class MultiSelectPrompt
 
     private function moveCursor(int $delta): self
     {
-        $count = \count($this->filteredItems);
-        if ($count === 0) return $this;
+        return $this->moveCursorTo($this->cursor + $delta);
+    }
 
+    private function moveCursorTo(int $position): self
+    {
+        $count = count($this->filtered);
+        if ($count === 0) {
+            return $this;
+        }
+        $clamped = max(0, min($count - 1, $position));
+        if ($clamped === $this->cursor) {
+            return $this;
+        }
         $clone = clone $this;
-        $cursor = $clone->cursor + $delta;
-
-        if ($cursor < 0) $cursor = 0;
-        if ($cursor >= $count) $cursor = $count - 1;
-
-        $clone->cursor = $cursor;
-        $clone->page   = \min($clone->TotalPages() - 1, (int) \floor($cursor / $clone->perPage));
-
+        $clone->cursor = $clamped;
+        $clone->page   = intdiv($clamped, $clone->pageSize);
         return $clone;
     }
 
-    private function moveCursorToStart(): self
+    private function changePage(int $delta): self
     {
+        $target  = $this->page + $delta;
+        $max     = $this->totalPages() - 1;
+        $clamped = max(0, min($max, $target));
+        if ($clamped === $this->page) {
+            return $this;
+        }
         $clone = clone $this;
-        $clone->cursor = 0;
-        $clone->page   = 0;
+        $clone->page   = $clamped;
+        $clone->cursor = max(
+            $clamped * $clone->pageSize,
+            min(($clamped + 1) * $clone->pageSize - 1, count($clone->filtered) - 1),
+        );
         return $clone;
     }
 
-    private function moveCursorToEnd(): self
+    private function toggleCurrent(): self
     {
-        $clone = clone $this;
-        $clone->cursor = \max(0, \count($clone->filteredItems) - 1);
-        $clone->page   = $clone->TotalPages() - 1;
-        return $clone;
-    }
+        if ($this->filtered === []) {
+            return $this;
+        }
+        $choiceIdx = $this->filtered[$this->cursor];
 
-    private function prevPage(): self
-    {
         $clone = clone $this;
-        $clone->page = \max(0, $clone->page - 1);
-        return $clone;
-    }
-
-    private function nextPage(): self
-    {
-        $clone = clone $this;
-        $clone->page = \min($clone->TotalPages() - 1, $clone->page + 1);
-        return $clone;
-    }
-
-    private function toggleSelect(): self
-    {
-        $clone = clone $this;
-        $allIdx = $clone->filteredToAllIndex($clone->cursor);
-
-        if (isset($clone->selected[$allIdx])) {
-            unset($clone->selected[$allIdx]);
-        } else {
-            // Check max
-            if ($clone->maxSelections > 0 && \count($clone->selected) >= $clone->maxSelections) {
-                // At max, deselect the first selected instead
-                $first = \array_key_first($clone->selected);
-                if ($first !== null) {
-                    unset($clone->selected[$first]);
-                    $clone->selected[$allIdx] = true;
-                }
-            } else {
-                $clone->selected[$allIdx] = true;
+        if (isset($clone->marked[$choiceIdx])) {
+            unset($clone->marked[$choiceIdx]);
+            return $clone;
+        }
+        if ($clone->maxSelect > 0 && count($clone->marked) >= $clone->maxSelect) {
+            // At cap: drop the oldest mark to make room (FIFO replacement).
+            $oldest = array_key_first($clone->marked);
+            if ($oldest !== null) {
+                unset($clone->marked[$oldest]);
             }
         }
-
+        $clone->marked[$choiceIdx] = true;
         return $clone;
     }
 
-    private function finalizeConfirm(): self
+    private function reclampPage(): void
     {
-        if (!$this->CanConfirm()) return $this;
-        return $this->Confirm();
-    }
-
-    private function finalizeCancel(): self
-    {
-        return $this->Cancel();
-    }
-
-    private function getSelectionCount(): int
-    {
-        return \count($this->selected);
-    }
-
-    /**
-     * Map a cursor position in the filtered list to the corresponding index in allItems.
-     * We store by allItems indices; filtering may reorder, so we track via the actual item.
-     */
-    private function filteredToAllIndex(int $filteredIdx): int
-    {
-        $item = $this->filteredItems[$filteredIdx] ?? null;
-        if ($item === null) return $filteredIdx;
-
-        // Linear search (items list is small)
-        foreach ($this->allItems as $i => $v) {
-            if ($v === $item) return $i;
-        }
-        return $filteredIdx;
-    }
-
-    private function ansi(string $text, string $codes): string
-    {
-        if ($codes === '') return $text;
-        return "\x1b[{$codes}m{$text}\x1b[0m";
+        $this->page = min($this->page, $this->totalPages() - 1);
     }
 }
