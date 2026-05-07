@@ -46,6 +46,7 @@ to keep the static `Progress` lean).
 | `Viewport\Viewport` | Scrollable text region with mouse-wheel, scrollbar, horizontal scroll, `setWidth(int)` / `setHeight(int)` | — |
 | `Paginator\Paginator` | Dot / arabic page indicator | — |
 | `ItemList\ItemList` | Selectable / scrollable / filterable list with status messages | — |
+| `Tree\Tree` | Interactive tree — cursor, expand/collapse, viewport scroll. Mirrors upstream Bubbles #233. | — |
 | `Table\Table` | Selectable data table with `Column` struct + nav | — |
 | `FilePicker\FilePicker` | Directory browser with icons / size / sort modes | — |
 
