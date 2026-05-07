@@ -181,16 +181,14 @@ final class User
     /**
      * Compare two SSH public keys for equality.
      *
-     * Keys match if they have the same type and base64 blob.
-     * Comments may differ.
+     * All parts (type, base64 blob, and comment) must match. Whitespace
+     * between fields is normalized.
      */
     private function keysMatch(string $a, string $b): bool
     {
-        $parse = function (string $key): string {
-            $parts = \preg_split('/\s+/', \trim($key));
-            return \sprintf('%s %s', $parts[0] ?? '', $parts[1] ?? '');
-        };
+        $normalize = static fn (string $key): string =>
+            \implode(' ', \preg_split('/\s+/', \trim($key)) ?: []);
 
-        return $parse($a) === $parse($b);
+        return $normalize($a) === $normalize($b);
     }
 }
