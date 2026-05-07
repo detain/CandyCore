@@ -92,12 +92,14 @@ final class Toast
 
     /**
      * Add an alert to the queue. Returns a new Toast instance.
+     *
+     * If $expiresAt is provided, it overrides the configured duration.
      */
-    public function alert(ToastType $type, string $message): self
+    public function alert(ToastType $type, string $message, ?float $expiresAt = null): self
     {
         $clone = clone $this;
-        $alert = new Alert($type, $message);
-        if ($clone->duration !== null) {
+        $alert = new Alert($type, $message, $expiresAt);
+        if ($expiresAt === null && $clone->duration !== null) {
             $alert = $alert->withExpiry($clone->duration);
         }
         $clone->queue[] = $alert;
