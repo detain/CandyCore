@@ -77,42 +77,50 @@ final class SugarBoxer
      */
     public function render(Node $root, int $width, int $height): string
     {
-        $lines = \array_fill(0, $height, \str_repeat(' ', $width));
-        $this->renderNode($root, 0, 0, $width, $height, $lines);
-        return \implode("\n", $lines);
+        // 2D cell grid: each cell holds one logical character (any byte length).
+        // Storing as char-cells avoids byte/multibyte boundary corruption that
+        // happens when slicing strings containing UTF-8 box-drawing glyphs.
+        $cells = \array_fill(0, $height, \array_fill(0, $width, ' '));
+        $this->renderNode($root, 0, 0, $width, $height, $cells);
+
+        $out = [];
+        foreach ($cells as $row) {
+            $out[] = \implode('', $row);
+        }
+        return \implode("\n", $out);
     }
 
     /**
      * Render a node at the given viewport region.
      *
-     * @param Node    $node   Node to render
-     * @param int     $x      Left offset
-     * @param int     $y      Top offset
-     * @param int     $w      Available width
-     * @param int     $h      Available height
-     * @param array   $lines  Mutable lines array (modified in-place)
+     * @param Node                            $node  Node to render
+     * @param int                             $x     Left offset
+     * @param int                             $y     Top offset
+     * @param int                             $w     Available width
+     * @param int                             $h     Available height
+     * @param array<int, array<int, string>>  $cells Mutable cell grid (modified in place)
      */
-    private function renderNode(Node $node, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderNode(Node $node, int $x, int $y, int $w, int $h, array &$cells): void
     {
         if ($w <= 0 || $h <= 0) return;
 
         switch ($node->kind) {
             case Node::LEAF:
-                $this->renderLeaf($node, $x, $y, $w, $h, $lines);
+                $this->renderLeaf($node, $x, $y, $w, $h, $cells);
                 break;
             case Node::HORIZONTAL:
-                $this->renderHorizontal($node, $x, $y, $w, $h, $lines);
+                $this->renderHorizontal($node, $x, $y, $w, $h, $cells);
                 break;
             case Node::VERTICAL:
-                $this->renderVertical($node, $x, $y, $w, $h, $lines);
+                $this->renderVertical($node, $x, $y, $w, $h, $cells);
                 break;
             case Node::NOBORDER:
-                $this->renderNoBorder($node, $x, $y, $w, $h, $lines);
+                $this->renderNoBorder($node, $x, $y, $w, $h, $cells);
                 break;
         }
     }
 
-    private function renderLeaf(Node $node, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderLeaf(Node $node, int $x, int $y, int $w, int $h, array &$cells): void
     {
         $b = $node->border ? 1 : 0;
         $p = $node->padding;
@@ -124,23 +132,27 @@ final class SugarBoxer
 
         if ($cw <= 0 || $ch <= 0) return;
 
-        $pcx = $cx + $p;        // padded content left
-        $pcy = $cy + $p;        // padded content top
-        $pcw = $cw - $p * 2;    // padded content width
-        $pch = $ch - $p * 2;    // padded content height
+        // Clamp padding when it would consume the entire content axis. Without
+        // this, a tiny viewport with non-zero padding zeroes out content area
+        // and the leaf disappears entirely.
+        $padH = ($p * 2 >= $cw) ? \max(0, \intdiv($cw - 1, 2)) : $p;
+        $padV = ($p * 2 >= $ch) ? \max(0, \intdiv($ch - 1, 2)) : $p;
+
+        $pcx = $cx + $padH;
+        $pcy = $cy + $padV;
+        $pcw = $cw - $padH * 2;
+        $pch = $ch - $padV * 2;
 
         if ($pcw <= 0 || $pch <= 0) return;
 
-        // Draw border
         if ($node->border) {
-            $this->drawBorder($x, $y, $w, $h, $lines);
+            $this->drawBorder($x, $y, $w, $h, $cells);
         }
 
-        // Draw content with word wrap
-        $this->renderContent($node->content, $pcx, $pcy, $pcw, $pch, $lines);
+        $this->renderContent($node->content, $pcx, $pcy, $pcw, $pch, $cells);
     }
 
-    private function renderHorizontal(Node $node, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderHorizontal(Node $node, int $x, int $y, int $w, int $h, array &$cells): void
     {
         $children = $node->children;
         $n = \count($children);
@@ -162,27 +174,30 @@ final class SugarBoxer
 
         // Draw outer border first
         if ($node->border) {
-            $this->drawBorder($x, $y, $w, $h, $lines);
+            $this->drawBorder($x, $y, $w, $h, $cells);
         }
 
-        // Render each child
+        // Render each child. distribute() already bakes the border pad into
+        // offsets[0], so don't add $b again here or the children get pushed
+        // one cell deeper than the available space and the trailing child
+        // ends up with zero size.
         for ($i = 0; $i < $n; $i++) {
             $child = $children[$i];
-            $ox = $x + $b + $offsets[$i];
+            $ox = $x + $offsets[$i];
             $ow = $i === $n - 1
-                ? $w - $b - $offsets[$i] - $b
+                ? $w - $b - $offsets[$i]
                 : $offsets[$i + 1] - $offsets[$i] - $sp;
 
-            $this->renderNode($child, $ox, $y + $b, $ow, $availableH, $lines);
+            $this->renderNode($child, $ox, $y + $b, $ow, $availableH, $cells);
 
             // Draw vertical separator between children (inside the outer border)
             if ($i < $n - 1 && $sp === 0) {
-                $this->drawVLine($x + $offsets[$i + 1] - 1, $y + $b, $availableH, $lines);
+                $this->drawVLine($x + $offsets[$i + 1] - 1, $y + $b, $availableH, $cells);
             }
         }
     }
 
-    private function renderVertical(Node $node, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderVertical(Node $node, int $x, int $y, int $w, int $h, array &$cells): void
     {
         $children = $node->children;
         $n = \count($children);
@@ -202,28 +217,28 @@ final class SugarBoxer
         $offsets = $this->distribute($availableH, $weights, $totalWeight, $sp, $b);
 
         if ($node->border) {
-            $this->drawBorder($x, $y, $w, $h, $lines);
+            $this->drawBorder($x, $y, $w, $h, $cells);
         }
 
         for ($i = 0; $i < $n; $i++) {
             $child = $children[$i];
-            $oy = $y + $b + $offsets[$i];
+            $oy = $y + $offsets[$i];
             $oh = $i === $n - 1
-                ? $h - $b - $offsets[$i] - $b
+                ? $h - $b - $offsets[$i]
                 : $offsets[$i + 1] - $offsets[$i] - $sp;
 
-            $this->renderNode($child, $x + $b, $oy, $availableW, $oh, $lines);
+            $this->renderNode($child, $x + $b, $oy, $availableW, $oh, $cells);
 
             if ($i < $n - 1 && $sp === 0) {
-                $this->drawHLine($x + $b, $y + $offsets[$i + 1] - 1, $availableW, $lines);
+                $this->drawHLine($x + $b, $y + $offsets[$i + 1] - 1, $availableW, $cells);
             }
         }
     }
 
-    private function renderNoBorder(Node $node, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderNoBorder(Node $node, int $x, int $y, int $w, int $h, array &$cells): void
     {
         if ($node->children === []) return;
-        $this->renderNode($node->children[0], $x, $y, $w, $h, $lines);
+        $this->renderNode($node->children[0], $x, $y, $w, $h, $cells);
     }
 
     // -------------------------------------------------------------------------
@@ -233,7 +248,7 @@ final class SugarBoxer
     /**
      * Render text content within a content region with word-wrap.
      */
-    private function renderContent(string $text, int $x, int $y, int $w, int $h, array &$lines): void
+    private function renderContent(string $text, int $x, int $y, int $w, int $h, array &$cells): void
     {
         if ($w <= 0 || $h <= 0) return;
 
@@ -242,13 +257,12 @@ final class SugarBoxer
 
         foreach ($linesToRender as $lineIdx => $line) {
             $lineY = $y + $lineIdx;
-            if ($lineY >= \count($lines)) break;
+            if ($lineY >= \count($cells)) break;
 
-            // Write characters one by one to handle multibyte
             $chars = \preg_split('//u', $line, -1, \PREG_SPLIT_NO_EMPTY) ?: [];
             for ($i = 0; $i < $w; $i++) {
                 $char = $chars[$i] ?? ' ';
-                $this->setChar($x + $i, $lineY, $char, $lines);
+                $this->setChar($x + $i, $lineY, $char, $cells);
             }
         }
     }
@@ -306,40 +320,40 @@ final class SugarBoxer
     // Border drawing
     // -------------------------------------------------------------------------
 
-    private function drawBorder(int $x, int $y, int $w, int $h, array &$lines): void
+    private function drawBorder(int $x, int $y, int $w, int $h, array &$cells): void
     {
         if ($w < 2 || $h < 2) return;
 
         // Corners
-        $this->setChar($x,             $y,             self::TL, $lines);
-        $this->setChar($x + $w - 1,   $y,             self::TR, $lines);
-        $this->setChar($x,             $y + $h - 1,   self::BL, $lines);
-        $this->setChar($x + $w - 1,   $y + $h - 1,   self::BR, $lines);
+        $this->setChar($x,           $y,           self::TL, $cells);
+        $this->setChar($x + $w - 1,  $y,           self::TR, $cells);
+        $this->setChar($x,           $y + $h - 1,  self::BL, $cells);
+        $this->setChar($x + $w - 1,  $y + $h - 1,  self::BR, $cells);
 
         // Top/bottom edges
         for ($i = 1; $i < $w - 1; $i++) {
-            $this->setChar($x + $i, $y,             self::H,  $lines);
-            $this->setChar($x + $i, $y + $h - 1,   self::H,  $lines);
+            $this->setChar($x + $i, $y,           self::H, $cells);
+            $this->setChar($x + $i, $y + $h - 1,  self::H, $cells);
         }
 
         // Left/right edges
         for ($j = 1; $j < $h - 1; $j++) {
-            $this->setChar($x,             $y + $j, self::V,  $lines);
-            $this->setChar($x + $w - 1,   $y + $j, self::V,  $lines);
+            $this->setChar($x,           $y + $j, self::V, $cells);
+            $this->setChar($x + $w - 1,  $y + $j, self::V, $cells);
         }
     }
 
-    private function drawVLine(int $x, int $y, int $h, array &$lines): void
+    private function drawVLine(int $x, int $y, int $h, array &$cells): void
     {
         for ($j = 0; $j < $h; $j++) {
-            $this->setChar($x, $y + $j, self::V, $lines);
+            $this->setChar($x, $y + $j, self::V, $cells);
         }
     }
 
-    private function drawHLine(int $x, int $y, int $w, array &$lines): void
+    private function drawHLine(int $x, int $y, int $w, array &$cells): void
     {
         for ($i = 0; $i < $w; $i++) {
-            $this->setChar($x + $i, $y, self::H, $lines);
+            $this->setChar($x + $i, $y, self::H, $cells);
         }
     }
 
@@ -348,30 +362,15 @@ final class SugarBoxer
     // -------------------------------------------------------------------------
 
     /**
-     * Set a single character in the lines buffer.
+     * Set a single character at cell ($x, $y) in the grid. The grid is a 2D
+     * array where each slot holds one logical character regardless of UTF-8
+     * byte length, so writes are O(1) and never split a multibyte glyph.
      */
-    private function setChar(int $x, int $y, string $char, array &$lines): void
+    private function setChar(int $x, int $y, string $char, array &$cells): void
     {
-        if ($y < 0 || $y >= \count($lines)) return;
-        if ($x < 0) return;
-
-        $line = $lines[$y];
-        $lineLen = \strlen($line);
-
-        if ($x >= $lineLen) {
-            $line = \str_pad($line, $x + 1, ' ');
-        }
-
-        // Handle multibyte: replace character at position x
-        if ($x < \strlen($line)) {
-            $pre  = \substr($line, 0, $x);
-            $post = \substr($line, $x + \strlen($char));
-            $line = $pre . $char . $post;
-        } else {
-            $line .= $char;
-        }
-
-        $lines[$y] = $line;
+        if ($y < 0 || $y >= \count($cells)) return;
+        if ($x < 0 || $x >= \count($cells[$y])) return;
+        $cells[$y][$x] = $char;
     }
 
     // -------------------------------------------------------------------------
@@ -404,6 +403,7 @@ final class SugarBoxer
 
     private function strWidth(string $s): int
     {
-        return \strlen(\preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?: '');
+        $clean = \preg_replace('/\x1b\[[0-9;]*[a-zA-Z]/', '', $s) ?? '';
+        return \mb_strlen($clean, 'UTF-8');
     }
 }
