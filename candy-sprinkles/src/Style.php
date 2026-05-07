@@ -151,6 +151,37 @@ final class Style
     public function foreground(?Color $c): self          { return $this->with(fg: $c, fgSet: true, propsAdded: ['fg']); }
     public function background(?Color $c): self          { return $this->with(bg: $c, bgSet: true, propsAdded: ['bg']); }
 
+    // ---------------------------------------------------------------------
+    // Short-form ergonomic aliases (DX sugar — same semantics as the long
+    // upstream-mirroring names above, but accept hex strings directly so
+    // you can write $s->fg('#ff5')->on('navy') without wrapping in Color::hex().
+    // Pass null to clear.
+    // ---------------------------------------------------------------------
+
+    /** Short alias for {@see foreground()}. Accepts a Color, hex string (e.g. `'#ff5'`), or null. */
+    public function fg(Color|string|null $c): self { return $this->foreground(self::asColor($c)); }
+
+    /** Short alias for {@see background()}. Accepts a Color, hex string, or null. */
+    public function bg(Color|string|null $c): self { return $this->background(self::asColor($c)); }
+
+    /**
+     * Reads naturally in chains: `$s->fg('white')->on('blue')`. Same as
+     * {@see background()} but English-shaped.
+     */
+    public function on(Color|string|null $c): self { return $this->background(self::asColor($c)); }
+
+    /** Short alias for {@see setString()}. `Style::new()->of('hello')->render()` works. */
+    public function of(string $content): self { return $this->setString($content); }
+
+    /** Coerce a Color | hex string | null into a `?Color` for the long-form setters. */
+    private static function asColor(Color|string|null $c): ?Color
+    {
+        if ($c === null || $c instanceof Color) {
+            return $c;
+        }
+        return Color::hex($c);
+    }
+
     /**
      * Set a foreground that picks between $light (for terminals with a
      * light background) and $dark (for terminals with a dark
@@ -273,6 +304,12 @@ final class Style
     public function marginRight(int $n): self  { return $this->with(margin: self::setSide($this->margin, 1, $n, 'margin'), propsAdded: ['margin']); }
     public function marginBottom(int $n): self { return $this->with(margin: self::setSide($this->margin, 2, $n, 'margin'), propsAdded: ['margin']); }
     public function marginLeft(int $n): self   { return $this->with(margin: self::setSide($this->margin, 3, $n, 'margin'), propsAdded: ['margin']); }
+
+    /** Short alias for {@see padding()}. CSS-style: 1 / 2 / 4 args (all / vert+horiz / top/right/bottom/left). */
+    public function pad(int ...$sides): self { return $this->padding(...$sides); }
+
+    /** Short alias for {@see margin()}. CSS-style: 1 / 2 / 4 args. */
+    public function mg(int ...$sides): self { return $this->margin(...$sides); }
 
     public function width(?int $w): self
     {
