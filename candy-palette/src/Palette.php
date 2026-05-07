@@ -125,9 +125,9 @@ final class Palette
         // SS3 sequences: \x1bO{letter}
         // APC sequences: \x1b_...(\x07|\x1b\\)
         return \preg_replace(
-            '/(?:\x1b\][^\x07]*(?:\x07|\x1b\\\\)|'
+            '/(?:\x1b\][^\x07\x1b]*(?:\x07|\x1b\\\\)|'
             . '\x1b\[[0-9;]*[A-Za-z]|'
-            . '\x1b[PX^_][^\x07]*(?:\x07|\x1b\\\\)|'
+            . '\x1b[PX^_][^\x07\x1b]*(?:\x07|\x1b\\\\)|'
             . '\x1b[OopeHMJKhCBDsu])/',
             '',
             $s,
@@ -187,8 +187,9 @@ final class Palette
             };
         }
 
-        // 2. NO_COLOR: any value means disable
-        if (isset($env['NO_COLOR']) && $env['NO_COLOR'] !== '') {
+        // 2. NO_COLOR: presence (any value, including empty) disables colors.
+        // Per https://no-color.org: "when present (regardless of its value)".
+        if (\array_key_exists('NO_COLOR', $env)) {
             return Profile::NoTTY;
         }
 
@@ -219,16 +220,13 @@ final class Palette
         $term = $env['TERM'] ?? '';
         $termLower = \strtolower($term);
 
-        // TrueColor terminals
+        // TrueColor terminals: only those that explicitly advertise 24-bit.
+        // The "*-256color" terminfo entries advertise 256 colors, not TrueColor —
+        // 24-bit must be opted into via COLORTERM or a -truecolor/-direct suffix.
         if (
             \preg_match('/-truecolor$/i', $term)
             || \str_contains($termLower, '24bit')
             || \str_contains($termLower, 'direct')
-            || \in_array($termLower, [
-                'xterm-256color', 'screen-256color', 'tmux-256color',
-                'rxvt-unicode-256color', 'konsole-256color',
-                'gnome-256color', 'putty-256color',
-            ], true)
         ) {
             return Profile::TrueColor;
         }
@@ -237,8 +235,8 @@ final class Palette
         if (
             \preg_match('/-256color$/i', $term)
             || \in_array($termLower, [
-                'xterm-16color', 'rxvt-unicode', 'Eterm', 'ansi',
-                'screen', 'tmux', 'vt100',
+                'xterm-16color', 'rxvt-unicode', 'eterm', 'ansi',
+                'screen', 'tmux',
             ], true)
         ) {
             return Profile::ANSI256;
