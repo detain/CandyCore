@@ -1,0 +1,15 @@
+# Pinned to versions that are known-good for FLUX.1 in late 2026.
+# Tested on CUDA 12.4 with Hopper (H100) and Blackwell (RTX 6000) drivers >= 560.
+# If you have a Blackwell card and torch 2.4 wheels error out, install the
+# nightly that ships sm_100 kernels:  pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cu124
+
+torch>=2.4
+diffusers>=0.32
+transformers>=4.45
+accelerate>=0.34
+safetensors>=0.4.5
+sentencepiece>=0.2.0
+protobuf>=4.25
+huggingface_hub>=0.25
+Pillow>=10.4
+tqdm>=4.66
