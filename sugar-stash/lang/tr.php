@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Turkish translations for sugar-stash.
+ *
+ * @return array<string, string>
+ */
+
+declare(strict_types=1);
+
+return [
+    'git.spawn_failed' => 'git: başlatma başarısız',
+    'git.error'        => 'git: {stderr}',
+    'cli.not_a_repo'   => 'sugar-stash: git deposu değil ({cwd} içinde .git bulunamadı)',
+];
