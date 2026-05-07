@@ -1,74 +1,52 @@
 <?php
+
+declare(strict_types=1);
+
 /**
  * MultiSelectPrompt example — pick multiple items with min/max enforcement.
  *
  * Run: php examples/multi-select.php
  */
 
-declare(strict_types=1);
-
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use SugarCraft\Readline\MultiSelectPrompt;
+use SugarCraft\Readline\{Key, MultiSelectPrompt};
 
 echo "\n=== Multi-Select Prompt Demo ===\n\n";
 
-// Basic multi-select (no constraints)
-echo "Basic multi-select — pick your Top 3 foods:\n\n";
-
+// Basic multi-select (no constraints).
 $p = MultiSelectPrompt::new('Top 3 foods?', [
-    'Pizza',
-    'Burger',
-    'Sushi',
-    'Salad',
-    'Pasta',
-    'Tacos',
-    'Ramen',
-    'Steak',
-    'Curry',
-    'Pho',
-    'Bibimbap',
-    'Falafel',
-])->WithPerPage(6);
+    'Pizza', 'Burger', 'Sushi', 'Salad', 'Pasta', 'Tacos',
+    'Ramen', 'Steak', 'Curry', 'Pho', 'Bibimbap', 'Falafel',
+])->withPageSize(6);
 
-echo $p->View() . "\n\n";
+echo $p->view() . "\n\n";
 echo "(Use arrow keys to move, Space to toggle, Enter to confirm)\n";
-echo "(Simulating: down, space, down, space, down, space, enter)\n\n";
+echo "(Simulating: space (Pizza), down, space (Burger), down, space (Sushi), enter)\n\n";
 
-// Simulate user interaction
-$p = $p->HandleKey('down')  // cursor to Pizza
-       ->HandleKey('space') // select Pizza
-       ->HandleKey('down')  // cursor to Burger
-       ->HandleKey('space') // select Burger
-       ->HandleKey('down')  // cursor to Sushi
-       ->HandleKey('space') // select Sushi
-       ->HandleKey('enter'); // confirm
+$p = $p->handleKey(Key::Space)
+       ->handleKey(Key::Down)->handleKey(Key::Space)
+       ->handleKey(Key::Down)->handleKey(Key::Space)
+       ->handleKey(Key::Enter);
 
 echo "Result: ";
-var_dump($p->SelectedValues());
+var_dump($p->selectedValues());
 
-// With min/max constraints
+// With min/max constraints.
 echo "\n=== With min/max constraints ===\n\n";
 
-$p2 = MultiSelectPrompt::new('Pick exactly 2 colors:', [
-    'Red',
-    'Green',
-    'Blue',
-    'Yellow',
-    'Purple',
-])->WithMinSelections(2)
-  ->WithMaxSelections(2)
-  ->WithPerPage(5);
+$p2 = MultiSelectPrompt::new('Pick exactly 2 colors:', ['Red', 'Green', 'Blue', 'Yellow', 'Purple'])
+    ->withMinSelections(2)
+    ->withMaxSelections(2)
+    ->withPageSize(5);
 
-echo $p2->View() . "\n\n";
-echo "Constraints: min=2, max=2 selections.\n";
-echo "Selecting Red and Green:\n\n";
+echo $p2->view() . "\n\n";
+echo "Constraints: min=2, max=2. Selecting Red and Green:\n\n";
 
-$p2 = $p2->HandleKey('space') // select Red
-         ->HandleKey('down')
-         ->HandleKey('space') // select Green
-         ->HandleKey('enter');
+$p2 = $p2->handleKey(Key::Space)
+         ->handleKey(Key::Down)->handleKey(Key::Space)
+         ->handleKey(Key::Enter);
 
 echo "Result: ";
-var_dump($p2->SelectedValues());
+var_dump($p2->selectedValues());
 echo "\n";

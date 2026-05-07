@@ -4,448 +4,550 @@ declare(strict_types=1);
 
 namespace SugarCraft\Readline\Tests;
 
-use SugarCraft\Readline\{ConfirmationPrompt, MultiSelectPrompt, SelectionPrompt, TextPrompt, TextareaPrompt};
 use PHPUnit\Framework\TestCase;
+use SugarCraft\Readline\{
+    ConfirmationPrompt,
+    Key,
+    MultiSelectPrompt,
+    SelectionPrompt,
+    TextareaPrompt,
+    TextPrompt,
+};
 
 final class ReadlineTest extends TestCase
 {
-    // ---- TextPrompt tests ----
+    // =========================================================================
+    // TextPrompt
+    // =========================================================================
 
-    public function testTextPromptNew(): void
+    public function testTextPromptStartsEmpty(): void
     {
         $p = TextPrompt::new('Name: ');
-        $this->assertSame('Name: ', $p->Value());
+        $this->assertSame('', $p->value());
+        $this->assertSame(0, $p->cursor());
+        $this->assertFalse($p->isSubmitted());
+        $this->assertFalse($p->isAborted());
     }
 
-    public function testTextPromptTypeChar(): void
+    public function testTextPromptHandleCharAppends(): void
     {
-        $p = TextPrompt::new('> ');
-        $p = $p->HandleChar('h')
-              ->HandleChar('i');
-
-        $this->assertSame('> hi', $p->Value());
+        $p = TextPrompt::new('> ')->handleChar('h')->handleChar('i');
+        $this->assertSame('hi', $p->value());
+        $this->assertSame(2, $p->cursor());
     }
 
-    public function testTextPromptBackspace(): void
+    public function testTextPromptHandleCharRejectsMultiCharString(): void
     {
-        $p = TextPrompt::new('> ');
-        $p = $p->HandleChar('x')->HandleChar('y');
-        $this->assertSame('> xy', $p->Value());
+        $p = TextPrompt::new('> ')->handleChar('hi');  // not a single char
+        $this->assertSame('', $p->value());
+    }
 
-        $p = $p->HandleBackspace();
-        $this->assertSame('> x', $p->Value());
+    public function testTextPromptHandleCharAcceptsMultibyte(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('é')->handleChar('日');
+        $this->assertSame('é日', $p->value());
+        $this->assertSame(2, $p->cursor());
+    }
+
+    public function testTextPromptBackspaceAtCursor(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('x')->handleChar('y');
+        $p = $p->handleKey(Key::Backspace);
+        $this->assertSame('x', $p->value());
+        $this->assertSame(1, $p->cursor());
+    }
+
+    public function testTextPromptBackspaceAtStartIsNoOp(): void
+    {
+        $p = TextPrompt::new('> ')->handleKey(Key::Backspace);
+        $this->assertSame('', $p->value());
+        $this->assertSame(0, $p->cursor());
+    }
+
+    public function testTextPromptDeleteUnderCursor(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('b')->handleChar('c')
+            ->handleKey(Key::Home)->handleKey(Key::Delete);
+        $this->assertSame('bc', $p->value());
+        $this->assertSame(0, $p->cursor());
     }
 
     public function testTextPromptCursorMovement(): void
     {
-        $p = TextPrompt::new('> ')->HandleChar('A')->HandleChar('B')->HandleChar('C');
-        $p = $p->HandleKey('left');
-        $this->assertSame(2, $p->Cursor());
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('b')->handleChar('c');
+        $this->assertSame(3, $p->cursor());
+        $p = $p->handleKey(Key::Left);
+        $this->assertSame(2, $p->cursor());
+        $p = $p->handleKey(Key::Right);
+        $this->assertSame(3, $p->cursor());
     }
 
-    public function testTextPromptHome(): void
+    public function testTextPromptHomeAndEnd(): void
     {
-        $p = TextPrompt::new('> ')->HandleChar('x')->HandleChar('y');
-        $p = $p->HandleKey('home');
-        $this->assertSame(2, $p->Cursor()); // '> ' is 2 chars
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('b')->handleChar('c');
+        $p = $p->handleKey(Key::Home);
+        $this->assertSame(0, $p->cursor());
+        $p = $p->handleKey(Key::End);
+        $this->assertSame(3, $p->cursor());
+    }
+
+    public function testTextPromptInsertInMiddle(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('c')
+            ->handleKey(Key::Left)->handleChar('b');
+        $this->assertSame('abc', $p->value());
+        $this->assertSame(2, $p->cursor());
+    }
+
+    public function testTextPromptCtrlUDeletesAllBeforeCursor(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('b')->handleChar('c')
+            ->handleKey(Key::Left)->handleKey(Key::CtrlU);
+        $this->assertSame('c', $p->value());
+        $this->assertSame(0, $p->cursor());
+    }
+
+    public function testTextPromptCtrlKDeletesAllAfterCursor(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('a')->handleChar('b')->handleChar('c')
+            ->handleKey(Key::Left)->handleKey(Key::CtrlK);
+        $this->assertSame('ab', $p->value());
+        $this->assertSame(2, $p->cursor());
     }
 
     public function testTextPromptWithDefault(): void
     {
-        $p = TextPrompt::new('> ')->WithDefault('world');
-        $this->assertSame('world', $p->Value());
+        $p = TextPrompt::new('> ')->withDefault('hello');
+        $this->assertSame('hello', $p->value());
+        $this->assertSame(5, $p->cursor());
     }
 
-    public function testTextPromptWithCompletions(): void
+    public function testTextPromptCharLimit(): void
     {
-        $p = TextPrompt::new('> ')->WithCompletions(['apple', 'banana', 'cherry']);
-        $this->assertIsString($p->View());
+        $p = TextPrompt::new('> ')->withCharLimit(3)
+            ->handleChar('a')->handleChar('b')->handleChar('c')->handleChar('d');
+        $this->assertSame('abc', $p->value());
     }
 
-    public function testTextPromptTabCompletion(): void
+    public function testTextPromptHiddenViewMasksInput(): void
     {
-        $p = TextPrompt::new('> ');
-        $p = $p->HandleChar('b');
-        $p = $p->HandleKey('tab');
-        // 'banana' is the only match; cursor should be at end of 'banana'
-        $this->assertSame('> banana', $p->Value());
+        $p = TextPrompt::new('PIN: ')->withHidden()->handleChar('x')->handleChar('y');
+        $this->assertSame('xy', $p->value());      // value() always returns the truth
+        $this->assertStringContainsString('*', $p->view());
+        $this->assertStringNotContainsString('x', $p->view());
+        $this->assertStringNotContainsString('y', $p->view());
     }
 
-    public function testTextPromptValidation(): void
+    public function testTextPromptTabCompletionAppliesUniqueMatch(): void
     {
-        $p = TextPrompt::new('> ');
-        $p = $p->HandleChar('x')
-              ->HandleChar('y')
-              ->HandleChar('z')
-              ->WithValidation(fn($v) => $v !== 'xyz');
-
-        $p = $p->Confirm();
-        $this->assertFalse($p->IsConfirmed());
-        $this->assertSame('Invalid input', $p->Error());
+        $p = TextPrompt::new('> ')->withCompletions(['banana', 'mango'])
+            ->handleChar('b')->handleKey(Key::Tab);
+        $this->assertSame('banana', $p->value());
+        $this->assertSame(6, $p->cursor());
     }
 
-    public function testTextPromptCancel(): void
+    public function testTextPromptTabCompletionSuggestsFirstMatch(): void
     {
-        $p = TextPrompt::new('> ')->HandleChar('x')->HandleKey('esc');
-        $this->assertTrue($p->IsCancelled());
-        $this->assertSame('', $p->Value());
+        $p = TextPrompt::new('> ')->withCompletions(['baby', 'banana'])
+            ->handleChar('b')->handleChar('a');
+        $this->assertSame('baby', $p->suggestion());
     }
 
-    public function testTextPromptImmutability(): void
+    public function testTextPromptTabIsNoOpWithoutCompletions(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('x')->handleKey(Key::Tab);
+        $this->assertSame('x', $p->value());
+    }
+
+    public function testTextPromptValidatorRejectsSubmit(): void
+    {
+        $p = TextPrompt::new('> ')->withValidator(fn(string $v): bool => $v !== 'xyz')
+            ->handleChar('x')->handleChar('y')->handleChar('z')->submit();
+        $this->assertFalse($p->isSubmitted());
+        $this->assertSame('Invalid input', $p->error());
+    }
+
+    public function testTextPromptValidatorAcceptsSubmit(): void
+    {
+        $p = TextPrompt::new('> ')->withValidator(fn(string $v): bool => $v !== '')
+            ->handleChar('x')->submit();
+        $this->assertTrue($p->isSubmitted());
+        $this->assertSame('', $p->error());
+    }
+
+    public function testTextPromptEnterSubmits(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('x')->handleKey(Key::Enter);
+        $this->assertTrue($p->isSubmitted());
+    }
+
+    public function testTextPromptEscapeAborts(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('x')->handleKey(Key::Escape);
+        $this->assertTrue($p->isAborted());
+        $this->assertSame('', $p->value());
+    }
+
+    public function testTextPromptInputIgnoredAfterSubmit(): void
+    {
+        $p = TextPrompt::new('> ')->handleChar('x')->submit()->handleChar('y');
+        $this->assertSame('x', $p->value());
+    }
+
+    public function testTextPromptIsImmutable(): void
     {
         $a = TextPrompt::new('> ');
-        $b = $a->HandleChar('x');
-        $this->assertNotSame($a, $b);
+        $b = $a->handleChar('x');
+        $this->assertSame('', $a->value());
+        $this->assertSame('x', $b->value());
     }
 
-    // ---- SelectionPrompt tests ----
+    public function testTextPromptViewContainsLabel(): void
+    {
+        $p = TextPrompt::new('Name: ')->handleChar('A');
+        $this->assertStringContainsString('Name:', $p->view());
+        $this->assertStringContainsString('A', $p->view());
+    }
 
-    public function testSelectionPromptNew(): void
+    // =========================================================================
+    // SelectionPrompt
+    // =========================================================================
+
+    public function testSelectionStartsAtFirstChoice(): void
     {
         $p = SelectionPrompt::new('Pick:', ['a', 'b', 'c']);
-        $this->assertSame('a', $p->SelectedValue());
+        $this->assertSame('a', $p->selectedValue());
+        $this->assertSame(0, $p->cursor());
     }
 
-    public function testSelectionPromptCursorDown(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['a', 'b', 'c']);
-        $p = $p->HandleKey('down');
-        $this->assertSame('b', $p->SelectedValue());
-    }
-
-    public function testSelectionPromptCursorUp(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['a', 'b', 'c'])->HandleKey('down')->HandleKey('down');
-        $p = $p->HandleKey('up');
-        $this->assertSame('b', $p->SelectedValue());
-    }
-
-    public function testSelectionPromptFilter(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['apple', 'banana', 'cherry', 'date'])
-            ->Filter('an');
-
-        $this->assertSame(2, $p->rowCount());
-        $this->assertSame('banana', $p->SelectedValue());
-    }
-
-    public function testSelectionPromptFilterClear(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['apple', 'banana'])->Filter('app');
-        $p = $p->Filter('');
-
-        $this->assertSame(2, $p->rowCount());
-    }
-
-    public function testSelectionPromptConfirm(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->Confirm();
-        $this->assertTrue($p->IsConfirmed());
-        $this->assertSame('a', $p->SelectedValue());
-    }
-
-    public function testSelectionPromptCancel(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->HandleKey('esc');
-        $this->assertTrue($p->IsCancelled());
-    }
-
-    public function testSelectionPromptPagination(): void
-    {
-        $items = \range('A', 'Z');  // 26 items
-        $p = SelectionPrompt::new('Pick:', $items)->WithPerPage(5);
-        $this->assertSame(6, $p->TotalPages());
-    }
-
-    public function testSelectionPromptView(): void
-    {
-        $p = SelectionPrompt::new('Pick:', ['apple', 'banana']);
-        $view = $p->View();
-        $this->assertStringContainsString('Pick:', $view);
-        $this->assertStringContainsString('apple', $view);
-    }
-
-    public function testSelectionPromptMultiSelect(): void
+    public function testSelectionDownAndUp(): void
     {
         $p = SelectionPrompt::new('Pick:', ['a', 'b', 'c'])
-            ->WithMultiSelect()
-            ->HandleKey('down')
-            ->HandleKey('space')
-            ->HandleKey('down')
-            ->HandleKey('space')
-            ->Confirm();
-
-        $values = $p->SelectedValues();
-        $this->assertContains('a', $values);
-        $this->assertContains('b', $values);
-        $this->assertNotContains('c', $values);
+            ->handleKey(Key::Down)->handleKey(Key::Down);
+        $this->assertSame('c', $p->selectedValue());
+        $p = $p->handleKey(Key::Up);
+        $this->assertSame('b', $p->selectedValue());
     }
 
-    // ---- ConfirmationPrompt tests ----
-
-    public function testConfirmationPromptDefaultYes(): void
+    public function testSelectionDownClampsAtEnd(): void
     {
-        $p = ConfirmationPrompt::new('Delete?');
-        $p = $p->Confirm();
-        $this->assertTrue($p->Result());
+        $p = SelectionPrompt::new('Pick:', ['a', 'b']);
+        $p = $p->handleKey(Key::Down)->handleKey(Key::Down)->handleKey(Key::Down);
+        $this->assertSame('b', $p->selectedValue());
     }
 
-    public function testConfirmationPromptNo(): void
+    public function testSelectionFilterReducesChoices(): void
     {
-        $p = ConfirmationPrompt::new('Delete?')->HandleKey('n')->Confirm();
-        $this->assertFalse($p->Result());
+        $p = SelectionPrompt::new('Pick:', ['apple', 'banana', 'cherry', 'avocado'])
+            ->withFilter('a');
+        // 'apple', 'banana', 'avocado' all contain 'a'
+        $this->assertSame(3, $p->filteredCount());
+        $this->assertSame('apple', $p->selectedValue());
     }
 
-    public function testConfirmationPromptLeftArrow(): void
+    public function testSelectionFilterEmptyMatchesAll(): void
     {
-        $p = ConfirmationPrompt::new('Delete?')->HandleKey('n')->HandleKey('left')->Confirm();
-        $this->assertTrue($p->Result());
+        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->withFilter('xyz')->withFilter('');
+        $this->assertSame(2, $p->filteredCount());
+        $this->assertSame('a', $p->selectedValue());
     }
 
-    public function testConfirmationPromptCancel(): void
+    public function testSelectionFilterNoMatch(): void
     {
-        $p = ConfirmationPrompt::new('Delete?')->HandleKey('esc');
-        $this->assertTrue($p->IsCancelled());
+        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->withFilter('zzz');
+        $this->assertSame(0, $p->filteredCount());
+        $this->assertNull($p->selectedValue());
     }
 
-    public function testConfirmationPromptView(): void
+    public function testSelectionEnterSubmits(): void
     {
-        $p = ConfirmationPrompt::new('Continue?');
-        $view = $p->View();
-        $this->assertStringContainsString('Continue?', $view);
+        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->handleKey(Key::Enter);
+        $this->assertTrue($p->isSubmitted());
+        $this->assertSame('a', $p->selectedValue());
     }
 
-    // ---- TextareaPrompt tests ----
-
-    public function testTextareaPromptNew(): void
+    public function testSelectionEscapeAborts(): void
     {
-        $p = TextareaPrompt::new('Description:');
-        $this->assertSame('', $p->Value());
+        $p = SelectionPrompt::new('Pick:', ['a', 'b'])->handleKey(Key::Escape);
+        $this->assertTrue($p->isAborted());
+        $this->assertNull($p->selectedValue());
     }
 
-    public function testTextareaPromptType(): void
+    public function testSelectionPagination(): void
     {
-        $p = TextareaPrompt::new('> ')->HandleChar('H')->HandleChar('i');
-        $this->assertSame("Hi", $p->Value());
+        $items = range('A', 'Z');                         // 26 items
+        $p = SelectionPrompt::new('Pick:', $items)->withPageSize(5);
+        $this->assertSame(6, $p->totalPages());
+        $this->assertSame(0, $p->currentPage());
+        $this->assertSame(['A', 'B', 'C', 'D', 'E'], $p->currentPageItems());
+
+        $p = $p->handleKey(Key::PageDown);
+        $this->assertSame(1, $p->currentPage());
+        $this->assertSame(['F', 'G', 'H', 'I', 'J'], $p->currentPageItems());
     }
 
-    public function testTextareaPromptNewline(): void
+    public function testSelectionDownCrossesPageBoundary(): void
     {
-        $p = TextareaPrompt::new('> ')->HandleChar('L')->HandleKey('enter')->HandleChar('2');
-        $this->assertSame("L\n2", $p->Value());
+        $p = SelectionPrompt::new('Pick:', range('A', 'J'))->withPageSize(3);
+        for ($i = 0; $i < 4; $i++) {
+            $p = $p->handleKey(Key::Down);
+        }
+        $this->assertSame('E', $p->selectedValue());     // index 4
+        $this->assertSame(1, $p->currentPage());          // page 1 = D,E,F
     }
 
-    public function testTextareaPromptMoveLine(): void
+    public function testSelectionViewContainsLabelAndChoices(): void
     {
-        $p = TextareaPrompt::new('> ')
-            ->HandleChar('A')
-            ->HandleKey('enter')
-            ->HandleChar('B')
-            ->HandleKey('up');
-
-        $this->assertSame(0, $this->getCursorLine($p));
+        $view = SelectionPrompt::new('Pick:', ['apple', 'banana'])->view();
+        $this->assertStringContainsString('Pick:', $view);
+        $this->assertStringContainsString('apple', $view);
+        $this->assertStringContainsString('banana', $view);
     }
 
-    public function testTextareaPromptConfirm(): void
+    // =========================================================================
+    // MultiSelectPrompt
+    // =========================================================================
+
+    public function testMultiSelectStartsEmpty(): void
     {
-        $p = TextareaPrompt::new('> ')->HandleChar('x')->Confirm();
-        $this->assertTrue($p->IsConfirmed());
-        $this->assertSame('x', $p->Value());
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b']);
+        $this->assertSame(0, $p->selectionCount());
+        $this->assertSame([], $p->selectedValues());
     }
 
-    public function testTextareaPromptCancel(): void
+    public function testMultiSelectSpaceTogglesCurrent(): void
     {
-        $p = TextareaPrompt::new('> ')->HandleChar('x')->HandleKey('esc');
-        $this->assertTrue($p->IsCancelled());
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b', 'c']);
+        $p = $p->handleKey(Key::Space);                       // mark a
+        $p = $p->handleKey(Key::Down)->handleKey(Key::Space); // mark b
+        $this->assertSame(['a', 'b'], $p->selectedValues());
     }
 
-    public function testTextareaPromptView(): void
+    public function testMultiSelectSpaceUnmarks(): void
     {
-        $p = TextareaPrompt::new('Text:')->HandleChar('H')->HandleChar('i');
-        $this->assertStringContainsString('Hi', $p->View());
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b'])
+            ->handleKey(Key::Space)->handleKey(Key::Space);
+        $this->assertSame([], $p->selectedValues());
     }
 
-    // ---- MultiSelectPrompt ----
-
-    public function testMultiSelectNew(): void
+    public function testMultiSelectMaxRolloverFifo(): void
     {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger', 'Sushi']);
-        $this->assertFalse($p->IsConfirmed());
-        $this->assertFalse($p->IsCancelled());
-        $this->assertSame(0, $p->SelectionCount());
+        // Max 2 marks: marking a third deselects the oldest (FIFO).
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b', 'c', 'd'])
+            ->withMaxSelections(2)
+            ->handleKey(Key::Space)->handleKey(Key::Down)
+            ->handleKey(Key::Space)->handleKey(Key::Down)
+            ->handleKey(Key::Space);
+        $this->assertSame(['b', 'c'], $p->selectedValues());
     }
 
-    public function testMultiSelectToggleAndConfirm(): void
+    public function testMultiSelectCanSubmitRespectsMin(): void
     {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger', 'Sushi']);
-        // Space toggles selection, enter confirms if min is met
-        $p = $p->HandleKey('space')  // select first item
-               ->HandleKey('down')
-               ->HandleKey('space')  // select second item
-               ->HandleKey('enter'); // confirm
-
-        $this->assertTrue($p->IsConfirmed());
-        $values = $p->SelectedValues();
-        $this->assertCount(2, $values);
-        $this->assertContains('Pizza', $values);
-        $this->assertContains('Burger', $values);
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b', 'c'])->withMinSelections(2);
+        $this->assertFalse($p->canSubmit());
+        $p = $p->handleKey(Key::Space);
+        $this->assertFalse($p->canSubmit());
+        $p = $p->handleKey(Key::Down)->handleKey(Key::Space);
+        $this->assertTrue($p->canSubmit());
     }
 
-    public function testMultiSelectMinEnforcement(): void
+    public function testMultiSelectEnterRespectsMin(): void
     {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger', 'Sushi'])
-            ->WithMinSelections(2);
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b'])->withMinSelections(1)
+            ->handleKey(Key::Enter);
+        $this->assertFalse($p->isSubmitted());
 
-        // Only 1 selection — enter should not confirm
-        $p = $p->HandleKey('space')
-               ->HandleKey('enter');
-
-        $this->assertFalse($p->IsConfirmed()); // min not met, stay in prompt
+        $p = $p->handleKey(Key::Space)->handleKey(Key::Enter);
+        $this->assertTrue($p->isSubmitted());
     }
 
-    public function testMultiSelectMinMetAllowsConfirm(): void
+    public function testMultiSelectFilterPreservesMarks(): void
     {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger', 'Sushi'])
-            ->WithMinSelections(2);
-
-        $p = $p->HandleKey('space')
-               ->HandleKey('down')
-               ->HandleKey('space')
-               ->HandleKey('enter');
-
-        $this->assertTrue($p->IsConfirmed());
+        $p = MultiSelectPrompt::new('Pick:', ['apple', 'banana', 'cherry'])
+            ->handleKey(Key::Space);                        // mark apple
+        $p = $p->withFilter('rry');                          // shows only cherry
+        $this->assertSame(1, $p->filteredCount());
+        $this->assertSame(['apple'], $p->selectedValues()); // mark survives filter
     }
 
-    public function testMultiSelectMaxEnforcement(): void
+    public function testMultiSelectAbortClearsResult(): void
     {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger', 'Sushi', 'Tacos'])
-            ->WithMaxSelections(2);
-
-        $p = $p->HandleKey('space')   // select Pizza
-               ->HandleKey('down')
-               ->HandleKey('space')   // select Burger
-               ->HandleKey('down')
-               ->HandleKey('space');  // at max, deselects first (Pizza), selects Sushi
-
-        $values = $p->SelectedValues();
-        $this->assertCount(2, $values);
-        $this->assertContains('Burger', $values);
-        $this->assertContains('Sushi', $values);
-        $this->assertNotContains('Pizza', $values);
-    }
-
-    public function testMultiSelectCancel(): void
-    {
-        $p = MultiSelectPrompt::new('Pick foods:', ['Pizza', 'Burger'])
-            ->HandleKey('ctrl_c');
-
-        $this->assertTrue($p->IsCancelled());
-        $this->assertSame([], $p->SelectedValues());
-    }
-
-    public function testMultiSelectView(): void
-    {
-        $p = MultiSelectPrompt::new('Food:', ['Pizza', 'Burger']);
-        $view = $p->View();
-
-        $this->assertStringContainsString('Food:', $view);
-        $this->assertStringContainsString('Pizza', $view);
-        $this->assertStringContainsString('Burger', $view);
-        $this->assertStringContainsString('○', $view); // unselected marker
+        $p = MultiSelectPrompt::new('Pick:', ['a', 'b'])
+            ->handleKey(Key::Space)->handleKey(Key::CtrlC);
+        $this->assertTrue($p->isAborted());
+        $this->assertSame([], $p->selectedValues());
     }
 
     public function testMultiSelectPagination(): void
     {
-        $items = \range('A', 'Z'); // 26 items
-        $p = MultiSelectPrompt::new('Letter:', $items)->WithPerPage(5);
-
-        $this->assertSame(6, $p->TotalPages());
-        $pageItems = $p->CurrentPageItems();
-        $this->assertCount(5, $pageItems);
-        $this->assertSame('A', $pageItems[0]);
-
-        // Navigate to page 2
-        $p = $p->HandleKey('pagedown');
-        $this->assertSame(1, $p->CurrentPage());
-        $pageItems = $p->CurrentPageItems();
-        $this->assertSame('F', $pageItems[0]);
+        $p = MultiSelectPrompt::new('Pick:', range('A', 'J'))->withPageSize(4);
+        $this->assertSame(3, $p->totalPages());
+        $this->assertSame(['A', 'B', 'C', 'D'], $p->currentPageItems());
+        $p = $p->handleKey(Key::PageDown);
+        $this->assertSame(['E', 'F', 'G', 'H'], $p->currentPageItems());
     }
 
-    public function testMultiSelectFilter(): void
+    public function testMultiSelectViewShowsMarkers(): void
     {
-        $p = MultiSelectPrompt::new('Food:', ['Apple', 'Banana', 'Cherry', 'Date']);
-
-        // Simulate filter by directly using items (filter is user-driven)
-        $p = $p->HandleKey('enter');
-        $this->assertSame(4, $p->FilterMatchCount());
+        $view = MultiSelectPrompt::new('Pick:', ['a', 'b'])->view();
+        $this->assertStringContainsString('○', $view);     // unmarked glyph
     }
 
-    public function testMultiSelectCursorNavigation(): void
+    // =========================================================================
+    // ConfirmationPrompt
+    // =========================================================================
+
+    public function testConfirmationDefaultYes(): void
     {
-        $p = MultiSelectPrompt::new('Food:', ['A', 'B', 'C', 'D', 'E']);
-        $this->assertCount(5, $p->CurrentPageItems());
-
-        $p = $p->HandleKey('end');
-        $p = $p->HandleKey('home');
-
-        // Just verify it doesn't crash and stays on first page
-        $this->assertSame(0, $p->CurrentPage());
+        $p = ConfirmationPrompt::new('Sure?')->submit();
+        $this->assertTrue($p->result());
     }
 
-    public function testMultiSelectCanConfirm(): void
+    public function testConfirmationDefaultNo(): void
     {
-        $p = MultiSelectPrompt::new('Pick:', ['A', 'B']);
-        $this->assertFalse($p->CanConfirm());
-
-        $p = $p->HandleKey('space');
-        $this->assertTrue($p->CanConfirm());
+        $p = ConfirmationPrompt::new('Sure?', false)->submit();
+        $this->assertFalse($p->result());
     }
 
-    // ---- SelectionPrompt min/max selections ----
-
-    public function testSelectionPromptWithMinSelections(): void
+    public function testConfirmationYKeySelects(): void
     {
-        $p = SelectionPrompt::new('Pick one:', ['A', 'B', 'C'])
-            ->WithMultiSelect(true)
-            ->WithMinSelections(2);
-
-        // One item selected — enter should not confirm
-        $p = $p->HandleKey('space')
-               ->HandleKey('enter');
-
-        $this->assertFalse($p->IsConfirmed());
+        $p = ConfirmationPrompt::new('Sure?', false);
+        $this->assertFalse($p->currentValue());
+        $p = $p->handleKey('y');
+        $this->assertTrue($p->currentValue());
+        $this->assertFalse($p->isSubmitted());           // y selects but does not submit
     }
 
-    public function testSelectionPromptWithMaxSelections(): void
+    public function testConfirmationNKeySelects(): void
     {
-        $p = SelectionPrompt::new('Pick:', ['A', 'B', 'C'])
-            ->WithMultiSelect(true)
-            ->WithMaxSelections(1);
-
-        $p = $p->HandleKey('space')   // select A
-               ->HandleKey('down')
-               ->HandleKey('space');  // should replace A with B
-
-        $values = $p->SelectedValues();
-        $this->assertCount(1, $values);
-        $this->assertSame(['B'], $values);
+        $p = ConfirmationPrompt::new('Sure?')->handleKey('n');
+        $this->assertFalse($p->currentValue());
+        $this->assertFalse($p->isSubmitted());
     }
 
-    // ---- Helper ----
-
-    /** @param object $obj */
-    private function getCursorLine(object $obj): int
+    public function testConfirmationLeftSelectsYesRightSelectsNo(): void
     {
-        $ref = (new \ReflectionClass($obj))->getProperty('cursorLine');
-        $ref->setAccessible(true);
-        return $ref->getValue($obj);
+        $p = ConfirmationPrompt::new('Sure?')->handleKey(Key::Right);
+        $this->assertFalse($p->currentValue());
+        $p = $p->handleKey(Key::Left);
+        $this->assertTrue($p->currentValue());
     }
 
-    /** @param object $obj */
-    private function rowCount(object $obj): int
+    public function testConfirmationTabToggles(): void
     {
-        $ref = (new \ReflectionClass($obj))->getProperty('filteredItems');
-        $ref->setAccessible(true);
-        return \count($ref->getValue($obj));
+        $p = ConfirmationPrompt::new('Sure?');
+        $this->assertTrue($p->currentValue());
+        $p = $p->handleKey(Key::Tab);
+        $this->assertFalse($p->currentValue());
+        $p = $p->handleKey(Key::Tab);
+        $this->assertTrue($p->currentValue());
+    }
+
+    public function testConfirmationChangeMindAfterN(): void
+    {
+        // n selects No, then left switches back to Yes, then submit.
+        $p = ConfirmationPrompt::new('Sure?')
+            ->handleKey('n')->handleKey(Key::Left)->submit();
+        $this->assertTrue($p->isSubmitted());
+        $this->assertTrue($p->result());
+    }
+
+    public function testConfirmationEscapeAborts(): void
+    {
+        $p = ConfirmationPrompt::new('Sure?')->handleKey(Key::Escape);
+        $this->assertTrue($p->isAborted());
+        $this->assertFalse($p->result());
+    }
+
+    public function testConfirmationViewContainsLabel(): void
+    {
+        $view = ConfirmationPrompt::new('Continue?')->view();
+        $this->assertStringContainsString('Continue?', $view);
+        $this->assertStringContainsString('Yes', $view);
+        $this->assertStringContainsString('No', $view);
+    }
+
+    // =========================================================================
+    // TextareaPrompt
+    // =========================================================================
+
+    public function testTextareaStartsEmpty(): void
+    {
+        $p = TextareaPrompt::new('Notes:');
+        $this->assertSame('', $p->value());
+        $this->assertSame(1, $p->lineCount());
+        $this->assertSame(0, $p->cursorLine());
+        $this->assertSame(0, $p->cursorCol());
+    }
+
+    public function testTextareaTypeOnSingleLine(): void
+    {
+        $p = TextareaPrompt::new('> ')->handleChar('H')->handleChar('i');
+        $this->assertSame('Hi', $p->value());
+        $this->assertSame(2, $p->cursorCol());
+    }
+
+    public function testTextareaEnterStartsNewLine(): void
+    {
+        $p = TextareaPrompt::new('> ')->handleChar('A')->handleKey(Key::Enter)->handleChar('B');
+        $this->assertSame("A\nB", $p->value());
+        $this->assertSame(1, $p->cursorLine());
+        $this->assertSame(1, $p->cursorCol());
+    }
+
+    public function testTextareaArrowMovesBetweenLines(): void
+    {
+        $p = TextareaPrompt::new('> ')->withDefault("alpha\nbeta");
+        $this->assertSame(1, $p->cursorLine());
+        $p = $p->handleKey(Key::Up);
+        $this->assertSame(0, $p->cursorLine());
+        $p = $p->handleKey(Key::Down);
+        $this->assertSame(1, $p->cursorLine());
+    }
+
+    public function testTextareaWithDefaultPositionsCursorAtEnd(): void
+    {
+        $p = TextareaPrompt::new('> ')->withDefault("alpha\nbeta");
+        $this->assertSame(1, $p->cursorLine());
+        $this->assertSame(4, $p->cursorCol());
+    }
+
+    public function testTextareaBackspaceMergesLines(): void
+    {
+        $p = TextareaPrompt::new('> ')->handleChar('A')->handleKey(Key::Enter)
+            ->handleChar('B')->handleKey(Key::Home)->handleKey(Key::Backspace);
+        $this->assertSame('AB', $p->value());
+        $this->assertSame(0, $p->cursorLine());
+        $this->assertSame(1, $p->cursorCol());
+    }
+
+    public function testTextareaMaxLinesEnforced(): void
+    {
+        $p = TextareaPrompt::new('> ')->withMaxLines(2)
+            ->handleKey(Key::Enter)->handleKey(Key::Enter);
+        $this->assertSame(2, $p->lineCount());
+    }
+
+    public function testTextareaSubmit(): void
+    {
+        $p = TextareaPrompt::new('> ')->handleChar('x')->submit();
+        $this->assertTrue($p->isSubmitted());
+        $this->assertSame('x', $p->value());
+    }
+
+    public function testTextareaAbort(): void
+    {
+        $p = TextareaPrompt::new('> ')->handleChar('x')->handleKey(Key::Escape);
+        $this->assertTrue($p->isAborted());
+        $this->assertSame('', $p->value());
+    }
+
+    public function testTextareaViewContainsLabel(): void
+    {
+        $p = TextareaPrompt::new('Notes:')->handleChar('h')->handleChar('i');
+        $view = $p->view();
+        $this->assertStringContainsString('Notes:', $view);
+        $this->assertStringContainsString('h', $view);
+        $this->assertStringContainsString('i', $view);
     }
 }
