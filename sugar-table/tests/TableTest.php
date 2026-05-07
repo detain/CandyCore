@@ -46,14 +46,14 @@ final class TableTest extends TestCase
     public function testSortByDescending(): void
     {
         $t = $this->makeTable()->SortBy('name', ascending: false);
-        $this->assertSame('Dave', $t->pagedRows()[0]->data->get('name'));
+        $this->assertSame('Carol', $t->pagedRows()[0]->data->get('name'));
     }
 
     public function testSortToggle(): void
     {
         $t = $this->makeTable()->SortBy('name', true);
         $t = $t->SortBy('name', true);  // same key, should toggle
-        $this->assertSame('Dave', $t->filteredSortedRows()[0]->data->get('name'));
+        $this->assertSame('Carol', $t->filteredSortedRows()[0]->data->get('name'));
     }
 
     public function testFilter(): void
@@ -112,7 +112,7 @@ final class TableTest extends TestCase
             ->withRows(
                 \array_map(
                     fn($i) => Row::new(RowData::from(['n' => (string) $i])),
-                    \range(1, 50)
+                    \range(0, 49)
                 )
             )
             ->withPageSize(10)

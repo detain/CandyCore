@@ -269,12 +269,21 @@ final class Table
         $clone = clone $this;
 
         if ($primary) {
+            // If already primary-sorting on this same key with the same
+            // direction, flip direction (toggle semantics).
+            if (\count($clone->sortColumns) === 1
+                && $clone->sortColumns[0]['key'] === $colKey
+                && $clone->sortColumns[0]['asc'] === $ascending
+            ) {
+                $ascending = !$ascending;
+            }
             $clone->sortColumns = [['key' => $colKey, 'asc' => $ascending]];
         } else {
-            // Toggle if already present
-            $existing = \array_filter($clone->sortColumns, fn($s) => $s['key'] === $colKey);
-            if ($existing !== []) {
-                $idx = (int) \array_key_first(\iterator_to_array($existing));
+            $idx = null;
+            foreach ($clone->sortColumns as $i => $s) {
+                if ($s['key'] === $colKey) { $idx = $i; break; }
+            }
+            if ($idx !== null) {
                 $cur = $clone->sortColumns[$idx];
                 $clone->sortColumns[$idx] = ['key' => $colKey, 'asc' => !$cur['asc']];
             } else {
