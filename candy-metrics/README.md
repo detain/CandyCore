@@ -12,6 +12,9 @@
 
 
 Lightweight telemetry primitives for SugarCraft / CandyWish servers. Counters, gauges, histograms with pluggable backends — drop-in middleware for SSH session metrics.
+```sh
+composer require sugarcraft/candy-metrics
+```
 
 ## Concepts
 

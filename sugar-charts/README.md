@@ -12,6 +12,9 @@
 
 
 ![demo](.vhs/heatmap.gif)
+```sh
+composer require sugarcraft/sugar-charts
+```
 
 PHP port of [NimbleMarkets/ntcharts](https://github.com/NimbleMarkets/ntcharts) —
 terminal charts for SugarCraft. v0 ships the canvas foundation plus three

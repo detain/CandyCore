@@ -12,6 +12,9 @@
 
 
 ![demo](.vhs/cli-page.gif)
+```sh
+composer require sugarcraft/candy-kit
+```
 
 PHP port of [charmbracelet/fang](https://github.com/charmbracelet/fang) —
 opinionated **CLI presentation helpers** that turn ordinary command-

@@ -12,6 +12,9 @@
 
 
 PHP port of [`charmbracelet/wish`](https://github.com/charmbracelet/wish) — an SSH server middleware framework that lets you build TUIs anyone can `ssh user@host` to run.
+```sh
+composer require sugarcraft/candy-wish
+```
 
 ## Architecture
 

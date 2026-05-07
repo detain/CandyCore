@@ -12,6 +12,9 @@
 
 
 ![demo](.vhs/style.gif)
+```sh
+composer require sugarcraft/candy-shell
+```
 
 PHP port of [charmbracelet/gum](https://github.com/charmbracelet/gum) —
 a composer-installable CLI of SugarCraft TUI primitives, useful for
