@@ -25,24 +25,26 @@ document.querySelectorAll('.lib-card .glyph-tag').forEach((g) => {
     g.style.transform = `rotate(${r}deg)`;
 });
 
-// Inner pill-links inside the outer lib-card anchor: nested <a> is invalid
-// HTML, so most browsers flatten it and navigate only to the outer href.
-// Intercept clicks on the inner pills and follow their hrefs explicitly,
-// honouring modifier keys / middle-click for "open in new tab".
-document.querySelectorAll('.lib-card .links a').forEach((pill) => {
-    pill.addEventListener('click', (e) => {
+// GitHub pill in .lib-icon-row. Nested <a> inside <a class="lib-card">
+// is invalid HTML, so the pill ships as a <span data-href="…"> and we
+// promote the click here. Honours modifier keys / middle-click for
+// "open in new tab" and stops propagation so the outer card link
+// doesn't also fire.
+document.querySelectorAll('.lib-card .lib-github').forEach((pill) => {
+    const go = (e) => {
         e.stopPropagation();
         e.preventDefault();
-        const href = pill.getAttribute('href');
+        const href = pill.getAttribute('data-href');
         if (!href) return;
-        const newTab = e.metaKey || e.ctrlKey || e.button === 1
-            || pill.target === '_blank';
+        const newTab = e.metaKey || e.ctrlKey || e.button === 1;
         if (newTab) {
             window.open(href, '_blank', 'noopener');
         } else {
             window.location.href = href;
         }
-    });
+    };
+    pill.addEventListener('click', go);
+    pill.addEventListener('auxclick', (e) => { if (e.button === 1) go(e); });
 });
 
 // ── Lightbox: click any demo-card image to see it full-size.

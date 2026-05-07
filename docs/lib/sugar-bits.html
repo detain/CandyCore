@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SugarBits — SugarCraft</title>
-<meta name="description" content="SugarBits: Fourteen pre-built TUI components. PHP port of bubbles.">
+<meta name="description" content="SugarBits: Fifteen pre-built TUI components. PHP port of bubbles.">
 <meta property="og:title" content="SugarBits — SugarCraft">
-<meta property="og:description" content="Fourteen pre-built TUI components. Port of bubbles.">
+<meta property="og:description" content="Fifteen pre-built TUI components. Port of bubbles.">
 <meta property="og:image" content="https://sugarcraft.github.io/img/icons/sugar-bits.png">
 <link rel="icon" type="image/png" href="../img/icons/sugar-bits.png">
 <link rel="stylesheet" href="../css/style.css">
@@ -33,7 +33,7 @@
       <img class="detail-icon" src="../img/icons/sugar-bits.png" alt="SugarBits">
       <div>
         <h2>🧁 SugarBits</h2>
-        <p class="detail-sub">Fourteen pre-built TUI components</p>
+        <p class="detail-sub">Fifteen pre-built TUI components</p>
         <div class="detail-meta">
           <span class="tag-chip accent">port of <a href="https://github.com/charmbracelet/bubbles" style="color: inherit;">bubbles</a></span>
           <span class="tag-chip">components</span>
@@ -44,7 +44,7 @@
       </div>
     </div>
 
-    <p class="lede" style="margin-top: 28px;">TextInput, TextArea, ItemList, Table, Viewport, FilePicker, Progress, Spinner, Cursor, Help, Key, Paginator, Stopwatch, Timer. Everything you'd hand-roll on day one of a TUI project, ready to drop into your Model.</p>
+    <p class="lede" style="margin-top: 28px;">TextInput, TextArea, ItemList, Table, Tree, Viewport, FilePicker, Progress, Spinner, Cursor, Help, Key, Paginator, Stopwatch, Timer. Everything you'd hand-roll on day one of a TUI project, ready to drop into your Model.</p>
 
     <h3 style="margin-top: 32px;">Install</h3>
     <pre class="code"><code>composer require sugarcraft/sugar-bits</code></pre>
@@ -82,9 +82,10 @@ final class Search implements Model {
     <div class="feature-grid">
       <div class="feature"><strong>Spinner</strong><span>12 styles — line, dot, miniDot, points, pulse, globe, meter, jump, moon, monkey, hamburger, ellipsis.</span></div>
       <div class="feature"><strong>Progress</strong><span>Static <code>Progress</code> + spring-physics <code>AnimatedProgress</code> driven by HoneyBounce.</span></div>
-      <div class="feature"><strong>TextInput / TextArea</strong><span>Single + multi-line. Autocomplete, validators, line numbers, soft-wrap.</span></div>
+      <div class="feature"><strong>TextInput / TextArea</strong><span>Single + multi-line. Autocomplete, validators, line numbers, soft-wrap, dynamic-height growth (mirrors upstream bubbles #910).</span></div>
       <div class="feature"><strong>ItemList</strong><span>Selectable, scrollable, filterable. Status messages, custom delegates.</span></div>
-      <div class="feature"><strong>Table</strong><span>Selectable data table with Column DTOs, header highlight, vertical nav.</span></div>
+      <div class="feature"><strong>Table</strong><span>Selectable data table with Column DTOs, header highlight, vertical nav, per-cell <code>styleFunc(row, col) =&gt; Style</code> (mirrors bubbles #246).</span></div>
+      <div class="feature"><strong>Tree</strong><span>Interactive tree view — cursor nav, expand / collapse, viewport scroll, <code>g</code> / <code>G</code> jump (mirrors bubbles #233).</span></div>
       <div class="feature"><strong>Viewport</strong><span>Scrollable text region. Mouse wheel, scrollbar, keyboard nav.</span></div>
       <div class="feature"><strong>FilePicker</strong><span>Directory browser with icons, size, sort modes.</span></div>
       <div class="feature"><strong>Paginator + Help + Key</strong><span>Dot / arabic page indicator, key-help footer, KeyMap binding DSL.</span></div>
@@ -130,7 +131,12 @@ final class Search implements Model {
             <div class="demo-card">
                 <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-bits/.vhs/table.gif" alt="Table">
                 <h3>Table</h3>
-                <span class="demo-caption">Selectable data table with column delegates.</span>
+                <span class="demo-caption">Selectable data table with column delegates + per-cell styleFunc.</span>
+            </div>
+            <div class="demo-card">
+                <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-bits/.vhs/tree.gif" alt="Tree">
+                <h3>Tree</h3>
+                <span class="demo-caption">Interactive tree — cursor, expand / collapse, scroll.</span>
             </div>
             <div class="demo-card">
                 <img loading="lazy" src="https://raw.githubusercontent.com/detain/sugarcraft/master/sugar-bits/.vhs/viewport.gif" alt="Viewport">
