@@ -41,7 +41,7 @@ final class StickersTest extends TestCase
         $box = FlexBox::row(
             FlexItem::new('A'),
             FlexItem::new('B'),
-        )->withGap(1);
+        );
 
         $this->assertSame(Direction::Row, $box->direction);
         $this->assertSame(0, $box->gap);

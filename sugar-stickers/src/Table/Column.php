@@ -13,8 +13,8 @@ final class Column
 {
     public readonly string $title;
     public readonly int $width;
-    public readonly string $align;       // 'left' | 'center' | 'right'
-    public readonly string $ansiStyle;   // ANSI style for header cells
+    public string $align;       // 'left' | 'center' | 'right' — mutated via withAlign() on clones
+    public string $ansiStyle;   // ANSI style for header cells — mutated via withStyle() on clones
 
     /** @var callable(string $value, int $rowIndex): string|null */
     private $formatter;
