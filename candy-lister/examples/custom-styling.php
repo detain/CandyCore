@@ -26,17 +26,7 @@ class StarsPrefixer implements Prefixer {
     }
 }
 
-class LineSuffixer implements Suffixer {
-    public int $initWidth(\Stringable $value, int $currentIndex, int $cursorIndex, int $lineOffset, int $width, int $height): int {
-        return 2;
-    }
-    public function suffix(int $currentLine, int $totalLines): string {
-        return $currentLine === 0 ? '──' : '  ';
-    }
-}
-
-// Actually implement the interface properly
-class LineSuffixer2 implements Suffixer {
+class CursorMarker implements Suffixer {
     private int $itemIndex = 0;
     private int $cursorIndex = 0;
     private int $markerWidth = 2;
@@ -61,7 +51,7 @@ class LineSuffixer2 implements Suffixer {
 $model = Model::new()
     ->setViewport(80, 25)
     ->setPrefixer(new StarsPrefixer())
-    ->setSuffixer(new LineSuffixer2());
+    ->setSuffixer(new CursorMarker());
 
 $items = [
     'File: main.php',

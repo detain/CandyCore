@@ -31,7 +31,8 @@
         "sugarcraft/candy-core": "@dev"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.5"
+        "phpunit/phpunit": "^10.5",
+        "sugarcraft/candy-sprinkles": "@dev"
     },
     "repositories": [
         {
