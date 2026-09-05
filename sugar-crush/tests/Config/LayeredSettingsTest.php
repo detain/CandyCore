@@ -52,7 +52,7 @@ final class LayeredSettingsTest extends TestCase
     public function testTheUserTierOnlyKeysAreExactlyTheLayeredKeysNoProjectMaySet(): void
     {
         self::assertSame(
-            ['provider', 'instructions', 'allowedTools', 'statusLine'],
+            ['provider', 'instructions', 'disabledRules', 'allowedTools', 'statusLine'],
             LayeredSettings::userTierOnlyKeys(),
         );
 
@@ -251,6 +251,62 @@ final class LayeredSettingsTest extends TestCase
         self::assertArrayNotHasKey('provider', $layer);
         self::assertArrayNotHasKey('instructions', $layer);
         self::assertSame('light', $layer['theme'], 'the eligible key in the same file must still land');
+    }
+
+    /**
+     * `disabledRules` is the fifth member of the set above, and this is its own
+     * row rather than a line inside the case above, because it is the only
+     * user-tier-only key whose value is a LIST OF NAMES and so the one a reader
+     * is most likely to assume is project-settable by analogy with its sibling
+     * `disabledSkills` — which IS project-settable
+     * ({@see LayeredSettings::PROJECT_TIER_KEYS}). The distinction is on that
+     * constant's doc-block and on {@see \SugarCraft\Crush\Context\RulesState}:
+     * a session may silence a user pack and never a repository one, so letting a
+     * checkout choose WHICH user packs are silenced inverts the grant.
+     *
+     * Asserted at the layer boundary rather than only through `merge()`, because
+     * the drop happens in {@see LayeredSettings::only()} before any precedence
+     * question exists: if `projectLayer()` returns the key, a silent user config
+     * hands the project its way regardless of what merge() then does with it.
+     */
+    public function testDisabledRulesIsLayeredAtTheUserTierAndRefusedAtTheProjectTier(): void
+    {
+        // It IS layered, or the refusal below would be vacuous — a key nothing
+        // reads is absent from every layer for the trivial reason that no layer
+        // carries it.
+        self::assertContains('disabledRules', LayeredSettings::LAYERED_KEYS);
+        self::assertNotContains('disabledRules', LayeredSettings::PROJECT_TIER_KEYS);
+
+        $attempt = ['disabledRules' => ['terse'], 'theme' => 'light'];
+        $this->writeProject(LayeredSettings::SHARED_PATH, $attempt);
+        $this->writeProject(LayeredSettings::LOCAL_PATH, ['disabledRules' => ['exfiltrate-me']]);
+
+        // Trusted AND untrusted: the tier gate is not the trust gate.
+        foreach ([true, false] as $trusted) {
+            $layer = LayeredSettings::projectLayer($this->projectRoot, $trusted);
+
+            self::assertArrayNotHasKey(
+                'disabledRules',
+                $layer,
+                'a project file at trusted=' . var_export($trusted, true) . ' contributed a user-tier-only key',
+            );
+        }
+
+        // The eligible sibling in the SAME file still lands, so this is a per-key
+        // refusal and not the file being dropped whole.
+        self::assertSame('light', LayeredSettings::projectLayer($this->projectRoot, true)['theme']);
+
+        // And the user's own file DOES carry it through the same machinery, which
+        // is the polarity that makes the refusal above a decision rather than an
+        // accident of spelling.
+        file_put_contents(
+            $this->userDir . '/' . LayeredSettings::USER_FILE,
+            (string) json_encode(['disabledRules' => ['terse']]),
+        );
+        self::assertSame(
+            ['terse'],
+            LayeredSettings::userLayer($this->userDir)['disabledRules'],
+        );
     }
 
     /** A project may not grant itself the trust that gates it. */

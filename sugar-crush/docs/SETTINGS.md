@@ -150,13 +150,14 @@ and `"permissionRules": []` is a well-formed empty list that still outranks
 | `titleModel` | `Bootstrap::titleBackend()` | yes |
 | `summaryModel` | `Bootstrap::summaryBackend()` | yes |
 | `disabledSkills` | `Bootstrap::chat()` → `skillRegistry()` | yes |
+| `disabledRules` | `Bootstrap::chat()` → `RulesState::new()` | **no** |
 | `disabledTools` | `Bootstrap::tools()` → `filterToolSet()` | yes |
 | `parallelToolCalls` | `EngineBackend::complete()` | yes |
 | `parallelToolDeadlineSeconds` | `EngineBackend::complete()` | yes |
 | `statusLine` | `Bootstrap::chat()` → `StatusLineCommand::fromSettings()` | **no** |
 
 Every key in that table has a real reader named beside it, and the table is
-COMPLETE — `LayeredSettings::LAYERED_KEYS` is exactly these eleven, and the
+COMPLETE — `LayeredSettings::LAYERED_KEYS` is exactly these twelve, and the
 "Project may set" column is exactly `PROJECT_TIER_KEYS`. Both halves are
 asserted by `TrustKeyDocumentationDriftTest`, so a key added to either constant
 without a row here reds rather than drifting. A key nothing reads is worse than
@@ -164,9 +165,12 @@ a missing one, because it looks configurable.
 
 Where a row names two methods, the first is the public entry point and the
 second is the method that does the read — cited because that is the one to
-grep for. It is a private method on `Bootstrap` in every row but `statusLine`,
-where the read lives in another class (`StatusLineCommand::fromSettings()`,
-public because the runner is testable without a launch). The previous revision
+grep for. The second name is a private method on `Bootstrap` in every row but
+`statusLine` and `disabledRules`, where it lives in another class:
+`StatusLineCommand::fromSettings()`, public because the runner is testable
+without a launch, and `RulesState::new()`, which *consumes* the value that
+`chat()` reads and filters through the private
+`Bootstrap::rulePacksToDisable()` on the way in. The previous revision
 of this row named `StatusLineCommand::fromSettings()` first and
 `Renderer::renderStatusBar()` second, and neither half fitted the convention:
 nothing calls `fromSettings()` on a launch except `Bootstrap::chat()`, and
@@ -514,7 +518,9 @@ launch that refuses. See [`PERMISSIONS.md`](PERMISSIONS.md) and
   all four `trustedProject*` grants.
 - [`MEMORY.md`](MEMORY.md) — the rest of the `~/.sugar-crush/` layout.
 - [`ENVIRONMENT.md`](ENVIRONMENT.md) — the environment variables that sit above
-  this stack. They do not cover it: only five of the ten layered keys have an
+  this stack. They do not cover it: only five of the twelve layered keys have an
   env override (`provider`, `titleModel`, `summaryModel`, `parallelToolCalls`,
   `parallelToolDeadlineSeconds`). `theme`, `instructions`, `disabledSkills`,
-  `allowedTools` and `disabledTools` have none.
+  `disabledRules`, `allowedTools`, `disabledTools` and `statusLine` have none.
+  (`statusLine` was missing from this list when it joined the stack — P6.S4
+  counted the keys rather than copying the sentence, which is what found it.)

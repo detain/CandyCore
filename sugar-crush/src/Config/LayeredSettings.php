@@ -196,6 +196,9 @@ final class LayeredSettings
      *  - `summaryModel` `Bootstrap::summaryBackend()`, same helper.
      *  - `instructions` {@see \SugarCraft\Crush\Cli\Bootstrap::forcedInstructions()}.
      *  - `disabledSkills` `Bootstrap::skillRegistry()`.
+     *  - `disabledRules` `Bootstrap::rulePacksToDisable()`, whose list `Bootstrap::chat()`
+     *                 hands to {@see \SugarCraft\Crush\Context\RulesState::new()} so the
+     *                 packs named there are out of the prompt from the first turn.
      *  - `parallelToolCalls` / `parallelToolDeadlineSeconds`
      *                 {@see \SugarCraft\Crush\Backend\EngineBackend}'s per-turn
      *                 dispatch settings, which read through `readUserConfig()`.
@@ -237,9 +240,26 @@ final class LayeredSettings
      * ({@see PROJECT_TIER_KEYS} takes `disabledTools` and refuses
      * `allowedTools`). Nested under one key, a project's `tools.deny` and a
      * user's `tools.allow` could not coexist, and gating one half without the
-     * other would be unexpressible. The spelling follows `disabledSkills`,
-     * which is the same idea one layer up.
-     *
+      * other would be unexpressible. The spelling follows `disabledSkills`,
+      * which is the same idea one layer up.
+      *
+      * `disabledRules` LOOKS LIKE IT SHOULD FOLLOW `disabledSkills` AND IT DOES
+      * NOT, so the difference is stated here rather than left for a reviewer to
+      * ask about. Both are disable-lists, and a disable-list holds NAMES, not
+      * contents — so the `instructions` argument ("its file contents become
+      * prompt text", {@see userTierOnlyKeys()}) cannot decide this one either
+      * way on its own. What decides it is what the names SELECT: `disabledSkills`
+      * subtracts from a capability set the harness enforces, and "this repo has
+      * no use for the terraform skill" is a thing the checkout genuinely knows
+      * better than the operator. A rule pack is the OPERATOR'S OWN PROMPT TEXT —
+      * the user tier's `rules/` and `rulebooks/` directories — and
+      * {@see \SugarCraft\Crush\Context\RulesState} draws the same line from the
+      * other side: `TOGGLEABLE_TIER` is `'user'`, so not even the interactive
+      * `/rules` command may silence a repository-authored pack. A project value
+      * here would be a checkout silencing prose the operator wrote about their
+      * own working style, under a trust grant whose stated meaning is "start my
+      * servers and pick my theme".
+      *
      * NO PERMISSION KEY HERE, and this is the one omission a reader of Phase 6
      * item 4 will come looking for. `permissionMode` and `permissionRules` ARE
      * readable from `~/.sugar-crush/settings.json` as of that item — but NOT
@@ -276,6 +296,7 @@ final class LayeredSettings
         'summaryModel',
         'instructions',
         'disabledSkills',
+        'disabledRules',
         'parallelToolCalls',
         'parallelToolDeadlineSeconds',
         'allowedTools',
@@ -499,11 +520,22 @@ final class LayeredSettings
      *
      * DERIVED, not written out, so the two lists above cannot drift apart into a
      * third list that agrees with neither. Today it is `provider`,
-     * `instructions`, `allowedTools` and `statusLine`. The third one's argument
-     * is on {@see PROJECT_TIER_KEYS}, next to the sibling key that IS allowed,
-     * since that is where the two have to be compared; the fourth one's is on
-     * {@see LAYERED_KEYS}, because what makes it user-tier is not a comparison
-     * with anything on this list — it is the only key whose value is a COMMAND.
+     * `instructions`, `disabledRules`, `allowedTools` and `statusLine`, in
+     * {@see LAYERED_KEYS} order — named rather than numbered here, because the
+     * ordinals this sentence used to carry went stale the moment a fifth key
+     * joined the list. `allowedTools`'s argument is on {@see PROJECT_TIER_KEYS},
+     * next to the sibling key that IS allowed, since that is where the two have
+     * to be compared; `statusLine`'s is on {@see LAYERED_KEYS}, because what
+     * makes it user-tier is not a comparison with anything on this list — it is
+     * the only key whose value is a COMMAND. `disabledRules`'s is on
+     * {@see LAYERED_KEYS} too, against its lookalike `disabledSkills`, and the
+     * short form of it is that the value holds pack NAMES whose referents are the
+     * operator's own prompt text, so the "file contents become prompt text"
+     * wording below does not decide it — what decides it is
+     * {@see \SugarCraft\Crush\Context\RulesState::TOGGLEABLE_TIER}: a session may
+     * silence a user pack and no session may silence a repository one, so a
+     * checkout choosing which user packs are off is outside the grant even
+     * "I trust this repository" does not make.
      * The set is asserted, not believed, by
      * {@see \SugarCraft\Crush\Tests\Config\LayeredSettingsTest::testTheUserTierOnlyKeysAreExactlyTheLayeredKeysNoProjectMaySet()},
      * so this sentence going stale reds a test rather than misleading a reader:
