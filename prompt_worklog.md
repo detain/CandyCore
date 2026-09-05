@@ -253,6 +253,52 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### HANDOFF — 2026-09-05 — P6.S4 resume rewrite landed; two preserved-section totals corrected; the `P6.S6` phantom purged
+
+**WHAT THIS PASS CHANGED.** Only `prompt_resume.md` and this file. Zero `sugar-crush/` path, so the P6.S4 figures the
+resume carries remain the current measurement and nothing was re-run: **Tests 10923 / Assertions 167931 / Skipped 2 /
+EXIT 0** at branch tip `96e6577a3`, describing master `608914072` by the belt (`git diff 96e6577a3 608914072 --
+sugar-crush/` EMPTY). Both goldens still unmoved — system `f09f37366a1925565dcc7725f659ff41` (7,829 B), agent
+`ef0326dd38535aaa2f1d715919bff26e` (1,060 B), fixtures at `sugar-crush/tests/fixtures/prompt/`.
+
+**CORRECTION TO A PRESERVED SECTION (which `prompt_resume.md` §R requires recording here).** The resume's §0 standing
+order said the plan has "twelve phases (0-11) and 64 steps" and §R's `§8` template said `Steps done: <N> of 64`. Both
+were TRUE when written and are FALSE now: P6.S5 was SPLIT into **S5a** (one `paths:` glob dialect) and **S5b**
+(glob-scoped rules reaching the model), so `grep -c '^### P[0-9]' prompt_plan.md` measures **65** and Phase 6 has
+**seven** steps. Both totals are now 65 in the resume. Substance of §0/§1/§2/§6/§6a/§7/§R is otherwise unchanged —
+they were copied forward verbatim, and §6a's no-polling paragraph and §7's "Removal is not an outcome" bullet were
+each confirmed present after the write.
+
+**THE `P6.S6` PHANTOM IS GONE, AND THE MECHANISM IS THE LESSON.** Four places in `prompt_resume.md` asserted a step
+`P6.S6` that never existed; every one is rewritten. `grep -c 'P6\.S6'` on the resume now returns 6, and all six are
+explicit NEGATIONS ("there is no P6.S6", "there has NEVER been a `P6.S6`") — a raw count is not the test, the reading
+of each hit is. The worklog's older entries at `:288`, `:292`, `:308`, `:343`, `:367` still mention the label: those
+entries ARE the correction record and the append-only convention forbids editing them. `prompt_plan.md:2392-2393`
+documents the phantom deliberately. `docs/plans/plans_cleaning.md:119` has an unrelated `P6.S6` belonging to the OTHER
+plan and was not touched. **HOW IT PROPAGATED:** a resume file is rewritten by copying, so an assertion nobody
+re-measured was faithfully transmitted across several handoffs. **THE LAW IT TEACHES:** re-derive a total from the
+file it describes, never from the file that quotes it.
+
+**QUEUE FOR THE NEXT SESSION.** Staff **P6.S5a** from its committed brief
+(`prompt_kit/briefs/P6.S5a-step-brief.md`, 140 L) in a FRESH worktree from current `master` — its premise check is
+delivered (`/tmp/opencode/P6.S5-premise/report.md`, 36,225 B / 440 L) and its scope is ruled (adopt the
+`SkillRegistry` glob dialect, not `PathTrigger`'s; reasons at `prompt_plan.md:2368`). P6.S5a must move NEITHER golden
+(the fixture rule carries no `paths:`) and must add NO new `Bootstrap::chat()`-launching test file. Then run the
+**PHASE 6 REVIEW** over P6.S1..P6.S5a's commits together — that review closes Phase 6. **P6.S5b stays BLOCKED** on
+the §1.10 rule-body-transport decision carried verbatim in the resume §8 (its `EngineBackend.php` appetite also makes
+it a live-collision re-check). **STOP AND ASK the supervisor before Phase 8** (`Chat.php` + `ContextCompactor.php`).
+Four standing USER decisions carry forward and block nothing: the 7 dirty `.opencode/*` files, push authorization
+(master measured **7** commits over `origin/master` — the "62" the resume had carried was REFUTED by direct
+measurement, which is itself the third instance of the copy-don't-re-derive failure), Gemini function calling (F7
+scheduled, question unanswered), and P6.S5b's transport choice.
+
+**TRANSPORT TOLL OF THIS WINDOW (five deaths, none accepted as a result).** Two read-only delegations completed with
+empty artifacts, one scribe truncated after landing its plan edits but not its worklog entry, one fixer returned blank
+and delivered fully on resume, and one fix-2 truncated after a single line — disk forensics then showed it HAD
+committed all nine of its findings at `96e6577a3`. Two process laws come out of it, already written into the resume:
+verify the artifact, not the notification; and inspect dictated commit-message text for the forbidden angle-bracket
+bytes yourself — the P6.S4 merge was correctly REFUSED by its own agent over a `->` on line 35.
+
 ### P6.S4 — 2026-09-05 — status: done (41 of 65; Phase 6 step 4 of 7) "Config surface for rules"
 
 **GOAL** give the rules a config surface - register a `disabledRules` key that the launch path actually reads, so a hand-edited disable-list reaches `RulesState` at boot. Ruling option (i): **read-side only, NO write door**. Phase 6, step 4 of 7.
