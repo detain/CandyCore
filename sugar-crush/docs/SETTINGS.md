@@ -201,9 +201,15 @@ LIST, not map. `{"disabledRules": {"terraform": true}}` is the shape the skill
 registry keeps in memory for its own disable set, and it is a natural thing to
 copy by analogy; as config it decodes to `true` values rather than strings, every
 entry is dropped by `Bootstrap::rulePacksToDisable()`, and the file disables
-nothing while looking completely serious about it. That is the one failure mode of
-this key with no message attached, because the launch cannot tell a considered
-empty list from a typo in a shape.
+nothing while looking completely serious about it. That is one of the ways this
+key fails with no message attached, not the only one: so does the wrong-depth
+name two paragraphs above, because a seeded name that matches no pack is simply
+never consulted again — nothing in `src/` reads the disable list back out to
+compare it with what loaded (`/rules <that name>` will tell you it is unknown, but
+only once you think to type it); and so does a value that is not a list at all,
+like `"disabledRules": "focus"`, which the filter's non-array guard drops whole.
+The launch cannot tell a considered empty list from a typo in a shape, and none of
+the three say anything on their own.
 
 **`statusLine` runs a command, which is why it is user-tier only.** The shape
 is Claude Code's, so a settings file written for that tool carries over:

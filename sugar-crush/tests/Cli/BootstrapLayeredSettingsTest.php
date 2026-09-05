@@ -486,6 +486,13 @@ final class BootstrapLayeredSettingsTest extends TestCase
      * purpose is a value someone edits BY HAND in `settings.json`, and a
      * precedence mistake here means the operator's own file silently losing to
      * the deprecated one.
+     *
+     * THE COMPOSED HALF IS THE POINT OF THE LAST ASSERTION, and it is here rather
+     * than in {@see RulesStateWiringTest} because that file pays for one
+     * `Bootstrap::chat()` launch for its whole class and its class docblock records
+     * that adding a second launching file destabilised two load-sensitive
+     * forked-completion tests elsewhere. This file needs no launch: it evaluates
+     * the seed's own expression directly.
      */
     public function testDisabledRulesReachesTheMergedConfigFromEitherUserFile(): void
     {
@@ -503,6 +510,39 @@ final class BootstrapLayeredSettingsTest extends TestCase
             ['from-config-json'],
             Bootstrap::readUserConfig()['disabledRules'],
             'the file the CLI writes outranks the hand-authored one',
+        );
+
+        // THE ROUTE, PINNED AS ONE EXPRESSION. The two asserts above say what
+        // `readUserConfig()` HOLDS when both files name the key; neither says the
+        // launch's `RulesState` is built from THAT value, and
+        // `RulesStateWiringTest` cannot say it either — its `config.json` is `{}`,
+        // so the merged list and the `settings.json` list are the SAME list there
+        // and a seed reading the user layer alone is indistinguishable. With the two
+        // files carrying DIFFERENT lists, which only this fixture does, the composed
+        // expression below has one possible answer and it is `config.json`'s; a seed
+        // fed from `settings.json` by any route answers
+        // `['from-settings-json']` and reddens here. Measured before this assert
+        // existed: a filter mutant rewriting the surviving name to
+        // `from-settings-json` left all 22 tests of this class and all 4 of
+        // `RulesStateWiringTest` green.
+        //
+        // `ReflectionMethod` on the private filter follows this file's own precedent
+        // (`testAnInstallThatSetsNothingHasNoDisabledRulesKeyAtAll`,
+        // `testTheRulesSeedKeepsOnlyUsablePackNamesFromEveryJunkShape`): what is under
+        // test is the COMPOSITION of the real merged read with the real filter and the
+        // real constructor, so every half has to be the production one. A hand-written
+        // copy of the filter would pin the fixture rather than the code, and routing
+        // through `chat()` is what the launch-count constraint above forbids. Which
+        // reader `chat()` itself names is pinned at
+        // {@see \SugarCraft\Crush\Tests\Cli\RulesStateWiringTest::testTheSeedListIsBuiltFromTheMergedReadRatherThanFromEitherSingleUserFile()}.
+        $filter = new \ReflectionMethod(Bootstrap::class, 'rulePacksToDisable');
+        $filter->setAccessible(true);
+
+        self::assertSame(
+            ['from-config-json'],
+            RulesState::new($filter->invoke(null, Bootstrap::readUserConfig()['disabledRules'] ?? null))->disabled(),
+            'the seed expression — merged read, filter, constructor — must land the CONFIG value, so the '
+                . 'launch cannot be fed from settings.json alone',
         );
     }
 
@@ -561,9 +601,15 @@ final class BootstrapLayeredSettingsTest extends TestCase
      * crash the launch instead of disabling nothing.
      *
      * The table is written as input => expected pairs rather than as one assert
-     * per case so a missing row is visible as a missing row; the last column is
-     * what a `is_string`-only filter would have produced, and every case whose
-     * expected list differs from it is a case that mutant loses.
+     * per case so a missing row is visible as a missing row. What an
+     * `is_string`-only filter would have produced is stated here rather than kept
+     * as a third column, MEASURED over this exact table: three rows — the absent
+     * key, the bare string and the int — are not arrays at all, so that mutant dies
+     * on `array_filter()` before it can answer; every array-shaped row agrees with
+     * the expected list except `the pathological blank list`, where it returns both
+     * blanks and the second assertion in the loop throws out of
+     * `RulesState::new()` instead of merely disagreeing. Two rows therefore price
+     * that mutant, and neither of them prices it with a list comparison.
      */
     public function testTheRulesSeedKeepsOnlyUsablePackNamesFromEveryJunkShape(): void
     {

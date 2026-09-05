@@ -54,7 +54,8 @@ use InvalidArgumentException;
  * P6.S4 has since landed, on the READ side and not in this class:
  * {@see \SugarCraft\Crush\Cli\Bootstrap::chat()} seeds `new()` from the operator's
  * own `disabledRules`, so a pack named there does come back off after a restart —
- * by design, and from that file rather than from anything here. The sentence below
+ * by design, and from the user tier of the layered settings — `config.json` and
+ * `settings.json` both — rather than from anything here. The sentence below
  * is therefore scoped to the TOGGLE path, which is the half this class owns: a
  * `/rules` switch stays session-only, and that is what keeps the two states a
  * restart can end in distinguishable — a pack that came back off on its own would

@@ -31,7 +31,12 @@ use SugarCraft\Crush\Tests\Config\Support\DocumentParagraphs;
  * {@see LayeredSettings::userTierOnlyKeys()} for the same reason the SETTINGS.md
  * rows below are policed rather than proof-read — and because a MEASURED grep
  * showed nothing else did it: `ReadmeRosterDriftTest` never names those two
- * constants, and no test in `tests/` quotes either roster sentence. Both claims
+ * constants, and on the tree this step branched from (`03c584c2a`, MEASURED with
+ * `git grep -n "Only these\|taken from a project file" 03c584c2a -- sugar-crush/tests/`,
+ * which returns nothing) no test quoted either roster sentence. That is no longer
+ * true of THIS tip — the two guards at the bottom of this file are the quote — and
+ * it is stated as a fact about the pre-step tree because that is the gap they were
+ * written to close, not a property of the tree they now live on. Both claims
  * in the README were stale on the day `disabledRules` landed, and one of them is
  * the SECURITY enumeration: a reader told "four keys are never taken from a
  * project file" concludes the fifth is project-settable under a trust grant,
@@ -401,6 +406,23 @@ final class TrustKeyDocumentationDriftTest extends TestCase
     public function testTheReadmeLayeredKeyRosterAgreesWithLayeredKeys(): void
     {
         $flat = (string) preg_replace('/\s+/', ' ', $this->readme());
+
+        // UNIQUENESS FIRST, and for the reason the sibling tier guard below has
+        // always had it: `preg_match` answers 1 for the FIRST match and cannot see a
+        // second, so without this count a page carrying two roster sentences — an
+        // edited one and a forgotten stale one — would be policed on whichever came
+        // first and would let the other say anything it liked. Asserting the count of
+        // openers is what makes the failure message below literally true rather than
+        // a description of only the half it checks.
+        preg_match_all('/Only these\b.*?keys are layered/', $flat, $openers);
+        self::assertSame(
+            1,
+            \count($openers[0]),
+            'README.md must carry exactly one sentence opening "Only these … keys are layered" — '
+                . 'none means the LAYERED_KEYS roster this guard reads is gone or reworded, and two '
+                . 'means one of them is unpoliced',
+        );
+
         self::assertSame(
             1,
             preg_match('/Only these\b(.*?)\./', $flat, $m),

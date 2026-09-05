@@ -295,12 +295,21 @@ final class RulesStateWiringTest extends TestCase
      * not once: rewriting the seed to read {@see Bootstrap::rawUserConfig()} directly,
      * which is `config.json` alone, would leave it GREEN.
      *
-     * Sole supplier is therefore what gives that mutation something to break. The
-     * `config.json` route is not left unpinned, only pinned at its own seam:
-     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()}
-     * proves each user file on its own reaches `readUserConfig()`, and this test proves
-     * the seed consumes `readUserConfig()`. Composed, the two cover the whole route from
-     * either file to the launch; neither is asked to pretend it covers the other.
+     * Sole supplier is therefore what gives that mutation something to break, and the
+     * claim has to stop right there. WHAT THIS FIXTURE DOES NOT PIN: `config.json` is
+     * written as `{}`, and merging an empty layer is the identity, so the merged list
+     * and the `settings.json` list are THE SAME LIST here, and a seed reading
+     * `LayeredSettings::userLayer()` — or `settings.json` by any other route — is
+     * indistinguishable under every assertion in this method. Measured rather than
+     * argued: with the seed rewritten to read the user layer directly, all four tests
+     * in this class stayed green. So this test proves one thing — the seed is not
+     * `config.json` alone — and the opposite direction is pinned in
+     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()},
+     * the only fixture that gives the two files different values and composes the
+     * merged read with the filter and the constructor, and at
+     * {@see self::testTheSeedListIsBuiltFromTheMergedReadRatherThanFromEitherSingleUserFile()}.
+     * Together the two files cover the whole route from either file to the launch;
+     * neither is asked to pretend it covers the other's direction.
      *
      * The exact-list assert on {@see self::$disabledAtLaunch} is also the filter's
      * test: the file this class seeds names the packs ALONGSIDE a blank string, a
@@ -360,6 +369,66 @@ final class RulesStateWiringTest extends TestCase
             1,
             substr_count($enabled, self::SETTINGS_SENTINEL),
             'the settings-file pack rides exactly once now that it is back on',
+        );
+    }
+
+    /**
+     * WHICH READER THE SEED EXPRESSION USES, pinned at the one place it is written.
+     *
+     * This is the half the single launch cannot reach on its own, and the reason it
+     * lives in a launching file rather than beside the fixture that owns the two-file
+     * case: `Bootstrap::chat()` builds the seed from `$userConfig`, and this pins that
+     * `$userConfig` IS the merged read `self::readUserConfig()` and that the seed
+     * indexes `disabledRules` off THAT variable — not off `rawUserConfig()`, not off
+     * `LayeredSettings::userLayer()`, not off a second call of its own.
+     *
+     * WHY A SOURCE READ: the mutation this prices — retyping the seed's argument as
+     * `self::rawUserConfig()['disabledRules'] ?? null`, or as
+     * `LayeredSettings::userLayer(...)` — is invisible to every non-launching test AND
+     * to this class's own launch, because this file's `config.json` is `{}` and the
+     * merge of an empty layer is the identity. So the route is pinned behaviourally
+     * next door, at
+     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()},
+     * and the call site is pinned here, where reading `src/Cli/Bootstrap.php` costs no
+     * launch at all. One `Bootstrap::chat()` remains the whole class's bill and this
+     * method pays none of it: it is a `file_get_contents`, the same instrument
+     * {@see testTheBackendReadsItsToggleSetPerTurnRatherThanFreezingItAtLaunch()} uses.
+     *
+     * Both patterns are deliberately narrow — they match the statement as written, so
+     * a reformat reddens here rather than leaving the guard quietly matching some older
+     * shape forever.
+     */
+    public function testTheSeedListIsBuiltFromTheMergedReadRatherThanFromEitherSingleUserFile(): void
+    {
+        $source = (string) file_get_contents(\dirname(__DIR__, 2) . '/src/Cli/Bootstrap.php');
+
+        // Half one: what feeds the seed — one statement, over a variable, whose name
+        // half two then binds to a reader.
+        preg_match_all(
+            '/\$rulesState\s*=\s*RulesState::new\(\s*self::rulePacksToDisable\(\s*(\$\w+)\[[\'"]disabledRules[\'"]\]/',
+            $source,
+            $seed,
+        );
+        self::assertCount(
+            1,
+            $seed[1] ?? [],
+            'Bootstrap::chat() must build the seed with exactly one RulesState::new(rulePacksToDisable(...)) '
+                . 'statement over a variable — a seed fed straight from a call expression is not the shape '
+                . 'this guard, or the merged view it is supposed to read, describes',
+        );
+        self::assertSame(
+            '$userConfig',
+            $seed[1][0],
+            'the seed must index `disabledRules` off `$userConfig`; any other name is a different read',
+        );
+
+        // Half two: what that variable IS.
+        self::assertSame(
+            1,
+            preg_match('/\$userConfig\s*=\s*self::readUserConfig\(\);/', $source),
+            '`$userConfig` must be exactly one merged self::readUserConfig() call — rebinding it to '
+                . 'self::rawUserConfig() or to LayeredSettings::userLayer() would make the launch read '
+                . 'one user file instead of the merged view',
         );
     }
 
@@ -470,21 +539,29 @@ final class RulesStateWiringTest extends TestCase
      * where it can be seen on its own, at
      * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()}.
      * The file is still written — with `0600`, as every policy file here is — so the
-     * stack under test has its real four layers and the seed provably consumes a merged
-     * view rather than one file.
+     * stack under test has its real four layers. WHAT THAT DOES NOT BUY, stated so the
+     * next reader does not over-read it: an empty `config.json` is the identity for
+     * {@see \SugarCraft\Crush\Config\LayeredSettings::merge()}, so this fixture pins
+     * the settings route and says nothing about the merged ranking. That direction
+     * lives in `BootstrapLayeredSettingsTest`, whose two-file case gives the two files
+     * DIFFERENT lists.
      *
      * The `disabledRules` value written there is deliberately NOT the tidy
      * `["quiet"]` a config would show: it is two names followed by a blank string, a
-     * whitespace-only string, an int and a nested array, so the ONE launch this class
-     * pays for also proves the two halves of P6.S4 that only exist together — that the
-     * names in the operator's own settings file reach the prompt (which is what
+     * whitespace-only string, an int and a nested array. The two blanks are the
+     * load-bearing entries — they price the `trim($pack) !== ''` clause, and
+     * {@see \SugarCraft\Crush\Context\RulesState::new()} rejects a blank outright, so an
+     * unfiltered seed makes the LAUNCH throw. The int and the nested array are realism
+     * rather than coverage: they price only the `is_string` clause, and the
+     * eleven-shape table at
+     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testTheRulesSeedKeepsOnlyUsablePackNamesFromEveryJunkShape()}
+     * is what pins that clause for real. What this fixture earns by carrying them is
+     * one launch proving both halves of P6.S4 together — that the names in the
+     * operator's own settings file reach the prompt, which is what
      * {@see \SugarCraft\Crush\Context\RulesState::new()}'s `$disabled` parameter had
-     * never done in production before this step), and that the junk around them is
-     * filtered on the way in rather than thrown out of.
-     * {@see \SugarCraft\Crush\Context\RulesState::new()} rejects a blank entry
-     * outright, so an unfiltered seed makes the LAUNCH throw; that is the mutation
-     * this fixture is built to catch, and a `try`/`catch` would have hidden it by
-     * turning "the junk was refused" into "nothing was disabled".
+     * never done in production before this step, and that the junk around them is
+     * filtered on the way in rather than thrown out of. A `try`/`catch` would have
+     * hidden the first by turning "the junk was refused" into "nothing was disabled".
      *
      * `PACK` is NOT named in the list, so the seeded packs and the toggled pack stay
      * two different claims.
@@ -507,6 +584,14 @@ final class RulesStateWiringTest extends TestCase
         file_put_contents($dir . '/settings.json', (string) json_encode([
             'disabledRules' => [self::CONFIG_PACK, self::SETTINGS_PACK, '', '   ', 0, ['nested']],
         ]));
+        // BOTH user files get the mode, not only the one whose comment below explains
+        // it: permissionConfigLayers() runs requirePrivatePolicyFile() over
+        // settings.json exactly as it does over config.json, and that check refuses the
+        // launch for a world-writable policy file. On the usual umask 022 a
+        // file_put_contents lands 0644 and passes; measured on this host, umask 000
+        // lands 0666 and umask 020 lands 0646, and either would make the single launch
+        // in setUpBeforeClass() throw for a reason nothing in this file is about.
+        chmod($dir . '/settings.json', 0o600);
 
         $config = $dir . '/config.json';
         // An EMPTY object on purpose: the layer must exist so the merged view the
