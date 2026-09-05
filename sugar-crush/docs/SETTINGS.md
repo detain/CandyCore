@@ -150,13 +150,14 @@ and `"permissionRules": []` is a well-formed empty list that still outranks
 | `titleModel` | `Bootstrap::titleBackend()` | yes |
 | `summaryModel` | `Bootstrap::summaryBackend()` | yes |
 | `disabledSkills` | `Bootstrap::chat()` → `skillRegistry()` | yes |
+| `disabledRules` | `Bootstrap::chat()` → `RulesState::new()` | **no** |
 | `disabledTools` | `Bootstrap::tools()` → `filterToolSet()` | yes |
 | `parallelToolCalls` | `EngineBackend::complete()` | yes |
 | `parallelToolDeadlineSeconds` | `EngineBackend::complete()` | yes |
 | `statusLine` | `Bootstrap::chat()` → `StatusLineCommand::fromSettings()` | **no** |
 
 Every key in that table has a real reader named beside it, and the table is
-COMPLETE — `LayeredSettings::LAYERED_KEYS` is exactly these eleven, and the
+COMPLETE — `LayeredSettings::LAYERED_KEYS` is exactly these twelve, and the
 "Project may set" column is exactly `PROJECT_TIER_KEYS`. Both halves are
 asserted by `TrustKeyDocumentationDriftTest`, so a key added to either constant
 without a row here reds rather than drifting. A key nothing reads is worse than
@@ -164,14 +165,51 @@ a missing one, because it looks configurable.
 
 Where a row names two methods, the first is the public entry point and the
 second is the method that does the read — cited because that is the one to
-grep for. It is a private method on `Bootstrap` in every row but `statusLine`,
-where the read lives in another class (`StatusLineCommand::fromSettings()`,
-public because the runner is testable without a launch). The previous revision
+grep for. The second name is a private method on `Bootstrap` in every row but
+`provider`, `statusLine` and `disabledRules`: `backend()` is public static
+because callers outside `chat()` build a backend through it rather than only
+through it, and for the other two the second name lives in another class —
+`StatusLineCommand::fromSettings()`, public because the runner is testable
+without a launch, and `RulesState::new()`, which *consumes* the value that
+`chat()` reads and filters through the private
+`Bootstrap::rulePacksToDisable()` on the way in. The previous revision
 of this row named `StatusLineCommand::fromSettings()` first and
 `Renderer::renderStatusBar()` second, and neither half fitted the convention:
 nothing calls `fromSettings()` on a launch except `Bootstrap::chat()`, and
 `renderStatusBar()` does not read the settings key at all — it reads the
 already-cached process line.
+
+**`disabledRules` is a LIST of pack names, and a name is a path.** Spell it like
+this:
+
+```json
+{"disabledRules": ["focus", "style/terse"]}
+```
+
+`"focus"` is a pack sitting at `~/.sugar-crush/rulebooks/focus.md`: flat in its
+tier directory, so the basename minus the extension is the whole name.
+`"style/terse"` is one directory deeper, at
+`~/.sugar-crush/rulebooks/style/terse.md` — the key is the path RELATIVE TO THE
+TIER DIRECTORY, so a bare `"terse"` there selects nothing and a line that looks
+like a no-op is really a name that matches no pack. A name pointing at the
+repository's own tier — anything under `<repo>/.sugar-crush/rules`, or the root
+`RULES.md`, which is keyed with its extension and outside the toggleable tier —
+is inert by design: a session may silence the operator's packs and never a
+checkout's, which is the same reason this key is one a project may not set.
+
+LIST, not map. `{"disabledRules": {"terraform": true}}` is the shape the skill
+registry keeps in memory for its own disable set, and it is a natural thing to
+copy by analogy; as config it decodes to `true` values rather than strings, every
+entry is dropped by `Bootstrap::rulePacksToDisable()`, and the file disables
+nothing while looking completely serious about it. That is one of the ways this
+key fails with no message attached, not the only one: so does the wrong-depth
+name two paragraphs above, because a seeded name that matches no pack is simply
+never consulted again — nothing in `src/` reads the disable list back out to
+compare it with what loaded (`/rules <that name>` will tell you it is unknown, but
+only once you think to type it); and so does a value that is not a list at all,
+like `"disabledRules": "focus"`, which the filter's non-array guard drops whole.
+The launch cannot tell a considered empty list from a typo in a shape, and none of
+the three say anything on their own.
 
 **`statusLine` runs a command, which is why it is user-tier only.** The shape
 is Claude Code's, so a settings file written for that tool carries over:
@@ -514,7 +552,9 @@ launch that refuses. See [`PERMISSIONS.md`](PERMISSIONS.md) and
   all four `trustedProject*` grants.
 - [`MEMORY.md`](MEMORY.md) — the rest of the `~/.sugar-crush/` layout.
 - [`ENVIRONMENT.md`](ENVIRONMENT.md) — the environment variables that sit above
-  this stack. They do not cover it: only five of the ten layered keys have an
+  this stack. They do not cover it: only five of the twelve layered keys have an
   env override (`provider`, `titleModel`, `summaryModel`, `parallelToolCalls`,
   `parallelToolDeadlineSeconds`). `theme`, `instructions`, `disabledSkills`,
-  `allowedTools` and `disabledTools` have none.
+  `disabledRules`, `allowedTools`, `disabledTools` and `statusLine` have none.
+  (`statusLine` was missing from this list when it joined the stack — P6.S4
+  counted the keys rather than copying the sentence, which is what found it.)

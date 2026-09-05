@@ -476,6 +476,64 @@ final class RuleLoaderTest extends TestCase
     }
 
     /**
+     * THE NESTED SPELLING OF A PACK NAME, which is what `disabledRules` has to be
+     * written in for any pack that is not flat in its tier directory.
+     *
+     * WHY THIS TEST EXISTS AT ALL: {@see \SugarCraft\Crush\Cli\Bootstrap::rulePacksToDisable()}'s
+     * own doc-block explains that the key is the path RELATIVE TO THE TIER
+     * DIRECTORY with separators as `/` and `.md` removed, and until this test that
+     * sentence was backed by a flat-name fixture only — the depth test above asserts
+     * loaded pack NAMES, and nothing in `tests/` asserted a nested KEY. A `Rule::$key`
+     * of `terse`, `style.terse` or `style/terse.md` for the file below therefore
+     * passed the whole suite, and every one of those makes an operator's
+     * `{"disabledRules": ["style/terse"]}` a silent no-op.
+     *
+     * `ruleKeyFor()` is private and stays private: the assertion goes through the
+     * real tier walk, because the composition of the walk with the key derivation is
+     * the thing a regression breaks, and calling the derivation directly would let a
+     * loader that never reaches the nested file pass.
+     */
+    public function testARulebookBelowTheTierDirectoryIsKeyedByItsRelativePathAndNotItsBasename(): void
+    {
+        $root = $this->sandbox . '/repo';
+        mkdir($root, 0o755, true);
+        $packs = $this->home . '/.sugar-crush/rulebooks';
+        mkdir($packs . '/style', 0o700, true);
+        $this->emitRule($packs . '/style/terse.md', "---\nname: Terse\n---\nBE TERSE.\n");
+
+        $loaded = (new RuleLoader($root))->loadUserRulebooks();
+
+        self::assertCount(1, $loaded, 'the nested file is loaded, so the key below is about a real pack');
+        self::assertSame(
+            'style/terse',
+            $loaded[0]->key,
+            'the key is the path relative to the tier directory - separators normalised to `/` and `.md` '
+                . 'stripped - because that exact string is what a `disabledRules` entry has to spell',
+        );
+        self::assertNotSame(
+            'terse',
+            $loaded[0]->key,
+            'the basename is NOT the handle at depth, which is the no-op this pin exists to prevent',
+        );
+
+        // And the handle is load-bearing at the toggle seam, not merely a string:
+        // the relative key silences the pack and the bare basename does not. Read
+        // through `load()` rather than `loadUserRulebooks()`, because session intent
+        // is folded in inside `load()` only — the tier walk returns the file either
+        // way, which would make both halves of this pass vacuously.
+        self::assertSame(
+            [],
+            (new RuleLoader($root, rulesState: RulesState::new(['style/terse'])))->load(),
+            'the relative key is the toggle handle at depth',
+        );
+        self::assertCount(
+            1,
+            (new RuleLoader($root, rulesState: RulesState::new(['terse'])))->load(),
+            'a bare basename selects nothing at depth - the silent no-op docs/SETTINGS.md warns about',
+        );
+    }
+
+    /**
      * An absent `rulebooks/` is the ordinary case (nobody has made a pack yet) and
      * must be silent, not a refusal - exactly as an absent `rules/` is. If this
      * ever recorded a refusal, every user without a rulebook directory would get
