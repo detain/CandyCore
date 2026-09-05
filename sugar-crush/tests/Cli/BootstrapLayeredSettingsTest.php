@@ -7,6 +7,7 @@ namespace SugarCraft\Crush\Tests\Cli;
 use PHPUnit\Framework\TestCase;
 use SugarCraft\Crush\Cli\Bootstrap;
 use SugarCraft\Crush\Config\LayeredSettings;
+use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Tests\Support\HomeSandboxTrait;
 
 /**
@@ -472,6 +473,154 @@ final class BootstrapLayeredSettingsTest extends TestCase
 
         self::assertSame('from-settings-json', $config['theme']);
         self::assertArrayNotHasKey('titleModel', $config);
+    }
+
+    // -------------------------------------------------------------------------
+    // `disabledRules` — the value the launch seeds `RulesState` from
+    // -------------------------------------------------------------------------
+
+    /**
+     * Both of the operator's own files feed the key, and the written config
+     * outranks the hand-authored settings file for it exactly as it does for
+     * every other key — asserted rather than inherited, because this key's whole
+     * purpose is a value someone edits BY HAND in `settings.json`, and a
+     * precedence mistake here means the operator's own file silently losing to
+     * the deprecated one.
+     */
+    public function testDisabledRulesReachesTheMergedConfigFromEitherUserFile(): void
+    {
+        $this->writeUserSettings(['disabledRules' => ['from-settings-json']]);
+
+        self::assertSame(
+            ['from-settings-json'],
+            Bootstrap::readUserConfig()['disabledRules'],
+            'the hand-authored user file must seed the launch on its own',
+        );
+
+        $this->writeUserConfigFile(['disabledRules' => ['from-config-json']]);
+
+        self::assertSame(
+            ['from-config-json'],
+            Bootstrap::readUserConfig()['disabledRules'],
+            'the file the CLI writes outranks the hand-authored one',
+        );
+    }
+
+    /**
+     * THE ABSENCE CASE, and it is the one the launch hits on every install that
+     * never heard of this key: no `disabledRules` anywhere in the stack must
+     * produce a notice, a warning under `failOnWarning`, or a key present with a
+     * junk value. Nothing on the launch path is allowed to start throwing because
+     * a settings file said nothing.
+     */
+    public function testAnInstallThatSetsNothingHasNoDisabledRulesKeyAtAll(): void
+    {
+        $config = Bootstrap::readUserConfig();
+
+        self::assertArrayNotHasKey('disabledRules', $config);
+
+        // And the seed that absence feeds is an empty set, not an error: this is
+        // the exact expression `Bootstrap::chat()` evaluates on a default install.
+        $filter = new \ReflectionMethod(Bootstrap::class, 'rulePacksToDisable');
+        $filter->setAccessible(true);
+
+        self::assertSame([], RulesState::new($filter->invoke(null, $config['disabledRules'] ?? null))->disabled());
+    }
+
+    /**
+     * The tier gate, from this end: a TRUSTED checkout shipping `disabledRules`
+     * contributes nothing, while the eligible sibling in the same file still
+     * lands. `LayeredSettingsTest` pins the same property on the pure class; this
+     * one pins it through the reader the launch actually calls, because the seed
+     * consumes `readUserConfig()` and not `projectLayer()`, and the two could in
+     * principle disagree.
+     */
+    public function testATrustedProjectCannotSeedTheRulesDisableList(): void
+    {
+        $this->trustTheProject();
+        $this->writeProjectSettings(LayeredSettings::SHARED_PATH, [
+            'disabledRules' => ['the-operators-own-pack'],
+            'theme' => 'chosen-by-the-repo',
+        ]);
+        Bootstrap::useProjectRootForSettings($this->projectRoot);
+
+        $config = Bootstrap::readUserConfig();
+
+        self::assertArrayNotHasKey('disabledRules', $config);
+        self::assertSame('chosen-by-the-repo', $config['theme'], 'per-key refusal, not a dropped file');
+    }
+
+    /**
+     * THE SEED MUST NOT BE ABLE TO THROW. {@see \SugarCraft\Crush\Cli\Bootstrap::rulePacksToDisable()}
+     * is the private half of `Bootstrap::chat()`'s rules seed, and this calls it
+     * with every shape a JSON value can take, asserting the EXACT surviving list.
+     * It has to be stricter than the sibling reader for `disabledSkills`, which
+     * filters on `is_string` alone: {@see \SugarCraft\Crush\Context\RulesState::new()}
+     * parses each entry through a check that REJECTS a blank or whitespace-only
+     * string, so copying that filter verbatim would make `"disabledRules": [""]`
+     * crash the launch instead of disabling nothing.
+     *
+     * The table is written as input => expected pairs rather than as one assert
+     * per case so a missing row is visible as a missing row; the last column is
+     * what a `is_string`-only filter would have produced, and every case whose
+     * expected list differs from it is a case that mutant loses.
+     */
+    public function testTheRulesSeedKeepsOnlyUsablePackNamesFromEveryJunkShape(): void
+    {
+        $filter = new \ReflectionMethod(Bootstrap::class, 'rulePacksToDisable');
+        $filter->setAccessible(true);
+
+        /** @var array<string, array{0: mixed, 1: list<string>}> $cases */
+        $cases = [
+            'one real pack' => [['terse'], ['terse']],
+            'key absent, read as null' => [null, []],
+            'a bare string instead of a list' => ['terse', []],
+            'an int instead of a list' => [7, []],
+            'a nested object value' => [['type' => ['command' => 'x']], []],
+            'the pathological blank list' => [['', '   '], []],
+            'an int entry among strings' => [[0 => 5, 1 => 'terse'], ['terse']],
+            'an array entry among strings' => [['ok', ['nested']], ['ok']],
+            'a nested pack key with a slash' => [['style/terse'], ['style/terse']],
+            'an empty list' => [[], []],
+            'the same pack named twice' => [['terse', 'terse'], ['terse', 'terse']],
+        ];
+
+        foreach ($cases as $label => [$configured, $expected]) {
+            $kept = $filter->invoke(null, $configured);
+
+            self::assertSame($expected, $kept, $label);
+            // The claim the whole filter exists for: what survives is exactly
+            // what RulesState::new() accepts, so constructing it cannot throw.
+            // `disable()` is idempotent, so the set is the unique list.
+            self::assertSame(
+                array_values(array_unique($expected)),
+                RulesState::new($kept)->disabled(),
+                $label,
+            );
+        }
+    }
+
+    /**
+     * The other polarity of the same gate, at the seam that matters: the seed
+     * `chat()` performs on the real value is `RulesState::new($filtered)`, so a
+     * config naming `terse` must land a state that reports `terse` disabled, and
+     * the pathological `[""]` must land an EMPTY one rather than an exception.
+     * Written as the composition rather than as two halves because the defect this
+     * prices is a filter that admits something `new()` rejects — either half alone
+     * stays green for that.
+     */
+    public function testSeedingRulesStateWithTheFilteredConfigValueDisablesThePackAndNeverThrows(): void
+    {
+        $filter = new \ReflectionMethod(Bootstrap::class, 'rulePacksToDisable');
+        $filter->setAccessible(true);
+
+        $usable = $filter->invoke(null, ['terse']);
+        self::assertSame(['terse'], RulesState::new($usable)->disabled());
+        self::assertTrue(RulesState::new($usable)->isDisabled('terse'));
+
+        $junkOnly = $filter->invoke(null, ['', '  ', 3, [['x']]]);
+        self::assertSame([], $junkOnly);
+        self::assertSame([], RulesState::new($junkOnly)->disabled());
     }
 
     // -------------------------------------------------------------------------

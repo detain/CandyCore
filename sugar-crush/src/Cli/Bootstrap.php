@@ -1007,7 +1007,25 @@ final class Bootstrap
         // all. On that path the toggle still records the session's intent and still
         // lists correctly, but it cannot change bytes this process never assembles —
         // stated rather than left to be discovered.
-        $rulesState = RulesState::new();
+        // THE OPERATOR'S OWN DISABLE-LIST, seeded here so a hand-edited
+        // `disabledRules` is honoured from the first turn rather than needing a
+        // keystroke (P6.S4). `$userConfig` is the MERGED layered view — assigned
+        // above from {@see readUserConfig()}, which answers `mergedConfig(true)`
+        // — so
+        // `~/.sugar-crush/config.json` and `~/.sugar-crush/settings.json` both
+        // reach it and no project file can: `disabledRules` is deliberately
+        // absent from {@see LayeredSettings::PROJECT_TIER_KEYS}, for the reason
+        // on {@see RulesState} — a session may silence a user pack and never a
+        // repository one, so a checkout choosing which user packs are off is
+        // outside any trust grant. `RulesState::new()`'s `$disabled` parameter
+        // existed with no production caller until this line.
+        //
+        // NOTHING on the launch path may throw, and {@see rulePacksToDisable()}
+        // is where that property is kept: `RulesState::new()` parses every entry
+        // and rejects a blank or non-string one, while a config file is read
+        // tolerantly by design. So the junk is filtered HERE, up front, rather
+        // than caught around it.
+        $rulesState = RulesState::new(self::rulePacksToDisable($userConfig['disabledRules'] ?? null));
         $backend = self::backend($root, $skills, $permissionGate);
         if ($backend instanceof EngineBackend) {
             $backend = $backend->withRulesState($rulesState);
@@ -2800,6 +2818,57 @@ final class Bootstrap
         // process umask. 0600 is kept deliberately — this file now carries the
         // launch's permission policy, so it is nobody else's business.
         @chmod(self::userConfigPath(), 0600);
+    }
+
+    /**
+     * The `disabledRules` config value, parsed into the list
+     * {@see RulesState::new()} will accept without throwing.
+     *
+     * WHY A NARROWER FILTER THAN THE SIBLING KEY. `disabledSkills` reads the same
+     * shape with `array_filter($disabled, 'is_string')`, and that is correct
+     * there because {@see \SugarCraft\Crush\Skills\SkillRegistry::disable()} takes
+     * a blank name harmlessly. {@see RulesState::new()} does not: it runs every
+     * entry through a parse step that REJECTS a non-string or a
+     * whitespace-only one, because a set of pack identities that contains `""` is
+     * a bug worth naming at the boundary rather than carrying. On the launch path
+     * an exception there is not a validation message — it is sugar-crush refusing
+     * to start because of a stray `""` in a hand-edited JSON file, against
+     * {@see readUserConfig()}'s standing promise that a malformed value costs the
+     * key and nothing else. So every unusable entry is dropped here:
+     * a non-array value, a non-string element, and a blank or whitespace-only
+     * string. There is no `try`/`catch`, because a `catch` around the seed would
+     * swallow the one error class this filter exists to make unreachable and would
+     * also hide a genuinely malformed key as "nothing disabled".
+     *
+     * WHAT A PACK NAME IS. `RulesState` keys on {@see \SugarCraft\Crush\Context\Rule::$key},
+     * which {@see \SugarCraft\Crush\Context\RuleLoader::ruleKeyFor()} derives as the
+     * file path RELATIVE TO ITS TIER DIRECTORY with separators normalised to `/`
+     * and `.md` removed — so a pack in `~/.sugar-crush/rulebooks/style/terse.md`
+     * is `style/terse`, not `terse`, and a config entry has to say the whole
+     * thing. The flat case, which is what the docs show, still spells as the
+     * basename minus the extension. One exception is worth knowing before anyone
+     * debugs a no-op: the repository root's `RULES.md` is keyed as the literal
+     * `'RULES.md'`, extension included, and carries tier `root`, so
+     * {@see RulesState} will never subtract it and a config entry naming it is
+     * inert by design rather than by accident.
+     *
+     * @return list<string>
+     */
+    private static function rulePacksToDisable(mixed $configured): array
+    {
+        if (!\is_array($configured)) {
+            return [];
+        }
+
+        $packs = [];
+
+        foreach ($configured as $pack) {
+            if (\is_string($pack) && trim($pack) !== '') {
+                $packs[] = $pack;
+            }
+        }
+
+        return $packs;
     }
 
     /**
