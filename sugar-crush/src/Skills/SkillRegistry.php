@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Crush\Skills;
 
+use SugarCraft\Crush\Util\PathGlob;
+
 final class SkillRegistry
 {
     /** @var array<string, Skill> */
@@ -498,8 +500,8 @@ final class SkillRegistry
      *    matters, because adding more patterns would never have found it and
      *    adding one path did.
      *  - PCRE ESCAPES INSIDE A CLASS BODY. `[\d]` means the literal `d` to
-     *    `fnmatch()` and the digit class to PCRE. Closed by
-     *    {@see compileClassBody()}.
+     *    `fnmatch()` and the digit class to PCRE. Closed by the class-body
+     *    step of {@see PathGlob::compile()}.
      *  - A POSIX CLASS FOLLOWED BY A SECOND BRACKET GROUP. The scan that finds
      *    a class's closing `]` did not know that `[:alpha:]` carries a `]` of
      *    its own, so it stopped early and the emitted class ran past its own
@@ -509,7 +511,7 @@ final class SkillRegistry
      *    folds the second group into the first class, and answers false for
      *    `ab` where `fnmatch()` answers true — a wrong answer with no fallback
      *    under it. Closed in the bracket scan of {@see compilePathPattern()}
-     *    and in {@see compileClassBody()}, which now pass POSIX classes
+     *    and in its class-body step, which now pass POSIX classes
      *    through verbatim rather than routing them anywhere.
      *
      * FASTER, INCIDENTALLY, WHICH MATTERS BECAUSE THIS IS ON A TOOL-CALL PATH:
@@ -577,20 +579,21 @@ final class SkillRegistry
             $regex = self::$compiledPathPatterns[$pattern] = self::compilePathPattern($pattern);
         }
 
-        $result = @preg_match($regex, $path);
-        if ($result === false) {
+        $verdict = PathGlob::matchCompiled($regex, $path);
+        if ($verdict === null) {
             // The regex did not compile — a backslash-escaped `]` inside a
             // class, or a reversed range — or PCRE hit a backtrack limit on a
             // pathological pattern. Either way the question is still the skill
             // author's, so it is answered by the predicate this method
             // replaced. (This used to name a POSIX class as the first case.
             // Those compile now; see {@see compilePathPattern()}'s bracket
-            // scan. Keeping the stale example here would send the next reader
-            // looking for a branch that no longer exists.)
+            // scan, which lives in {@see PathGlob::compile()}. Keeping the
+            // stale example here would send the next reader looking for a
+            // branch that no longer exists.)
             return self::legacyPathMatch($pattern, $path);
         }
 
-        return $result === 1;
+        return $verdict;
     }
 
     /**
@@ -643,216 +646,29 @@ final class SkillRegistry
     /**
      * Translate one frontmatter glob into an anchored PCRE.
      *
+     * THE COMPILER MOVED to {@see PathGlob::compile()} at P6.S5a — a
+     * relocation and not a rewrite — so that the package's other production
+     * matcher, {@see \SugarCraft\Crush\Context\Triggers\PathTrigger}, could
+     * speak this dialect instead of a stricter one of its own. The class-body
+     * translator moved with it.
+     *
+     * WHY THE SEAM IS KEPT instead of calling `PathGlob::compile()` directly at
+     * the one use site: the memo in {@see pathMatches()} is filled through this
+     * method, and the route from a compile failure to {@see legacyPathMatch()}
+     * is this class's own. Keeping the named seam means
+     * {@see \SugarCraft\Crush\Tests\Skills\CompiledPatternCacheBoundTest} keeps
+     * reflecting the real thing it guards rather than a stranger, and it keeps
+     * every `{@see compilePathPattern()}` citation in the doc-block above honest
+     * — those pointers describe where the bracket scan lives from this class's
+     * point of view, which is still true one call away.
+     *
      * Cached by {@see pathMatches()} because {@see SkillPathNudge} runs this
      * per pattern per path on tool calls: the compile is a character walk, the
      * match is not.
      */
     private static function compilePathPattern(string $pattern): string
     {
-        $out = '';
-        $len = strlen($pattern);
-
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $pattern[$i];
-
-            // fnmatch() honours backslash escapes unless FNM_NOESCAPE is
-            // passed, and this call site never passed it. VERIFIED on PHP
-            // 8.3.6: fnmatch('a\*b', 'a*b') is true and fnmatch('a\*b', 'aXb')
-            // is false.
-            if ($ch === '\\' && $i + 1 < $len) {
-                $out .= preg_quote($pattern[++$i], '#');
-                continue;
-            }
-
-            // `/**` — the whole point of this translation. Zero-or-more
-            // `/segment` groups, so `a/**/b` claims `a/b` as well as
-            // `a/x/y/b`, and `a/**` claims `a` itself.
-            if ($ch === '/' && substr($pattern, $i + 1, 2) === '**') {
-                $j = $i + 3;
-                while ($j < $len && $pattern[$j] === '*') {
-                    ++$j;
-                }
-
-                // THREE OR MORE STARS AND THE SLASH GOES OPTIONAL TOO. Nobody
-                // writes `src/***` on purpose, but the predicate this replaced
-                // answered it, and answering it with less is a NARROWING. Its
-                // rewrite 3 deleted the `/**` outright and left the extra star
-                // behind, so `src/***` became `src*` and claimed `src_x`;
-                // folding every star into one `(?:/.*)?` cannot match without
-                // the slash. MEASURED on PHP 8.3.6: the old union for
-                // `src/***` is exactly `^src.*$`, and for `src/***\/*.php`
-                // exactly `src` + anything + `/` + anything + `.php` — both of
-                // which the `.*` here reproduces, so this is the old answer and
-                // not a fresh widening. TWO stars keep the separator
-                // mandatory-or-absent, which is what a globstar means.
-                $out .= ($j - ($i + 1)) > 2 ? '.*' : '(?:/.*)?';
-                $i = $j - 1;
-                continue;
-            }
-
-            if ($ch === '*' && substr($pattern, $i + 1, 1) === '*') {
-                $j = $i + 1;
-                while ($j < $len && $pattern[$j] === '*') {
-                    ++$j;
-                }
-
-                // A LEADING `**/` — the case none of the three rewrites could
-                // see, because each of them needed a slash in front of the
-                // stars and at position 0 there is none. Zero-or-more leading
-                // directories, so `**/*.php` finally claims `a.php`.
-                if ($i === 0 && $j < $len && $pattern[$j] === '/') {
-                    $out .= '(?:.*/)?';
-                    $i = $j;
-                    continue;
-                }
-
-                $out .= '.*';
-                $i = $j - 1;
-                continue;
-            }
-
-            if ($ch === '*') {
-                $out .= '.*';
-                continue;
-            }
-
-            if ($ch === '?') {
-                $out .= '.';
-                continue;
-            }
-
-            if ($ch === '[') {
-                $close = $i + 1;
-                if ($close < $len && ($pattern[$close] === '!' || $pattern[$close] === '^')) {
-                    ++$close;
-                }
-                // A `]` in first position is a literal member, not the
-                // terminator — the POSIX rule, and PHP's: fnmatch('[]]x', ']x')
-                // is true on 8.3.6.
-                if ($close < $len && $pattern[$close] === ']') {
-                    ++$close;
-                }
-                while ($close < $len && $pattern[$close] !== ']') {
-                    // A POSIX CLASS CARRIES A `]` OF ITS OWN, and a scan that
-                    // does not know that stops on it. `[[:alpha:]]` then
-                    // yielded the body `[:alpha:` and the emitted class ran on
-                    // past its own terminator. That was tolerable exactly while
-                    // the result failed to COMPILE — PCRE refused
-                    // `#^[[:alpha:]\]x$#Ds` and the pattern routed to
-                    // {@see legacyPathMatch()}. It is not tolerable when a
-                    // LATER `[` in the pattern supplies the missing `]`:
-                    // MEASURED on PHP 8.3.6, `[[:alpha:]][!a]` emitted
-                    // `#^[[:alpha:]\][^a]$#Ds`, which compiles, swallows the
-                    // second group into the first class, and answers FALSE for
-                    // `ab` where `fnmatch()` answers true. A silently wrong
-                    // answer, with no fallback, from a supported shape.
-                    if ($pattern[$close] === '[' && substr($pattern, $close + 1, 1) === ':') {
-                        $classEnd = strpos($pattern, ':]', $close + 2);
-                        if ($classEnd !== false) {
-                            $close = $classEnd + 2;
-                            continue;
-                        }
-                    }
-
-                    ++$close;
-                }
-
-                if ($close >= $len) {
-                    // Unterminated: fnmatch treats the bracket as a literal
-                    // (fnmatch('a[b', 'a[b') is true on 8.3.6), so this does
-                    // too, and the rest of the pattern keeps translating.
-                    $out .= '\\[';
-                    continue;
-                }
-
-                $body = substr($pattern, $i + 1, $close - $i - 1);
-                if ($body !== '' && $body[0] === '!') {
-                    $body = '^' . substr($body, 1);
-                }
-                $out .= '[' . self::compileClassBody($body) . ']';
-                $i = $close;
-                continue;
-            }
-
-            $out .= preg_quote($ch, '#');
-        }
-
-        // /D so a TRAILING newline in a path cannot satisfy `$`; /s so an
-        // EMBEDDED one cannot defeat a wildcard. The two are independent and
-        // both are load-bearing: `fnmatch()`'s `*` and `?` match a newline like
-        // any other byte, while PCRE's `.` refuses to without /s. MEASURED on
-        // PHP 8.3.6: `fnmatch('*.php', "a\nb.php")` is TRUE and without /s
-        // this translation answered false — a narrowing, on a path shape POSIX
-        // genuinely permits. Neither modifier substitutes for the other, and
-        // {@see \SugarCraft\Crush\Tests\Skills\SkillPathPatternTest} pins
-        // one case for each.
-        return '#^' . $out . '$#Ds';
-    }
-
-    /**
-     * Translate the inside of one `[...]` from `fnmatch()`'s reading to PCRE's.
-     *
-     * EXACTLY TWO CHARACTERS ARE REINTERPRETED, and the restraint is the
-     * point: `#` (this class's regex delimiter) and `\`. A POSIX class needs
-     * NO handling here and an explicit passthrough for one was written and
-     * then removed: PCRE spells `[:alpha:]` exactly as libc's `fnmatch()`
-     * does, and none of `[`, `:` or an alphanumeric is a character this method
-     * rewrites, so the loop below already copies it verbatim. The branch was
-     * unkillable by mutation — deleting it reddened nothing — which is the
-     * signature of code that is not doing anything. What POSIX classes DO need
-     * is for {@see compilePathPattern()}'s terminator scan to know they carry
-     * a `]`; that is where the fix lives. Everything else — `-`
-     * ranges, a leading `^`, a first-position `]` — means the same thing to
-     * both engines, and quoting it would break it. VERIFIED on PHP 8.3.6 that
-     * the tidier-looking alternative is wrong: `preg_quote()` over the whole
-     * body turns `[a-c]` into a three-literal class and `[!a]` into a class
-     * that contains a literal `^`.
-     *
-     * THE BACKSLASH IS A NARROWING IF IT IS PASSED THROUGH, which is how it
-     * got here. `fnmatch()` reads `\X` inside a class as the literal X and not
-     * as a member SET — MEASURED on PHP 8.3.6: `fnmatch('[\d]x', 'dx')` is
-     * TRUE, `fnmatch('[\d]x', '5x')` is FALSE, and `fnmatch('[\d]x', '\x')` is
-     * FALSE, so the backslash is not itself a member either. Copied verbatim
-     * into a PCRE class, `[\d]` becomes the digit escape: it stops claiming
-     * `dx`, which the predicate this replaced claimed, and starts claiming
-     * `5x`, which it did not. So an escaped alphanumeric is emitted bare and
-     * everything else is re-escaped for PCRE.
-     *
-     * A LONE TRAILING BACKSLASH IS DELIBERATELY LEFT ALONE, and this is the
-     * one place where doing less is the safe move rather than the lazy one.
-     * The scan in {@see compilePathPattern()} that found this body's closing
-     * `]` is not escape-aware, so a body ENDING in a backslash means the `]`
-     * it stopped at was itself escaped — `a[\]]b` — and what arrived here is a
-     * fragment of a class whose real end this translation cannot see. Emitted
-     * unchanged it keeps the regex uncompilable, which routes the pattern to
-     * {@see legacyPathMatch()}, which reads it correctly. Making it compile
-     * here would make it compile WRONG, which is strictly worse than not
-     * compiling. Teaching the scanner to skip escapes is the fix, and it is a
-     * bigger one: it must also decide what to do with `[:alpha:]`, and it must
-     * leave SOME input uncompilable or the fallback branch stops being pinned.
-     */
-    private static function compileClassBody(string $body): string
-    {
-        $len = strlen($body);
-        $out = '';
-
-        for ($i = 0; $i < $len; $i++) {
-            $ch = $body[$i];
-
-            if ($ch === '\\') {
-                if ($i + 1 >= $len) {
-                    return str_replace('#', '\\#', $body);
-                }
-
-                $literal = $body[++$i];
-                $out .= ctype_alnum($literal) ? $literal : '\\' . $literal;
-                continue;
-            }
-
-            $out .= $ch === '#' ? '\\#' : $ch;
-        }
-
-        return $out;
+        return PathGlob::compile($pattern);
     }
 
     /**

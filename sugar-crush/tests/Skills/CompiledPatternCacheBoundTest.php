@@ -394,7 +394,7 @@ final class CompiledPatternCacheBoundTest extends TestCase
             . 'closes the only route to legacyPathMatch(), which the never-remove rule then leaves as '
             . 'an unpinnable method and which the M6-class mutations stop being caught by. If the '
             . 'bracket scan was deliberately made escape-aware, find a NEW uncompilable shape and put '
-            . 'it here — see SkillRegistry::compileClassBody()\'s doc-block.',
+            . 'it here — see PathGlob::classBody()\'s doc-block.',
         );
 
         $legacy = new ReflectionMethod(SkillRegistry::class, 'legacyPathMatch');

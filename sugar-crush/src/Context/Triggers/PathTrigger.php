@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SugarCraft\Crush\Context\Triggers;
 
 use InvalidArgumentException;
+use SugarCraft\Crush\Util\PathGlob;
 
 /**
  * Fires when a file path handed to it matches one of its glob patterns.
@@ -24,31 +25,50 @@ use InvalidArgumentException;
  * matchers in this repo separate matching from gating
  * ({@see \SugarCraft\Crush\Skills\SkillRegistry::pathMatches()}).
  *
- * GLOB DIALECT — one deliberate flavour, documented to the character:
- * - `**` spans anything including `/`. A double star followed by a separator
- *   matches zero or more whole leading segments, so the pattern made of "src/",
- *   a double star, and "/test.php" matches "src/test.php" as well as
- *   "src/a/b/test.php". (Prose: `**` touching `/` closes comments.)
- * - `*`   matches within ONE segment only — it never crosses `/`, so
- *   `src/*.php` does not match `src/deep/x.php`.
- * - `?`   matches exactly one non-`/` character.
- * - every other character is literal, `preg_quote()`d (`[abc]` classes and
- *   `{a,b}` braces are NOT wildcards here — they match themselves).
- * - Matching is case-SENSITIVE (POSIX path semantics) and BYTE-wise: the
- *   compiled patterns carry no `u` modifier on purpose, because path strings
- *   may contain bytes that are not valid UTF-8 and a `u`-compiled pattern
- *   would fail such a subject wholesale instead of matching it literally.
- * - Patterns are anchored at both ends (`\A…\z`): a glob matches the whole
- *   path, never a substring of it.
- * - A trailing `/**` requires the separator, i.e. `src/**` matches paths
- *   UNDER `src/` but not the bare directory string `src`.
+ * THE GLOB DIALECT is the one {@see \SugarCraft\Crush\Skills\SkillRegistry} has
+ * always spoken for `SKILL.md` frontmatter `paths:`, and it is not this class's
+ * to define: the compiler lives in {@see PathGlob::compile()}, whose class
+ * doc-block states that dialect to the character together with the four
+ * measured reasons it was chosen over the stricter shell reading. Reconciling
+ * the two is P6.S5a, and it is resolved HERE rather than deferred — see
+ * {@see \SugarCraft\Crush\Tests\Context\GlobDialectDifferentialTest} for the
+ * 33-row differential both sides are pinned against.
  *
- * UNVERIFIED for stage B to reconcile against `SkillRegistry` (out of this
- * stage's reading scope): whether `pathMatches()`'s cached glob→PCRE
- * translation and `legacyPathMatch()`'s fnmatch fixups use the same
- * segment-scoped `*` as this dialect. The semantics above are self-consistent
- * and pinned here; if the loader later needs the other flavour, that is a
- * P6.S2 reconciliation, not a silent divergence.
+ * BEFORE THIS STEP this class compiled its own dialect: a segment-scoped `*`,
+ * a `?` that refused `/`, `[…]` that matched only itself, a trailing `/**` that
+ * demanded the separator, and no backslash escapes at all. Every one of those
+ * five answers differed from the skill channel, and the difference is now gone.
+ *
+ * WHAT THIS MOVES, stated exactly because "wider" is not the whole truth: over
+ * the 33-row differential, 20 rows answer as before, 10 flip from no-match to
+ * match, and 3 flip from match to no-match. Every one of the 10 is a wildcard
+ * that used to stop at a separator and no longer does - `src/*.php` now fires
+ * for `src/deep/x.php`, `src/**` now fires for the bare directory string `src`.
+ * All 3 narrowings are a character the strict dialect held as a literal and this
+ * one reads as syntax: `[a-z].php` against the same string as itself (row #11),
+ * `a\*b` against `a\b` (row #22), and `src\*.php` against `src\a.php` (row #23).
+ * Unifying the other way would have narrowed the live skill matcher instead,
+ * which repo law forbids; both directions move, and this one moves the half of
+ * the tree that answers nothing today.
+ *
+ * TWO CONSEQUENCES A CALLER MUST KNOW:
+ * - The YES-set here is WIDER than it was, deliberately. `src/*.php` now fires
+ *   for `src/deep/x.php`, and `src/**` now fires for the bare directory string
+ *   `src`. Unifying the other way would have narrowed a live matcher that
+ *   announces skills on those very patterns, which repo law forbids.
+ * - A glob whose compiled regex PCRE refuses to execute — a backslash-escaped
+ *   `]` inside a class, a reversed range — answers NO here, where
+ *   {@see \SugarCraft\Crush\Skills\SkillRegistry::pathMatches()} answers it from
+ *   its `legacyPathMatch()` fallback. That is a POLICY difference and not a
+ *   dialect one: this trigger owns no older predicate to fall back to, and a
+ *   rule that fired on an answer it never computed is worse than one that stays
+ *   silent. Both callers read the same third value out of
+ *   {@see PathGlob::matchCompiled()} and decide for themselves.
+ *
+ * Case-SENSITIVE, BYTE-wise (no `u` modifier, so a path holding bytes that are
+ * not valid UTF-8 matches literally instead of failing the subject wholesale),
+ * and anchored at both ends — all three inherited from the shared compiler
+ * rather than decided here.
  */
 final class PathTrigger implements Trigger
 {
@@ -107,11 +127,14 @@ final class PathTrigger implements Trigger
 
     /**
      * Does the given path string match at least one glob? Pure string test.
+     *
+     * A glob whose regex PCRE cannot execute answers NO: see the policy
+     * paragraph in the class doc-block.
      */
     public function matches(string $path): bool
     {
         foreach ($this->globs as $glob) {
-            if (preg_match($this->pattern($glob), $path) === 1) {
+            if (PathGlob::matchCompiled($this->pattern($glob), $path) === true) {
                 return true;
             }
         }
@@ -129,7 +152,7 @@ final class PathTrigger implements Trigger
     {
         $hits = [];
         foreach ($this->globs as $glob) {
-            if (preg_match($this->pattern($glob), $path) === 1) {
+            if (PathGlob::matchCompiled($this->pattern($glob), $path) === true) {
                 $hits[] = $glob;
             }
         }
@@ -138,43 +161,16 @@ final class PathTrigger implements Trigger
     }
 
     /**
-     * Translate one glob to an anchored PCRE per the class dialect, memoised.
+     * The anchored PCRE for one glob, memoised per instance.
+     *
+     * The translation is {@see PathGlob::compile()} and nothing else — this
+     * class owns no dialect of its own. The memo is per-instance rather than
+     * shared because a trigger is a long-lived value holding a fixed glob set,
+     * so the only cost avoided is re-walking the same characters on every
+     * rendered turn, and no cross-instance cache key would ever be evicted.
      */
     private function pattern(string $glob): string
     {
-        if (isset($this->compiled[$glob])) {
-            return $this->compiled[$glob];
-        }
-
-        $body = '';
-        $length = strlen($glob);
-
-        for ($i = 0; $i < $length; $i++) {
-            $char = $glob[$i];
-
-            if ($char === '*') {
-                if ($i + 1 < $length && $glob[$i + 1] === '*') {
-                    $i++;
-                    if ($i + 1 < $length && $glob[$i + 1] === '/') {
-                        $i++;
-                        $body = $body . '(?:[^/]++/)*+';
-                    } else {
-                        $body .= '.*';
-                    }
-                } else {
-                    $body = $body . '[^/]*';
-                }
-                continue;
-            }
-
-            if ($char === '?') {
-                $body .= '[^/]';
-                continue;
-            }
-
-            $body .= preg_quote($char, '#');
-        }
-
-        return $this->compiled[$glob] = '#\A' . $body . '\z#';
+        return $this->compiled[$glob] ??= PathGlob::compile($glob);
     }
 }

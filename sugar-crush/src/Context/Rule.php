@@ -38,17 +38,25 @@ use SugarCraft\Crush\Support\Frontmatter;
  * trigger keys still loads with an empty {@see $triggers} list: it is a
  * standing rule, always eligible, gated on nothing.
  *
- * GLOB DIALECT - a divergence recorded rather than silently resolved
- * (F-PATHDIALECT). {@see PathTrigger} compiles `*` as segment-scoped
- * ([^/] - it does not cross a `/`), documented at
- * {@see \SugarCraft\Crush\Context\Triggers\PathTrigger::pattern()}. The older
+ * GLOB DIALECT - RESOLVED, and this class is not where it is defined. The
+ * divergence this paragraph used to record (F-PATHDIALECT) is closed: the older
  * matcher in {@see \SugarCraft\Crush\Skills\SkillRegistry::compilePathPattern()}
- * maps the same `*` to `.*` (it does cross `/`) and its own docblock marks the
- * two UNVERIFIED against each other. This class does not re-implement matching
- * and does not pick a dialect of its own: it stores a {@see PathTrigger} built
- * from the raw glob list, so the segment-scoped dialect is what any downstream
- * consumer of a rule's `paths:` will see. The reconciliation of that split is
- * flagged for the orchestrator, not decided here.
+ * and {@see PathTrigger} both compile through
+ * {@see \SugarCraft\Crush\Util\PathGlob}, one compiler, one dialect, and the
+ * dialect is the `fnmatch()`-style one that the skill channel has always
+ * answered with - `*` crosses `/`, `?` is any single character, `[…]` is a
+ * character class, a trailing `/**` makes its own separator optional. That
+ * class's doc-block states the whole dialect to the character and carries the
+ * four measured reasons it won over the stricter segment-scoped reading, so this
+ * paragraph does not restate it and no downstream consumer of a rule's `paths:`
+ * needs a flavour of its own.
+ *
+ * WHAT REMAINS DIFFERENT between the two matchers is a POLICY and not a
+ * dialect: on a glob whose compiled regex PCRE refuses to execute, the skill
+ * channel answers from {@see \SugarCraft\Crush\Skills\SkillRegistry::legacyPathMatch()}
+ * and a rule trigger answers no match. {@see PathTrigger} owns no older
+ * predicate to answer from, and firing a rule on an answer that was never
+ * computed is worse than not firing it.
  *
  * NAME VERSUS KEY - two identifiers, because they answer two different
  * questions and only one of them is stable. {@see $name} is what the file chose
