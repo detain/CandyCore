@@ -51,9 +51,14 @@ use InvalidArgumentException;
  * for persistence "or explicitly does not, and a test pins which", and the test
  * that pins it asserts the config file is byte-identical across a toggle
  * (`RulesCommandTest::testTogglingAPackLeavesTheConfigFileByteIdentical()`).
- * Persistence keys belong to P6.S4, and a pack that came back off after a
- * restart would otherwise be indistinguishable from one the operator never
- * re-enabled.
+ * P6.S4 has since landed, on the READ side and not in this class:
+ * {@see \SugarCraft\Crush\Cli\Bootstrap::chat()} seeds `new()` from the operator's
+ * own `disabledRules`, so a pack named there does come back off after a restart —
+ * by design, and from that file rather than from anything here. The sentence below
+ * is therefore scoped to the TOGGLE path, which is the half this class owns: a
+ * `/rules` switch stays session-only, and that is what keeps the two states a
+ * restart can end in distinguishable — a pack that came back off on its own would
+ * otherwise be indistinguishable from one the operator never re-enabled.
  *
  * THE INTERACTION RULE LIVES HERE AND NOWHERE ELSE. A pack is in the prompt when
  * its frontmatter says enabled AND this session has not turned it off; the

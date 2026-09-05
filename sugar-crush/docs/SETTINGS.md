@@ -166,7 +166,9 @@ a missing one, because it looks configurable.
 Where a row names two methods, the first is the public entry point and the
 second is the method that does the read — cited because that is the one to
 grep for. The second name is a private method on `Bootstrap` in every row but
-`statusLine` and `disabledRules`, where it lives in another class:
+`provider`, `statusLine` and `disabledRules`: `backend()` is public static
+because callers outside `chat()` build a backend through it rather than only
+through it, and for the other two the second name lives in another class —
 `StatusLineCommand::fromSettings()`, public because the runner is testable
 without a launch, and `RulesState::new()`, which *consumes* the value that
 `chat()` reads and filters through the private
@@ -176,6 +178,32 @@ of this row named `StatusLineCommand::fromSettings()` first and
 nothing calls `fromSettings()` on a launch except `Bootstrap::chat()`, and
 `renderStatusBar()` does not read the settings key at all — it reads the
 already-cached process line.
+
+**`disabledRules` is a LIST of pack names, and a name is a path.** Spell it like
+this:
+
+```json
+{"disabledRules": ["focus", "style/terse"]}
+```
+
+`"focus"` is a pack sitting at `~/.sugar-crush/rulebooks/focus.md`: flat in its
+tier directory, so the basename minus the extension is the whole name.
+`"style/terse"` is one directory deeper, at
+`~/.sugar-crush/rulebooks/style/terse.md` — the key is the path RELATIVE TO THE
+TIER DIRECTORY, so a bare `"terse"` there selects nothing and a line that looks
+like a no-op is really a name that matches no pack. A name pointing at the
+repository's own tier — anything under `<repo>/.sugar-crush/rules`, or the root
+`RULES.md`, which is keyed with its extension and outside the toggleable tier —
+is inert by design: a session may silence the operator's packs and never a
+checkout's, which is the same reason this key is one a project may not set.
+
+LIST, not map. `{"disabledRules": {"terraform": true}}` is the shape the skill
+registry keeps in memory for its own disable set, and it is a natural thing to
+copy by analogy; as config it decodes to `true` values rather than strings, every
+entry is dropped by `Bootstrap::rulePacksToDisable()`, and the file disables
+nothing while looking completely serious about it. That is the one failure mode of
+this key with no message attached, because the launch cannot tell a considered
+empty list from a typo in a shape.
 
 **`statusLine` runs a command, which is why it is user-tier only.** The shape
 is Claude Code's, so a settings file written for that tool carries over:

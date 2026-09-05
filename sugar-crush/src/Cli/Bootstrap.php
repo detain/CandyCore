@@ -2845,8 +2845,12 @@ final class Bootstrap
      * file path RELATIVE TO ITS TIER DIRECTORY with separators normalised to `/`
      * and `.md` removed — so a pack in `~/.sugar-crush/rulebooks/style/terse.md`
      * is `style/terse`, not `terse`, and a config entry has to say the whole
-     * thing. The flat case, which is what the docs show, still spells as the
-     * basename minus the extension. One exception is worth knowing before anyone
+     * thing. The flat case still spells as the basename minus the extension, and
+     * the two shapes are pinned where they are actually written out: the value
+     * example beside the `disabledRules` row of `docs/SETTINGS.md` and the
+     * fixture at
+     * {@see \SugarCraft\Crush\Tests\Cli\RulesStateWiringTest::seedRulebook()},
+     * which seeds flat names. One exception is worth knowing before anyone
      * debugs a no-op: the repository root's `RULES.md` is keyed as the literal
      * `'RULES.md'`, extension included, and carries tier `root`, so
      * {@see RulesState} will never subtract it and a config entry naming it is

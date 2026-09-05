@@ -198,7 +198,13 @@ final class LayeredSettings
      *  - `disabledSkills` `Bootstrap::skillRegistry()`.
      *  - `disabledRules` `Bootstrap::rulePacksToDisable()`, whose list `Bootstrap::chat()`
      *                 hands to {@see \SugarCraft\Crush\Context\RulesState::new()} so the
-     *                 packs named there are out of the prompt from the first turn.
+     *                 user-tier packs named there are out of the prompt from the first
+     *                 turn. INERT OUTSIDE THE USER TIER, and the qualifier goes here
+     *                 rather than only further down because this list is what readers
+     *                 scan: a name pointing at `<repo>/.sugar-crush/rules` or the
+     *                 repository root's `RULES.md` selects nothing a session may
+     *                 silence, since {@see \SugarCraft\Crush\Context\RulesState}'s
+     *                 `TOGGLEABLE_TIER` is `'user'` — the argument is below.
      *  - `parallelToolCalls` / `parallelToolDeadlineSeconds`
      *                 {@see \SugarCraft\Crush\Backend\EngineBackend}'s per-turn
      *                 dispatch settings, which read through `readUserConfig()`.
@@ -240,26 +246,26 @@ final class LayeredSettings
      * ({@see PROJECT_TIER_KEYS} takes `disabledTools` and refuses
      * `allowedTools`). Nested under one key, a project's `tools.deny` and a
      * user's `tools.allow` could not coexist, and gating one half without the
-      * other would be unexpressible. The spelling follows `disabledSkills`,
-      * which is the same idea one layer up.
-      *
-      * `disabledRules` LOOKS LIKE IT SHOULD FOLLOW `disabledSkills` AND IT DOES
-      * NOT, so the difference is stated here rather than left for a reviewer to
-      * ask about. Both are disable-lists, and a disable-list holds NAMES, not
-      * contents — so the `instructions` argument ("its file contents become
-      * prompt text", {@see userTierOnlyKeys()}) cannot decide this one either
-      * way on its own. What decides it is what the names SELECT: `disabledSkills`
-      * subtracts from a capability set the harness enforces, and "this repo has
-      * no use for the terraform skill" is a thing the checkout genuinely knows
-      * better than the operator. A rule pack is the OPERATOR'S OWN PROMPT TEXT —
-      * the user tier's `rules/` and `rulebooks/` directories — and
-      * {@see \SugarCraft\Crush\Context\RulesState} draws the same line from the
-      * other side: `TOGGLEABLE_TIER` is `'user'`, so not even the interactive
-      * `/rules` command may silence a repository-authored pack. A project value
-      * here would be a checkout silencing prose the operator wrote about their
-      * own working style, under a trust grant whose stated meaning is "start my
-      * servers and pick my theme".
-      *
+     * other would be unexpressible. The spelling follows `disabledSkills`,
+     * which is the same idea one layer up.
+     *
+     * `disabledRules` LOOKS LIKE IT SHOULD FOLLOW `disabledSkills` AND IT DOES
+     * NOT, so the difference is stated here rather than left for a reviewer to
+     * ask about. Both are disable-lists, and a disable-list holds NAMES, not
+     * contents — so the `instructions` argument ("its file contents become
+     * prompt text", {@see userTierOnlyKeys()}) cannot decide this one either
+     * way on its own. What decides it is what the names SELECT: `disabledSkills`
+     * subtracts from a capability set the harness enforces, and "this repo has
+     * no use for the terraform skill" is a thing the checkout genuinely knows
+     * better than the operator. A rule pack is the OPERATOR'S OWN PROMPT TEXT —
+     * the user tier's `rules/` and `rulebooks/` directories — and
+     * {@see \SugarCraft\Crush\Context\RulesState} draws the same line from the
+     * other side: `TOGGLEABLE_TIER` is `'user'`, so not even the interactive
+     * `/rules` command may silence a repository-authored pack. A project value
+     * here would be a checkout silencing prose the operator wrote about their
+     * own working style, under a trust grant whose stated meaning is "start my
+     * servers and pick my theme".
+     *
      * NO PERMISSION KEY HERE, and this is the one omission a reader of Phase 6
      * item 4 will come looking for. `permissionMode` and `permissionRules` ARE
      * readable from `~/.sugar-crush/settings.json` as of that item — but NOT
