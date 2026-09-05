@@ -11,7 +11,6 @@ description: Criteria for reviewing implementation plans against quality standar
 Systematic plan review focused on 3 quality categories: Citation Quality, Completeness, and Actionability. Structure is pre-validated by `plan_save`—focus on whether the plan provides actionable implementation guidance.
 
 ## When to Use This Skill
-
 - When reviewing implementation plans before execution
 - When auditing plan quality after creation
 - When verifying plans meet documentation standards
@@ -37,7 +36,6 @@ Systematic plan review focused on 3 quality categories: Citation Quality, Comple
 | Citations are verifiable | IDs match actual delegation outputs |
 
 **Red Flags:**
-
 - Decisions table with empty or `-` in Source column
 - Claims like "industry standard" or "best practice" without citation
 - Research tasks marked complete without `→ ref:id`
@@ -53,7 +51,6 @@ Systematic plan review focused on 3 quality categories: Citation Quality, Comple
 | Context & Decisions table | Captures architectural choices with rationale |
 
 **Goal Quality Examples:**
-
 - ❌ "Improve authentication" (vague)
 - ❌ "Make it better" (unmeasurable)
 - ✅ "Add JWT authentication with refresh token support" (specific)
@@ -69,7 +66,6 @@ Systematic plan review focused on 3 quality categories: Citation Quality, Comple
 | Implementation path obvious | Developer can start without clarification |
 
 **Actionability Examples:**
-
 - ❌ "Set up the backend" (too vague)
 - ❌ "Make it work" (no implementation path)
 - ✅ "Create `src/auth/jwt.ts` with sign/verify functions" (specific file)

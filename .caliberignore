@@ -1,0 +1,11 @@
+# Files excluded from Caliber's doc-sync context window.
+# Large binaries/logs carry no information for agent docs and only bloat context.
+# (.gitignore'd paths — vendor/, workerman.log, .logs/, .opencode/ — are already
+# skipped, so they do not need repeating here.)
+
+# 10.89 MB coverage tool
+codacy-coverage-reporter
+
+# VHS Gifs
+sugar-reel/.vhs/play.gif
+*/.vhs/*.gif

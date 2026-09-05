@@ -16,9 +16,12 @@ paths:
 - **Snapshot cell-grid** — drive bytes through `SugarCraft\Vt\Terminal\Terminal`, assert `$term->screen()->cell($r,$c)` (note `$screen->cols`/`$screen->rows` are readonly PROPERTIES, not methods).
 - **Behaviour** — drive `update()` with scripted `KeyMsg`/`MouseMsg`, assert `[Model, ?Cmd]` tuple.
 - **Coercion** — feed negative/oversized index, empty, null; assert clamp/no-op matching upstream.
+- **Documentation drift** — `sugar-crush/tests/Config/ReadmeRosterDriftTest.php`, `EnvRosterDriftTest.php`, `TrustKeyDocumentationDriftTest.php`, `sugar-crush/tests/Commands/KeyBindingDriftTest.php` re-derive the rosters printed in `sugar-crush/README.md` + `sugar-crush/docs/*.md` from their generators in `sugar-crush/src/`. Adding a tool, slash command, env var, or key binding without the doc edit goes red.
 
 **Stream-write gotcha**: don't `ftruncate; rewind;` between writes — slice deltas with `ftell`/`fseek`/`stream_get_contents` (canonical `candy-core/tests/RendererTest.php`).
 
 **FFI tests** (`candy-pty/tests/`): structural tests run unconditionally; syscall round-trips call `requirePtySyscalls()` as the FIRST line and skip on FFI-less CI.
 
-Run: `cd <slug> && composer install && vendor/bin/phpunit`.
+**Hang watchdog** (`candy-pty/tests/`): `tests/bootstrap.php` calls `HangWatchdog::install()` AFTER `LoopPin::pinStableClock()`. The out-of-process watchdog (`candy-pty/tests/Support/hang-watchdog.php`) bounds each test and SIGKILLs the runner with a forensic dump, because `PosixPump::pump()`/`MultiPump::run()` style loops can only hang, never fail. `candy-pty/tests/Support/SharedLoopResidue.php` throws on timers/streams left armed on the shared `Loop::get()`.
+
+Run: `cd <slug> && composer install && vendor/bin/phpunit`. A bare `composer update` swaps symlinked siblings for Packagist copies — check with `php scripts/refresh-deps.php --status`.

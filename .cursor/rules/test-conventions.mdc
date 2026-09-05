@@ -16,9 +16,12 @@ Patterns (`sugar-bits/tests/`, `candy-core/tests/`, `candy-vt/tests/`):
 - **Snapshot cell-grid** — drive through `SugarCraft\Vt\Terminal\Terminal`, assert `$term->screen()->cell($r,$c)` (`$screen->cols`/`rows` are properties).
 - **Behaviour** — drive `update()` with scripted `KeyMsg`/`MouseMsg`, assert `[Model, ?Cmd]`.
 - **Coercion** — negative/oversized index, empty, null; assert clamp/no-op.
+- **Documentation drift** — `sugar-crush/tests/Config/ReadmeRosterDriftTest.php`, `EnvRosterDriftTest.php`, `TrustKeyDocumentationDriftTest.php`, `sugar-crush/tests/Commands/KeyBindingDriftTest.php` re-derive `sugar-crush/README.md` + `sugar-crush/docs/*.md` rosters from `sugar-crush/src/`. New tool/command/env var/key binding without the doc edit = red.
 
 **Stream-write gotcha**: don't `ftruncate; rewind;` between writes. Slice deltas with `ftell`/`fseek`/`stream_get_contents` (canonical `candy-core/tests/RendererTest.php`).
 
 **FFI** (`candy-pty/tests/`): structural tests run unconditionally; syscall round-trips call `requirePtySyscalls()` first.
 
-Run: `cd <slug> && composer install && vendor/bin/phpunit`.
+**Hang watchdog** (`candy-pty/tests/`): `tests/bootstrap.php` calls `HangWatchdog::install()` AFTER `LoopPin::pinStableClock()`; `candy-pty/tests/Support/hang-watchdog.php` bounds each test out-of-process and SIGKILLs the runner with a forensic dump. `candy-pty/tests/Support/SharedLoopResidue.php` throws on anything left armed on the shared `Loop::get()`.
+
+Run: `cd <slug> && composer install && vendor/bin/phpunit`. Check vendor wiring with `php scripts/refresh-deps.php --status`.

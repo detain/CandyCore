@@ -1,17 +1,19 @@
 ---
-description: Hand-maintained CI and VHS workflow matrices
+description: Hand-maintained VHS matrix and dynamic CI matrix
 globs: ".github/workflows/*.yml"
 alwaysApply: false
 ---
 
 # CI / VHS workflow matrices
 
-**Both matrices are hand-maintained, NOT glob-driven.** Adding a lib without updating both means PHPUnit silently never runs and the GIF never re-renders.
+**`vhs.yml` is hand-maintained; `ci.yml` is dynamic.** Adding a lib without updating the `all=(...)` array means the GIF never re-renders.
 
-- `.github/workflows/ci.yml` — PHPUnit matrix entry per lib under `jobs.test.strategy.matrix.lib`. Coverage job runs after matrix; uploads per-lib Clover with `flags: <lib>` (matches `codecov.yml`).
+- `.github/workflows/ci.yml` — every matrix (test / coverage / phpstan / windows-test / macos-test) is computed by `scripts/affected-libs.php` in the `build-matrix` job and consumed via `fromJSON(needs.build-matrix.outputs.*)`. The script auto-discovers libs (any dir with `composer.json` + `phpunit.xml`) and walks the reverse-dep graph from each `composer.json`'s `require[sugarcraft/*]`. Adding a lib usually needs **no** ci.yml change. Hand-maintained inside the script: `WINDOWS_LIBS`/`MACOS_LIBS` pools and `PHP_VERSIONS`.
 - `.github/workflows/vhs.yml` — hand-maintained `all=(...)` bash array around line ~51-64. Once a lib is in the array, every `.vhs/*.tape` it owns auto-renders. Don't commit rendered GIFs — the `commit` job does that.
 - `.github/workflows/sync-sugarcraft.yml` — pushes each subdir to `github.com/sugarcraft/<slug>`. Run `./scripts/bootstrap-org-repos.sh` first.
 - `.github/workflows/tests.yml` — SVN credentials HARDCODED. Do NOT refactor to `${{ secrets.SVN_USER }}` — secrets don't exist in repo settings yet.
+
+**Cache keys**: bump EVERY `-vN-` key in lockstep (`vendor-vN`, `vendor-cov-vN`, `vendor-stan-vN`, `vendor-win-vN`, `vendor-mac-vN`) — a partial bump leaves a shadowed `vendor/` re-resolving to the stale lock.
 
 **VHS tape rules**: `Env COLUMNS "100"` (quote ALL values, even numerics). Always `Set Theme "TokyoNight"`. See `sugar-bits/.vhs/spinners.tape` for canonical shape.
 

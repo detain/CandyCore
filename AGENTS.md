@@ -9,8 +9,9 @@ PHP monorepo of 52 TUI library ports (Charmbracelet ecosystem). PSR-4, PHP 8.3+ 
 - `LOCALES.md` — i18n locale codes
 - `CALIBER_LEARNINGS.md` (root + per-lib) — accumulated patterns/gotchas
 - `docs/index.html` — public site tiles · `docs/lib/<slug>.html` — per-lib pages **generated** by `tools/gen-docs.php` from `docs/_data/<slug>.{json,body.html}` (never hand-edit)
-- `scripts/affected-libs.php` — dynamic CI matrix · `tools/check-path-repos.php` — path-repo policy (`--no-lib-path-repos` guards the committed tree; `--fix --strict-closure` is the CI injection)
+- `scripts/affected-libs.php` — dynamic CI matrix · `tools/check-path-repos.php` — path-repo policy (`--no-lib-path-repos` guards the committed tree; `--fix --strict-closure` is the CI injection) · `scripts/refresh-deps.php` — per-lib vendor refresh, `--mode=published` (default: siblings from Packagist `dev-master`) vs `--mode=linked` (path-repo symlinks into the monorepo); `--status` reports which mode each lib is in
 - `findings/<slug>.md` + `findings/plan_<slug>.md` (index `findings/README.md`, `findings/plan.md`) — per-lib audit findings + remediation plans · `docs/plans/leftover/` phased step files · `docs/repo_map/` (index `docs/repo_map.md`) · `docs/research/libraries/<slug>-research.md` (index `docs/research/INDEX.md`)
+- `prompt_kit/` — harness-portable orchestration working set: `prompt_kit/CONTEXT.md` (accumulated project context), `prompt_kit/briefs/` (per-step agent briefs), `prompt_kit/findings/` (review reports), `prompt_kit/tools/` (`cmp.py`, `scan.php`, `tokencensus.php`, `treewide-roster.php`) — cite these paths, never a `/tmp` scratchpad
 - `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`, `codecov.yml`, `.php-cs-fixer.dist.php`
 
 ## Naming
@@ -34,6 +35,10 @@ PHPUnit XML: `bootstrap="vendor/autoload.php"`, `colors="true"`, `failOnWarning=
 ## Tests
 
 PHPUnit 10, every public method ≥1 test. Snapshot byte (`view()` → raw SGR), cell-grid (`SugarCraft\Vt\Terminal`), behaviour (`update()` → `[Model,?Cmd]`), coercion (clamp edge cases). Stream-write: slice deltas with `ftell`/`fseek`/`stream_get_contents`, never `ftruncate;rewind;` (canonical `candy-core/tests/RendererTest.php`). FFI tests gate on `requirePtySyscalls()`. `candy-testing` provides `ProgramSimulator`, `ScriptedInput`, golden-file + tape-recorder helpers for TEA programs, and `LoopPin::pinStableClock()` (`candy-testing/src/LoopPin.php`) — call it from `<slug>/tests/bootstrap.php` whenever a suite bounds waits with timers on `Loop::get()`: under ext-uv deadlines are computed against a clock refreshed once per loop iteration, so a timer armed after synchronous idle is already overdue, while `StreamSelectLoop` refreshes at arm time.
+
+`candy-pty/tests/bootstrap.php` also calls `\SugarCraft\Pty\Tests\Support\HangWatchdog::install()`, AFTER `LoopPin::pinStableClock()` (which must be first to touch `Loop::get()`). The watchdog is a separate process (`candy-pty/tests/Support/hang-watchdog.php`) that bounds each test and SIGKILLs the runner with a forensic dump on overrun — `PosixPump::pump()`/`MultiPump::run()` style loops carry no deadline, so a test built on them can only hang, never fail. `candy-pty/tests/Support/SharedLoopResidue.php` throws on timers/streams left armed on the shared `Loop::get()`.
+
+**Docs are pinned by tests.** `sugar-crush` ships documentation-drift guards — `sugar-crush/tests/Config/ReadmeRosterDriftTest.php`, `TrustKeyDocumentationDriftTest.php`, `EnvRosterDriftTest.php`, `ConfigWriteProducerDocumentationDriftTest.php`, `sugar-crush/tests/Commands/KeyBindingDriftTest.php` — that re-derive the rosters in `sugar-crush/README.md` + `sugar-crush/docs/*.md` from their generators in `sugar-crush/src/`. A tool, slash command, env var, or key binding added without the matching doc edit goes red.
 
 **Façade = alias smoke-test only.** A façade lib that re-exports a canonical class via `class_alias` (e.g. `sugar-bits`/`sugar-prompt` → `SugarCraft\Forms\*`, `candy-lister`'s `ScoringProfile` → `SugarCraft\Fuzzy\*`) must NOT copy the canonical lib's full test suite under its own namespace — that re-tests identical code and drifts. Ship ONE `AliasesTest`/`AliasResolutionTest` asserting each alias symbol resolves to its canonical FQN, plus tests only for genuinely lib-local behaviour the façade adds. (See #1275/#1312/#1314 which deleted ~4300 LOC of duplicated façade tests.)
 
@@ -61,6 +66,7 @@ Mark `plans/AUDIT_*.md` items ✅ inline where they live; skip `credit upstream 
 
 - `composer validate --strict` flags every `"sugarcraft/*": "@dev"` — EXPECTED; drop `--strict`.
 - New `sugarcraft/*` deps are a `require` bump only; verify with `php tools/check-path-repos.php --no-lib-path-repos`. Never commit a per-lib `composer.lock` — `composer install` then resolves from it and silently ignores CI's path-repo injection.
+- A bare `composer update` in a lib swaps symlinked siblings for Packagist copies, so a suite figure is uninterpretable unless you know the mode: `php scripts/refresh-deps.php --status` reports it, `--mode=linked` restores the development wiring.
 - `vhs.yml` `all=(...)` array hand-maintained; `ci.yml` dynamic via `scripts/affected-libs.php`.
 - Keep SVN creds in `.github/workflows/tests.yml` HARDCODED — repo secrets don't exist yet.
 - Run sub-agents ONE AT A TIME — concurrent writes to `MATCHUPS.md`/`README.md` collide.
