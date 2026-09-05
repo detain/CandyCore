@@ -2233,7 +2233,7 @@ exactly `{provider, theme}`, so persisting a rules toggle lands in P6.S4's `Laye
 **S3 lands a session-scoped toggle and S4 owns persistence — S3 first, S4 after, never parallel.**
 
 **A1 as written.** Rulebooks live at `~/.sugar-crush/rulebooks/*.md`; one file is one pack; pack identity is the
-basename minus `.md` — which is the shape the loader's existing `ruleKeyFor()` (`src/Context/RuleLoader.php:552-558`)
+basename minus `.md` — which is the shape the loader's existing `ruleKeyFor()` (`src/Context/RuleLoader.php:685-691`)
 already produces for a flat directory. No new identity function.
 
 **Tier decision: rulebooks REUSE the `user` tier — there is no fourth `TIERS` value.** `Rule::TIERS`
@@ -2365,29 +2365,112 @@ is refused with a message naming the key.
 > to avoid**, and the only design that trips them all at once is persisting rulebooks to a new path
 > like `~/.sugar-crush/rules.json`, which this ruling rejects on that cost alone.
 
-### P6.S5 — Glob-scoped rules reach the prompt
+### P6.S5a — One `paths:` glob dialect (split from P6.S5 — orchestrator ruling 2026-09-05)
 
-**Goal** The gap §9.7 names: a rule whose globs describe *the files it governs* rather than *its own
-location* — "these conventions apply to `*/tests/**/*.php` wherever they live". Exactly the 52-lib
-monorepo shape.
-**Source** §7.5, §9.7, §2.6 (`SkillPathNudge` is the existing precedent).
-**Files**
-- `sugar-crush/src/Context/RuleLoader.php`
-- `sugar-crush/src/Skills/SkillPathNudge.php`
-- `sugar-crush/tests/Skills/SkillPathNudgeTest.php`
-- `sugar-crush/tests/Context/RuleLoaderTest.php`
+> **SPLIT AND RULING 2026-09-05.** The premise check that finally landed on its fifth attempt
+> (`/tmp/opencode/P6.S5-premise/report.md`, 36,225 B / 440 lines, Q1-Q7 all answered — earlier attempts
+> `incredible-coral-lynx`, `many-tomato-prairie`, `many-tomato-grasshopper` and a fourth delivered NOTHING,
+> one of them a 212-byte stub, which is why plan law now says a completion notice is not a delivery)
+> found that this step is **two** steps, and that its own goal text prescribed a shape that cannot be built:
+>
+> - **Q1 (MEASURED):** the goal sentence "reach the prompt" implies filtering inside the system prompt.
+>   `tests/Integration/PromptStabilityTest.php:710` pins `MIN_STABLE_PREFIX_BYTES = 4096` and `:1113-1134`
+>   require the shared prefix to extend **past all five stable layers into `<env>`**; rules and user-rules
+>   render INSIDE that region (`Runtime.php:2586-2600`, `:2643-2654`, `Stability::PerSession`). Per-turn-varying
+>   content there breaks a reviewed, pinned contract **by construction**, and amending that test is forbidden
+>   by §7. So the system-prompt shape is **out**; the transient channel is the plan-compliant shape.
+> - **Q2 (MEASURED):** `paths:` parses to `PathTrigger::new($paths)` at `Rule.php:228`, and **nothing in
+>   production reads `$rule->triggers()`** — the only references are the self-carry at `Rule.php:313` and a
+>   comment at `Runtime.php:2561`. The gap is pinned by PROSE only (`:3733` §18 row); **there is no red test
+>   to turn green.**
+> - **Q6 (MEASURED):** the declared file list below covers **1 of at least 3** files the step actually needs,
+>   and **`RuleLoader.php` needs no change at all** for the transient shape — the plan's premise that S5
+>   contends for `RuleLoader.php` was wrong, which is what made the blanket "S5 waits for S4" rule unnecessary.
+>
+> **Therefore P6.S5 is split: P6.S5a (dialect reconciliation — this section) and P6.S5b (the scoped-delivery
+> channel — the next section).** Total plan step count becomes **65**. Phase 6 becomes **seven** steps.
+> Note also: **there has never been a `P6.S6`** — `/usr/bin/grep -n '^### P[0-9]' prompt_plan.md` measures
+> 64 headings with Phase 6 = S1,S2,S2b,S3,S4,S5, and all four `P6.S6` mentions in the tree are in
+> `prompt_resume.md` (3) and `prompt_worklog.md` (1). The label is a bookkeeping fiction; the phase closes
+> with its standing phase review, not a phantom step. Corrected here 2026-09-05.
 
-**Depends on** P6.S1, P6.S2.
-**Hard constraint** Bound it the way `SkillPathNudge` already is: `MAX_ENTRIES = 8`,
-`MAX_ENTRY_BYTES = 300`, overflow **deferred rather than dropped**. That cap exists because a
-measured 200 skills × 50,000-byte descriptions produced a **10,002,823-byte** nudge. A new
-path-triggered channel with no cap reintroduces exactly that.
-**Done when** a test builds the pathological input (many rules, huge bodies) and asserts the emitted
-bytes stay under the cap and that the overflow is deferred, not lost. Record the measured bytes.
+**Goal** Reduce three live glob dialects (`PathTrigger::pattern()` `src/Context/Triggers/PathTrigger.php:143-178`,
+`SkillRegistry::pathMatches()` `src/Skills/SkillRegistry.php:650-790`, and the PCRE-failure fallback
+`legacyPathMatch()` `:628`) to **one compiler implementing the SkillRegistry dialect**, routed through a new
+neutral-home class under `src/Util/`. `legacyPathMatch()` stays reachable and unchanged — §1.10.
+**Source** §7.5, §9.7; premise check Q3.
+**Files** `src/Util/<new matcher>`, `src/Context/Triggers/PathTrigger.php`, `src/Skills/SkillRegistry.php`,
+`tests/Context/Triggers/TriggerTest.php` (pins deliberately amended — the change IS the deliverable,
+precedent P5.S5), a new differential test pinning Q3's 33 rows.
+**Dialect ruling — SkillRegistry, not the stricter shell dialect.** Three reasons, all measured: (i) the
+plan's own motivating example `*/tests/**/*.php` "wherever they live" **fails** under `PathTrigger` —
+Q3 row #26 measured `a/b/tests/FooTest.php` = **no** under PT, **yes** under SR, so the stricter compiler
+cannot express the feature's stated intent; (ii) **non-narrowing** — unifying the other way silently turns
+off live skill announcements (row #6: `src/*.php` vs `src/deep/x.php`), and a rule that never fires is
+invisible rather than loud; (iii) `PathTrigger` has **zero production readers**, so widening it moves
+nothing shipped, while `SkillRegistry`'s matcher is live.
+**Hard constraint (replaces the withdrawn one below)** `SkillRegistry::pathMatches()`'s YES-set must be
+**provably unchanged**. Required evidence: an independent oracle of the current implementation plus a
+measured corpus (all 33 Q3 rows, every `paths:` value in any repo fixture/test, the suites' own patterns,
+and a generated sweep) — report comparisons executed, not argument. Then red-cap it by mutating the shared
+compiler toward the dialect deliberately NOT chosen.
+**Done when** one compiler answers both matchers; the 33-row differential exists as a test with the 11
+disagreements resolved to SR semantics; `PathTrigger.php:46-51` and `Rule.php:41-51` no longer defer the
+question (F-PATHDIALECT discharged); **both goldens byte-identical** (nothing renders triggers — a golden
+move is a defect); `PromptStabilityTest` untouched.
 
+### P6.S5b — Glob-scoped rules reach the model (BLOCKED — user decision)
+
+**Status 2026-09-05: BLOCKED on one §1.10 escalation. Do not brief or build until the user answers.**
+
+**Shape (ruled)** transient `SkillPathNudge`-shaped channel, NOT in-splice filtering (Q1). Per premise
+check Q7 the build wants a **new** `src/Context/RulePathNudge.php` sibling (keep `SkillPathNudge`
+single-subject), `src/Cli/Bootstrap.php` construction + injection at the path-resolving tool site
+(`:5191-5205`), and appends in `src/Tools/BuiltIn/{Read,Edit,Write,Glob,Grep}.php`. The plan's original
+list (`RuleLoader.php`, `SkillPathNudge.php` + their two test files) is **withdrawn** — `RuleLoader.php`
+needs no change and the two named test files are near-irrelevant.
+
+**Fixture landmine (moved here from the superseded note below)** `ensureFixtureUserHome()` returns early
+on `is_file(.../rules/global-style.md)` (`BaseSystemPromptTest.php:1751`), so **any new committed fixture
+rule under `tests/fixtures/prompt/home/…` is NOT delivered on a warm `vendor/` tree** — S5b must assert
+with synthetic temp HOMEs (S3's pattern), not fixture files.
+
+**The blocking question, verbatim from Q7 escalation 1:** *"The 300-byte clip is unsound for rule
+bodies. The step's hard constraint transplants `MAX_ENTRY_BYTES = 300` from a channel that emits
+pointers (`SkillPathNudge.php:103-105`) into a surface whose own doc-block declares a truncated rule
+'a half-instructed model' that must be refused **whole** (`RuleLoader.php:155-166`). Clipping a rule
+body is a semantic removal (§1.10). Options: count-bounded whole bodies (`MAX_MATCHED_RULES = k`,
+deferred), byte-bounded whole bodies with deferral, or a pointer-only nudge naming the rule and letting
+the model Read it. Decide before building."*
+
+**Why the old hard constraint is withdrawn:** the `10,002,823`-byte figure it cites is the *skills*
+measurement and must not be reused. Q4 re-derived the rules surface from today's caps: 3 walked
+directories × `MAX_FILES = 64` × `MAX_FILE_BYTES = 65536` plus an **uncapped** root `RULES.md` =
+**193 files / 12.06 MiB raw / 12,724,235 B emitted / 20,313,188 B after `PromptFence::escape`'s
+measured 1.6× blow-up** — i.e. the rules tier is **already 1.27-2.03× worse than the figure the
+constraint was imported to guard against**, and that aggregate exposure exists today independent of
+S5b. Recorded as its own follow-up (an aggregate bound on rules bytes), not folded into S5b's scope.
+
+**Also deferred here:** Q7 escalation 3 — `Rule::withTriggers()` (`Rule.php:277-290`) has zero
+production callers (MEASURED); it is a sixth dormancy-roster item for §16.4, not S5a's or S5b's to
+remove.
+
+**Coordinate with P7.S4** (keyword/description trigger firing): whatever gate S5b introduces is where
+P7.S4 wants to hang its predicate — one named method, so the two steps do not build two filters.
+
+**Concurrency:** S5a is **parallel with P6.S4** (disjoint: S5a = `Triggers/`+`Skills/`+new `src/Util/`
+class; S4 = `LayeredSettings`/`Bootstrap`/`docs/SETTINGS.md`), superseding the earlier blanket "S5 waits
+for S4" reasoning, which assumed S5's build wants `RuleLoader.php`. **S5b needs `src/Cli/Bootstrap.php`,
+so S5b stays SERIAL after S4.** Shape A additionally collides with `EngineBackend.php`, recorded
+elsewhere as held by another lane — a second reason to prefer B.
+
+> **SUPERSEDED 2026-09-05 (same day): the premise check LANDED — see the SPLIT AND RULING block above;
+> `/tmp/opencode/P6.S5-premise/report.md` is 36,225 B with Q1-Q7 answered.**
+>
 > **NOTE 2026-09-05 — briefing BLOCKED: NO premise check exists for P6.S5.** Three attempts produced
 > nothing: `incredible-coral-lynx` (completed, EMPTY artifact, ~3 min), `many-tomato-grasshopper`
-> (completed, EMPTY artifact, **12 seconds**), and a third cancelled at the user's instruction to hand
+> (completed, EMPTY artifact, **12 seconds**), and a third (`many-tomato-prairie` — the earlier cancelled
+> run) cancelled at the user's instruction to hand
 > off. `/tmp/opencode/P6.S5-premise/report.md` was never created (verified by direct read: file not
 > found). **Write the brief only after a real artifact lands.** Two things it must resolve:
 >
