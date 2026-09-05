@@ -99,9 +99,11 @@ final class RulesStateWiringTest extends TestCase
     private const PACK = 'focus';
 
     /**
-     * A SECOND pack, seeded into the same home and named by that home's
-     * `config.json` under `disabledRules` — the P6.S4 read-side key. See
-     * {@see testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig()}.
+     * A SECOND pack, seeded into the same home and named — with
+     * {@see SETTINGS_PACK} — by that home's `settings.json` under `disabledRules`,
+     * the P6.S4 read-side key. See
+     * {@see testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig()} for why both
+     * names come from that file and neither from `config.json`.
      */
     private const CONFIG_PACK = 'quiet';
 
@@ -110,6 +112,16 @@ final class RulesStateWiringTest extends TestCase
 
     /** The second pack's own body, so its absence is attributable to it alone. */
     private const CONFIG_SENTINEL = 'CONFIG-SENTINEL-4D7A this pack is off before anything is typed';
+
+    /**
+     * A THIRD pack, named only in `settings.json`, so the name the launch carries
+     * is attributable to the hand-authored user file rather than to whichever file
+     * happens to win the key.
+     */
+    private const SETTINGS_PACK = 'terse';
+
+    /** The settings-file pack's own body, same reason as {@see CONFIG_SENTINEL}. */
+    private const SETTINGS_SENTINEL = 'SETTINGS-SENTINEL-6E1C this pack is off from the settings file';
 
     private static string $tempDir = '';
     private static string $repo = '';
@@ -139,18 +151,18 @@ final class RulesStateWiringTest extends TestCase
     private static string $promptAtLaunch = '';
 
     /**
-     * ONE launch for the whole class, against a synthetic `$HOME` holding TWO rule
-     * packs and a `config.json` that names one of them in `disabledRules`, with a
+     * ONE launch for the whole class, against a synthetic `$HOME` holding THREE rule
+     * packs and a `settings.json` that names two of them in `disabledRules`, with a
      * backend-selection chain cleared so the launch lands on the ENGINE path.
      *
-     * The second pack exists for {@see self::testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig()}
-     * and it is seeded through the SAME launch rather than a second one because the
+     * The extra packs exist for {@see self::testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig()}
+     * and they are seeded through the SAME launch rather than a second one because the
      * disable-list key's only observable effect is at boot — so a test that built
      * `RulesState` by hand would prove the constructor and not the wiring. The
      * class still pays for exactly ONE `Bootstrap::chat()` (see the class docblock);
      * the launch-time evidence is captured once in this method and the shared set
-     * is then returned to empty so nothing else in this file can tell the second
-     * pack was ever there.
+     * is then returned to empty so nothing else in this file can tell the seeded
+     * packs were ever there.
      *
      * HOME is redirected for the class rather than per test because `Bootstrap`
      * resolves `~/.sugar-crush` off it, and a developer's real rule packs would ride
@@ -191,15 +203,17 @@ final class RulesStateWiringTest extends TestCase
         // the empty state every pre-existing pin in this file was written against
         // — see {@see self::$disabledAtLaunch} for why the evidence is captured
         // here instead of asserted from a later test. `toggle()` is the only
-        // re-enabling API RulesState has, and the pack is checked first so a
+        // re-enabling API RulesState has, and each pack is checked first so a
         // regression in the seed cannot make THIS line the thing that flips a
         // pack on that was never off.
         $launched = self::$shell->rulesState();
         self::$disabledAtLaunch = $launched->disabled();
         self::$promptAtLaunch = self::renderFor($launched);
 
-        if ($launched->isDisabled(self::CONFIG_PACK)) {
-            $launched->toggle(self::CONFIG_PACK);
+        foreach ([self::CONFIG_PACK, self::SETTINGS_PACK] as $pack) {
+            if ($launched->isDisabled($pack)) {
+                $launched->toggle($pack);
+            }
         }
     }
 
@@ -257,9 +271,9 @@ final class RulesStateWiringTest extends TestCase
     }
 
     /**
-     * THE SEED, off the real boot path: a name in the operator's own `config.json`
-     * is in `RulesState::disabled()` at launch with NOTHING TYPED, and the pack it
-     * names is out of the prompt the launched backend builds.
+     * THE SEED, off the real boot path: the names in the operator's own
+     * `settings.json` are in `RulesState::disabled()` at launch with NOTHING TYPED,
+     * and the packs they name are out of the prompt the launched backend builds.
      *
      * This is the §1.10 half of P6.S4. {@see RulesState::new()}'s `$disabled`
      * parameter has existed since P6.S3 with zero production callers passing an
@@ -267,31 +281,58 @@ final class RulesStateWiringTest extends TestCase
      * the launch uses it — so this test starts at `Bootstrap::chat()` and reads what
      * the launch produced.
      *
+     * ## WHY BOTH NAMES COME FROM `settings.json` AND NONE FROM `config.json`
+     *
+     * The obvious fixture — one pack in each file — is not a test. `disabledRules` is
+     * ONE key and {@see LayeredSettings::merge()} resolves keys whole-value with the
+     * CLI-written file on top, so a name in the hand-authored file is invisible to
+     * every reader the moment `config.json` carries the key at all. MEASURED on this
+     * checkout: with `["from-settings"]` in one file and `["from-config"]` in the
+     * other, `Bootstrap::readUserConfig()['disabledRules'] === ['from-config']` — one
+     * value, not a merged list. Such a fixture would pin the `config.json` route twice
+     * and the `settings.json` route — the file this step exists to read, because a
+     * machine-written file is not where anyone spells out a rulebook name by hand —
+     * not once: rewriting the seed to read {@see Bootstrap::rawUserConfig()} directly,
+     * which is `config.json` alone, would leave it GREEN.
+     *
+     * Sole supplier is therefore what gives that mutation something to break. The
+     * `config.json` route is not left unpinned, only pinned at its own seam:
+     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()}
+     * proves each user file on its own reaches `readUserConfig()`, and this test proves
+     * the seed consumes `readUserConfig()`. Composed, the two cover the whole route from
+     * either file to the launch; neither is asked to pretend it covers the other.
+     *
      * The exact-list assert on {@see self::$disabledAtLaunch} is also the filter's
-     * test: the config this class seeds names the pack ALONGSIDE a blank string, a
+     * test: the file this class seeds names the packs ALONGSIDE a blank string, a
      * whitespace-only string, an int and a nested array, and a seed that forwarded
      * any of those would have thrown out of `RulesState::new()` and failed the
-     * launch itself. So one assertion pins "the name arrived" and "the junk did not"
-     * — the two polarities of the same guard, both through the production path.
+     * launch itself. So one assertion pins "both names arrived" and "the junk did
+     * not" — the two polarities of the same guard, both through the production path.
      *
      * And the absence claim carries its known-positive control IN THIS TEST, through
-     * the same renderer: the fixture re-enabled the pack after capturing the launch
-     * evidence, so rendering the SAME state again must now show the sentinel. Without
-     * that second half, "the sentinel is absent" would be equally consistent with a
-     * pack that was never loaded, never named in the fence, or simply mis-seeded.
+     * the same renderer: the fixture re-enabled both packs after capturing the launch
+     * evidence, so rendering the SAME state again must now show both sentinels. Without
+     * that second half, "a sentinel is absent" would be equally consistent with a pack
+     * that was never loaded, never named in the file, or simply mis-seeded.
      */
     public function testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig(): void
     {
         self::assertSame(
-            [self::CONFIG_PACK],
+            [self::CONFIG_PACK, self::SETTINGS_PACK],
             self::$disabledAtLaunch,
-            'the launch must carry exactly the one usable name out of the five entries the config holds',
+            'the launch must carry exactly the two usable names out of the six entries the settings file holds',
         );
 
         self::assertStringNotContainsString(
             self::CONFIG_SENTINEL,
             self::$promptAtLaunch,
-            'the pack the operator named in config.json is still in the prompt the launch builds',
+            'the pack the operator named must be out of the prompt the launch builds',
+        );
+        self::assertStringNotContainsString(
+            self::SETTINGS_SENTINEL,
+            self::$promptAtLaunch,
+            'the seed must be reading the MERGED view: this name exists only in settings.json, so a seed '
+                . 'that opened config.json by itself would leave this pack in the prompt',
         );
         self::assertStringContainsString(
             self::SENTINEL,
@@ -301,11 +342,11 @@ final class RulesStateWiringTest extends TestCase
 
         // The control, and it is asserting on the LIVE set rather than the captured
         // launch snapshot: this is the same file, after setUpBeforeClass() handed the
-        // shared state back to empty, so `disabled()` must now be the empty list and
-        // the same pack must be renderable.
+        // shared state back to empty, so `disabled()` must now be the empty list and both
+        // seeded packs must be renderable.
         $state = self::$shell?->rulesState();
         self::assertInstanceOf(RulesState::class, $state);
-        self::assertSame([], $state->disabled(), 'the fixture must leave the shared set as it found it');
+        self::assertSame([], $state->disabled(), 'the fixture must leave the shared set empty for the pins below');
 
         $enabled = self::renderFor($state);
         self::assertStringContainsString(self::CONFIG_SENTINEL, $enabled);
@@ -313,6 +354,12 @@ final class RulesStateWiringTest extends TestCase
             1,
             substr_count($enabled, self::CONFIG_SENTINEL),
             'the seeded pack rides exactly once now that it is back on',
+        );
+        self::assertStringContainsString(self::SETTINGS_SENTINEL, $enabled);
+        self::assertSame(
+            1,
+            substr_count($enabled, self::SETTINGS_SENTINEL),
+            'the settings-file pack rides exactly once now that it is back on',
         );
     }
 
@@ -397,7 +444,8 @@ final class RulesStateWiringTest extends TestCase
     // -- helpers --------------------------------------------------------------
 
     /**
-     * Two packs in the user tier, plus the config that turns one of them off.
+     * Three packs in the user tier, plus the hand-authored settings file that turns
+     * two of them off.
      *
      * The choice of `rulebooks/` over `rules/` is arbitrary and said as much: both
      * directories are walked by {@see \SugarCraft\Crush\Context\RuleLoader::loadUserRules()}
@@ -410,37 +458,61 @@ final class RulesStateWiringTest extends TestCase
      * and to {@see \SugarCraft\Crush\Tests\Commands\RulesCommandTest::testTogglingANameTwoPacksShareDisclosesThatBothMoved()},
      * not here.
      *
-     * The `disabledRules` value written beside them is deliberately NOT the tidy
-     * `["quiet"]` the docs show: it is the same list with a blank string, a
-     * whitespace-only string, an int and a nested array appended, so the ONE launch
-     * this class pays for also proves the two halves of P6.S4 that only exist
-     * together — that a name in the operator's config reaches the prompt (which is
-     * what {@see \SugarCraft\Crush\Context\RulesState::new()}'s `$disabled`
-     * parameter had never done in production before this step), and that the junk
-     * around it is filtered on the way in rather than thrown out of.
+     * ## `settings.json` is the SOLE supplier of `disabledRules`; `config.json` has none
+     *
+     * Not an oversight and not a simplification — the polarity is what makes the seed
+     * pin non-vacuous. {@see \SugarCraft\Crush\Config\LayeredSettings::merge()} resolves
+     * ONE key whole-value with the CLI-written file on top (measured: a name in each
+     * file yields the `config.json` list alone), so any name written into
+     * `config.json` here would eclipse the `settings.json` names and the launch test
+     * below would then be pinning the deprecated file twice while saying nothing about
+     * the file this step exists to read. The `config.json` half of that route is pinned
+     * where it can be seen on its own, at
+     * {@see \SugarCraft\Crush\Tests\Cli\BootstrapLayeredSettingsTest::testDisabledRulesReachesTheMergedConfigFromEitherUserFile()}.
+     * The file is still written — with `0600`, as every policy file here is — so the
+     * stack under test has its real four layers and the seed provably consumes a merged
+     * view rather than one file.
+     *
+     * The `disabledRules` value written there is deliberately NOT the tidy
+     * `["quiet"]` a config would show: it is two names followed by a blank string, a
+     * whitespace-only string, an int and a nested array, so the ONE launch this class
+     * pays for also proves the two halves of P6.S4 that only exist together — that the
+     * names in the operator's own settings file reach the prompt (which is what
+     * {@see \SugarCraft\Crush\Context\RulesState::new()}'s `$disabled` parameter had
+     * never done in production before this step), and that the junk around them is
+     * filtered on the way in rather than thrown out of.
      * {@see \SugarCraft\Crush\Context\RulesState::new()} rejects a blank entry
      * outright, so an unfiltered seed makes the LAUNCH throw; that is the mutation
      * this fixture is built to catch, and a `try`/`catch` would have hidden it by
      * turning "the junk was refused" into "nothing was disabled".
      *
-     * `PACK` is NOT named in the list, so the seeded pack and the toggled pack stay
+     * `PACK` is NOT named in the list, so the seeded packs and the toggled pack stay
      * two different claims.
      */
     private static function seedRulebook(): void
     {
         $dir = self::$tempDir . '/home/.sugar-crush';
         mkdir($dir . '/rulebooks', 0700, true);
-        foreach ([self::PACK => self::SENTINEL, self::CONFIG_PACK => self::CONFIG_SENTINEL] as $pack => $body) {
+        foreach ([
+            self::PACK => self::SENTINEL,
+            self::CONFIG_PACK => self::CONFIG_SENTINEL,
+            self::SETTINGS_PACK => self::SETTINGS_SENTINEL,
+        ] as $pack => $body) {
             file_put_contents(
                 $dir . '/rulebooks/' . $pack . '.md',
                 "---\nname: " . ucfirst($pack) . "\n---\n\n" . $body . "\n",
             );
         }
 
-        $config = $dir . '/config.json';
-        file_put_contents($config, (string) json_encode([
-            'disabledRules' => [self::CONFIG_PACK, '', '   ', 0, ['nested']],
+        file_put_contents($dir . '/settings.json', (string) json_encode([
+            'disabledRules' => [self::CONFIG_PACK, self::SETTINGS_PACK, '', '   ', 0, ['nested']],
         ]));
+
+        $config = $dir . '/config.json';
+        // An EMPTY object on purpose: the layer must exist so the merged view the
+        // seed reads is the real one, and must stay silent on `disabledRules` so the
+        // names below are attributable to `settings.json` alone.
+        file_put_contents($config, '{}');
         // permissionConfig() refuses a policy file anyone else can write, and the
         // launch must not be spending its one pass on a refusal.
         chmod($config, 0o600);
