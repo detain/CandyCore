@@ -253,6 +253,29 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P7.S4 — Skills step 6: findForPrompt closed deliberately-dormant WITH THE MEASURED NUMBER — 2026-09-06 — status: done
+
+**Status** `done`
+**Worktree** removed; branch deleted `-d`
+**Commits** `2e7a5ef67` + `a906e9c72` (merged `5deb98fe8`)
+
+**Goal (restated)**
+Resolve `SkillRegistry::findForPrompt` per plan :2594-2614 — measure before wiring, then either improve-and-wire with a false-positive-gone test, OR close 'deliberately left dormant, here is the number'.
+
+**Measure-first**
+Premise (agent stellar-copper-magpie) delivered a 52-prompt battery over the repo's 12 built-in skills: current substring matcher precision 0.162, boundary FP 24/25 (96%), single token 'when' fires 9 skills; P6.S1 whole-word `KeywordTrigger` variant maxes precision 0.214 — improve-and-wire FALSIFIED (wiring 0.214 precision > current silence's 0 is net-negative; substring artifacts only 11/62 false pairs; dominant defect is description-as-keyword-bag). Measurement committed at `48cf44795` in `prompt_kit/findings/P7.S4-premise.md` + `prompt_kit/findings/P7.S4/{measure.php,raw-output.txt}`.
+
+**What shipped**
+Docblock landmines ONLY (zero behavior change; 28 comment lines total across `Skill.php`/`SkillRegistry.php`) + 7 §1.11 pins in `SkillMatcherTest`(+4)/`SkillRegistryTest`(+3) asserting MEASURED behavior incl. airport/port substring-as-feature, multi-fire mass, auto-invocable gate, tie→registry-order stability. Callers `getSkillsForTask`/`findSkillsForTask` stay production-dead (§1.10).
+
+**Review loop**
+Cycle-2 reviewer cold-harlequin-vulture APPROVE_WITH_NITS, found a false tie-comment (0-0 aspirational vs fixture 1-1) + witness `testFindForPromptSort` name-inaccuracy → cycle-3 text-only fix `a906e9c72` (comments corrected TRUE; assertions/fixtures untouched; name-inaccuracy recorded follow-up).
+
+**MEASURED** Independent gate at `a906e9c72`: PASS — prediction-first FLAT 10,997/168,995/2S/EXIT 0 vs base 10,990/168,977 (`cmp.py` zero movers on text-only step; MouseModalGuard 198/198 both sides); goldens UNMOVED system `a5c5a14ca2e3ad891933ac7aefccc6af`/7732 + agent `ef0326dd38535aaa2f1d715919bff26e`/1060; identity/EMAIL hygiene clean. New FLOOR 10,997/168,995/2S gated `a906e9c72`; merge `5deb98fe8` (parents `48cf44795`+`a906e9c72`); unpushed count RE-DERIVE in your session.
+
+**Follow-ups created**
+(a) production matcher needs curated frontmatter keywords fed to `KeywordTrigger`; (b) `testFindForPromptSort` name-inaccuracy.
+
 ### P7.S3 — skills-into-the-prompt: withSkills gains its first production consumer at the composition root — 2026-09-06 13:47 · 74f1c179a + e8ca33436 + 129587a97 (merged b289eaf44)
 - Status: done
 - Worktree: /home/sites/prompt-step-P7.S3 (branch prompt/P7.S3, created at and removed after base bad4977ed)
