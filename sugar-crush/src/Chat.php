@@ -3793,32 +3793,32 @@ final class Chat implements Model
      * message — the {@see applyPostToolUse()} contract, applied to turn events.
      *
      * DOCUMENTED GAP (decision A — startup-only, no second fire point). The
-      * SessionStart gate reads `count($this->history) === 0` AT THE DISPATCH POINT,
-      * which makes it a once-per-EMPTY-HISTORY gate rather than a once-per-SESSION
-      * one, and the two readings differ in BOTH directions:
-      *
-      * - A turn that wrote history before the first dispatched prompt takes the slot
-      *   and SessionStart then never fires for the session — an early-return slash
-      *   command, an idle-compaction prompt, or this method's own block notice.
-      *   `resume` and {@see handlePaletteNewSession()} do not re-fire it either: the
-      *   latter appends its notice to history rather than emptying anything.
-      * - {@see handleClearCommand()} IS the one production site that puts history back
-      *   to `[]`, so after `/clear` the gate re-opens and SessionStart fires AGAIN on
-      *   the next submitted prompt. What it fires with is still `source: startup`, so
-      *   Anthropic's `clear` source is not discriminated anywhere: `startup` is the
-      *   only value this call site ever sends, on a first turn where the label is
-      *   accurate and on a post-`/clear` turn where it is not. Discriminating them
-      *   needs a "session already started" flag this gate does not have — recorded as
-      *   a known gap for a follow-up, NOT changed here, because this step's done-when
-      *   is the two dispatch sites.
-      * - `compact` is genuinely unreachable on this path: every compaction tier either
-      *   returns before dispatch or rewrites history to a non-empty summary.
-      *
-      * Chat's {@see init()} cannot close any of this — TEA `init()` returns a
-      * Closure and cannot mutate the Model — and firing at construction/`withHooks()`
-      * would need an async command on an immutable model for a seam the done-when does
-      * not ask about. Recorded, not deleted: the two events still have exactly one
-      * production call site each.
+     * SessionStart gate reads `count($this->history) === 0` AT THE DISPATCH POINT,
+     * which makes it a once-per-EMPTY-HISTORY gate rather than a once-per-SESSION
+     * one, and the two readings differ in BOTH directions:
+     *
+     * - A turn that wrote history before the first dispatched prompt takes the slot
+     *   and SessionStart then never fires for the session — an early-return slash
+     *   command, an idle-compaction prompt, or this method's own block notice.
+     *   `resume` and {@see handlePaletteNewSession()} do not re-fire it either: the
+     *   latter appends its notice to history rather than emptying anything.
+     * - {@see handleClearCommand()} IS the one production site that puts history back
+     *   to `[]`, so after `/clear` the gate re-opens and SessionStart fires AGAIN on
+     *   the next submitted prompt. What it fires with is still `source: startup`, so
+     *   Anthropic's `clear` source is not discriminated anywhere: `startup` is the
+     *   only value this call site ever sends, on a first turn where the label is
+     *   accurate and on a post-`/clear` turn where it is not. Discriminating them
+     *   needs a "session already started" flag this gate does not have — recorded as
+     *   a known gap for a follow-up, NOT changed here, because this step's done-when
+     *   is the two dispatch sites.
+     * - `compact` is genuinely unreachable on this path: every compaction tier either
+     *   returns before dispatch or rewrites history to a non-empty summary.
+     *
+     * Chat's {@see init()} cannot close any of this — TEA `init()` returns a
+     * Closure and cannot mutate the Model — and firing at construction/`withHooks()`
+     * would need an async command on an immutable model for a seam the done-when does
+     * not ask about. Recorded, not deleted: the two events still have exactly one
+     * production call site each.
      *
      * DOCUMENTED DIVERGENCE from `HookEvent::stderrToUserOnly()`'s strict reading:
      * a block REASON surfaces as a transcript `Message::system()` rather than on
@@ -6277,8 +6277,8 @@ final class Chat implements Model
         //
         // DROPPED ON A HOOK BLOCK, and safely so: the turn-hook refusal below returns
         // its own notice only, so a rescue announced here goes unreported when a hook
-        // blocks the prompt. The rewrite still landed in history either way, while a
-        // report for a turn that never dispatched would read as one that did.
+        // blocks the prompt. The rewrite is dropped with it, not persisted: the
+        // refusal commits pre-compaction history, so the tier re-runs next submit.
         if ($compactionNotice !== null) {
             $newTurnMessages[] = $compactionNotice;
         }

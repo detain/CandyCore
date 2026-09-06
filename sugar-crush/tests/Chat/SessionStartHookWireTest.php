@@ -57,8 +57,8 @@ use SugarCraft\Crush\Role;
  * A third kind of assertion rides alongside the payload ones: the hooks in the
  * context-pinned tests RECORD THE `HookContext` production Chat built for them,
  * because the wire proves what a verdict DID and says nothing about the shape the
- * verdict was computed FROM. Those are the three tests whose names end
- * "ContextChatBuilds…" plus the invalid-UTF-8 one beside them.
+ * verdict was computed FROM. Those are the two tests whose names end
+ * "ContextChatBuilds…" plus the invalid-UTF-8 one beside them — three captures.
  */
 final class SessionStartHookWireTest extends TestCase
 {
