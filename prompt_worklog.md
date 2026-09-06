@@ -253,6 +253,70 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### PHASE 7 OPEN — P7.S1 briefed, READY TO STAFF — 2026-09-05 21:31 — status: briefed (NOT built, NOT merged; Phase 7 opened, 0 of 6 merged)
+
+> STATUS / HANDOFF entry, not a step-done entry. P7.S1 is neither built nor merged; this records the
+> read-only premise investigation and the three rulings that shape it, so a fresh orchestrator can staff
+> the builder straight from `prompt_kit/briefs/P7.S1-step-brief.md`. All figures re-derived at tip
+> `ce816e981` (the Phase-6-close commit).
+
+**PHASE STATE.** **Phase 6 CLOSED** (42 of 65 steps; six of seven merged, the seventh P6.S5b BLOCKED on a
+§1.10 user decision — carried verbatim in `prompt_resume.md` §8). **Phase 7 OPENED** at its six steps —
+P7.S1 `:2520` (`HookResult::additionalContext` + the discarded-message bug) · P7.S2 `:2543` (SessionStart/
+UserPromptSubmit dispatch) · P7.S3 `:2573` (Skills two-path) · P7.S4 `:2594` (`SkillRegistry::findForPrompt`)
+· P7.S5 `:2614` (empty agent presets) · P7.S6 `:2643` (`ForeignMemoryImporter`). **0 of 6 merged.**
+
+**P7.S1 PREMISE CHECK — DONE.** Report `prompt_kit/findings/P7.S1-premise.md`; step brief authored and on
+disk `prompt_kit/briefs/P7.S1-step-brief.md` (68 lines). Findings re-derived by direct read at `ce816e981`:
+the discard is real (`ScriptHook.php:642` `HookResult::allow($output)` vs `HookRegistry.php:428` rebuilding
+`HookResult::allow()` empty; `ScriptHook.php:631-641` documents it "goes NOWHERE"); `additionalContext` is a
+clean 4th field (0 repo-wide hits today); `executeHooks()` has exactly two callers (`preToolUse`/`postToolUse`)
+reaching four production sites; `HookDispatcher` (the one carrier) is constructed by nothing in `src/`.
+
+**THREE RULINGS (binding, 2026-09-06).**
+- **R-1 (SUPERVISOR) — consumer scope: wire BOTH model-visible consumers.** P7.S1 must make the field
+  genuinely READ on the live path — `Runtime::settle()` (via its existing blessed `self::annotate()` seam,
+  `Runtime.php:2011`/`:2024`) AND `Chat::applyPostToolUse()` (`Chat.php:3661-3668`, currently a discarded
+  bare statement at `:3664`). **This clears the `src/Chat.php` collision row for P7.S1** — recorded here
+  exactly as the worklog P6.S3 entry recorded its Chat.php touch, so the clearance travels with the phase.
+- **R-2 (SUPERVISOR) — overflow mechanism: a NEW retained-overflow file path.** ToolIpcFiles-style 0600
+  (via `umask(0o077)`) + atomic `rename`, but **NOT** discarded and **NOT** on the `STALE_AFTER_SECONDS =
+  3600` hourly IPC sweep (`ToolIpcFiles.php:86`; sweep wired `Cli/Bootstrap.php:2124`,`:2255`) — lifetime
+  tied to the session/tool-result. **OPEN pre-build risk (brief §Hard constraints item 6):** prove the hourly
+  sweep / `discard()` / partial-suffix cleanup cannot delete the file before its consumer reads it, else HALT.
+- **R-3 (ORCHESTRATOR) — units: the cap is 10,000 BYTES.** Plan text says "characters"; the whole subsystem
+  is byte-denominated and `ScriptHook::clip()` `:863-865` states byte-boundary cutting is deliberate (arbitrary
+  output, not guaranteed UTF-8). Use `mb_strcut(...,'UTF-8')`, expose a `public const` in bytes
+  (`MAX_ADDITIONAL_CONTEXT_BYTES = 10000`), avoid the `$maxBytes <= 0` no-cap sentinel (`TruncatesOutput.php:141-142,367-379`).
+
+**SCOPE — expanded from the plan's original 4 files to a full vertical slice.** The producer must thread the
+field through **ALL FOUR internal drop-points** or it dies before any consumer: (a) the `scan()` 3-tuple
+(`HookRegistry.php:662-665`, allow exits unstored at `:767-769`, destructure at `:342`); (b) the ASK rebuild
+`:418` (2-arg); (c) the allow/settled arm `:428`; (d) `HookManager::resolveAsk()` `:180-201` (deny/allow/modify
+three ways). Plus the new retained-overflow helper and BOTH consumers wired (R-1).
+
+**INVARIANTS.** **NEITHER golden moves** — `additionalContext` is a tool-result/turn payload, never
+system-prompt text; the fixtures diff must stay empty and any golden move is itself a leak-into-the-assembler
+defect (system `f09f37366a1925565dcc7725f659ff41` / 7,829 B; agent `ef0326dd38535aaa2f1d715919bff26e` / 1,060 B).
+**FLOOR** Tests 10,937 / Assertions 168,399 / Skipped 2 / EXIT 0 at `714bea7ec`, still describing master by the
+BELT (`git diff 714bea7ec HEAD -- sugar-crush/` = 0, re-derived at tip `ce816e981`; this pass is markdown-only so
+the floor is unchanged) — P7.S1 ADDS tests, so the builder derives a HIGHER figure, does not guess it.
+**§5 collision:** a re-check is **still owed before P6.S5b AND P7.S3** (both want `src/Backend/EngineBackend.php`,
+a live row) and **before Phase 8** (`Chat.php` + `ContextCompactor.php`), but **P7.S1 itself is cleared** — its
+`Runtime.php` is not a live row and its `Chat.php` edit is supervisor-cleared by R-1.
+
+**NEXT.** Staff the P7.S1 builder against `prompt_kit/briefs/P7.S1-step-brief.md`: worktree from master
+`ce816e981`, `cp -al` the vendor (NEVER `ln -s`), verify the PSR-4 root prints the worktree's own `src`,
+predict-then-run the suite headline, red-capability (revert-prove), §1.10 / §1.11 discipline, golden-belt
+(fixtures diff must stay empty), review→fix→**brand-new** reviewer (cap five cycles), the orchestrator's
+independent gate, then merge no-push.
+
+**TRANSPORT NOTE (this session).** Several read-only premise/research agents returned BLANK — died ~1-2 min in
+with no artifact. The orchestrator completed the premise investigation by direct read (`HookResult.php` in full,
+the four production call sites, `ScriptHook.php:615-654`) plus resumed explore agents. The **resume-ladder rule
+is reaffirmed**: a blank return is a transport death → resume the same agent (work persists on disk); escalate to
+a fresh agent only after ~5 similar-duration deaths, ceiling ~15.
+
 ### PHASE 6 CLOSE REVIEW — 2026-09-05 21:24 — status: done (Phase 6 CLOSED; 42 of 65 steps; P6.S5b stays BLOCKED)
 
 **GOAL** cross-step close review over P6.S1..P6.S5a's six merges **together** per §1.7 / §6 — the whole-phase

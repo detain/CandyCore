@@ -1046,7 +1046,7 @@ where the two plans touch, because a merge conflict there is not yours to resolv
 |---|---|
 | `sugar-crush/tests/Tools/BuiltInToolCorpusTest.php` + `sugar-crush/src/Context/RepoMapBlock.php` | **NO LONGER A CARDINALITY COLLISION — corrected 2026-08-29, see §17.1.** The `src/` file-count census was decoupled at `59411203c` (this plan's own P0.S1 base); MEASURED, adding a `src/` file reds nothing. Still hot as an ordinary shared FILE if two steps edit it. |
 | `sugar-crush/src/Backend/EngineBackend.php` | Held by an in-flight lane; wanted by P7.S3. |
-| `sugar-crush/src/Chat.php`, `sugar-crush/src/Context/ContextCompactor.php` | The other plan has a backlog of compaction/context-window findings in exactly these files, untouched for many rounds. This plan's Phases 4 and 8 rewrite them. |
+| `sugar-crush/src/Chat.php`, `sugar-crush/src/Context/ContextCompactor.php` | The other plan has a backlog of compaction/context-window findings in exactly these files, untouched for many rounds. This plan's Phases 4 and 8 rewrite them. **UPDATE 2026-09-06: `src/Chat.php` is SUPERVISOR-CLEARED for P7.S1 ONLY (ruling R-1 - wiring `Chat::applyPostToolUse()` to READ `additionalContext`), a surgical consumer edit that does NOT touch `ContextCompactor.php` and does NOT open this row for any other step; Phase 8 still needs its own §5 re-check. See the resume §5 table + the worklog Phase 7 OPEN entry.** |
 | `sugar-crush/src/Tools/BuiltIn/Bash.php` | The other plan has two open items rewriting its *behaviour* (controlling-terminal detachment, PTY opt-in); P9.S3 rewrites its *description*. |
 | `sugar-crush/src/Agents/AgentDefinition.php` | The other plan's C7 (inert `$defaultTools`) gates what P7.S5's preset prompts may claim. |
 | `sugar-crush/tests/` tree-wide census tests | `SymbolCitationDriftTest`, `SwallowingCatchCensusTest`, `DuplicatedTestHelperDriftTest`, `ChildWallClockBudgetTest`, `EnvRosterDriftTest` and others scan the whole tree. **Every test file this plan adds can red one of them**, at the end of a four-minute run, in a file you have never opened. |
@@ -2539,6 +2539,24 @@ with an **empty message**. `ScriptHook`'s own docblock records the measurement: 
 
 **Done when** the 200,000-byte hook produces a bounded, non-empty `additionalContext`, and a test
 asserts the allow-path no longer rebuilds an empty verdict.
+
+**SUPERVISOR/ORCHESTRATOR DECISIONS (2026-09-06)** — premise check DONE (`prompt_kit/findings/P7.S1-premise.md`);
+step brief READY (`prompt_kit/briefs/P7.S1-step-brief.md`). Three binding rulings expand this step:
+- **R-1 (SUPERVISOR):** wire **BOTH** model-visible consumers — `Runtime::settle()` (via `self::annotate()`) and
+  `Chat::applyPostToolUse()` — so `additionalContext` is genuinely READ and not a producer-only dead field (§1.10).
+  **This CLEARS the `src/Chat.php` collision row for P7.S1** (recorded in §5 / §2.6 of the resume + the worklog Phase 7
+  OPEN entry); keep that Chat.php edit surgical.
+- **R-2 (SUPERVISOR):** build a **NEW retained-overflow file path** (0600 via `umask` + atomic `rename`, but NOT
+  discarded and NOT on the `STALE_AFTER_SECONDS = 3600` hourly IPC sweep). MANDATORY pre-code check: prove the sweep /
+  `discard()` / partial-suffix cleanup cannot delete the file before its consumer reads it, else HALT.
+- **R-3 (ORCHESTRATOR):** the cap is **10,000 BYTES** (this text says "characters"; the subsystem is byte-denominated
+  and `ScriptHook::clip()` cuts on byte boundaries deliberately). Expose a `public const` in bytes; use `mb_strcut`.
+
+**Scope is a full vertical slice, NOT the four files listed above:** the producer must thread the field through **ALL
+FOUR internal drop-points** — the `scan()` 3-tuple (`HookRegistry.php:662-665`, allow exits unstored at `:767-769`,
+destructure `:342`), the ASK rebuild `:418`, the allow/settled arm `:428`, and `HookManager::resolveAsk()` `:180-201` —
+or the field dies before any consumer. Plus the new retained-overflow helper and BOTH consumers. **NEITHER prompt golden
+moves** (`additionalContext` is a tool-result payload, never system-prompt text; the fixtures diff must stay empty).
 
 ### P7.S2 — Dispatch sites for `SessionStart` and `UserPromptSubmit`
 
