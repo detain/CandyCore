@@ -752,7 +752,13 @@ final class SystemPromptWiringTest extends TestCase
 
         $prompt = $this->soleSystemPrompt($provider);
 
-        $this->assertSame(1, substr_count($prompt, '## Skill: enabled-neighbour-skill'));
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: enabled-neighbour-skill'),
+            'the enabled neighbour must still contribute exactly one body section while its '
+                . 'un-enabled peer keeps its listing line — a count of 0 here means enabling one skill '
+                . 'took the splice away from it, which is the exclusion seam overreaching (P7.S3)',
+        );
         $this->assertStringContainsString(
             '- kept-listed-skill: One line, still advertised.',
             $prompt,

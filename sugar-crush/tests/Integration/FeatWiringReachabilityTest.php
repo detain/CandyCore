@@ -326,20 +326,49 @@ final class FeatWiringReachabilityTest extends TestCase
     }
 
     /**
-     * Write the persisted user config the way the CLI itself reads it —
-     * `$HOME/.sugar-crush/config.json` inside this test's home sandbox (see
-     * {@see setUp()}). `rawUserConfig()` is a free-form passthrough, so a
-     * key this step introduces (`enabledSkills`) lands without touching
+     * Write the persisted user config the way the CLI itself writes it —
+     * {@see Bootstrap::writeUserConfig()}, the production read-merge-write with
+     * the atomic rename, into `$HOME/.sugar-crush/config.json` inside this
+     * test's home sandbox (see {@see setUp()}). That is the same helper the
+     * instruction-loading tests below already call, so there is no second,
+     * test-shaped writer to drift from the real one; the sandboxed HOME is what
+     * makes it land in the fixture rather than in the developer's file.
+     * `rawUserConfig()` is a free-form passthrough, so a key this step
+     * introduces (`enabledSkills`) lands without touching
      * `LayeredSettings::LAYERED_KEYS` — that roster growth (settings.json
      * tiering + its doc guards) is deliberately deferred out of P7.S3.
+     *
+     * THEN IT READS THE FILE BACK AND ASSERTS IT. A config write that fails
+     * quietly is the worst failure this seam can have: every one of these tests
+     * would fall through to the default-empty path and PASS, reporting a
+     * configured launch that never happened. Asserting the keys landed is what
+     * turns a silent degrade into an error at the line that caused it. The
+     * merge is shallow and the sandbox starts empty, so each key asked for must
+     * come back with exactly the value asked for.
+     *
+     * @param array<string, mixed> $settings
      */
     private function writeUserConfig(array $settings): void
     {
-        $dir = $this->tempDir . '/home/.sugar-crush';
-        if (!is_dir($dir)) {
-            mkdir($dir, 0o755, true);
+        Bootstrap::writeUserConfig($settings);
+
+        $path = $this->tempDir . '/home/.sugar-crush/config.json';
+        $this->assertFileExists(
+            $path,
+            'the production writer put no config where production reads one — every assertion after '
+                . 'this would be measuring the default-empty path',
+        );
+        $written = json_decode((string) file_get_contents($path), true);
+        $this->assertIsArray($written, 'the user config written for this test does not parse as JSON');
+
+        foreach ($settings as $key => $value) {
+            $this->assertArrayHasKey($key, $written, "`{$key}` was asked for and did not arrive");
+            $this->assertSame(
+                $value,
+                $written[$key],
+                "`{$key}` did not persist as configured — the launch below would be reading something else",
+            );
         }
-        file_put_contents($dir . '/config.json', json_encode($settings, JSON_PRETTY_PRINT));
     }
 
     /**
@@ -436,15 +465,34 @@ final class FeatWiringReachabilityTest extends TestCase
         // CLI down for one stale name.
         $prompt = $this->launchedSystemPrompt();
 
-        $this->assertStringNotContainsString('## Skill: p7s3-no-such-skill', $prompt);
+        // The prompt is a WHOLE one, not a half-built one: declining the body of
+        // a name that resolves to nothing must cost nothing else. This replaces
+        // an assertion that the missing body was absent, which could not fail —
+        // a name with no manifest has no body to splice, so it graded the
+        // resolver's no-op rather than its decision (P7.S3 review N3).
+        $this->assertStringContainsString(
+            '</env>',
+            $prompt,
+            'the launch survived the stale name — the fail-safe is the claim, and a truncated prompt '
+                . 'would mean it threw instead (P7.S3)',
+        );
 
         $misses = array_values(array_filter(
             Bootstrap::launchNotices(),
             static fn(string $notice): bool => str_contains($notice, 'p7s3-no-such-skill'),
         ));
-        $this->assertNotEmpty(
+        $this->assertCount(
+            1,
             $misses,
             'a dropped enabled-skill name must be recorded as a launch notice, not swallowed (P7.S3)',
+        );
+        // And the notice has to be a DIAGNOSTIC: naming the skill and naming the
+        // reason, which is the half that tells the reader to look at their
+        // config rather than at a log line about something dropping.
+        $this->assertStringContainsString(
+            "enabled skill 'p7s3-no-such-skill' was not found",
+            $misses[0],
+            'the notice must name the missing skill and say it was not found (P7.S3 review N3)',
         );
     }
 

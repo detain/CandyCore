@@ -38,9 +38,16 @@ use SugarCraft\Crush\Tests\Support\RefusesAnUnreadableSourceTrait;
  * WHAT `grep` CAN AND CANNOT DO HERE, restated because the previous version of
  * this paragraph said "`grep` IS THE WRONG TOOL" flatly and that is not true.
  * MEASURED on this tree: `grep -c 'self::warnPermissionConfigInTranscript('
- * src/Cli/Bootstrap.php` gives 16 — the right answer, and the recipe
- * `docs/SETTINGS.md` quotes. `grep -c 'warnPermissionConfigInTranscript'`
- * gives 31, because most occurrences are the declaration and `{@see …}`
+ * src/Cli/Bootstrap.php` answers with the census figure — the same integer
+ * {@see \SugarCraft\Crush\Cli\Bootstrap::TRANSCRIPT_SEAM_CALL_SITES} declares,
+ * and that is how this sentence cites it instead of printing a copy of it. The
+ * two static numerals this sentence used to carry went stale in order, one per
+ * call site added, inside a file whose whole subject is a number in prose with
+ * no generator; the agreement they were reporting survives without them, and it
+ * holds exactly as long as the token scan's does (one call site per line,
+ * nothing quoting the call form), which is the caveat `docs/SETTINGS.md`
+ * carries on the recipe. Grepping the bare IDENTIFIER is wrong in DIRECTION,
+ * roughly double, because most occurrences are the declaration and `{@see …}`
  * references inside doc-blocks explaining the split. So the trap is grepping
  * the bare IDENTIFIER, not grepping. WHY THE TOKEN SCAN STILL EARNS ITS PLACE
  * over the working `grep`: the `self::`-plus-paren form is a text pattern that
