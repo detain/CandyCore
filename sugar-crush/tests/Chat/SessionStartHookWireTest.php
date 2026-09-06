@@ -17,6 +17,7 @@ use SugarCraft\Crush\Backend;
 use SugarCraft\Crush\Backend\EngineBackend;
 use SugarCraft\Crush\Backend\ReportsContextWindow;
 use SugarCraft\Crush\Chat;
+use SugarCraft\Crush\Commands\CommandSpec;
 use SugarCraft\Crush\Hooks\HookContext;
 use SugarCraft\Crush\Hooks\HookEvent;
 use SugarCraft\Crush\Hooks\HookInterface;
@@ -52,6 +53,12 @@ use SugarCraft\Crush\Role;
  *
  * Nothing here touches the prompt assembler: the notes ride HISTORY, which is
  * why wiring these events moves no golden ({@see testTheFixturesGoldensAreUntouchedByAHookedTurn}).
+ *
+ * A third kind of assertion rides alongside the payload ones: the hooks in the
+ * context-pinned tests RECORD THE `HookContext` production Chat built for them,
+ * because the wire proves what a verdict DID and says nothing about the shape the
+ * verdict was computed FROM. Those are the three tests whose names end
+ * "ContextChatBuilds…" plus the invalid-UTF-8 one beside them.
  */
 final class SessionStartHookWireTest extends TestCase
 {
@@ -216,6 +223,205 @@ final class SessionStartHookWireTest extends TestCase
             'Permission required:',
             $turn->history[0]->content,
             'and the user is told a decision was needed, not that a hook denied it',
+        );
+    }
+
+    public function testADenyThatGivesNoReasonStillSurfacesASentenceToTheUser(): void
+    {
+        // The fallback arm of `turnHookRefusalReason()`, and it is reachable rather
+        // than decorative: `HookResult::deny('')` is a perfectly legal verdict — DENY
+        // is neither a permitting action nor an ASK, so an empty message walks past the
+        // two earlier returns and lands on the ternary. Without that arm the user would
+        // see the bare prefix `Hook denied: ` and nothing explaining themselves.
+        $recorder = new HookWireRecorder(1_000_000);
+        [$turn, , $cmd] = $this->submit($this->chatWith($recorder, [
+            $this->verdictHook('deny-silent', HookEvent::UserPromptSubmit, HookResult::deny('')),
+        ]), 'a prompt behind a silent block');
+
+        $this->assertNull($cmd, 'an empty-reason deny blocks exactly as a worded one does');
+        $this->assertSame(0, $recorder->calls(), 'and the backend never saw the prompt');
+        $this->assertCount(1, $turn->history, 'only the refusal notice was appended');
+
+        $notice = $turn->history[0];
+        $this->assertSame(Role::System, $notice->role);
+        $this->assertStringContainsString(
+            'the hook blocked this prompt without giving a reason',
+            $notice->content,
+            'the fallback sentence is what stands in for the missing reason',
+        );
+        $this->assertStringStartsWith(
+            'Hook denied:',
+            $notice->content,
+            'and it still OPENS with the DenialKind::Hook prefix that isDeniedResult() classifies on',
+        );
+        $this->assertStringContainsString('not sent', $notice->content, 'plus the promise that the draft is still in the box');
+    }
+
+    // =========================================================================
+    // The context Chat builds (both events smuggle their payload through
+    // HookContext's tool-shaped slots — decision C — so THAT is the contract these
+    // pins, and not a provider payload, hold it to)
+    // =========================================================================
+
+    /**
+     * Before this test the smuggled shape was pinned only by tests that HAND
+     * `HookManager` a context they built themselves. What `Chat::turnHookContext()`
+     * constructs was unpinned at the Chat seam: lowercasing the sentinel, or dropping
+     * `source` from the startup arm, left the whole suite green. So the hook here
+     * records the `$context` it RECEIVES from a prompt submitted through `Chat`.
+     *
+     * WHY THE `''`-PROMPT ARM IS NOT TESTED HERE (rather than faked): `submit()`
+     * guards on `trim($this->inputBuf) === ''` and returns before
+     * {@see dispatchTurnHooks()} is reached, and a custom command expanding to
+     * nothing is refused by its own guard for the same reason — so no draft that
+     * reaches this call site is empty, and the `'{}'` fallback inside
+     * `turnHookContext()` is defence in depth that Chat itself cannot exercise.
+     * Reaching it would mean reflection onto a private method, which is a
+     * green-by-construction test of a path production does not take. Documented
+     * here rather than fabricated, per the no-vacuous-green rule.
+     */
+    public function testTheUserPromptSubmitContextChatBuildsCarriesThePromptAndNoSourceKey(): void
+    {
+        $captured = [];
+        $recorder = new HookWireRecorder(1_000_000);
+        [$turn, , $cmd] = $this->submit($this->chatWith($recorder, [
+            $this->verdictHook(
+                'capture-submit',
+                HookEvent::UserPromptSubmit,
+                HookResult::allow(),
+                static function (HookContext $context) use (&$captured): void {
+                    $captured[] = $context;
+                },
+            ),
+        ]), 'deploy the hotfix now');
+
+        $this->assertNotNull($cmd, 'the turn dispatched, so the hook really ran');
+        $this->assertCount(1, $captured, 'one prompt is one UserPromptSubmit dispatch');
+
+        $context = $captured[0];
+        $this->assertSame(
+            'UserPromptSubmit',
+            $context->toolName,
+            'the event sentinel spelled exactly as HookRegistry::findMatches() tests it — not the lowercased backing value',
+        );
+        $this->assertSame([], $context->toolArgs, 'there is no tool call, so there are no arguments to carry');
+        $this->assertSame('', $context->toolOutput, 'and nothing has run to produce output');
+
+        $decoded = json_decode($context->toolInput, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertSame(
+            ['prompt' => 'deploy the hotfix now'],
+            $decoded,
+            'toolInput is exactly {"prompt":"<submitted text>"} — whole-shape equality, so an added or renamed key reds here',
+        );
+        $this->assertArrayNotHasKey('source', $decoded, 'the source key belongs to SessionStart alone');
+        $this->assertStringNotContainsString('source', $context->toolInput, 'and is absent from the raw JSON too, before any decode could normalise it away');
+
+        $this->assertSame('', $context->model, 'Backend\'s whole contract is complete(history): no model identity reaches Chat, so none is guessed at');
+        $this->assertSame('', $context->provider, 'the same for the provider');
+
+        // The prompt the hook saw is the one that went on the wire — otherwise the
+        // capture above could be of a context Chat built and then discarded.
+        $this->assertSame('deploy the hotfix now', $turn->history[array_key_last($turn->history)]->content);
+    }
+
+    public function testTheSessionStartContextChatBuildsCarriesThePromptAndTheStartupSource(): void
+    {
+        $captured = [];
+        $recorder = new HookWireRecorder(1_000_000);
+        [, , $cmd] = $this->submit($this->chatWith($recorder, [
+            $this->verdictHook(
+                'capture-session',
+                HookEvent::SessionStart,
+                HookResult::allow(),
+                static function (HookContext $context) use (&$captured): void {
+                    $captured[] = $context;
+                },
+            ),
+        ]), 'the very first prompt of a fresh chat');
+
+        $this->assertNotNull($cmd);
+        $this->assertCount(1, $captured, 'a fresh Chat holds empty history, so the SessionStart gate opened');
+
+        $context = $captured[0];
+        $this->assertSame(
+            'SessionStart',
+            $context->toolName,
+            'the sentinel is this event\'s name, which is what the matcher is tested against',
+        );
+
+        $decoded = json_decode($context->toolInput, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertArrayHasKey('prompt', $decoded, 'the prompt that opened the session rides along');
+        $this->assertSame('the very first prompt of a fresh chat', $decoded['prompt']);
+        $this->assertArrayHasKey('source', $decoded, 'and the key that tells this event apart from UserPromptSubmit is present');
+        $this->assertSame('startup', $decoded['source'], 'a first turn is startup — see the /clear re-fire gap on dispatchTurnHooks()');
+        $this->assertCount(2, $decoded, 'prompt and source, and nothing else smuggled in');
+
+        $this->assertSame('', $context->model);
+        $this->assertSame('', $context->provider);
+    }
+
+    /**
+     * Why this drives a COMMAND FILE and not the input box: typing is the wrong
+     * probe for this flag, and finding that out is worth recording. Every character
+     * insert rebuilds the draft with `mb_substr(..., 'UTF-8')`, which replaces an
+     * invalid sequence with a literal `?` on the spot — measured, a typed `"check
+     * \xFF this repo"` arrives at the hook as ASCII. So a typed draft can never
+     * present `turnHookContext()` with bytes json cannot encode, and a test written
+     * that way would stay green with the flag removed.
+     *
+     * A file-based custom command body is the route that does: it is read off disk,
+     * reassigned straight onto `$text` by {@see expandCustomCommand()}, and never
+     * passes through the buffer. `CommandSpec::TEMPLATE_PATTERN` carries no `/u`
+     * modifier either, so the invalid bytes survive expansion and reach the encoder
+     * intact. Without JSON_INVALID_UTF8_SUBSTITUTE the encode returns false, the
+     * `?: '{}'` fallback ships a context with NO prompt in it, and the hook is told
+     * nothing at all — silent data loss on an untrusted-bytes input.
+     */
+    public function testATurnHookContextForAnInvalidUtf8CommandBodyStillCarriesThePrompt(): void
+    {
+        $captured = [];
+        $recorder = new HookWireRecorder(1_000_000);
+        $chat = new Chat(
+            backend: $recorder,
+            hooks: $this->managerWith([
+                $this->verdictHook(
+                    'capture-malformed',
+                    HookEvent::UserPromptSubmit,
+                    HookResult::allow(),
+                    static function (HookContext $context) use (&$captured): void {
+                        $captured[] = $context;
+                    },
+                ),
+            ]),
+            // Injected rather than discovered: the constructor takes a pre-resolved
+            // map precisely so a test need not lay a commands directory on disk.
+            customCommands: [
+                'malformed' => CommandSpec::new(
+                    name: 'malformed',
+                    description: 'a body carrying bytes that are not valid UTF-8',
+                    category: 'Custom',
+                    template: "check \xFF this repo\xFE for drift",
+                ),
+            ],
+        );
+
+        [, , $cmd] = $this->submit($chat, '/malformed');
+
+        $this->assertNotNull($cmd, 'the expanded body dispatched a turn');
+        $this->assertCount(1, $captured);
+
+        $context = $captured[0];
+        $this->assertNotSame('{}', $context->toolInput, 'the invalid bytes must not cost the hook its prompt altogether');
+
+        $decoded = json_decode($context->toolInput, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertArrayHasKey('prompt', $decoded, 'the JSON decodes and still carries a prompt');
+        $this->assertStringContainsString('check ', $decoded['prompt']);
+        $this->assertStringContainsString(' this repo', $decoded['prompt']);
+        $this->assertStringContainsString(' for drift', $decoded['prompt']);
+        $this->assertStringContainsString(
+            "\u{FFFD}",
+            $decoded['prompt'],
+            'with the offending sequences substituted rather than the whole value dropped',
         );
     }
 
@@ -395,13 +601,24 @@ final class SessionStartHookWireTest extends TestCase
         return $this->verdictHook($name, $event, HookResult::allow('', $note));
     }
 
-    private function verdictHook(string $name, HookEvent $event, HookResult $verdict): HookInterface
+    /**
+     * The verdict arms above need only a verdict; the context pins below also need
+     * to see what Chat BUILT, so an optional recorder rides along. It is called with
+     * the exact `HookContext` the hook receives — `HookRegistry::scan()` hands its
+     * context to `execute()` verbatim and rewrites nothing on a permitting path, so
+     * what arrives here is production's own construction rather than a test's
+     * paraphrase of it.
+     *
+     * @param (callable(HookContext): void)|null $capture
+     */
+    private function verdictHook(string $name, HookEvent $event, HookResult $verdict, ?\Closure $capture = null): HookInterface
     {
-        return new class($name, $event, $verdict) implements HookInterface {
+        return new class($name, $event, $verdict, $capture) implements HookInterface {
             public function __construct(
                 private readonly string $hookName,
                 private readonly HookEvent $hookEvent,
                 private readonly HookResult $verdict,
+                private readonly ?\Closure $capture,
             ) {}
 
             public function name(): string
@@ -423,6 +640,10 @@ final class SessionStartHookWireTest extends TestCase
 
             public function execute(HookContext $context): HookResult
             {
+                if ($this->capture !== null) {
+                    ($this->capture)($context);
+                }
+
                 return $this->verdict;
             }
         };
