@@ -23,6 +23,7 @@ final class HookResultTest extends TestCase
         $this->assertSame(HookResult::ALLOW, $result->action);
         $this->assertSame('', $result->message);
         $this->assertNull($result->modifiedInput);
+        $this->assertSame('', $result->additionalContext);
     }
 
     public function testAllowWithMessage(): void
@@ -270,6 +271,74 @@ final class HookResultTest extends TestCase
         // Verify properties are readonly by attempting to modify (should fail at runtime)
         $this->assertSame('allow', $result->action);
         $this->assertSame('test', $result->message);
+        $this->assertSame('', $result->additionalContext);
+
+        // P7.S1: the 4th payload channel is readonly too. Writing to it must
+        // throw, not silently mutate the shared verdict the chain handed up.
+        $this->expectException(\Error::class);
+        /** @phpstan-ignore-next-line intentionally writing a readonly property */
+        $result->additionalContext = 'attempted mutation';
+    }
+
+    // =========================================================================
+    // additionalContext tests (P7.S1 — the model-visible note field)
+    // =========================================================================
+
+    public function testAllowCarriesAdditionalContext(): void
+    {
+        $result = HookResult::allow('shown to the deny gate', 'shown to the model');
+
+        $this->assertSame('shown to the deny gate', $result->message);
+        $this->assertSame('shown to the model', $result->additionalContext);
+    }
+
+    public function testDenyAndModifyCarryAdditionalContext(): void
+    {
+        $deny = HookResult::deny('no', 'model note');
+        $modify = HookResult::modify('{"a":1}', 'why', 'model note');
+
+        $this->assertSame('model note', $deny->additionalContext);
+        $this->assertSame('model note', $modify->additionalContext);
+        // modifiedInput stays the JSON arguments — never conflated with the note.
+        $this->assertSame('{"a":1}', $modify->modifiedInput);
+    }
+
+    public function testAskCarriesAdditionalContext(): void
+    {
+        $ask = HookResult::ask('Allow Bash?', '{"command":"ls"}', 'model note');
+
+        $this->assertSame('Allow Bash?', $ask->message);
+        $this->assertSame('{"command":"ls"}', $ask->modifiedInput);
+        $this->assertSame('model note', $ask->additionalContext);
+    }
+
+    public function testWithContextSetReplacesAndIsImmutable(): void
+    {
+        $result = HookResult::allow('');
+
+        $with = $result->withContextSet('the note');
+
+        $this->assertSame('', $result->additionalContext, 'the original must stay untouched');
+        $this->assertSame('the note', $with->additionalContext);
+        $this->assertSame('allow', $with->action);
+    }
+
+    public function testWithContextSetIsANoOpWhenTheValueAlreadyMatches(): void
+    {
+        $result = HookResult::allow('', 'same');
+
+        // Byte-identical no-op path: an unchanged value returns the SAME instance,
+        // which is what lets the empty-context chain add nothing to a settled
+        // result without a fresh allocation.
+        $this->assertSame($result, $result->withContextSet('same'));
+        $this->assertSame($result, $result->withContextSet('same')->withContextSet('same'));
+    }
+
+    public function testAdditionalContextCapConstantIsBytes(): void
+    {
+        // R-3: the ceiling is 10,000 BYTES (the plan step said "characters"; the
+        // subsystem is byte-denominated — see the const docblock).
+        $this->assertSame(10000, HookResult::MAX_ADDITIONAL_CONTEXT_BYTES);
     }
 
     public function testModifiedInputIsPreserved(): void

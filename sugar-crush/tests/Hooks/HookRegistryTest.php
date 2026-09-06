@@ -436,6 +436,85 @@ final class HookRegistryTest extends TestCase
         $this->assertTrue($result->isDenied());
     }
 
+    /**
+     * THE P7.S1 REPRODUCTION, at the registry seam where the bug lived.
+     *
+     * `executeHooks()` used to end its allow arm with a bare `HookResult::allow()`,
+     * so a permitting chain DISCARDED every `additionalContext` its hooks produced
+     * — a `ScriptHook` that printed 200,000 bytes and exited 0 said nothing the
+     * model could read. Now the settled verdict CARRIES the chain-collected context,
+     * bounded to {@see HookResult::MAX_ADDITIONAL_CONTEXT_BYTES} (not truncated to
+     * empty, not allowed to blow the ceiling), with the overflow retained on disk.
+     *
+     * RED-ON-REVERT: restore `$settled = ... ?? HookResult::allow();` without the
+     * `withContextSet($additional)` and `$additional` never reaches the verdict —
+     * this test's `assertNotSame('', …)` goes red.
+     */
+    public function testExecuteHooksCarriesAndBoundsALargeAdditionalContext(): void
+    {
+        $payload = str_repeat('M', 200_000);
+        $this->registry->register($this->createContextAllowHook('Loud', 'Tool.*', $payload));
+
+        $result = $this->registry->executeHooks('PreToolUse', $this->createContext('ToolCall'));
+
+        $this->assertTrue($result->isAllowed(), $result->message);
+        $this->assertNotSame('', $result->additionalContext, 'the allowing chain discarded its context again');
+        $this->assertLessThanOrEqual(
+            HookResult::MAX_ADDITIONAL_CONTEXT_BYTES,
+            strlen($result->additionalContext),
+            'the settled verdict blew past the model-visible byte cap',
+        );
+        $this->assertStringContainsString('retained at', $result->additionalContext);
+
+        // Prove the retained file carries the WHOLE 200,000 bytes the cap refused.
+        $matched = preg_match('/retained at (\S+)\]/', $result->additionalContext, $m);
+        $this->assertSame(1, $matched);
+        try {
+            $this->assertSame($payload, file_get_contents($m[1]), 'the retained file does not carry the exact 200,000-byte payload');
+        } finally {
+            @unlink($m[1]);
+        }
+    }
+
+    /**
+     * A SECOND allowing hook's context is JOINED chronologically and the total is
+     * still capped — the multi-hook case the single-hook reproduction cannot see.
+     */
+    public function testExecuteHooksJoinsAdditionalContextAcrossHooksUnderTheCap(): void
+    {
+        $this->registry->register($this->createContextAllowHook('First', 'Tool.*', str_repeat('A', 7_000)));
+        $this->registry->register($this->createContextAllowHook('Second', 'Tool.*', str_repeat('B', 7_000)));
+
+        $result = $this->registry->executeHooks('PreToolUse', $this->createContext('ToolCall'));
+
+        $this->assertTrue($result->isAllowed());
+        $this->assertLessThanOrEqual(HookResult::MAX_ADDITIONAL_CONTEXT_BYTES, strlen($result->additionalContext));
+        $this->assertStringContainsString('retained at', $result->additionalContext);
+        // The model-facing PREVIEW (not just the retained file order) must keep the
+        // EARLIEST hook's context visible: `bound()` cuts a byte-boundary HEAD of the
+        // earliest-first join, so a cap that dropped the leading hook — or a join that
+        // ordered latest-first — would go red here even if the file order stayed right.
+        // The discriminator is the WHOLE earliest block (7,000 A + the join separator),
+        // not a bare 'AAAA' prefix: with a cap room of 9,488 bytes a tail-cut preview
+        // starting mid-A-run would still start with 'AAAA', so only the full earliest
+        // block + separator proves the HEAD (earliest) is what the model sees.
+        $this->assertStringStartsWith(
+            str_repeat('A', 7_000) . "\n\n",
+            $result->additionalContext,
+            'the bounded preview did not keep the earliest hook at its head',
+        );
+
+        $matched = preg_match('/retained at (\S+)\]/', $result->additionalContext, $m);
+        $this->assertSame(1, $matched);
+        try {
+            // 7,000 A + separator + 7,000 B, joined earliest-first (see scan()).
+            $this->assertStringStartsWith('AAAA', (string) file_get_contents($m[1]));
+            $this->assertStringContainsString('BBBB', (string) file_get_contents($m[1]));
+        } finally {
+            @unlink($m[1]);
+        }
+    }
+
     // =========================================================================
     // executeHooks ask() Precedence Tests
     // =========================================================================
@@ -1559,6 +1638,44 @@ final class HookRegistryTest extends TestCase
             public function execute(HookContext $context): HookResult
             {
                 return HookResult::allow();
+            }
+        };
+    }
+
+    /**
+     * An allowing hook that also emits a model-visible `additionalContext` — the
+     * shape a `ScriptHook` produces on its `exit 0` path after this step, built
+     * here directly so the registry test exercises the threading without a child
+     * process. $context is handed VERBATIM so the caller can prove the registry
+     * caps and retains it, not the producer.
+     */
+    private function createContextAllowHook(string $name, string $matcher, string $context): HookInterface
+    {
+        return new class($name, $matcher, $context) implements HookInterface {
+            public function __construct(
+                private string $name,
+                private string $matcher,
+                private string $context,
+            ) {}
+
+            public function name(): string
+            {
+                return $this->name;
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return $this->matcher;
+            }
+
+            public function execute(HookContext $hookContext): HookResult
+            {
+                return HookResult::allow('', $this->context);
             }
         };
     }

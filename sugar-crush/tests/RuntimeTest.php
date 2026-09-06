@@ -752,6 +752,87 @@ final class RuntimeTest extends TestCase
         $this->assertSame('kitty', $results[0]->imageProtocol());
     }
 
+    /**
+     * A PostToolUse hook that allows and emits `additionalContext` — the P7.S1
+     * consumer R-1 demands on the Runtime side. The chain's collected note has to
+     * reach the model-visible `ToolResultMessage` through the existing
+     * {@see \SugarCraft\Crush\Runtime::annotate()} seam (content + blank line +
+     * note), not be discarded as a bare statement. Red on revert: drop the
+     * `settle()` capture/annotate and the note never reaches `content()`.
+     */
+    public function testAPermittingPostToolUseHookContextReachesTheModelResult(): void
+    {
+        $this->hookRegistry->register(
+            $this->createPostToolUseContextHook('context_note_for_the_model'),
+        );
+
+        $tool = $this->createMockTool('noted_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_noted', 'noted_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(
+            "Executed successfully\n\ncontext_note_for_the_model",
+            $results[0]->content(),
+        );
+        $this->assertFalse($results[0]->isError());
+    }
+
+    /**
+     * The empty-context case must be a true no-op: with no PostToolUse context to
+     * append, `annotate()` is never called and the tool result is BYTE-IDENTICAL to
+     * a run with no hook at all. Pinned so the wiring cannot start stamping a stray
+     * separator onto every ordinary permitted call.
+     */
+    public function testAnEmptyPostToolUseContextLeavesTheToolResultByteIdentical(): void
+    {
+        $this->hookRegistry->register($this->createPostToolUseContextHook(''));
+
+        $tool = $this->createMockTool('quiet_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_quiet', 'quiet_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Executed successfully', $results[0]->content());
+    }
+
+    /**
+     * A permitting PostToolUse hook that carries exactly $additionalContext — the
+     * Runtime-side producer shape without spawning a real `ScriptHook` child.
+     */
+    private function createPostToolUseContextHook(string $additionalContext): HookInterface
+    {
+        return new class($additionalContext) implements HookInterface {
+            public function __construct(
+                private string $additionalContext,
+            ) {}
+
+            public function name(): string
+            {
+                return 'post_ctx_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PostToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return HookResult::allow('', $this->additionalContext);
+            }
+        };
+    }
+
     // =========================================================================
     // A throwing tool must cost its own call, not the whole turn
     // =========================================================================
