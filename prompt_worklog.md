@@ -253,6 +253,62 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P7.S1 — Hook `additionalContext` threaded through all four drop-points + both consumers; 10,000-byte cap via retained overflow helper — 2026-09-06 · 78933f958 + 9c423afb7 (merged f77cc7747)
+
+**Status**: `done`
+**Worktree**: `/home/sites/prompt-step-P7.S1` (branch `prompt/P7.S1`; vendor cp -al hardlinked, PSR-4 verified; removed post-merge)
+**Base**: `ad1020b2e`
+**Goal (one sentence)**: Kill the plan's "200 KB vanishes without a trace" — `ScriptHook` allow-path output was discarded by `HookResult::allow()` and re-discarded at three more rebuild points; thread a model-visible `additionalContext` end-to-end (R-1: BOTH consumers read it; R-2: overflow RETAINED in a purpose-built non-swept file; R-3: cap 10,000 BYTES, plan text "characters" ruled bytes).
+
+**What changed**
+- `src/Hooks/HookResult.php` (+87): defaulted 4th promoted readonly param `public string $additionalContext = ''`; `public const MAX_ADDITIONAL_CONTEXT_BYTES = 10000` (:68, sole definition — all three production uses reference it); `withContextSet()` immutable with identity no-op on equal value; class doc names the three payload channels (message=human/deny-reason, modifiedInput=JSON tool args, additionalContext=model-visible note).
+- `src/Hooks/HookRegistry.php` (+70): `scan()` widened tuple + collection at :770-789 (allow-exit previously UNSTORED at old :767-769); ASK rebuild :436 carries; settled arm :455-457 `withContextSet($additional)` (the bug); destructure :342-region updated. Single `scan()` caller verified.
+- `src/Hooks/HookManager.php` (+14): `resolveAsk()` all three re-materialisations carry the field (:199/:208/:209).
+- `src/Hooks/ScriptHook.php` (+31): `EXIT_ALLOW` routes `$output` into additionalContext (NOT message) via `HookContextFiles::bound()`; old :631-641 "goes NOWHERE" docblock rewritten for the live consumer; ~14 allow-path tests migrated message→additionalContext (zero deletions; deny/error hunks untouched — review-proven).
+- `src/Support/HookContextFiles.php` (+226, NEW): dedicated `/tmp/sc-hook-ctx/` dir under umask(0o077) mkdir; 0600 `.partial`-temp + same-dir `rename()` (:204-218); `bound()` = strlen-byte check + `mb_strcut` UTF-8 head-cut + `max(1, cap-512)` headroom (:164) + final clamp (:186-188) — no `<=0` sentinel (TruncatesOutput landmine documented w/ Glob 1,091,833-byte incident); R-2 sweep-proof embedded in class docblock: `ToolIpcFiles::sweep()`'s three prefix-globs are flat-only (`*` cannot cross `/`), `discard()` ledger never contains these paths.
+- `src/Runtime.php` (+13): `settle()` captures the `postToolUse()` result (was a discarded bare statement) and appends non-empty context via the PRE-EXISTING `annotate()` seam; deny branch :1930-1931 untouched.
+- `src/Chat.php` (+29): EXACTLY ONE hunk — `applyPostToolUse()` consumer (:3661-3690) under supervisor ruling R-1 (P7.S1-only clearance; recorded in merge commit `f77cc7747` message).
+
+**Tests added or changed** (+20 tests vs base, 6 files, 1 new)
+- `HookResultTest` 27→33: every factory carries the field; readonly-mutation `expectException(Error)`; const-is-bytes pin.
+- `HookRegistryTest` 68→70: 200,000-byte repro (`str_repeat('M',200_000)` allow path → assertNotSame('', ctx) "the allowing chain discarded its context again", strlen<=cap, `'retained at'` marker, retained path regex-extracted, `assertSame($payload, file_get_contents(...))` content-exact); join test 2x7,000 B → `assertStringStartsWith(str_repeat('A',7000)."\n\n", ctx)` (earliest-block-at-head — kills tail-cut AND latest-first joins).
+- `ScriptHookTest` 70→71: over-cap allow bounded+retained+`assertSame('', $result->message)` (no deny-channel leak).
+- `Support/HookContextFilesTest` NEW 6: private-0600-exact (`& 0o777`) + no-residue (`glob($path.'.*')===[]`; atomicity DELIBERATELY code-review-pinned only — see review M1); retention vs REAL `ToolIpcFiles::sweep(temp, 0)` with planted `RUNTIME_PREFIX` decoy (>=1 removed + decoy gone + ctx intact); cap test weighs retained file; `max(1,..)` tiny-cap floor.
+- `RuntimeTest` +2 / `ChatTest` +2: non-empty ctx reaches the model-visible content on BOTH consumers (full-string `assertSame`); empty ctx byte-identical no-op; ChatTest belt asserts production `ToolResult::toWire()` output.
+
+**Deletion experiment**: gate agent (throwaway worktree, never the step tree) reverted the settled arm to empty `allow()` → the two registry tests RED with bug-naming messages; restore → green; porcelain clean. Fix-cycle experiments: neutered sweep prefix-list → retention test RED (decoy); `bound()` head→tail cut → join pin RED; Chat append neutered → BOTH consumer asserts + `toWire()` belt RED; non-atomic `write()` revert → HCF tests GREEN **by design** (false shield removed, claim disclaimed in docblock — review M1 fix).
+
+**MEASURED**
+- `$` 200k repro bytes: input 200,000 B → bounded ctx **9,630 B** (9,488 preview + 142 marker) ≤ 10,000; retained `/tmp/sc-hook-ctx/ctx-341ef8c20154256f.txt` **200,000 B**.
+- `$` builder full suite @78933f958 (in-session): `10957 tests / 168627 assertions / 0 failures / 0 errors / 2 skipped / EXIT 0`. Prediction written BEFORE run: ≈10,956/≈168,520 — tests hit within +1; assertions under-called −107 (per-class solos predict tests reliably; new inline assertion volume does not — law unchanged).
+- `$` INDEPENDENT gate (fresh detached worktrees, tip 78933f958 + base ad1020b2e): TIP `Tests 10957, Assertions 168627, Failures 0, Errors 0, Skipped 2, Time 07:07.904, EXIT 0`; BASE `Tests 10937, Assertions 168399, Skipped 2, Time 07:06.867, EXIT 0`; `cmp.py` +20t/+228a, remainder **0**, every mover named (6 edited classes; `BinSugarcrushWiringTest` +1 test = its src/**.php data provider gained HookContextFiles.php; 13+ census guards assertions-only incl GlobFigureDrift +65). MouseModalGuardTest 198 both sides (±3 arm never fired).
+- `$` fix cycle @9c423afb7 (tests-only; `git diff 78933f958 9c423afb7 -- sugar-crush/src/` EMPTY): full suite `10957 tests / 168640 assertions / 2 skipped — OK (7:11)`; cmp vs 78933f958: +13 assertions / 0 tests — HookContextFilesTest 20→25, HookRegistryTest 199→200, ChatTest 886→887, AssertionSwallowingCatchTest 3406→3412 (+6 EXPLAINED: its braceRun instrument fires per try token across ALL of tests/; fix added 2 T_TRY; swallowing-row SET byte-identical 4 rows both sides, verdicts green — no shield weakened).
+- Census absolutes @9c423afb7 (§17.1): GlobFigureDriftTest abs 22321 assertions @9c423afb7; StderrEmitterCensusTest abs 5208 assertions @9c423afb7; EnvRosterDriftTest abs 2993 assertions @9c423afb7; AssertionSwallowingCatchTest abs 3412 assertions @9c423afb7; SymbolCitationDriftTest abs 3134 assertions @9c423afb7; TreeWideGuardRosterTest abs 1123 assertions @9c423afb7; BinSugarcrushWiringTest abs 1977 assertions @9c423afb7.
+- Goldens FROZEN at 3 checkpoints (builder, gate, post-merge md5 on master f77cc7747): `f09f37366a1925565dcc7725f659ff41`/7829 B system, `ef0326dd38535aaa2f1d715919bff26e`/1060 B agent; `git diff <base>..<tip> -- sugar-crush/tests/fixtures/` EMPTY at every pair.
+- Commit hygiene: `[EMAIL]` scan 0 on 78933f958, 9c423afb7, f77cc7747; `%an %ae %cn %ce` = Joe Huss detain@interserver.net all three.
+
+**Suite result**: FLOOR moved **10,937 / 168,399 → 10,957 / 168,640 / 0F / 0E / 2 Skipped / EXIT 0**, gated at 9c423afb7; belt-describes master `f77cc7747` via EMPTY `git diff 9c423afb7..f77cc7747 -- sugar-crush/`. 2 skips pre-existing.
+
+**RECOVERED (transport deaths, 3)**: (1) first full-suite gate return truncated mid-step-7 → SAME agent resumed via task_id, completed from persisted junits (rung: resume-same, 1 relaunch). (2) reviewer `naughty-bronze-caterpillar` died at 900s harness timeout, zero artifact — not resumable (delegate transport); replaced by scoped review (launch count 2 for its role). (3) reviewer `major-ivory-spider` same 900s death, zero artifact (launch count 2 for its role; final form: three time-boxed parallel reviews 1A/1B-i/1B-ii, all delivered). §1.8.4 note: all three findings-driven fixes landed in `9c423afb7`.
+
+**Review loop** — Total cycles: **2**. Cycle 1: `1A superb-aquamarine-guineafowl` APPROVE_WITH_NITS — checks 1-5 PASS (additive widening, four-point threading w/ exact post-diff lines, helper 0600/atomic/cap sound, sweep-disjointness airtight, Chat.php one hunk, HookDispatcher zero src constructions); MINOR-1 `is_dir()` follows symlinks (pre-created `/tmp/sc-hook-ctx` = integrity-only primitive; confidentiality holds; meets-and-beats ToolIpcFiles bar) → DEFERRED to follow-ups; NITs 2-4 noted. `1B-i cuddly-salmon-lobster` APPROVE_WITH_NITS — consumer tests real+exact both polarities; 3 test-hardening minors → all fixed. `1B-ii convenient-lime-ferret` **REQUEST_CHANGES** — Major M1 atomicity false-shield (absence check can't redden on direct-write revert) + m1 no positive control + m2 shared-temp hazard + m3 perms under-pin + m4 "WritesNothing" unasserted → FIX `9c423afb7` (tests-only; honesty experiment + 3 positive-bite experiments logged above; two brief literals corrected by fixer — `glob('*')` matches empty, and 'AAAA' prefix doesn't kill tail-cuts — both ratified by orchestrator). Cycle 2: `prickly-amaranth-rattlesnake` APPROVE_WITH_NITS — **8/8 CLOSED**, no Critical/Major; sole nit (shared-/tmp listing race in WritesNothing test) consistent-by-design with serial-suite invariant.
+
+**Invariants touched (§17)**: prompt goldens frozen (§17.1 — tool-result payload NEVER enters the assembler; system messages ride the history channel, and this step touches neither); NEW src file → census absolutes recorded above; Chat.php single-hunk under time-boxed R-1 clearance (row stays live for Phase 8); no new deps / env vars / slash commands / key bindings (doc-drift guards silent except assertions-only movers); no composer artifacts; `src/` untouched by fix cycle.
+
+**Surprises / things the plan got wrong**
+1. Plan P7.S2 Goal text claims HookDispatcher "is constructed by nothing in src/ except Agents/TaskList.php:281" — FALSE: :281 is a CALL site behind a null-defaulted `?HookDispatcher` param; the sole `new TaskList` (Team.php:37) passes single-arg. Dispatcher is fully dead code → P7.S2 brief WITHDRAWS it from that step's file list (decision D).
+2. Plan P7.S1 text said 10k "characters"; subsystem is byte-denominated (ScriptHook::clip cuts bytes deliberately) → R-3 bytes; recorded in docblocks.
+3. Monolithic whole-diff reviewers die at the 900s harness timeout (2 of 2 attempts on a 13-file diff). Time-boxed scoped parallel reviews are the working form henceforth.
+4. `AssertionSwallowingCatchTest` fires its per-try instrument across `tests/` too, not just `src/` — first observation of it moving from TEST edits (+6 for 2 try/finally). Census predictions for test-side try blocks need this.
+5. `BinSugarcrushWiringTest` implicitly bumps +1 test / +6 assertions for EVERY new `src/` file (file-per-data-provider) — a free canary that a new file exists, also a mandatory prediction-input.
+6. Builder's test-count prediction was near-exact; assertion-count prediction missed −107. Prediction law stands but expects test-hits, assertion-approximations.
+
+**Follow-ups created**
+- (a) `HookContextFiles::dir()` symlink hardening (is_link refuse-and-rotate vs realpath containment) — deferred; honest test needs a production seam (env override), blast radius > confidentiality-preserving MINOR. Reviewer 1A concurs.
+- (b) Multi-pass rewrite re-binding can spill a second retained file embedding the first marker (cost-only, documented; revisit if disk churn appears).
+- (c) PreToolUse-side `additionalContext` is collected+carried but only PostToolUse consumers annotate (R-1 scoping; candidate if a gate-time note is ever wanted).
+- (d) P7.S2 provider-payload done-when REQUIRES the two-step EngineBackend(recordingProvider)->complete() capture (pcntl fork trap, premise-proven) — already encoded in the P7.S2 brief.
+
 ### PHASE 7 OPEN — P7.S1 briefed, READY TO STAFF — 2026-09-05 21:31 — status: briefed (NOT built, NOT merged; Phase 7 opened, 0 of 6 merged)
 
 > STATUS / HANDOFF entry, not a step-done entry. P7.S1 is neither built nor merged; this records the
