@@ -189,16 +189,28 @@ final class TriggerTest extends TestCase
         self::assertTrue($broad->matches('a/b/c/d.txt'));
     }
 
-    public function testPathSingleStarAndQuestionDoNotCrossSeparators(): void
+    /**
+     * P6.S5a FLIPPED this pin, and the flip is the deliverable: the assertion
+     * used to hold PathTrigger's own segment-scoped `*`, and both production
+     * matchers now answer through {@see \SugarCraft\Crush\Util\PathGlob}, the
+     * `fnmatch()`-style dialect
+     * {@see \SugarCraft\Crush\Skills\SkillRegistry::pathMatches()} has always
+     * answered with. The `?` group below is unchanged in its three answers —
+     * `?` is exactly one character either way — and only gains the separator as
+     * a character it may be, which is the last assertion here.
+     */
+    public function testPathSingleStarAndQuestionCrossSeparatorsLikeTheSkillChannel(): void
     {
         $star = PathTrigger::new(['src/*.php']);
         self::assertTrue($star->matches('src/a.php'));
-        self::assertFalse($star->matches('src/deep/x.php'));
+        self::assertTrue($star->matches('src/deep/x.php'));
 
         $q = PathTrigger::new(['src/?x.php']);
         self::assertTrue($q->matches('src/ax.php'));
         self::assertFalse($q->matches('src/abx.php')); // two chars, one ?
         self::assertFalse($q->matches('src/x.php')); // zero chars, ? needs exactly one
+        // One character, and `/` is a character: `a/?b` claims `a//b`.
+        self::assertTrue(PathTrigger::new(['a/?b'])->matches('a//b'));
     }
 
     public function testPathMatchingIsCaseSensitive(): void
@@ -227,19 +239,32 @@ final class TriggerTest extends TestCase
     {
         $trigger = PathTrigger::new(['*.php', 'src/*.php', 'docs/**']);
 
-        self::assertSame(['src/*.php'], $trigger->matchingGlobs('src/index.php'));
-        // "a.php" matches only `*.php`; `src/*.php` cannot cross the separator.
+        // P6.S5a: `*.php` crosses separators, so BOTH declaration-order globs now
+        // claim `src/index.php`. The order is the declared order, which is the
+        // actual pin here; the widened subset is
+        // {@see \SugarCraft\Crush\Tests\Context\GlobDialectDifferentialTest}'s pin.
+        self::assertSame(['*.php', 'src/*.php'], $trigger->matchingGlobs('src/index.php'));
+        // Root-level file: `*.php` claims it; `src/*.php` needs the `src/` literal.
         self::assertSame(['*.php'], $trigger->matchingGlobs('a.php'));
         self::assertSame([], $trigger->matchingGlobs('README.md'));
     }
 
-    public function testPathTrailingDoubleStarRequiresSeparator(): void
+    /**
+     * P6.S5a FLIPPED this pin: a trailing `/**` makes its own separator optional,
+     * so `src/**` claims the bare directory string `src` exactly as
+     * {@see \SugarCraft\Crush\Skills\SkillRegistry::pathMatches()} always did. The
+     * two assertions that stayed green are kept — `src/` and `src/a/b` — because a
+     * pin that only records the change hides what the change left alone.
+     */
+    public function testPathTrailingDoubleStarMakesTheSeparatorOptional(): void
     {
         $trigger = PathTrigger::new(['src/**']);
 
-        self::assertFalse($trigger->matches('src'));
+        self::assertTrue($trigger->matches('src'));
         self::assertTrue($trigger->matches('src/'));
         self::assertTrue($trigger->matches('src/a/b'));
+        // Negative polarity: the `src` literal is still required.
+        self::assertFalse($trigger->matches('lib'));
     }
 
     public function testPathExposesGlobsAsDeclaredValue(): void
@@ -365,9 +390,12 @@ final class TriggerTest extends TestCase
         self::assertNotSame($original, $successor);
         self::assertSame(['*.php'], $original->globs);
         self::assertSame(['src/**'], $successor->globs);
-        // Successor is independent of the original's patterns.
-        self::assertFalse($original->matches('src/a.php'));
-        self::assertTrue($successor->matches('src/a.php'));
+        // Successor is independent of the original's patterns. Re-discriminated by
+        // P6.S5a onto a path the widened `*.php` still claims and `src/**` does
+        // not: `src/a.php` used to separate the two by the segment-scoped `*`, and
+        // after the unification it is a YES for both.
+        self::assertTrue($original->matches('a.php'));
+        self::assertFalse($successor->matches('a.php'));
     }
 
     // -----------------------------------------------------------------
