@@ -85,7 +85,19 @@ final readonly class Skill
     }
 
     /**
-     * Check if this skill matches a prompt.
+     * Unanchored substring probe over the description: any token longer than
+     * three bytes that appears anywhere in the prompt is a match.
+     *
+     * WHY THIS IS DELIBERATELY DORMANT, WITH THE NUMBER. Measured at b289eaf44
+     * over the 12 shipped skills (239 description tokens, 52-prompt battery):
+     * precision 0.162, and 24 of 25 boundary prompts false-fire (96%) — a bare
+     * `port` in a description matches "airport". Whole-word anchoring only lifts
+     * that to 0.214: the dominant failure is common English words living in
+     * descriptions (a single `when` hijacks 9 skills), not substring bleed. So a
+     * production-viable matcher needs curated frontmatter keywords fed to the
+     * `KeywordTrigger` primitive — a design step, not this method. Phase 7
+     * therefore closes it deliberately unwired. See the premise and its
+     * artifacts under `prompt_kit/findings/P7.S4/`.
      */
     public function matchesPrompt(string $prompt): bool
     {

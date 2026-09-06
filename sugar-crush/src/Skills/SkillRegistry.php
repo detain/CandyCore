@@ -246,6 +246,20 @@ final class SkillRegistry
     /**
      * Find skills matching a prompt.
      *
+     * DELIBERATELY NOT WIRED — closed at P7.S4 with the measured number. Its two
+     * callers, `SkillManager::getSkillsForTask()` and `App::findSkillsForTask()`,
+     * have no production call site, and the matcher it leans on
+     * ({@see Skill::matchesPrompt()}) measures 0.162 precision on the shipped
+     * corpus (whole-word maxes 0.214; 96% boundary false-fire). Wiring it as-is
+     * injects a spurious-fire stream into every turn for no usable feature, so
+     * Phase 7 leaves it dormant rather than half-fixing it. Premise and artifacts:
+     * `prompt_kit/findings/P7.S4-premise.md` (measure.php, raw-output.txt).
+     *
+     * The relevance sort below keys on the WHOLE prompt as a substring of each
+     * one-line description, so its count is 0 for realistic prompts and the
+     * result is an input-order no-op. Both the auto-invocable gate and that
+     * no-op are pinned by tests, so any future wiring confronts them first.
+     *
      * @return array<Skill>
      */
     public function findForPrompt(string $prompt): array
