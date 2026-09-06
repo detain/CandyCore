@@ -470,7 +470,7 @@ final class HookRegistryTest extends TestCase
         $matched = preg_match('/retained at (\S+)\]/', $result->additionalContext, $m);
         $this->assertSame(1, $matched);
         try {
-            $this->assertSame(200_000, strlen((string) file_get_contents($m[1])));
+            $this->assertSame($payload, file_get_contents($m[1]), 'the retained file does not carry the exact 200,000-byte payload');
         } finally {
             @unlink($m[1]);
         }
@@ -490,6 +490,19 @@ final class HookRegistryTest extends TestCase
         $this->assertTrue($result->isAllowed());
         $this->assertLessThanOrEqual(HookResult::MAX_ADDITIONAL_CONTEXT_BYTES, strlen($result->additionalContext));
         $this->assertStringContainsString('retained at', $result->additionalContext);
+        // The model-facing PREVIEW (not just the retained file order) must keep the
+        // EARLIEST hook's context visible: `bound()` cuts a byte-boundary HEAD of the
+        // earliest-first join, so a cap that dropped the leading hook — or a join that
+        // ordered latest-first — would go red here even if the file order stayed right.
+        // The discriminator is the WHOLE earliest block (7,000 A + the join separator),
+        // not a bare 'AAAA' prefix: with a cap room of 9,488 bytes a tail-cut preview
+        // starting mid-A-run would still start with 'AAAA', so only the full earliest
+        // block + separator proves the HEAD (earliest) is what the model sees.
+        $this->assertStringStartsWith(
+            str_repeat('A', 7_000) . "\n\n",
+            $result->additionalContext,
+            'the bounded preview did not keep the earliest hook at its head',
+        );
 
         $matched = preg_match('/retained at (\S+)\]/', $result->additionalContext, $m);
         $this->assertSame(1, $matched);

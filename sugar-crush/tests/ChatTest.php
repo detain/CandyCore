@@ -3568,6 +3568,15 @@ final class ChatTest extends TestCase
         [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
 
         $this->assertSame("total 0\n\nnote_from_the_hook", $final->history[1]->content);
+
+        // BELT: the note must reach the WIRE bytes, not only the display content.
+        // `finishToolCalls()` hands the very ToolResult `applyPostToolUse()` returned
+        // onto the history message via `withToolResults()`, so `toWire()` here runs
+        // the production serialization the provider receives (`error ?? result`),
+        // not a test-side reconstruction — the append is proven to survive the exact
+        // hop that matters.
+        $wire = $final->history[1]->toolResults[0]->toWire();
+        $this->assertSame(['role' => 'tool', 'tool_call_id' => 'call_1', 'name' => 'bash', 'content' => "total 0\n\nnote_from_the_hook"], $wire);
     }
 
     /**
