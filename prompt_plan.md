@@ -2451,7 +2451,7 @@ measured 1.6× blow-up** — i.e. the rules tier is **already 1.27-2.03× worse 
 constraint was imported to guard against**, and that aggregate exposure exists today independent of
 S5b. Recorded as its own follow-up (an aggregate bound on rules bytes), not folded into S5b's scope.
 
-**Also deferred here:** Q7 escalation 3 — `Rule::withTriggers()` (`Rule.php:277-290`) has zero
+**Also deferred here:** Q7 escalation 3 — `Rule::withTriggers()` (`Rule.php:285-298`) has zero
 production callers (MEASURED); it is a sixth dormancy-roster item for §16.4, not S5a's or S5b's to
 remove.
 

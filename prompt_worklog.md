@@ -253,6 +253,115 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### PHASE 6 CLOSE REVIEW — 2026-09-05 21:24 — status: done (Phase 6 CLOSED; 42 of 65 steps; P6.S5b stays BLOCKED)
+
+**GOAL** cross-step close review over P6.S1..P6.S5a's six merges **together** per §1.7 / §6 — the whole-phase
+lens no single-step review ever had: two steps that each solved half a problem and left a seam, an invariant
+step 3 relied on that step 5 changed, a claim in a step entry the combined tree does not support. Derived
+first-parent range `826564bdf..785c0876d` (Phase 5 tip → Phase 6 tip).
+
+**CLOSE REVIEW** cycle 1 — reviewer `courageous-silver-woodpecker` (brand-new, read-only; phpunit DENIED, so it
+adjudicated by the belt, not a re-run). **VERDICT: PHASE 6 MAY CLOSE.** Findings **0 blocker / 0 major / 1 minor
+(MINOR-1) / 3 nits (NIT-1/2/3)**. The six step merges, all true `--no-ff` 2-parent merges (verified
+`git rev-list --parents -n1 <sha>` = 3 words each); intervening `plan:`/`worklog:`/`briefs:` bookkeeping and
+`1cf242f26` "caliber update" EXCLUDED as steps — `git diff f3134703f 1cf242f26 -- sugar-crush/` = **0 bytes**
+proves the caliber commit touched no `sugar-crush/` path. Commit map (merge | branch tip = 2nd parent | base =
+1st parent): **S1** `88fa18f77` | `7e312e84e` | `bba96e306` · **S2** `aff501a35` | `ca1470ff2` (15 commits) |
+`0c31bd9a5` · **S2b** `506ef5f5e` | `730478ab2` | `52295ef64` · **S3** `017a691ae` | `e28a99b04` | `eb3f8b574` ·
+**S4** `608914072` | `96e6577a3` | `03c584c2a` · **S5a** `505734f9f` | `52de996fe` (gated `714bea7ec`) |
+`1cf242f26`. All plan anchors re-derived and HIT. **No P6.S6. P6.S5b never built — CORRECT**: `ls
+sugar-crush/src/Context/RulePathNudge.php` → No such file; plan `:2424` marks it BLOCKED.
+
+**SIX DELIVERABLES — all PASS in the COMBINED state (reviewer file:line evidence):**
+1. **Trigger union (S1)** — still UNWIRED. `Rule->triggers()` has ZERO production readers (`/usr/bin/grep -rn
+   '\->triggers()' src/` = only `Rule.php:236` construction, `Rule.php:321` mutate() self-carry, and
+   `Runtime.php:2560-2561` the comment stating the splice reads NO triggers). All `PathTrigger::matches` /
+   `matchingGlobs` callers are tests. `Skill::matchesPrompt()` (`Skill.php:90-102`) still raw `stripos`, untouched
+   across the whole phase (P7.S4 owns it). S5a's widening PRESERVED the dormancy (PathGlob.php:58-62 rationale
+   matches the reviewer's independent trace).
+2. **Rules tier (S2)** — three tiers `['user','project','root']` (`Rule.php:110`), loader-local containment
+   refusals (`RuleLoader.php:175-196`), provenance split `Runtime.php:2592-2598` (`<user-rules>`) vs
+   `:2614-2652` (`<project-instructions>`), seven-tag `PromptFence` roster (`PromptFence.php:118-126`). A
+   `paths:`-scoped rule STILL renders globally (splice filters via `RulesState::effectiveRule()` enabled-bit only,
+   `RulesState.php:64-70`, reads no trigger) — S5a's `Rule.php` delta is doc-block-only (single hunk) and did NOT
+   change that. The §18 row S5b owns stays open.
+3. **Roster channel (S2b)** — `harness-injected` is defang-only; NO emitter in all of src (only
+   `PromptFence.php:125` roster + prose at :74/:104/:110). Neither S3/S4/S5a touched `PromptFence.php`.
+4. **Rulebooks (S3)** — `Rule::$key` identity readonly ctor (`Rule.php:132`, loader-side identity `:61-73`
+   "never derived from frontmatter"); `RulesState` deliberately shared-mutable with two-owners rationale
+   (`RulesState.php:30-46`); session-scoped persistence a PINNED non-goal (`RulesState.php:48-62` + surviving test
+   `RulesCommandTest.php:268` `testTogglingAPackLeavesTheConfigFileByteIdentical`, onConfigChange count 0 at
+   `:290`). Not undone by S4/S5a.
+5. **disabledRules (S4)** — read-side only, seeded at `Bootstrap.php:1028` from the MERGED view
+   (`mergedConfig(true)`, `:1012-1014`), user-tier-only (in `LAYERED_KEYS` `:305`, absent from
+   `PROJECT_TIER_KEYS`), `rulePacksToDisable()` pure-static no try/catch (`:2865-2879`). NO write door appeared:
+   `LayeredSettings.php:37` still reads "EXACTLY TWO KEYS reach it: provider and theme".
+6. **Glob dialect (S5a)** — ONE compiler `src/Util/PathGlob.php` (357 L, `final`, pure; `wc -l` = 357); both
+   matchers routed (`PathTrigger.php:137,155,174`; `SkillRegistry.php:579→669-671→PathGlob::compile`, `:582`
+   matchCompiled). **`legacyPathMatch()` genuinely REACHABLE by path-trace, not mere existence**: `matchCompiled`
+   returns `null` on PCRE refusal (classBody leaves a trailing backslash) → `SkillRegistry.php:583-593` returns
+   `legacyPathMatch`; pinned by `SkillPathPatternTest::testAnEscapedClassTerminatorIsLeftToTheFullOldPredicate`.
+   Differential harness NON-CIRCULAR (frozen oracles touch zero production symbols; Q3_ROWS "before" column
+   re-derived against the deleted compiler; derived corpus; execution count asserted). Doc-figure pin structurally
+   incapable of vacuous green. NOTHING reaches rendering (7-file delta has no Runtime/Sections/Loader file; goldens
+   unmoved).
+
+**CROSS-STEP INTEGRITY CHECKS A-F — all PASS** (measured command in each): **(A)** zero src files deleted net or
+per-commit across the phase (`git diff --diff-filter=D --name-only 826564bdf HEAD -- sugar-crush/src/` empty).
+**(B)** no existing test weakened — all non-S5a edits are census-grows or coverage that MIGRATED hand-declared→
+derived (S2 `TreeWideGuardRosterTest` 4→3, retraction warrant in-file); the only authorized flips are S5a's FOUR
+`TriggerTest` pin flips, each of which GAINED a polarity assertion. **(C)** golden discipline airtight — the SYSTEM
+golden moved ONLY at S2 (`aa450abdc→fe2d9f6f7`, a +7-line pure `<user-rules>` insertion, 7314→7829 = +515
+arithmetic closes); agent golden UNMOVED since `405252a41`; both belts `714bea7ec→505734f9f` and `→785c0876d`
+EMPTY. **(D)** §1.10 honoured — both `legacyPathMatch()` and `Rule::withTriggers()` intact, not
+removed/stubbed/narrowed. **(E)** propagated-bookkeeping hunt found NO tree-disprovable claim except MINOR-1 — all
+re-derived and HIT: plan headings = 65, Phase-6 = 7 sections (no S6), "42 of 65 / six of seven merged", S2 = 15
+commits, S2b = +241/−11, S3 = 23 files +2730/−49, S4 = 10 files +1043/−32, S5a = 7 files +1614/−293,
+widen/narrow/hold = 10+3+20 = 33, floor ladder. **(F)** both deferred follow-ups confirmed still open + correctly
+recorded, neither dropped nor secretly fixed. Merge hygiene: author equals committer — the single `Joe Huss`
+maintainer identity — on all six merges + `52de996fe`; zero `[EMAIL]` in full bodies; angle-bracket-scrubbed (reviewer used
+`git show --format=full`; literal `git cat-file` was denied to it but equivalent).
+
+**MINOR-1 — THE ONE CROSS-STEP SEAM (fixed in this same bookkeeping pass, doc-only).** A stale line-cite
+`Rule::withTriggers() (Rule.php:277-290)` sat in `prompt_resume.md` §8 (open follow-up 2) and `prompt_plan.md:2454`.
+Cause is exactly the class of defect only a whole-phase review sees: **S5a's `Rule.php` doc-block hunk is net +8
+lines** (`git diff f3134703f 52de996fe --numstat -- sugar-crush/src/Context/Rule.php` = +18/−10), shifting the
+method to **285-298** (doc-block 277-284); the old `:290` now lands mid-throw. Verified by reading `Rule.php` at
+HEAD: `public function withTriggers` opens at **285**, closing brace at **298**; the +8 arithmetic
+277→285 / 290→298 corroborates the reviewer. Both cites updated to `Rule.php:285-298`. This is the reviewer's one
+legitimate cross-step catch — a per-step review could not have seen S5a's prose delta move S2-era §8's pointer.
+
+**NITS (recorded, no action).** NIT-1: S2b and S3 merge subjects BOTH read "(Phase 6, step 3 of 6)" — a same-day
+renumber artifact; history is unamendable, the records are correct, no action. NIT-2: `505734f9f` carries a `plan:`
+prefix though it is a `sugar-crush` merge — cosmetic, no action. **NIT-3: the orchestration brief undercounted
+`TriggerTest` flips as "two"; the correct figure is FOUR across three methods.** Recorded here so the record governs
+future audits (the P6.S5a worklog entry already states FOUR pins flipped; this reconciles the brief's prose to it).
+
+**SUITE / FLOOR.** Current floor **Tests 10937 / Assertions 168399 / Skipped 2 / EXIT 0** at the gated tip
+`714bea7ec`, reproduced to master by the BELT (`git diff 714bea7ec 505734f9f -- sugar-crush/` = 0 and
+`git diff 714bea7ec HEAD -- sugar-crush/` = 0, re-measured this pass) — **NOT re-run** (reviewer phpunit-denied;
+the belt governs, per the don't-redo-unless-the-sha-moved law). BOTH goldens unchanged: system
+`f09f37366a1925565dcc7725f659ff41` (7,829 B; last MOVED at P6.S2 by design), agent `ef0326dd38535aaa2f1d715919bff26e`
+(1,060 B; unmoved since `405252a41`).
+
+**CARRIED INTO PHASE 7 / FORWARD.** **P6.S5b stays BLOCKED** on the §1.10 rule-body-transport decision — the
+verbatim escalation stays in resume §8 `Awaiting user decision:` item (4); do NOT brief/build/schedule it as a normal
+step. A **§5 re-check is owed before S5b** (`src/Backend/EngineBackend.php` is a live collision row). The two
+deferred follow-ups are still open and rostered: **F(i)** `SkillPathPatternTest.php:167` "331"→378; **F(ii)**
+`docs/plans/crush_code_hardening_backlog.md:5491` dangling `SkillRegistry::compileClassBody()` (moved to
+`PathGlob::classBody()`). `Rule::withTriggers()` adoption is owned by S5b/P7.S4; `Skill::matchesPrompt()` rewiring is
+owned by P7.S4. Roster-widening + the two-framings `<harness-injected>` wrap-mechanics decision carry forward (still
+awaiting a `PromptSection` composite shape). **MINOR-1 now resolved** by this commit.
+
+**STATE.** **Phase 6 CLOSED** (six of seven merged; the seventh, S5b, is a BLOCKED user-decision step, not a buildable
+one — the phase closes on this review per §1.7, not on S5b). **NEXT = Phase 7** — open it at `P7.S1`
+(`HookResult::additionalContext` + the discarded-message bug, plan `:2520`), then the standing **§5 re-check before
+Phase 8** (`Chat.php` + `ContextCompactor.php`). Four USER decisions carry and block nothing: the 7 `.opencode/*`
+disposition (now committed by `1cf242f26`), PUSH authorization, Gemini function calling (F7), S5b's §1.10 transport.
+**UNPUSHED: RE-DERIVE — never carry the count** (`git rev-list --count origin/master..master` = **15** at the start
+of this bookkeeping pass; this commit advances it).
+
+
 ### HANDOFF — 2026-09-05 — P6.S4 resume rewrite landed; two preserved-section totals corrected; the `P6.S6` phantom purged
 
 **WHAT THIS PASS CHANGED.** Only `prompt_resume.md` and this file. Zero `sugar-crush/` path, so the P6.S4 figures the
