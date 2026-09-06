@@ -292,7 +292,9 @@ SKILL;
     {
         // Arrange
         $registry = new SkillRegistry();
-        // Skill with description containing "developer" multiple times should rank higher
+        // The usort key is substr_count(description, whole prompt); the prompt
+        // 'I need a developer' is not a substring of either one-line
+        // description, so BOTH keys are 0 and the sort is a stable no-op.
         $skill1 = $this->createSkill('web-developer', 'Expert web developer with many developer skills');
         $skill2 = $this->createSkill('developer-tester', 'Developer testing specialist');
         $registry->register(['web-developer' => $skill1, 'developer-tester' => $skill2]);
@@ -302,8 +304,12 @@ SKILL;
 
         // Assert
         $this->assertCount(2, $result);
-        // 'web-developer' has 'developer' twice, 'developer-tester' has it once
-        // So web-developer should rank higher (more keyword matches)
+        // Despite the method name, this does NOT witness keyword-count ranking:
+        // the 0-0 tie means web-developer ranks first purely because it was
+        // registered first (stable-sort input order). The name is therefore
+        // inaccurate; renaming is out of scope here - recorded as a follow-up.
+        // (The tied-order behaviour is pinned in its own right by
+        // testFindForPromptKeepsRegistryInputOrderWhenBothSortKeysAreTied.)
         $this->assertSame('web-developer', $result[0]->name);
         $this->assertSame('developer-tester', $result[1]->name);
     }
@@ -376,6 +382,80 @@ SKILL,
 
         // Assert
         $this->assertEmpty($result);
+    }
+
+    public function testFindForPromptGateSkipsNonAutoInvocableSkillAmongManyFire(): void
+    {
+        // P7.S4 gate pin under the multi-fire corpus: three matching skills,
+        // one of them disable-model-invocation. The gate must drop exactly the
+        // opted-out skill even though its description token matches the prompt.
+        $registry = new SkillRegistry();
+        $registry->register([
+            'w1' => $this->createSkill('w1', 'summarize when needed'),
+            'w2' => $this->createSkill('w2', 'translate when asked'),
+            'w3' => Skill::parse(
+                <<<SKILL
+---
+description: refactor when possible
+disable-model-invocation: true
+---
+Content
+SKILL,
+                'w3'
+            ),
+        ]);
+
+        $result = $registry->findForPrompt('let me know when you are ready for lunch');
+
+        $foundNames = array_map(fn($s) => $s->name, $result);
+        $this->assertCount(2, $result);
+        $this->assertContains('w1', $foundNames);
+        $this->assertContains('w2', $foundNames);
+        $this->assertNotContains('w3', $foundNames);
+    }
+
+    public function testFindForPromptSortRanksWholePromptSubstringOfDescriptionFirst(): void
+    {
+        // P7.S4 sort pin, THE NON-TIED case. The usort key is
+        // substr_count(description, whole prompt). Registered first here is the
+        // ZERO-count skill (its 'audi' token matches the prompt 'audit' but the
+        // full word 'audit' is not in its description); registered second is the
+        // ONE-count skill. Relevance sort must lift the one-count skill first.
+        $registry = new SkillRegistry();
+        $registry->register([
+            'audi-first-registered' => $this->createSkill('audi-first-registered', 'handle audi files safely'),
+            'audit-second-registered' => $this->createSkill('audit-second-registered', 'run audit checks now'),
+        ]);
+
+        $result = $registry->findForPrompt('audit');
+
+        $this->assertCount(2, $result);
+        $this->assertSame('audit-second-registered', $result[0]->name);
+        $this->assertSame('audi-first-registered', $result[1]->name);
+    }
+
+    public function testFindForPromptKeepsRegistryInputOrderWhenBothSortKeysAreTied(): void
+    {
+        // P7.S4 ORDER NO-OP, pinned AS MEASURED. The sort key is
+        // substr_count(description, whole prompt), and this fixture deliberately
+        // equalizes it: the prompt 'audit' occurs EXACTLY ONCE in each
+        // description, so the two keys tie at 1-1 and the usort is a stable
+        // no-op - the tie is precisely what exercises registry-order stability,
+        // so the returned order is the REGISTRY INPUT order. Registered
+        // deliberately reverse-alphabetical so a future comparator change (e.g.
+        // sorting by name) surfaces here. If a later edit lets the counts
+        // DIFFER, this stops being the tie pin and must be re-pinned.
+        $registry = new SkillRegistry();
+        $registry->register([
+            'zz-later-skill' => $this->createSkill('zz-later-skill', 'audit one thing'),
+            'aa-earlier-skill' => $this->createSkill('aa-earlier-skill', 'audit two things'),
+        ]);
+
+        $result = $registry->findForPrompt('audit');
+
+        $this->assertCount(2, $result);
+        $this->assertSame('zz-later-skill', $result[0]->name);
+        $this->assertSame('aa-earlier-skill', $result[1]->name);
     }
 
     // -------------------------------------------------------------------------

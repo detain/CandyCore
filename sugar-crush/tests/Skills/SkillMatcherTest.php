@@ -167,4 +167,58 @@ SKILL;
         // Assert
         $this->assertStringContainsString("- my-skill: Does X & Y with Z (e.g., foo-bar)", $listing);
     }
+
+    // -------------------------------------------------------------------------
+    // matchesPrompt()/findForPrompt() — P7.S4: the dormant matcher's semantics
+    // pinned AS MEASURED. See prompt_kit/findings/P7.S4-premise.md (P7.S4 close):
+    // precision 0.162 on the shipped corpus, whole-word maxes 0.214, boundary
+    // false-fire 96%. These are NOT aspirations; they are the substring rule.
+    // -------------------------------------------------------------------------
+
+    public function testMatchesPromptIsTrueWhenLongDescriptionTokenAppearsInPrompt(): void
+    {
+        // Polarity TRUE: 'review' is 6 bytes and appears in the prompt.
+        $skill = $this->createSkill('reviews', 'Review pull requests carefully');
+
+        $this->assertTrue($skill->matchesPrompt('please review the code'));
+    }
+
+    public function testMatchesPromptIsFalseWhenNoLongDescriptionTokenAppearsInPrompt(): void
+    {
+        // Polarity FALSE: none of review/pull/requests/carefully is a
+        // substring of this prompt.
+        $skill = $this->createSkill('reviews', 'Review pull requests carefully');
+
+        $this->assertFalse($skill->matchesPrompt('rotate the tires now'));
+    }
+
+    public function testMatchesPromptFiresOnDescriptionTokenBuriedInsideALongerPromptWord(): void
+    {
+        // THE SUBSTRING RULE, PINNED AS MEASURED BEHAVIOR. The 4-byte token
+        // 'port' is a substring of 'airport' — this is one member of the
+        // boundary-FP 96% mass in the premise. If someone later anchors the
+        // matcher (whole-word or otherwise), this test must change ON PURPOSE.
+        $skill = $this->createSkill('matchups-sync', 'Sync port matchups daily');
+
+        $this->assertTrue(
+            $skill->matchesPrompt('handle this package with care at the airport'),
+        );
+    }
+
+    public function testFindForPromptLetsOneCommonDescriptionWordFireManySkills(): void
+    {
+        // THE MULTI-FIRE MASS, PINNED. One ordinary English word in three
+        // descriptions makes one unrelated prompt fire all three — the single
+        // 'when' token that hijacks 9 skills on the shipped corpus, miniaturised.
+        $registry = $this->createRegistry([
+            'when-one' => $this->createSkill('when-one', 'summarize when needed'),
+            'when-two' => $this->createSkill('when-two', 'translate when asked'),
+            'when-three' => $this->createSkill('when-three', 'refactor when possible'),
+        ]);
+
+        $result = $registry->findForPrompt('let me know when you are ready for lunch');
+
+        $this->assertCount(3, $result);
+        $this->assertGreaterThan(1, count($result), 'one common word must fire many skills');
+    }
 }
