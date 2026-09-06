@@ -150,7 +150,8 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($context);
 
         $this->assertTrue($result->isAllowed());
-        $this->assertSame('allowed', $result->message);
+        $this->assertSame('', $result->message, 'allow-path stdout must not live in the deny-reason field');
+        $this->assertSame('allowed', $result->additionalContext);
     }
 
     public function testExecuteDeny(): void
@@ -223,7 +224,7 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($context);
 
         $this->assertTrue($result->isAllowed());
-        $this->assertSame('TestTool:test_session_123', $result->message);
+        $this->assertSame('TestTool:test_session_123', $result->additionalContext);
     }
 
     public function testExecuteWithWhitespaceOutput(): void
@@ -241,7 +242,48 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($context);
 
         $this->assertTrue($result->isAllowed());
-        $this->assertSame('hello world', $result->message);
+        $this->assertSame('hello world', $result->additionalContext);
+    }
+
+    /**
+     * AN ALLOWING HOOK THAT SPEAKS PAST THE CAP is bounded, retained, and keeps
+     * the deny-reason field clean — the three properties the whole P7.S1 slice
+     * buys. The `exit 0` path used to throw its stdout away; now it lands in
+     * `additionalContext`, capped at {@see HookResult::MAX_ADDITIONAL_CONTEXT_BYTES},
+     * with the full bytes spilled to a {@see \SugarCraft\Crush\Support\HookContextFiles}
+     * overflow the model can read back. None of it touches `message` (that field
+     * is the human/deny channel and must stay empty on a plain allow).
+     */
+    public function testAnAllowingHookPastTheCapIsBoundedAndRetainedAndNotInMessage(): void
+    {
+        $hook = new ScriptHook(
+            name: 'loud_allow',
+            event: HookEvent::PreToolUse,
+            matcher: '.*',
+            command: 'printf "%020000d" 0; exit 0',
+            description: '',
+        );
+
+        $result = $hook->execute($this->createContext());
+
+        $this->assertTrue($result->isAllowed(), $result->message);
+        $this->assertSame('', $result->message, 'overflow leaked into the deny-reason channel');
+        $this->assertNotSame('', $result->additionalContext, 'the allow output went nowhere again');
+        $this->assertLessThanOrEqual(
+            HookResult::MAX_ADDITIONAL_CONTEXT_BYTES,
+            strlen($result->additionalContext),
+            'additionalContext blew past the byte cap',
+        );
+        $this->assertStringContainsString('retained at', $result->additionalContext);
+
+        // Name the retained file out of the marker and prove it carries the WHOLE
+        // 20,000 bytes the cap refused to inline.
+        $matched = preg_match('/retained at (\S+)\]/', $result->additionalContext, $m);
+        $this->assertSame(1, $matched, 'the marker did not name a retained path');
+        $this->assertFileExists($m[1]);
+        $this->assertSame(20000, strlen((string) file_get_contents($m[1])));
+
+        @unlink($m[1]);
     }
 
     // =========================================================================
@@ -314,7 +356,7 @@ final class ScriptHookTest extends TestCase
             $result = $hook->execute($this->createContext($root));
 
             $this->assertTrue($result->isAllowed());
-            $this->assertSame(realpath($root), realpath($result->message));
+            $this->assertSame(realpath($root), realpath($result->additionalContext));
         } finally {
             rmdir($root);
         }
@@ -507,7 +549,7 @@ final class ScriptHookTest extends TestCase
         $result = $this->runHookBounded('printf "%0262144d" 0 >&2; printf "ok"; exit 0');
 
         $this->assertSame('allow', $result['action']);
-        $this->assertSame('ok', $result['message']);
+        $this->assertSame('ok', $result['additionalContext']);
     }
 
     /**
@@ -617,7 +659,7 @@ final class ScriptHookTest extends TestCase
         );
 
         $this->assertSame('allow', $result['action']);
-        $this->assertSame('AAAABBBB', $result['message'], 'the drain dropped everything after the signal');
+        $this->assertSame('AAAABBBB', $result['additionalContext'], 'the drain dropped everything after the signal');
     }
 
     /**
@@ -690,6 +732,7 @@ final class ScriptHookTest extends TestCase
             fwrite(STDOUT, json_encode([
                 'action' => \$result->action,
                 'message' => \$result->message,
+                'additionalContext' => \$result->additionalContext,
                 'length' => strlen(\$result->message),
                 'elapsed' => microtime(true) - \$started,
                 'cpu' => \$cpu() - \$cpuBefore,
@@ -709,6 +752,7 @@ final class ScriptHookTest extends TestCase
         self::assertIsArray($decoded, 'the bounded child did not report a hook result');
         self::assertIsString($decoded['action'] ?? null);
         self::assertIsString($decoded['message'] ?? null);
+        self::assertIsString($decoded['additionalContext'] ?? null);
         self::assertIsInt($decoded['length'] ?? null);
         self::assertIsFloat($decoded['elapsed'] ?? null);
         self::assertIsFloat($decoded['cpu'] ?? null);
@@ -913,7 +957,7 @@ final class ScriptHookTest extends TestCase
         $result = $this->runHookBounded('printf ok', hookTimeoutSeconds: 10.0);
 
         $this->assertSame('allow', $result['action']);
-        $this->assertSame('ok', $result['message']);
+        $this->assertSame('ok', $result['additionalContext']);
         $this->assertLessThan(5.0, $result['elapsed'], 'a fast hook waited on its own ceiling');
     }
 
@@ -1106,7 +1150,7 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($this->createContext()->withToolInput($input));
 
         $this->assertTrue($result->isAllowed(), $result->message);
-        $this->assertSame((string) \strlen($input), $result->message);
+        $this->assertSame((string) \strlen($input), $result->additionalContext);
     }
 
     /**
@@ -1128,7 +1172,7 @@ final class ScriptHookTest extends TestCase
 
         $result = $hook->execute($this->createContext()->withToolInput('{"file_path":"/etc/hosts"}'));
 
-        $this->assertSame('{"file_path":"/etc/hosts"}', $result->message);
+        $this->assertSame('{"file_path":"/etc/hosts"}', $result->additionalContext);
     }
 
     /**
@@ -1170,13 +1214,13 @@ final class ScriptHookTest extends TestCase
         $fits = $limit - \strlen('CRUSH_TOOL_INPUT') - 2;
 
         $allowed = $hook->execute($this->createContext()->withToolInput(str_repeat('B', $fits)));
-        $this->assertSame((string) $fits, $allowed->message, 'the last value that fits was not passed verbatim');
+        $this->assertSame((string) $fits, $allowed->additionalContext, 'the last value that fits was not passed verbatim');
 
         $overflows = $hook->execute($this->createContext()->withToolInput(str_repeat('B', $fits + 1)));
-        $this->assertNotSame((string) ($fits + 1), $overflows->message, 'a value the kernel refuses was passed anyway');
+        $this->assertNotSame((string) ($fits + 1), $overflows->additionalContext, 'a value the kernel refuses was passed anyway');
         $this->assertSame(
             (string) \strlen('@@CRUSH_PAYLOAD_IN_FILE@@ ' . ($fits + 1) . ' bytes; read $CRUSH_TOOL_INPUT_FILE'),
-            $overflows->message,
+            $overflows->additionalContext,
             'one byte over the boundary did not fall back to the marker',
         );
 
@@ -1194,12 +1238,12 @@ final class ScriptHookTest extends TestCase
         $this->assertSame($fits - 1, $fitsOut, 'the output boundary is not one byte below the input boundary');
 
         $allowedOut = $post->execute($this->createContext()->withToolOutput(str_repeat('C', $fitsOut)));
-        $this->assertSame((string) $fitsOut, $allowedOut->message, 'the last output that fits was not passed verbatim');
+        $this->assertSame((string) $fitsOut, $allowedOut->additionalContext, 'the last output that fits was not passed verbatim');
 
         $overflowsOut = $post->execute($this->createContext()->withToolOutput(str_repeat('C', $fitsOut + 1)));
         $this->assertNotSame(
             (string) ($fitsOut + 1),
-            $overflowsOut->message,
+            $overflowsOut->additionalContext,
             'an output the kernel refuses was passed anyway',
         );
     }
@@ -1255,9 +1299,9 @@ final class ScriptHookTest extends TestCase
 
         $result = $hook->execute($this->createContext()->withToolInput($input));
 
-        $this->assertNull(json_decode($result->message, true), 'the marker decoded as JSON');
-        $this->assertStringContainsString((string) \strlen($input), $result->message);
-        $this->assertStringContainsString('CRUSH_TOOL_INPUT_FILE', $result->message);
+        $this->assertNull(json_decode($result->additionalContext, true), 'the marker decoded as JSON');
+        $this->assertStringContainsString((string) \strlen($input), $result->additionalContext);
+        $this->assertStringContainsString('CRUSH_TOOL_INPUT_FILE', $result->additionalContext);
     }
 
     /**
@@ -1287,7 +1331,7 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($this->createContext()->withToolOutput($output));
 
         $this->assertTrue($result->isAllowed(), $result->message);
-        $this->assertSame((string) \strlen($output), $result->message);
+        $this->assertSame((string) \strlen($output), $result->additionalContext);
     }
 
     /**
@@ -1309,8 +1353,8 @@ final class ScriptHookTest extends TestCase
         $result = $hook->execute($this->createContext());
 
         $this->assertTrue($result->isAllowed(), $result->message);
-        $this->assertNotSame('', $result->message, 'no input file was handed to the hook at all');
-        $this->assertFileDoesNotExist($result->message);
+        $this->assertNotSame('', $result->additionalContext, 'no input file was handed to the hook at all');
+        $this->assertFileDoesNotExist($result->additionalContext);
     }
 
     /**
@@ -1414,7 +1458,7 @@ final class ScriptHookTest extends TestCase
                 );
                 \$result = \$hook->execute(\$context);
 
-                return ['action' => \$result->action, 'message' => \$result->message];
+                return ['action' => \$result->action, 'message' => \$result->message, 'additionalContext' => \$result->additionalContext];
             };
 
             fwrite(STDOUT, json_encode([
@@ -1454,7 +1498,7 @@ final class ScriptHookTest extends TestCase
         $this->assertSame('allow', $decoded['env']['action'], 'a payload that fits was not delivered at all');
         $this->assertSame(
             '|{"command":"rm -rf /"}',
-            $decoded['env']['message'],
+            $decoded['env']['additionalContext'],
             'the fitting payload did not arrive verbatim with no file beside it',
         );
 

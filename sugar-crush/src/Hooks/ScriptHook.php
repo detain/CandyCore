@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SugarCraft\Crush\Hooks;
 
+use SugarCraft\Crush\Support\HookContextFiles;
 use SugarCraft\Crush\Support\ToolIpcFiles;
 
 /**
@@ -629,17 +630,25 @@ final readonly class ScriptHook implements BoundedHookInterface
         $errors = trim($errors);
 
         return match ($exitCode) {
-            // NOT CLIPPED, and that is a statement about where this value goes
-            // rather than about how big it is allowed to be: on the live path
-            // it goes NOWHERE. {@see HookRegistry::executeHooks()} rebuilds a
-            // permitting verdict as `HookResult::allow()` with an empty
-            // message, and both gates
-            // ({@see \SugarCraft\Crush\Runtime::gate()} and
-            // {@see \SugarCraft\Crush\Chat::gateToolCall()}) interpolate
-            // `$hookResult->message` only into `"Hook denied: …"`. It survives
-            // solely through {@see HookDispatcher}, which nothing in `src/`
-            // constructs. See MAX_DENY_REASON_BYTES.
-            self::EXIT_ALLOW => HookResult::allow($output),
+            // The hook's stdout is now ROUTED TO THE MODEL, not thrown away. It
+            // goes into `additionalContext` (NOT `message`, which both gates
+            // interpolate only into "Hook denied: …", so a value there on an
+            // allow path stays invisible). `HookRegistry::executeHooks()` used to
+            // rebuild a permitting verdict as `HookResult::allow()` with an empty
+            // message, which is why this output historically "went NOWHERE"; it
+            // is now collected across the chain and appended to the model-visible
+            // tool result on BOTH live paths ({@see
+            // \SugarCraft\Crush\Runtime::settle()} and {@see
+            // \SugarCraft\Crush\Chat::applyPostToolUse()}). Bound to
+            // {@see HookResult::MAX_ADDITIONAL_CONTEXT_BYTES} BYTES with overflow
+            // spilled to a retained file plus a preview ({@see
+            // \SugarCraft\Crush\Support\HookContextFiles::bound()}) — a hook that
+            // prints 200,000 bytes and exits 0 now yields a bounded, non-empty
+            // context naming where the rest lives, instead of 0 bytes.
+            self::EXIT_ALLOW => HookResult::allow(
+                '',
+                HookContextFiles::bound($output, HookResult::MAX_ADDITIONAL_CONTEXT_BYTES),
+            ),
             self::EXIT_ASK => HookResult::ask(
                 $output !== ''
                     ? self::clip($output, self::MAX_ASK_PROMPT_BYTES)

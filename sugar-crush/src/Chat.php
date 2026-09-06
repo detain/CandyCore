@@ -3661,7 +3661,34 @@ final class Chat implements Model
     private function applyPostToolUse(?HookContext $context, ToolResult $result): ToolResult
     {
         if ($context !== null && $this->hooks !== null) {
-            $this->hooks->postToolUse($context->withToolOutput($result->result));
+            // R-1: the Chat path's live consumer of a permitting hook's
+            // `additionalContext` — the same field Runtime::settle() appends on
+            // the engine path. It is appended to the MODEL-VISIBLE content
+            // (`error ?? result`, exactly what toWire()/toEngineResult() emit) so
+            // the note reaches the provider regardless of which half carries the
+            // body. Empty context (every chain that produced no stdout) returns
+            // $result UNCHANGED — byte-identical no-op when the field is unused.
+            $hookResult = $this->hooks->postToolUse($context->withToolOutput($result->result));
+            $note = $hookResult->additionalContext;
+
+            if ($note !== '') {
+                $result = new ToolResult(
+                    $result->name,
+                    $result->error === null
+                        ? ($result->result === '' ? $note : $result->result . "\n\n" . $note)
+                        : $result->result,
+                    $result->error === null
+                        ? null
+                        : ($result->error . "\n\n" . $note),
+                    $result->id,
+                    $result->imageBytes,
+                    $result->imagePath,
+                    $result->imageProtocol,
+                    $result->diff,
+                    $result->durationMs,
+                    $result->description,
+                );
+            }
         }
 
         return $result;

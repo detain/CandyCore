@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Crush\Hooks;
 
+use SugarCraft\Crush\Support\HookContextFiles;
+
 final class HookRegistry
 {
     /** @var array<string, array<string, HookInterface>> hooks by event type */
@@ -338,8 +340,15 @@ final class HookRegistry
         // rewriting chain that is routinely not the pass that spent the time.
         $spend = [];
 
+        // The model-visible `additionalContext` accumulated ACROSS passes, so a
+        // plain permitting result on an early pass (which files no proposal)
+        // still reaches the settled verdict even when a later pass rewrites.
+        // Re-bound through {@see HookContextFiles::bound()} because each pass's
+        // slice is already bounded and joining them can exceed the ceiling.
+        $additional = '';
+
         while (true) {
-            [$blocking, $rewrite, $inertRewrite] = $this->scan(
+            [$blocking, $rewrite, $inertRewrite, $collected] = $this->scan(
                 $event,
                 $context,
                 $modified?->modifiedInput,
@@ -348,6 +357,15 @@ final class HookRegistry
                 $spend,
                 $armedAt,
             );
+
+            if ($collected !== '') {
+                $additional = HookContextFiles::bound(
+                    $additional === ''
+                        ? $collected
+                        : $additional . "\n\n" . $collected,
+                    HookResult::MAX_ADDITIONAL_CONTEXT_BYTES,
+                );
+            }
 
             if ($blocking !== null && !$blocking->isAsk()) {
                 // DENY, or an action this class does not recognise as
@@ -415,7 +433,7 @@ final class HookRegistry
                 // shown the wrong command. It is now a proposal that goes
                 // through the loop like any other, so that same hook produces a
                 // DENY from ConfirmRemoveHook on pass 2.
-                return HookResult::ask($blocking->message, $modified?->modifiedInput);
+                return HookResult::ask($blocking->message, $modified?->modifiedInput, $additional);
             }
 
             // ALLOW, settled against the arguments in $context. A permitting
@@ -425,7 +443,18 @@ final class HookRegistry
             // up, which would otherwise discard it and send every consumer
             // back to the originals nobody proposed. {@see HookDispatcher} has
             // always kept the settled rewrite here; the two loops agree again.
-            return $modified ?? $inertRewrite ?? HookResult::allow();
+            //
+            // The settled verdict now CARRIES the chain-collected
+            // `additionalContext` (the bug this step fixes: it used to be a bare
+            // `HookResult::allow()` with an empty field, so a permitting
+            // ScriptHook's stdout — every byte of a hook that printed 200,000 of
+            // them and exited 0 — was discarded here and went nowhere). $additional
+            // already contains a returned $modified's own slice, so the context is
+            // SET from the chain-wide collection rather than appended to it, which
+            // is why the empty-$additional case stays byte-identical (no-op).
+            $settled = $modified ?? $inertRewrite ?? HookResult::allow();
+
+            return $settled->withContextSet($additional);
         }
     }
 
@@ -659,10 +688,13 @@ final class HookRegistry
      *        only BUDGETED time. The two differ by however long the last
      *        unbounded hook overran, and that difference is the evidence.
      *
-     * @return array{0: ?HookResult, 1: ?HookResult, 2: ?HookResult} [the
+     * @return array{0: ?HookResult, 1: ?HookResult, 2: ?HookResult, 3: string} [the
      *     result that blocks the call outright — a DENY, or the pass's first
      *     ASK; the pass's first USABLE rewrite, preferring one that is not
-     *     already $settled; the pass's first inert rewrite]
+     *     already $settled; the pass's first inert rewrite; the model-visible
+     *     `additionalContext` collected across EVERY hook this pass ran —
+     *     including the plain permitting results that file no proposal and
+     *     would otherwise vanish here (the bug this 4th slot exists to stop)]
      */
     private function scan(
         string $event,
@@ -677,6 +709,7 @@ final class HookRegistry
         $pendingModify = null;
         $pendingFixedPoint = null;
         $pendingInertModify = null;
+        $collectedContext = '';
 
         foreach ($this->findMatches($event, $context->toolName) as $hook) {
             if ($chainDeadline !== null && $hook instanceof BoundedHookInterface) {
@@ -712,7 +745,7 @@ final class HookRegistry
                         (float) $chainBudget,
                         microtime(true) - $armedAt,
                         $spend,
-                    )), null, null];
+                    )), null, null, ''];
                 }
 
                 // Charged, not granted: withTimeoutSeconds() only ever shortens.
@@ -731,7 +764,28 @@ final class HookRegistry
             ];
 
             if (!$result->isAsk() && !$result->permitsExecution()) {
-                return [$result, null, null];
+                return [$result, null, null, ''];
+            }
+
+            // COLLECT the model-visible context from EVERY non-blocking result —
+            // a plain ALLOW included, which files no proposal and continues past
+            // the proposal slots below. This is the first place an ALLOW's payload
+            // used to vanish (a bare permitting result hit the `continue` with its
+            // stdout nowhere to be read); the 4th tuple slot is what carries it to
+            // {@see executeHooks()}'s settled/ASK arms. Each hook's own note is
+            // already bounded by the producer ({@see ScriptHook}'s EXIT_ALLOW arm →
+            // {@see \SugarCraft\Crush\Support\HookContextFiles::bound()}); joining
+            // them CHRONOLOGICALLY (earliest hook first) can push the total past
+            // the single-hook ceiling, so the result is re-bound through the same
+            // helper — which is exactly why the settled arms in
+            // {@see executeHooks()} do NOT treat this slot as pre-clipped.
+            if ($result->additionalContext !== '') {
+                $collectedContext = HookContextFiles::bound(
+                    $collectedContext === ''
+                        ? $result->additionalContext
+                        : $collectedContext . "\n\n" . $result->additionalContext,
+                    HookResult::MAX_ADDITIONAL_CONTEXT_BYTES,
+                );
             }
 
             $proposal = null;
@@ -784,6 +838,6 @@ final class HookRegistry
             }
         }
 
-        return [$pendingAsk, $pendingModify ?? $pendingFixedPoint, $pendingInertModify];
+        return [$pendingAsk, $pendingModify ?? $pendingFixedPoint, $pendingInertModify, $collectedContext];
     }
 }

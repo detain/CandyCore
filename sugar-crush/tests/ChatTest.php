@@ -3542,6 +3542,59 @@ final class ChatTest extends TestCase
     }
 
     /**
+     * R-1: the Chat half of the `additionalContext` consumer. A PostToolUse hook
+     * that allows and carries a model-visible note must have that note appended to
+     * the recorded tool-result content — the same field Runtime::settle() appends
+     * on the engine path. Driven through a real turn (not reflection) because this
+     * is the FIRST time a permitting chain's context has anywhere to go; before
+     * P7.S1 applyPostToolUse() discarded the whole result, so the note could never
+     * reach the history and an end-to-end assertion is exactly what proves the
+     * consumer is live rather than a producer writing into a void.
+     */
+    public function testAPermittingPostToolUseHookContextReachesTheChatToolResult(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->spyHook(
+                HookEvent::PostToolUse,
+                static fn(HookContext $c): HookResult => HookResult::allow('', 'note_from_the_hook'),
+            ),
+        );
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertSame("total 0\n\nnote_from_the_hook", $final->history[1]->content);
+    }
+
+    /**
+     * The no-context case stays byte-identical: with an empty `additionalContext`
+     * applyPostToolUse() returns the result UNCHANGED, so a chain that printed
+     * nothing stamps no stray separator onto the tool's own output.
+     */
+    public function testAnEmptyPostToolUseContextLeavesTheChatToolResultByteIdentical(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->spyHook(
+                HookEvent::PostToolUse,
+                static fn(HookContext $c): HookResult => HookResult::allow('', ''),
+            ),
+        );
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertSame('total 0', $final->history[1]->content);
+    }
+
+    /**
      * Runtime resolves the tool first and only builds a HookContext once it
      * has one, so an unknown name never reaches the hook chain. Chat matches
      * that ordering rather than inventing a second convention.

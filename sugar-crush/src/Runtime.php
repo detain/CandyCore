@@ -2006,7 +2006,18 @@ final class Runtime
         // and its output is valid, so the failure is reported alongside
         // that output rather than replacing it or discarding the turn.
         try {
-            $this->hookManager->postToolUse($context->withToolOutput($result->content()));
+            $hookResult = $this->hookManager->postToolUse($context->withToolOutput($result->content()));
+            // A permitting PostToolUse hook's stdout now REACHES THE MODEL: the
+            // chain collects it into `additionalContext` (see
+            // {@see \SugarCraft\Crush\Hooks\HookRegistry::executeHooks()}) and
+            // this is the live tool-result consumer R-1 requires — it used to be a
+            // bare statement discarding the whole result. Appended through the
+            // EXISTING blessed {@see self::annotate()} seam so it lands in the
+            // model-visible content with no new wire shape. Empty context is a
+            // no-op (annotate not called) and leaves the result BYTE-IDENTICAL.
+            if ($hookResult->additionalContext !== '') {
+                $result = self::annotate($result, $hookResult->additionalContext);
+            }
         } catch (\Throwable $e) {
             $result = self::annotate($result, sprintf(
                 '[PostToolUse hook failed: %s: %s]',

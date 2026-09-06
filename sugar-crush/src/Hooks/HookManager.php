@@ -187,8 +187,16 @@ final class HookManager
 
         $message = $feedback !== '' ? $feedback : $ask->message;
 
+        // The chain's collected `additionalContext` (see
+        // {@see HookRegistry::executeHooks()}) travels with the settled verdict
+        // through EVERY arm — deny, allow and modify alike — or approving an ASK
+        // would silently drop the model-visible note the chain gathered before it
+        // raised the question. This is the last of the four internal rebuild
+        // points; the field is produced upstream and consumed downstream, and a
+        // drop here (the settled verdict a real run returns to Runtime/Chat) is
+        // the one that would make the whole slice dead in practice.
         if (!$approved) {
-            return HookResult::deny($message);
+            return HookResult::deny($message, $ask->additionalContext);
         }
 
         // An ASK raised over a call an earlier hook already REWROTE settles as
@@ -197,8 +205,8 @@ final class HookManager
         // against them), so dropping the rewrite here would run the originals
         // the user was never asked about.
         return $ask->modifiedInput === null
-            ? HookResult::allow($message)
-            : HookResult::modify($ask->modifiedInput, $message);
+            ? HookResult::allow($message, $ask->additionalContext)
+            : HookResult::modify($ask->modifiedInput, $message, $ask->additionalContext);
     }
 
     /**
