@@ -292,7 +292,9 @@ SKILL;
     {
         // Arrange
         $registry = new SkillRegistry();
-        // Skill with description containing "developer" multiple times should rank higher
+        // The usort key is substr_count(description, whole prompt); the prompt
+        // 'I need a developer' is not a substring of either one-line
+        // description, so BOTH keys are 0 and the sort is a stable no-op.
         $skill1 = $this->createSkill('web-developer', 'Expert web developer with many developer skills');
         $skill2 = $this->createSkill('developer-tester', 'Developer testing specialist');
         $registry->register(['web-developer' => $skill1, 'developer-tester' => $skill2]);
@@ -302,8 +304,12 @@ SKILL;
 
         // Assert
         $this->assertCount(2, $result);
-        // 'web-developer' has 'developer' twice, 'developer-tester' has it once
-        // So web-developer should rank higher (more keyword matches)
+        // Despite the method name, this does NOT witness keyword-count ranking:
+        // the 0-0 tie means web-developer ranks first purely because it was
+        // registered first (stable-sort input order). The name is therefore
+        // inaccurate; renaming is out of scope here - recorded as a follow-up.
+        // (The tied-order behaviour is pinned in its own right by
+        // testFindForPromptKeepsRegistryInputOrderWhenBothSortKeysAreTied.)
         $this->assertSame('web-developer', $result[0]->name);
         $this->assertSame('developer-tester', $result[1]->name);
     }
@@ -430,11 +436,15 @@ SKILL,
 
     public function testFindForPromptKeepsRegistryInputOrderWhenBothSortKeysAreTied(): void
     {
-        // P7.S4 ORDER NO-OP, pinned AS MEASURED. For a realistic prompt the
-        // whole prompt is never a substring of a one-line description, so both
-        // sort keys tie and the usort is a stable no-op: the returned order is
-        // the REGISTRY INPUT order. Registered deliberately reverse-alphabetical
-        // so a future comparator change (e.g. sorting by name) surfaces here.
+        // P7.S4 ORDER NO-OP, pinned AS MEASURED. The sort key is
+        // substr_count(description, whole prompt), and this fixture deliberately
+        // equalizes it: the prompt 'audit' occurs EXACTLY ONCE in each
+        // description, so the two keys tie at 1-1 and the usort is a stable
+        // no-op - the tie is precisely what exercises registry-order stability,
+        // so the returned order is the REGISTRY INPUT order. Registered
+        // deliberately reverse-alphabetical so a future comparator change (e.g.
+        // sorting by name) surfaces here. If a later edit lets the counts
+        // DIFFER, this stops being the tie pin and must be re-pinned.
         $registry = new SkillRegistry();
         $registry->register([
             'zz-later-skill' => $this->createSkill('zz-later-skill', 'audit one thing'),
