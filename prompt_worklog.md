@@ -303,6 +303,87 @@ bytes yourself — the P6.S4 merge was correctly REFUSED by its own agent over a
 
 **THE SHARPENED LAW: a confident, complete, well-formatted success report is ALSO not a delivery. Only the ref is — and a ref read too soon is not a refutation either, so re-read before re-spawning.**
 
+### P6.S5a — 2026-09-05 20:32 — status: done (42 of 65; Phase 6 step 5a of 7) "One `paths:` glob dialect"
+
+**Status** `done`
+**Worktree** /home/sites/prompt-step-P6.S5a  (removed after merge; safe `-d` succeeded; the gate ran in a separate disposable detached worktree /home/sites/prompt-gate-P6.S5a-c4, also removed)
+**Base** f3134703f (master at spawn; master crept to 1cf242f26 during the step — a caliber/config commit touching ZERO sugar-crush paths, belt `git diff f3134703f 1cf242f26 -- sugar-crush/` = 0 lines)
+**Merge** step commit `52de996fe`, local `--no-ff` merge commit `505734f9f` (NOT pushed; unpushed count 14 at close)
+
+**Goal (restated in one sentence)**
+Collapse the three mutually-incompatible `does-this-path-match-this-pattern` dialects (`PathTrigger::pattern()`, `SkillRegistry::compilePathPattern()`, `legacyPathMatch()`) into ONE shared compiler in a neutral `src/Util/` home implementing the SkillRegistry fnmatch (non-narrowing) dialect, with BOTH production matchers routed through it — SkillRegistry's YES-set proven UNCHANGED, PathTrigger's YES-set widened (that IS the deliverable), and NOTHING reaching prompt rendering (that is P6.S5b).
+
+**What changed** (7 files, +1614/−293 over base)
+- `sugar-crush/src/Util/PathGlob.php` (NEW): the single compiler. `compile()` is master's `compilePathPattern()` moved VERBATIM (plus `compileClassBody()`→`classBody()`); `matchCompiled()` returns the THIRD answer `null` on a PCRE refusal instead of collapsing it. `final`, pure, zero-filesystem. Neutral Util home on the TokenTracker precedent so Context and Skills both reach it without either subnamespace depending on the other.
+- `sugar-crush/src/Skills/SkillRegistry.php` (−240 net): a MOVE, not a rewrite. `pathMatches()` routes through `PathGlob::matchCompiled()`; `compilePathPattern()` survives as a documented delegating seam (`return PathGlob::compile()`), keeping `CompiledPatternCacheBoundTest`'s reflection guarding the real compiler; `legacyPathMatch()` is UNTOUCHED and still reachable on the same PCRE-failure path (§1.10 never-remove rule).
+- `sugar-crush/src/Context/Triggers/PathTrigger.php` (118): the strict segment-bound dialect is replaced by delegation to `PathGlob`; a `private function pattern()` SURVIVES as a PathGlob-delegating shim (only its old reading — a lone `*` never crossing `/` — is gone). Doc-block now states the RESOLVED dialect and the honest 10-widen / 3-narrow / 20-hold split; discharges F-PATHDIALECT instead of re-deferring.
+- `sugar-crush/src/Context/Rule.php` (28): doc-block only — dialect paragraph now says resolved and names the one remaining policy difference. `Rule::withTriggers()` untouched (a dormancy-roster item, not this step's to wire or remove).
+- `sugar-crush/tests/Context/GlobDialectDifferentialTest.php` (NEW): the 13-test equivalence/differential harness — 5 frozen INDEPENDENT oracles (transcriptions of master that call zero production), a corpus DERIVED from the repo's own globs via `token_get_all` + every `paths:` frontmatter value + a generated sweep (nested depths, leading `./`, absolute, `[!…]`, `[[:alpha:]]`, `?`, backslashes, `**` at start/mid/end, non-UTF-8/NUL, newlines), the pre-existing frozen 46×54=2,484-cell `SkillPathPatternTest::AFTER` grid read by reflection (378 YES), the 13-not-11 row derivation, and (cycle-4) a non-circular pin of the doc-figure.
+- `sugar-crush/tests/Context/Triggers/TriggerTest.php` (46): FOUR pins flipped/renamed — the widening is the AUTHORIZED deliverable (precedent P5.S5). None deleted; Keyword/Intent whole-word pins untouched.
+- `sugar-crush/tests/Skills/CompiledPatternCacheBoundTest.php` (2): cycle-2 repointed an assertion MESSAGE STRING from the now-orphaned `SkillRegistry::compileClassBody()` to `PathGlob::classBody()` — a stale citation this step's own move created; `SymbolCitationDriftTest` is blind to this non-`{@see}` string form. The two reflection targets untouched.
+
+**Tests added or changed**
+- `GlobDialectDifferentialTest::testTheSkillChannelDidNotMoveByEvenOnePath` — 363 patterns × 359 paths = 130,317 comparisons executed (`assertSame(count×count,$executed)` + `assertGreaterThan(100_000)`), differences `assertSame([], $differences)`, 363/363 compiled regexes byte-identical. Catches ANY narrowing of the live skill channel.
+- `::testTheCapturedGridStillAnswersForBothMatchers` — the frozen 2,484-cell grid (378 YES) answers the same for both matchers.
+- `::testTheRowsThatMoveAreThirteenAndNotEleven` — derives widen=[5,6,8,10,12,13,21,26,30,32] / narrow=[11,22,23] / 20 hold = 33 FROM the row table (so the count cannot rot).
+- `::testTheCorpusFigureInTheDocBlockIsTheDerivedOne` (cycle-4) — parses `PathGlob.php`'s parity sentence with TWO independent FIXED-LITERAL regexes (product + both factors), each with an `assertSame(1, preg_match(...))` PRESENCE guard BEFORE any comparison, and holds all three against `count(self::patternCorpus())*count(self::pathCorpus())` — the same memoized corpora the equivalence loop uses. A stale product/factor OR a reworded/removed sentence each force a red; nothing hardcoded as an expectation.
+- 4 × `TriggerTest` pins flipped false→true per the widening (single-star/question crossing separators; trailing `**` separator optional; `matchingGlobs` declaration-order subset grew to `['*.php','src/*.php']`; successor-independence re-discriminated onto `a.php` where both dialects agree).
+**Deletion experiment**: mutating the shared star `$out .= '.*'`→`'[^/]*'` at `PathGlob.php:190` (the segment-scoping this step DELIBERATELY did not adopt) reddens **6 of the 13** harness tests (1,451/130,317 comparisons move, 214/363 compiles differ, 40/2,484 grid cells move, differential row #6 flips, escaped globstar loses its third answer) plus **2 of 33** `TriggerTest` pins (separate file, not inside the 6). The doc-pin test STAYS GREEN under it by design (segment-scoping moves no word of the corpus). Restored byte-exact: `md5sum PathGlob.php` = `cf9200a43a3cb5f1d038d95631e65d15` before and after. Independently RE-measured by the orchestrator's gate: mutating the doc product `130,317`→`130,318` reddened the cycle-4 pin with the exact "gone stale vs the derived corpus" message; restored, green.
+
+**MEASURED**
+```
+$ ps -eo cmd | /usr/bin/grep -c '^php .*phpunit'      # box-quiet before the gate
+0
+$ # orchestrator gate, fresh detached worktree at 714bea7ec, cp -al vendor (NEVER ln -s), PSR-4 proves own src:
+$ php -r '$p=require ".../prompt-gate-P6.S5a-c4/sugar-crush/vendor/composer/autoload_psr4.php"; echo $p["SugarCraft\\Crush\\"][0];'
+/home/sites/prompt-gate-P6.S5a-c4/sugar-crush/src
+$ php sugar-crush/vendor/bin/phpunit -c sugar-crush/phpunit.xml --colors=never --filter GlobDialectDifferentialTest </dev/null
+OK (13 tests, 354 assertions)
+$ php sugar-crush/vendor/bin/phpunit -c sugar-crush/phpunit.xml --colors=never --log-junit gate-junit-c4.xml </dev/null
+Tests: 10937, Assertions: 168399, Skipped: 2.        EXIT 0   (Time 07:12.079, serial, in-session)
+$ grep -c '<failure' gate-junit-c4.xml ; grep -c '<error' gate-junit-c4.xml
+0 ; 0
+$ git diff f3134703f..HEAD -- sugar-crush/tests/fixtures/ | wc -l
+0
+$ md5sum sugar-crush/tests/fixtures/prompt/golden-{system,agent}-prompt.txt
+f09f37366a1925565dcc7725f659ff41  golden-system-prompt.txt   (7,829 B)
+ef0326dd38535aaa2f1d715919bff26e  golden-agent-prompt.txt    (1,060 B)
+```
+Both goldens UNMOVED (a move here would itself be the defect — S5a renders no prompt; the fixture rule carries no `paths:`). Per-class junit: `GlobDialectDifferentialTest` 13/354, `TriggerTest` 33/112, `GlobFigureDriftTest` 61/22256, `SymbolCitationDriftTest` 7/3128, `TreeWideGuardRosterTest` 17/1121, `AssertionSwallowingCatchTest` 6/3397, `CompiledPatternCacheBoundTest` 6/33, `SkillPathPatternTest` 17/130, `PromptStabilityTest` 16/402. (`GlobFigureDriftTest` reads 61/22256 node-by-node in this junit; an earlier per-method extraction that printed 25/25 had scoped ONE provider method's 25-dataset block, not the class total — no tree difference, both green.)
+
+**Suite result**
+```
+Tests: 10937, Assertions: 168399, Failures: 0, Errors: 0, Skipped: 2, EXIT 0
+```
+Baseline for comparison: P0.S1 `10351 / 160648 / 1` (never edited). Prior floor (P6.S4) `10923 / 167931 / 2`.
+Delta: **+14 tests / +468 assertions**. Fully attributed to the two NEW files growing the derived source-walking censuses — the builder's per-class junit sweep named 18 census movers summing EXACTLY to this delta; the only CASE-count mover beyond the new file's own +12 tests is `BinSugarcrushWiringTest` +1 case (its src-derived data provider gained a row for `src/Util/PathGlob.php`). `MouseModalGuardTest` NOT a mover. No existing test weakened, skipped, renamed-out or deleted.
+
+**Review loop**
+- Cycle 1 — reviewer `acceptable-beige-salamander`: APPROVE_WITH_NITS, 0 blocker / 0 major. M1 stale `compileClassBody` citation; M2 pre-existing `SkillPathPatternTest:167` "331" (deferred); N1 over-broad cite rows #25-#27. Orchestrator's own independent read ADDED the real defect: `PathGlob.php:50` quoted a DEAD figure `117,120` pinned by nothing.
+- Cycle 2 — fix (coder): 3 behavior-neutral edits (117,120→130,317; #25-27→#26; repoint compileClassBody→PathGlob::classBody). Tip `317ca7927`.
+- Cycle 2 — reviewer `colonial-green-scallop`: APPROVE_WITH_NITS, 0/0. M1 = the new `130,317` is pinned by NO assertion anywhere → escalate to a fix (this step already shipped one stale figure for want of exactly that pin).
+- Cycle 3 — fix (coder): added `testTheCorpusFigureInTheDocBlockIsTheDerivedOne` + reflowed two long doc-block lines. A reflow split the sentence across `*` continuation lines and the pin reddened on it — forcing a doc-block-aware de-wrap (keeps glob-literal prose byte-exact for the harvest). Tip `c2435450b`; cycle-3b corrected a stale "6 of the 12" figure that lived ONLY in the commit message (the doc-block never carried a count) — re-measured to "6 of the 13", not guessed.
+- Cycle 3 — reviewer `commercial-copper-raccoon`: **REQUEST_CHANGES**, MAJOR "the cycle-3 pin is circular/vacuous (needle built from the derived number)".
+- Cycle 4 — fix (coder): **git forensics refuted the finding** — `git log -S 'preg_quote(number_format' -- <test>` is EMPTY; the circular needle existed in NO commit. It still implemented the reviewer's END-STATE (two independent fixed-literal regexes + separate presence guards + factor assertions), proved non-vacuous by FOUR red mutations, restored byte-exact. Tip `714bea7ec`.
+- Cycle 4 — reviewer `current-red-thrush`: APPROVE_WITH_NITS, and independently REFUTED cycle-3's MAJOR at the tree (`number_format` 0 matches, guards precede comparisons, ground truth = shared memoized corpus, no silent-pass path). Two message/cosmetic nits only.
+Total cycles: 4 (cap 5).
+
+**Invariants touched** (§17): ADDED a file under `sugar-crush/src/Util/` → every derived source-walking census grew automatically (per-class figures above; zero literal updates = §17.1 decoupling as designed). GOLDENS: BOTH UNMOVED, fixtures diff empty, REGEN LAW never invoked. NO prompt rendering touched (the P6.S5b boundary held). §1.10: `legacyPathMatch()` kept reachable; `Rule::withTriggers()` untouched; nothing dormant stubbed/narrowed; the SkillRegistry change is a MOVE. §1.11: every new/changed test is behavioural (exact values, both polarities, pathological input, red-on-revert); the doc-figure is now pinned by a NON-CIRCULAR assertion. Identity: literal `Joe Huss <detain@interserver.net>` on the amended step commit and the merge, `git cat-file commit | /usr/bin/grep -c '\[EMAIL\]'` = 0 on both; the transport scrubs a typed address into `[EMAIL]` so it was shell-interpolated via `printf '%s@%s'` and the commit OBJECT byte-verified.
+
+**Surprises / things the plan got wrong**
+1. **THIRTEEN disagreements, not eleven.** The plan (`prompt_plan.md:2368`), the brief (140 L) and the premise report ALL say ELEVEN of 33 rows disagree; the report's own header/Q7 ("11/33") AND its "21 agree" (21+11=32≠33) were internally inconsistent. Measured through the two frozen transcriptions it is **13** (rows 5,6,8,10,11,12,13,21,22,23,26,30,32), while all 33 per-row printed answers reproduce EXACTLY. The differential test DERIVES the count from the table so it cannot rot a third time.
+2. **PathTrigger's move is NOT purely a widening**: 10 widen, **3 NARROW (rows #11,#22,#23)**, 20 hold. Non-narrowing is a rule about the LIVE skill channel (proved unmoved); the three trigger-side narrowings are legitimate in a matcher with zero production readers — but the brief's "widens" framing would have hidden them. Both doc-blocks now name them.
+3. **A reviewer MAJOR that did not exist.** Cycle-3 asserted a circular/vacuous test with a `number_format`-built needle; `git log -S` proved that construct was in NO commit, and cycle-4 independently confirmed its absence. LESSON (added to the plan's method notes): a review finding is a CLAIM to MEASURE, not a directive to obey blindly — the fixer hardened the real pin AND refuted the phantom instead of "fixing" code that never existed.
+4. Brief line 18 mislabeled the SkillRegistry range: `pathMatches()` is `:561-594`, not `:650-790` (`:650-790` was `compilePathPattern()`).
+5. A literal `**/` inside a `/** … */` doc-block TERMINATES the comment (a real parse error, four sites), reinforcing the existing plan lesson.
+
+**Follow-ups created** (recorded, NOT done — all out of P6.S5a's scope)
+1. `SkillPathPatternTest.php:167` says the shipped translation matches "331 pairs"; measured over its own frozen `AFTER` const it is **378** (of 2,484). PRE-EXISTING, file not in this step's diff; the new differential grid already guards the true figure. Correct 331→378 or derive it.
+2. `docs/plans/crush_code_hardening_backlog.md:5491` still points at `SkillRegistry::compileClassBody()`, which this step moved — same defect class cycle-2 fix 3 closed, in a tracked doc, invisible to `SymbolCitationDriftTest` (production-symbol citations are out of its alphabet). Batching with follow-up 1.
+3. `GlobDialectDifferentialTest.php:341` failure message cites `PathGlob.php:51` BY LINE NUMBER — a miniature of the very line-pointer rot this step fought; currently accurate, low priority. Prefer citing the "proven identical over …" clause.
+4. Re-measure the "6 of the 13 / 1,451 / 214 / 40" red-capability figures whenever the harness's case count changes — they are an EXPERIMENT, not a live derivation, so (unlike the corpus figure) they are intentionally NOT pinned by an assertion.
+5. Carry the §5 re-check BEFORE staffing P6.S5b — it wants `src/Backend/EngineBackend.php` (a live collision row) and is BLOCKED on the §1.10 rule-body-transport decision (verbatim in resume §8).
+
 ### P6.S4 — 2026-09-05 — status: done (41 of 65; Phase 6 step 4 of 7) "Config surface for rules"
 
 **GOAL** give the rules a config surface - register a `disabledRules` key that the launch path actually reads, so a hand-edited disable-list reaches `RulesState` at boot. Ruling option (i): **read-side only, NO write door**. Phase 6, step 4 of 7.
