@@ -638,6 +638,96 @@ final class SystemPromptWiringTest extends TestCase
     }
 
     /**
+     * MAJOR-1 (P7.S3 review) at the assembly seam this class exists to own: a
+     * name configured TWICE in `enabledSkills` must reach the provider prompt
+     * once. The resolver is where the duplicate collapses, so the test drives
+     * the real private resolver and feeds its output through the same
+     * `withSkills()` → `complete()` chain as the exactly-once test above.
+     *
+     * AND THE CONTROL THAT MAKES IT NON-VACUOUS: the same chain fed two copies
+     * of the ONE resolved `Skill` splices the body twice. Runtime has no
+     * dedupe of its own — it faithfully renders what it is handed — which is
+     * what proves the resolver is the only place this bug can be fixed, and
+     * that the count of 1 above is a dedupe and not a splice that ignores
+     * duplicates anyway.
+     *
+     * RED-ON-REVERT: restoring `array_filter(...)` without `array_unique` in
+     * `promptEnabledSkills()` reddens the resolver count at 2 and the prompt
+     * count at 2, while the control still answers 2.
+     */
+    public function testADuplicatedEnabledSkillNameSplicesItsBodyOnceThroughTheAssembly(): void
+    {
+        $registry = $this->registryWithProjectSkill('duplicated-assembly-skill', 'One skill, configured twice.');
+        $this->writeSandboxUserConfig([
+            'enabledSkills' => ['duplicated-assembly-skill', 'duplicated-assembly-skill'],
+        ]);
+
+        $resolved = $this->resolveEnabledSkills($registry);
+        $this->assertCount(
+            1,
+            $resolved,
+            'the resolver collapses a name listed twice into one skill (P7.S3 review MAJOR-1)',
+        );
+
+        $provider = $this->capturingProvider(false);
+        $this->backend($provider)
+            ->withSkillRegistry($registry)
+            ->withSkills($resolved)
+            ->complete([Message::user('hello')]);
+
+        $this->assertSame(
+            1,
+            substr_count($this->soleSystemPrompt($provider), '## Skill: duplicated-assembly-skill'),
+            'one configured-duplicate name must yield exactly one spliced body (P7.S3 review MAJOR-1)',
+        );
+
+        $control = $this->capturingProvider(false);
+        $this->backend($control)
+            ->withSkillRegistry($registry)
+            ->withSkills([$resolved[0], $resolved[0]])
+            ->complete([Message::user('hello')]);
+
+        $this->assertSame(
+            2,
+            substr_count($this->soleSystemPrompt($control), '## Skill: duplicated-assembly-skill'),
+            'the splice is faithful to its input: two entries render twice, so the dedupe belongs upstream',
+        );
+    }
+
+    /**
+     * Write the persisted user config into this test's home sandbox — the file
+     * `Bootstrap::readUserConfig()` reads, and therefore the only way the real
+     * resolver can be pointed at a configured list from here.
+     *
+     * @param array<string, mixed> $settings
+     */
+    private function writeSandboxUserConfig(array $settings): void
+    {
+        $dir = $this->tempDir . '/empty-home/.sugar-crush';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+
+        file_put_contents($dir . '/config.json', json_encode($settings, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Drive `Bootstrap::promptEnabledSkills()` — private, and deliberately not
+     * widened for a test — against a registry and the sandbox config.
+     *
+     * @return list<Skill>
+     */
+    private function resolveEnabledSkills(SkillRegistry $registry): array
+    {
+        $method = new \ReflectionMethod(Bootstrap::class, 'promptEnabledSkills');
+        $method->setAccessible(true);
+        $resolved = $method->invoke(null, $registry);
+        $this->assertIsArray($resolved);
+
+        return $resolved;
+    }
+
+    /**
      * The other polarity of the same seam: excluding the ENABLED skill from
      * the listing must not touch its un-enabled neighbours. The listing is
      * level-1 metadata for everything the model may still call via the Skill

@@ -450,10 +450,17 @@ final class FeatWiringReachabilityTest extends TestCase
 
     /**
      * Both keys naming the same skill: the registry resolves `get()` through
-     * the disable, so the opt-out wins and the name follows the unknown-name
-     * drop path — a body can never be smuggled past a deliberate ban by also
-     * listing it as enabled. Pinned because nothing else in the suite decides
-     * this precedence, and the two keys are read by two different methods.
+     * the disable, so the opt-out wins and the name follows the drop path — a
+     * body can never be smuggled past a deliberate ban by also listing it as
+     * enabled. Pinned because nothing else in the suite decides this precedence,
+     * and the two keys are read by two different methods.
+     *
+     * The NOTICE is pinned here too, and that is the MINOR-3 half: the drop path
+     * is shared with an unknown name, so a notice that said "was not found" for a
+     * skill sitting on disk in the same config that bans it misnames the cause and
+     * sends the reader looking in the wrong file. `isDisabled()` is checked before
+     * the not-found wording is chosen, and this asserts both halves of that — the
+     * disabled phrase present, the not-found phrase absent.
      */
     public function testADisabledSkillStaysOutOfThePromptEvenWhenAlsoEnabled(): void
     {
@@ -472,6 +479,185 @@ final class FeatWiringReachabilityTest extends TestCase
             $prompt,
             'a disabled skill is out of the listing too — the disable happens registry-side',
         );
+
+        $causes = array_values(array_filter(
+            Bootstrap::launchNotices(),
+            static fn(string $notice): bool => str_contains($notice, 'p7s3-contested-skill'),
+        ));
+        $this->assertCount(1, $causes, 'the contested name must be reported exactly once');
+        $this->assertStringContainsString(
+            "enabled skill 'p7s3-contested-skill' is disabled by configuration",
+            $causes[0],
+            'a name the config both enables and disables must be reported as DISABLED, which is what '
+                . 'decided its fate (P7.S3 review MINOR-3)',
+        );
+        $this->assertStringNotContainsString(
+            'was not found',
+            $causes[0],
+            'and it must not be reported as missing: the SKILL.md exists on disk, and pointing the reader '
+                . 'at a vanished file is a diagnostic that sends them looking in the wrong place',
+        );
+    }
+
+    /**
+     * MAJOR-1 (P7.S3 review): a name listed TWICE in `enabledSkills` used to
+     * resolve twice, because the name loop filtered without deduplicating —
+     * and Runtime renders one section per entry of
+     * `App::$enabledSkills`, so one duplicated line in the user's config put
+     * the same body in the system prompt TWICE on every turn, silently, with
+     * nothing anywhere to notice it. That is the direct negation of this step's
+     * exactly-once invariant, so the dedupe lives in the resolver and both
+     * halves of it are pinned here: the resolver hands back ONE skill for two
+     * configured names, and the launched provider payload carries the body once.
+     *
+     * RED-ON-REVERT: restoring `array_filter(...)` without `array_unique` reds
+     * the resolver count at 2 and the launched `substr_count` at 2.
+     */
+    public function testADuplicatedEnabledSkillNameResolvesOnceAndSplicesOnce(): void
+    {
+        $this->writeProjectSkill(
+            'p7s3-duplicate-skill',
+            'Named twice by one config file.',
+            "# Duplicate\n\nDUPLICATE-P7S3-BODY\n",
+        );
+        $this->writeUserConfig([
+            'enabledSkills' => ['p7s3-duplicate-skill', 'p7s3-duplicate-skill'],
+        ]);
+
+        $resolved = $this->resolveEnabledSkills($this->engineSkillRegistry());
+        $this->assertCount(
+            1,
+            $resolved,
+            'a name listed twice is ONE skill asked for twice; the resolver may not hand the engine two '
+                . 'objects for it (P7.S3 review MAJOR-1)',
+        );
+        $this->assertSame(
+            ['p7s3-duplicate-skill'],
+            array_map(static fn($skill): string => $skill->name, $resolved),
+            'and the surviving entry keeps its configured name',
+        );
+
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: p7s3-duplicate-skill'),
+            'the launched prompt must carry the duplicated name body exactly once (P7.S3 review MAJOR-1)',
+        );
+        $this->assertSame(
+            1,
+            substr_count($prompt, 'DUPLICATE-P7S3-BODY'),
+            'counted on the body marker as well, so the pin cannot be satisfied by a heading alone',
+        );
+    }
+
+    /**
+     * MINOR-2 (P7.S3 review): a value that is not a list at all — a bare string
+     * where a list of names belongs — used to `return []` in silence, and
+     * silence is the one answer a user who typed the key cannot use. The house
+     * shape for a malformed list key (`permissionRules()`,
+     * `trustedProjectRoots()`) is one notice naming the key, then continue.
+     *
+     * Fail-safe is preserved on the axis that matters: the LAUNCH still
+     * completes. What changed is that the drop is now said.
+     *
+     * RED-ON-REVERT: restoring the bare `if (!is_array(...)) { return []; }`
+     * reddens the notice assertion while the "launch completes" half stays
+     * green — the asymmetry that proves the notice is the fix.
+     */
+    public function testEnabledSkillsThatIsNotAListIsReportedAndDoesNotBrickTheLaunch(): void
+    {
+        $this->writeProjectSkill(
+            'p7s3-string-shaped-skill',
+            'Discovered, named by a value that is not a list.',
+            "# String shaped\n\nSTRING-P7S3-BODY\n",
+        );
+        $this->writeUserConfig(['enabledSkills' => 'p7s3-string-shaped-skill']);
+
+        // Reaching a prompt at all is the load-bearing half: a wrong-shaped
+        // value is a config mistake, not a reason to kill the CLI.
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertStringNotContainsString('## Skill: p7s3-string-shaped-skill', $prompt);
+        $this->assertStringNotContainsString('STRING-P7S3-BODY', $prompt);
+        $this->assertStringContainsString(
+            '- p7s3-string-shaped-skill: Discovered, named by a value that is not a list.',
+            $prompt,
+            'the launch is whole, not degraded: the skill is still discovered and listed, only the '
+                . 'body channel declined to open',
+        );
+
+        $notices = array_values(array_filter(
+            Bootstrap::launchNotices(),
+            static fn(string $notice): bool => str_contains($notice, 'enabledSkills is not a list'),
+        ));
+        $this->assertCount(
+            1,
+            $notices,
+            'a wrong-shaped `enabledSkills` must say so once, naming the key (P7.S3 review MINOR-2)',
+        );
+        $this->assertStringContainsString('enabledSkills', $notices[0]);
+    }
+
+    /**
+     * The other half of MINOR-2: a well-shaped list with one wrong-shaped
+     * ENTRY. The good entry must still land — one typo must not forfeit the
+     * skill the user spelled correctly — and the bad one must be named BY
+     * INDEX, because the position in the file is the only handle the reader has
+     * on which entry they mistyped.
+     *
+     * RED-ON-REVERT: restoring `array_filter($enabled, 'is_string')` (drop
+     * quietly, no index) reddens the indexed notice.
+     */
+    public function testANonStringEntryInEnabledSkillsIsSkippedWithAnIndexedNotice(): void
+    {
+        $this->writeProjectSkill(
+            'p7s3-mixed-skill',
+            'The half of a mixed list that is a name.',
+            "# Mixed\n\nMIXED-P7S3-BODY\n",
+        );
+        $this->writeUserConfig(['enabledSkills' => ['p7s3-mixed-skill', 42]]);
+
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: p7s3-mixed-skill'),
+            'a bad entry must not forfeit the good one beside it (P7.S3 review MINOR-2)',
+        );
+        $this->assertStringContainsString('MIXED-P7S3-BODY', $prompt);
+
+        $notices = array_values(array_filter(
+            Bootstrap::launchNotices(),
+            static fn(string $notice): bool => str_contains($notice, 'enabledSkills[1]'),
+        ));
+        $this->assertCount(1, $notices, 'the skipped entry must be named by its index');
+        $this->assertStringContainsString('is not a skill name; entry skipped', $notices[0]);
+        $this->assertSame(
+            [],
+            array_values(array_filter(
+                Bootstrap::launchNotices(),
+                static fn(string $notice): bool => str_contains($notice, '## Skill: 42')
+                    || str_contains($notice, "enabled skill '42'"),
+            )),
+            'a non-string entry is not a name, so it must not reach the name-resolution path either',
+        );
+    }
+
+    /**
+     * Drive the private resolver directly, so a dedupe defect is visible at the
+     * level it is fixed rather than only through the whole launch.
+     *
+     * @return list<\SugarCraft\Crush\Skills\Skill>
+     */
+    private function resolveEnabledSkills(SkillRegistry $registry): array
+    {
+        $method = new \ReflectionMethod(Bootstrap::class, 'promptEnabledSkills');
+        $method->setAccessible(true);
+        $resolved = $method->invoke(null, $registry);
+        $this->assertIsArray($resolved);
+
+        return $resolved;
     }
 
     /**
