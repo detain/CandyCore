@@ -48,6 +48,9 @@ final class PromptFixture
     /** @var list<Skill> */
     private array $skills = [];
 
+    /** @var list<Skill> */
+    private array $listedSkills = [];
+
     /**
      * @param ProviderInterface $provider Provider the fixture's App and Runtime
      *                                    use; defaults to the zero-arg
@@ -128,16 +131,34 @@ final class PromptFixture
     }
 
     /**
-     * Register a skill the fixture's App enables AND lists as available.
+     * Register a skill the fixture's App ENABLES — its full body is spliced
+     * into the prompt via {@see Skill::systemPromptContribution()}.
      *
-     * Both halves are wired because {@see Runtime::buildSystemPrompt()}
-     * renders them separately: the full body via
-     * {@see Skill::systemPromptContribution()} for `enabledSkills`, and the
-     * level-1 name/description listing for `availableSkills`.
+     * Since P7.S3 an enabled skill is deliberately kept OUT of the level-1
+     * listing (a body already in the prompt has no business also being
+     * advertised as a Skill-tool call), so a fixture that must render BOTH
+     * prompt halves needs one skill here and one via
+     * {@see addListedSkill()}. Before P7.S3 these two halves doubled up on a
+     * single skill; the wiring below registers both kinds into one registry
+     * because the listing renders from `availableSkills`.
      */
     public function addSkill(Skill $skill): self
     {
         $this->skills[] = $skill;
+
+        return $this;
+    }
+
+    /**
+     * Register a skill the fixture's App makes AVAILABLE without enabling:
+     * it reaches the level-1 name/description listing rendered by
+     * {@see \SugarCraft\Crush\Skills\SkillMatcher::listForPrompt()} and
+     * nothing else — no body section, exactly like every discovered skill
+     * under the default-empty `enabledSkills` config.
+     */
+    public function addListedSkill(Skill $skill): self
+    {
+        $this->listedSkills[] = $skill;
 
         return $this;
     }
@@ -160,9 +181,9 @@ final class PromptFixture
             $app = $app->withMemoryStore($this->store);
         }
 
-        if ($this->skills !== []) {
+        if ($this->skills !== [] || $this->listedSkills !== []) {
             $registry = new SkillRegistry();
-            $registry->register($this->skills);
+            $registry->register([...$this->skills, ...$this->listedSkills]);
             $app = $app->withEnabledSkills($this->skills)->withAvailableSkills($registry);
         }
 

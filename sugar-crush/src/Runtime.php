@@ -2672,6 +2672,7 @@ final class Runtime
         // is scope-selected rather than searched, and for what it costs.
         $sections[] = $this->memorySnapshot($app);
 
+        $enabledSkillNames = [];
         foreach ($app->enabledSkills as $skill) {
             if ($skill instanceof \SugarCraft\Crush\Skills\Skill) {
                 // The leading "\n\n" is load-bearing, not a doubling to strip:
@@ -2685,6 +2686,7 @@ final class Runtime
                     Stability::PerTurn,
                     "\n\n" . $skill->systemPromptContribution(),
                 );
+                $enabledSkillNames[] = $skill->name;
             }
         }
 
@@ -2694,11 +2696,14 @@ final class Runtime
         // model has no reason to call, so a populated registry would still be
         // un-auto-triggerable (crush_feat.md section 7 E1/E2 Strategy A).
         // Empty registry => empty string, so nothing changes for a session
-        // that discovered no skills.
+        // that discovered no skills. The enabled bodies are excluded from the
+        // lines ($enabledSkillNames above): P7.S3 made the body channel real,
+        // and a skill whose full instructions already stand in the prompt has
+        // no business also being advertised as a one-line call suggestion.
         $sections[] = $this->section(
             '',
             Stability::PerTurn,
-            (new SkillMatcher())->listForPrompt($app->availableSkills),
+            (new SkillMatcher())->listForPrompt($app->availableSkills, $enabledSkillNames),
         );
 
         // Volatile content LAST, ordered by mutation frequency

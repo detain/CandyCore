@@ -570,6 +570,208 @@ final class SystemPromptWiringTest extends TestCase
     }
 
     /**
+     * P7.S3 (canonical path of the skills-into-the-prompt plan): the FULL
+     * BODY of an enabled skill must land in the transmitted system prompt —
+     * exactly once — through `EngineBackend::withSkills()`, whose `complete()`
+     * rebuilds the App with `withEnabledSkills()` and Runtime splices each
+     * body's `Skill::systemPromptContribution()`. Before this step the method
+     * had no production caller at all: implemented, unreachable (lesson 16.1).
+     *
+     * THE EXACTLY-ONCE COUNT IS THE SHAPE OF THE PIN, per the precedent at
+     * `tests/RuntimeTest.php` (assertSame(1, substr_count(..., '</env>'))),
+     * because a body spliced twice is the same class of bug as one spliced
+     * never. And the exclusion polarity rides along: a skill whose body the
+     * prompt carries must NOT also appear as a level-1 "invoke via Skill
+     * tool" line — the double presentation P7.S3 exists to close.
+     *
+     * RED-ON-REVERT: dropping `->withSkills([$skill])` from the chain below
+     * (or the production chain in Bootstrap — see the launched kill-shots in
+     * tests/Integration/FeatWiringReachabilityTest.php) reds the substr_count
+     * at 0; reverting the Runtime/SkillMatcher exclusion seam reds the
+     * `- name:` absence at 1. Both polarities of §1.11, on the bytes the
+     * provider actually receives.
+     */
+    public function testAnEnabledSkillBodyLandsInTheProviderPromptExactlyOnceAndNotAlsoInTheListing(): void
+    {
+        $registry = $this->registryWithProjectSkill('enabled-body-skill', 'Body skill pinned at P7.S3.');
+        $manifest = $registry->get('enabled-body-skill');
+        $this->assertInstanceOf(
+            Skill::class,
+            $manifest,
+            'the registry that resolves disabledSkills must resolve an enabled name too',
+        );
+        // The staged-loading fact: registry entries are manifests with EMPTY
+        // content, and production (Bootstrap::promptEnabledSkills) hands the
+        // engine the finished object. Mirrored here so this test pins the
+        // splice, not the loader — the loader leg is pinned launched, in
+        // tests/Integration/FeatWiringReachabilityTest.php.
+        $skill = Skill::fromFile($manifest->sourcePath);
+
+        $provider = $this->capturingProvider(false);
+        $this->backend($provider)
+            ->withSkillRegistry($registry)
+            ->withSkills([$skill])
+            ->complete([Message::user('hello')]);
+
+        $prompt = $this->soleSystemPrompt($provider);
+
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: enabled-body-skill'),
+            'the enabled body must reach the provider prompt exactly once (P7.S3)',
+        );
+        $this->assertStringContainsString(
+            "## Skill: enabled-body-skill\n\n# enabled-body-skill\n\nBody.\n",
+            $prompt,
+            'the spliced bytes must be exactly Skill::systemPromptContribution() for the SKILL.md the loader read',
+        );
+        // The line spelling of the listing entry: a skill whose full body the
+        // prompt carries must not also be advertised as a level-1 line — the
+        // double presentation P7.S3 exists to close. Whatever else the listing
+        // renders (the built-in tier is always in a real registry), the
+        // enabled name never appears there.
+        $this->assertSame(
+            0,
+            substr_count($prompt, '- enabled-body-skill:'),
+            'the exclusion seam must drop the enabled skill from the listing regardless of what else lists (P7.S3)',
+        );
+    }
+
+    /**
+     * MAJOR-1 (P7.S3 review) at the assembly seam this class exists to own: a
+     * name configured TWICE in `enabledSkills` must reach the provider prompt
+     * once. The resolver is where the duplicate collapses, so the test drives
+     * the real private resolver and feeds its output through the same
+     * `withSkills()` → `complete()` chain as the exactly-once test above.
+     *
+     * AND THE CONTROL THAT MAKES IT NON-VACUOUS: the same chain fed two copies
+     * of the ONE resolved `Skill` splices the body twice. Runtime has no
+     * dedupe of its own — it faithfully renders what it is handed — which is
+     * what proves the resolver is the only place this bug can be fixed, and
+     * that the count of 1 above is a dedupe and not a splice that ignores
+     * duplicates anyway.
+     *
+     * RED-ON-REVERT: restoring `array_filter(...)` without `array_unique` in
+     * `promptEnabledSkills()` reddens the resolver count at 2 and the prompt
+     * count at 2, while the control still answers 2.
+     */
+    public function testADuplicatedEnabledSkillNameSplicesItsBodyOnceThroughTheAssembly(): void
+    {
+        $registry = $this->registryWithProjectSkill('duplicated-assembly-skill', 'One skill, configured twice.');
+        $this->writeSandboxUserConfig([
+            'enabledSkills' => ['duplicated-assembly-skill', 'duplicated-assembly-skill'],
+        ]);
+
+        $resolved = $this->resolveEnabledSkills($registry);
+        $this->assertCount(
+            1,
+            $resolved,
+            'the resolver collapses a name listed twice into one skill (P7.S3 review MAJOR-1)',
+        );
+
+        $provider = $this->capturingProvider(false);
+        $this->backend($provider)
+            ->withSkillRegistry($registry)
+            ->withSkills($resolved)
+            ->complete([Message::user('hello')]);
+
+        $this->assertSame(
+            1,
+            substr_count($this->soleSystemPrompt($provider), '## Skill: duplicated-assembly-skill'),
+            'one configured-duplicate name must yield exactly one spliced body (P7.S3 review MAJOR-1)',
+        );
+
+        $control = $this->capturingProvider(false);
+        $this->backend($control)
+            ->withSkillRegistry($registry)
+            ->withSkills([$resolved[0], $resolved[0]])
+            ->complete([Message::user('hello')]);
+
+        $this->assertSame(
+            2,
+            substr_count($this->soleSystemPrompt($control), '## Skill: duplicated-assembly-skill'),
+            'the splice is faithful to its input: two entries render twice, so the dedupe belongs upstream',
+        );
+    }
+
+    /**
+     * Write the persisted user config into this test's home sandbox — the file
+     * `Bootstrap::readUserConfig()` reads, and therefore the only way the real
+     * resolver can be pointed at a configured list from here.
+     *
+     * @param array<string, mixed> $settings
+     */
+    private function writeSandboxUserConfig(array $settings): void
+    {
+        $dir = $this->tempDir . '/empty-home/.sugar-crush';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+
+        file_put_contents($dir . '/config.json', json_encode($settings, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * Drive `Bootstrap::promptEnabledSkills()` — private, and deliberately not
+     * widened for a test — against a registry and the sandbox config.
+     *
+     * @return list<Skill>
+     */
+    private function resolveEnabledSkills(SkillRegistry $registry): array
+    {
+        $method = new \ReflectionMethod(Bootstrap::class, 'promptEnabledSkills');
+        $method->setAccessible(true);
+        $resolved = $method->invoke(null, $registry);
+        $this->assertIsArray($resolved);
+
+        return $resolved;
+    }
+
+    /**
+     * The other polarity of the same seam: excluding the ENABLED skill from
+     * the listing must not touch its un-enabled neighbours. The listing is
+     * level-1 metadata for everything the model may still call via the Skill
+     * tool; P7.S3 removes a double presentation, not the listing.
+     */
+    public function testEnablingOneSkillKeepsItsUnenabledNeighboursInTheListing(): void
+    {
+        // Both calls load EVERYTHING under tempDir at that moment, so the
+        // second registry holds both SKILL.md files — the same multi-skill
+        // discovery a real launch performs.
+        $this->registryWithProjectSkill('enabled-neighbour-skill', 'One body, spliced.');
+        $registry = $this->registryWithProjectSkill('kept-listed-skill', 'One line, still advertised.');
+        $manifest = $registry->get('enabled-neighbour-skill');
+        $this->assertInstanceOf(Skill::class, $manifest);
+        $skill = Skill::fromFile($manifest->sourcePath);
+
+        $provider = $this->capturingProvider(false);
+        $this->backend($provider)
+            ->withSkillRegistry($registry)
+            ->withSkills([$skill])
+            ->complete([Message::user('hello')]);
+
+        $prompt = $this->soleSystemPrompt($provider);
+
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: enabled-neighbour-skill'),
+            'the enabled neighbour must still contribute exactly one body section while its '
+                . 'un-enabled peer keeps its listing line — a count of 0 here means enabling one skill '
+                . 'took the splice away from it, which is the exclusion seam overreaching (P7.S3)',
+        );
+        $this->assertStringContainsString(
+            '- kept-listed-skill: One line, still advertised.',
+            $prompt,
+            'the listing must survive exclusion intact for every skill that is NOT enabled (P7.S3)',
+        );
+        $this->assertStringNotContainsString('- enabled-neighbour-skill:', $prompt);
+        $this->assertStringNotContainsString(
+            '- kept-listed-skill: One line, still advertised.' . "\n" . '- kept-listed-skill',
+            $prompt,
+        );
+    }
+
+    /**
      * A session that discovered nothing must be byte-identical to before the
      * listing existed — an empty registry may not leave a dangling header.
      */
@@ -648,6 +850,27 @@ final class SystemPromptWiringTest extends TestCase
             content: 'FIXTURE SKILL BODY',
             sourcePath: '/fixture/SKILL.md',
         ));
+        // P7.S3: the two skill halves need two skills now. An ENABLED skill is
+        // excluded from the level-1 listing — its body already says everything
+        // the line would, louder — so the listing layer only renders because
+        // this second, discovered-but-not-enabled skill exists. The ordering
+        // pins below are untouched: the header still lands where it landed
+        // before, and the excluded name is asserted absent from the whole
+        // prompt except its body section, right at the end of this test.
+        $fixture->addListedSkill(new Skill(
+            name: 'fixture-listed-skill',
+            description: 'Listing-half fixture skill, never enabled.',
+            userInvocable: true,
+            disableModelInvocation: false,
+            allowedTools: null,
+            disallowedTools: null,
+            model: null,
+            effort: 'low',
+            context: 'thread',
+            paths: [],
+            content: 'LISTED SKILL BODY MUST NOT APPEAR',
+            sourcePath: '/fixture/listed/SKILL.md',
+        ));
 
         $prompt = $fixture->systemPrompt();
 
@@ -683,9 +906,21 @@ final class SystemPromptWiringTest extends TestCase
         $this->assertStringContainsString('## Skill: fixture-demo-skill', $prompt);
         $this->assertStringContainsString('FIXTURE SKILL BODY', $prompt);
         $this->assertStringContainsString(
-            '- fixture-demo-skill: Fixture skill for the harness test.',
+            '- fixture-listed-skill: Listing-half fixture skill, never enabled.',
             $prompt,
         );
+        // The exclusion itself, at the assembler seam: the enabled skill's
+        // level-1 LINE is gone — its name survives exactly once, in the body
+        // heading — while the not-enabled skill's line renders normally. And
+        // the listed-only skill's BODY never renders, exactly once-or-never:
+        // substr_count on the name counts the heading; the content marker must
+        // be wholly absent.
+        $this->assertSame(
+            1,
+            substr_count($prompt, 'fixture-demo-skill'),
+            'the enabled skill may appear only as its body heading, never also as a listing line (P7.S3)',
+        );
+        $this->assertStringNotContainsString('LISTED SKILL BODY MUST NOT APPEAR', $prompt);
     }
 
     /**

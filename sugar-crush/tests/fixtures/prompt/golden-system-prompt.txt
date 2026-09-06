@@ -116,9 +116,6 @@ Notes recorded for this project across earlier sessions, most recently updated f
 
 Work only inside the fixture workspace.
 
-Available skills (invoke via Skill tool):
-- fixture-helper: Fixture skill for the golden prompt
-
 <env>
 Working directory: vendor/prompt-fixture/system-repo
 Is directory a git repo: Yes

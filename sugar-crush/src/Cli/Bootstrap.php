@@ -40,6 +40,7 @@ use SugarCraft\Crush\Providers\ProviderInterface;
 use SugarCraft\Crush\Session\EnhancedSessionStore;
 use SugarCraft\Crush\Session\SessionStore;
 use SugarCraft\Crush\Sessions\BackgroundSupervisor;
+use SugarCraft\Crush\Skills\Skill;
 use SugarCraft\Crush\Skills\SkillLoader;
 use SugarCraft\Crush\Skills\SkillManager;
 use SugarCraft\Crush\Skills\SkillPathNudge;
@@ -478,7 +479,7 @@ final class Bootstrap
      * a private const; nothing in `src/` branches on it, and nothing should —
      * see {@see warnPermissionConfigInTranscript()} for the seam itself.
      */
-    public const TRANSCRIPT_SEAM_CALL_SITES = 16;
+    public const TRANSCRIPT_SEAM_CALL_SITES = 20;
 
     /**
      * Project hook files this process has already reported as skipped, keyed
@@ -1168,17 +1169,20 @@ final class Bootstrap
 
         // LAST, so every warning the build raised is in hand — including
         // reportProjectTierRefusals() immediately above, which is one of the
-        // SIXTEEN call sites now routed onto the transcript seam. This said
-        // FIFTEEN, counting reportPrunedSessions()'s retention summary (E78,
-        // round 42) as the last one; E86 (round 43) added the sixteenth, in
-        // mcpClient()'s start-then-throw catch. Both of those are the reason
+        // TWENTY call sites now routed onto the transcript seam. This said
+        // SIXTEEN, counting reportPrunedSessions()'s retention summary (E78,
+        // round 42) as the last one until E86 (round 43) added the sixteenth,
+        // in mcpClient()'s start-then-throw catch, and P7.S3 added the
+        // seventeenth and eighteenth, the two enabled-skill drop notices in
+        // promptEnabledSkills(), plus its nineteenth and twentieth, the two
+        // `enabledSkills` shape notices in that same method. All four are the reason
         // this line is LAST rather than merely tidy: the retention summary is
         // raised from sessionStore() far EARLIER in this method, and the MCP
         // one is raised far LATER, transitively through backend() -> tools() ->
         // mcpTools(), so only a read at the END has both in hand. The count is
         // a grep of this file for `self::` immediately followed by the seam's
         // name — deliberately not spelled out here, because a comment quoting
-        // that literal makes itself the seventeenth hit. No line numbers
+        // that literal makes itself the twenty-first hit. No line numbers
         // either, for the same reason one insertion above decays them.
         // See {@see Chat::withLaunchNotices()}.
         //
@@ -2215,6 +2219,12 @@ final class Bootstrap
             // what it was and still leaves $gate non-null afterwards.
             ->withPermissionGate($gate ??= self::permissionGate())
             ->withSkillRegistry($skills)
+            // The `enabledSkills` config key resolved to Skill objects — the
+            // body channel EngineBackend::withSkills() has waited since P7.S1
+            // for its first production caller. Empty default: see
+            // promptEnabledSkills(); a launch that configures nothing builds
+            // the byte-identical prompt it built before this line existed.
+            ->withSkills(self::promptEnabledSkills($skills))
             ->withInstructionLoader($loader)
             ->withRoot($root)
             // Without this the Phase 5 item 9 memory block is unreachable from a
@@ -2279,6 +2289,11 @@ final class Bootstrap
             // config or reordering the failures.
             ->withPermissionGate($gate ??= self::permissionGate())
             ->withSkillRegistry($skills)
+            // See backend(): both composition sites of an EngineBackend that
+            // carries a registry must carry the enabled bodies too, or a
+            // provider switch mid-session would silently drop them from the
+            // prompt on the next turn.
+            ->withSkills(self::promptEnabledSkills($skills))
             ->withInstructionLoader($loader)
             ->withRoot($root)
             // Without this the Phase 5 item 9 memory block is unreachable from a
@@ -2936,6 +2951,128 @@ final class Bootstrap
     }
 
     /**
+     * The skills whose FULL BODIES the system prompt carries every turn.
+     *
+     * Reads the `enabledSkills` key of the persisted user config — a list of
+     * names resolved against the SAME registry {@see skillRegistry()} built,
+     * so discovery tiers and the `disabledSkills` list decide what a name can
+     * mean before it can mean a body. THE DEFAULT IS THE EMPTY LIST: no user
+     * gets standing skill instructions they did not ask for, and the channel
+     * EngineBackend::withSkills() opens becomes reachable only via explicit
+     * config. Threaded at both composition sites — backend() and backendFor()
+     * — because a provider switch must not drop what the echo launch promised.
+     *
+     * FAIL-SAFE BY DECISION, unlike a PermissionConfigException: a stale name
+     * in a config file (a skill since deleted, a typo) drops with a launch
+     * notice through the same bounded transcript/stderr channel every other
+     * config warning uses — one dead entry must not brick the CLI. And a name
+     * that `disabledSkills` also lists resolves to null here (registry->get()
+     * honours the disable), so opting out wins over opting in: the two keys
+     * contradicting each other cannot smuggle a body past a deliberate ban.
+     * Fail-safe about ENTRIES, not about the KEY'S SHAPE — a value that is not
+     * a list, or a list element that is not a name, is the user's config being
+     * wrong rather than one entry being stale, and each of those is said the way
+     * {@see permissionRules()} says its own: one notice naming the key for the
+     * first, one naming the index for the second, and no silent drop.
+     *
+     * EACH NAME COUNTS ONCE: the list is deduplicated strictly before it is
+     * resolved, because `["pdf", "pdf"]` is one skill asked for twice, and Runtime
+     * renders one section per entry it is handed — so an undeduplicated list put
+     * the same standing instructions in every turn of the session. The
+     * exactly-once guarantee the bodies carry is decided here, not downstream.
+     *
+     * Config.json-level ON PURPOSE: growing LayeredSettings::LAYERED_KEYS is
+     * a documented-roster change (README + SETTINGS.md drift guards) that
+     * belongs to a settings-surface step, not this wiring one — so this key
+     * is NOT settings.json/project-tier layered, only read through
+     * {@see readUserConfig()} like `providers` before it.
+     *
+     * Registry entries are STAGE-1 manifests — `SkillManager::loadAll()`
+     * deliberately never reads a body off disk — so each resolved name gets
+     * its full `Skill::fromFile()` here, the same source-of-truth load the
+     * Skill tool performs at invocation (SkillTool loads via the loader; this
+     * parses once at composition and hands Runtime the finished object).
+     * A source file that vanished between discovery and launch drops with a
+     * notice for the same reason an unknown name does: a body-less heading
+     * would inject a fact about nothing.
+     *
+     * @return list<Skill>
+     */
+    private static function promptEnabledSkills(SkillRegistry $registry): array
+    {
+        $config = self::readUserConfig();
+        if (!\array_key_exists('enabledSkills', $config)) {
+            return [];
+        }
+
+        $enabled = $config['enabledSkills'];
+        if (!is_array($enabled)) {
+            self::warnPermissionConfigInTranscript(
+                'enabledSkills is not a list of skill names; no skill bodies are enabled in the system prompt',
+            );
+
+            return [];
+        }
+
+        // THE LIST IS PARSED HERE, ONCE, into trusted strings — so the loop
+        // below needs no defensive `is_string` of its own. A wrong-shaped entry
+        // is SKIPPED, AND SAID, with its index: the position in the file is the
+        // only handle a user has on which entry they mistyped, and dropping it
+        // quietly leaves them believing `42` is a skill they configured. Same
+        // fail-loud shape as every other list key this class reads.
+        $names = [];
+        foreach ($enabled as $index => $entry) {
+            if (!is_string($entry)) {
+                self::warnPermissionConfigInTranscript(
+                    "enabledSkills[{$index}] is not a skill name; entry skipped",
+                );
+
+                continue;
+            }
+
+            $names[] = $entry;
+        }
+
+        $skills = [];
+        // STRICT DEDUPE, because the exactly-once invariant lives here: a name
+        // listed twice resolves to two `Skill` objects, Runtime renders a section
+        // for each, and every turn of the session pays for a duplicate while
+        // saying nothing about it. `SORT_REGULAR` compares the
+        // strings as strings, and `array_values` re-indexes so the surviving
+        // order is the configured one.
+        foreach (array_values(array_unique($names, SORT_REGULAR)) as $name) {
+            $manifest = $registry->get($name);
+            if ($manifest === null) {
+                // Opting out beats opting in: a name `disabledSkills` also lists
+                // resolves to null here because `SkillRegistry::get()` honours
+                // the disable. `isDisabled()` is the registry's only public
+                // disabled-check and it cannot separate "listed and disabled"
+                // from "listed, disabled, never discovered" — so the cause named
+                // below is the CONFIG, true in both cases and the only one the
+                // reader can act on. A presence accessor would be API churn
+                // bought for the phrasing of one notice.
+                $cause = $registry->isDisabled($name)
+                    ? 'is disabled by configuration'
+                    : 'was not found';
+                self::warnPermissionConfigInTranscript(
+                    "enabled skill '{$name}' {$cause}; it stays out of the system prompt",
+                );
+
+                continue;
+            }
+            try {
+                $skills[] = Skill::fromFile($manifest->sourcePath);
+            } catch (\RuntimeException|\InvalidArgumentException $e) {
+                self::warnPermissionConfigInTranscript(
+                    "enabled skill '{$name}' could not be read ({$e->getMessage()}); it stays out of the system prompt",
+                );
+            }
+        }
+
+        return $skills;
+    }
+
+    /**
      * Every SKILL.md this process's skill scans could not read, keyed by path.
      *
      * The seam that replaced {@see \SugarCraft\Crush\Skills\SkillLoader}'s old
@@ -2996,14 +3133,14 @@ final class Bootstrap
         // user meets that as `/skill` not offering something they wrote. ONE
         // ROW, whatever the count: this message is already an aggregate, which
         // is what makes it safe to put in a transcript that also has to carry
-        // fifteen other sources. THIS SAID ELEVEN. Round 44 could not correct
+        // nineteen other sources. THIS SAID ELEVEN. Round 44 could not correct
         // it — this file was outside that lane's ownership, which is the whole
         // reason, and not how long the sentence had been wrong — so it asserted
         // the gap instead, with a test whose failure message was the
         // instruction for closing it (E119). The number
         // is now a row in BootstrapTranscriptSeamCallSiteCensusTest's
         // PROSE_SITES and a declaration in {@see TRANSCRIPT_SEAM_CALL_SITES}, so
-        // a seventeenth site reds this sentence rather than dating it.
+        // a twenty-first site reds this sentence rather than dating it.
         self::warnPermissionConfigInTranscript(sprintf(
             self::SKILL_SKIP_NOTICE_FORMAT,
             $count,
@@ -5018,7 +5155,7 @@ final class Bootstrap
             ));
 
             // REACHABILITY AT THIS SITE IS DRIVEN, not inherited from the other
-            // fifteen call sites: {@see chat()} holds no `self::tools(` call of
+            // nineteen call sites: {@see chat()} holds no `self::tools(` call of
             // its own and gets here transitively through `backend()` ->
             // `tools()` -> {@see mcpTools()} -> this method, then reads
             // {@see launchNotices()} on its last line — so a row recorded now is
