@@ -3695,6 +3695,191 @@ final class Chat implements Model
     }
 
     /**
+     * The tool-shaped context a turn-lifecycle hook is dispatched with (P7.S2).
+     *
+     * Smuggles a session/prompt event through {@see HookContext} instead of
+     * extending it — the full WHY, including what each slot carries and why
+     * `model`/`provider` stay empty, is on
+     * {@see \SugarCraft\Crush\Hooks\HookManager::sessionStart()}.
+     */
+    private function turnHookContext(string $event, string $prompt, bool $atStartup): HookContext
+    {
+        return new HookContext(
+            // Null on a fresh session until autosave assigns one, so a SessionStart
+            // hook legitimately sees '' — it is the first thing in the session.
+            sessionId: $this->currentSessionId ?? '',
+            // Not a mislabel: this slot is the only thing a hook's matcher is
+            // tested against (HookRegistry::findMatches()), and for a
+            // turn-lifecycle event the thing being matched IS the event name.
+            toolName: $event,
+            toolArgs: [],
+            // JSON_INVALID_UTF8_SUBSTITUTE rather than a bare encode(): the draft is
+            // untrusted bytes from the input box, and ONE invalid sequence makes
+            // json_encode() return false — which the `?: '{}'` fallback below would
+            // then hand a hook as a context with no prompt in it at all, silently.
+            // Substituted instead, the offending bytes become U+FFFD and the prompt
+            // still decodes.
+            toolInput: json_encode(
+                $atStartup
+                    ? ['prompt' => $prompt, 'source' => 'startup']
+                    : ['prompt' => $prompt],
+                JSON_INVALID_UTF8_SUBSTITUTE,
+            ) ?: '{}',
+            toolOutput: '',
+            // Same reasoning as gateToolCall(): Backend's whole contract is
+            // complete(history), so no model/provider identity reaches Chat.
+            // Empty rather than guessed at.
+            model: '',
+            provider: '',
+            projectRoot: $this->projectRoot(),
+        );
+    }
+
+    /**
+     * Why a turn-lifecycle verdict does not permit the turn, or null when it does.
+     *
+     * An unanswered ASK FAILS CLOSED here for the same reason it does on the tool
+     * path: {@see submit()} has no UI that can put the question and no queue that
+     * could hold the turn until it was answered, so honouring an ASK as permission
+     * would run a prompt a hook explicitly asked to pause.
+     */
+    private function turnHookRefusalReason(\SugarCraft\Crush\Hooks\HookResult $result): ?string
+    {
+        if ($result->permitsExecution()) {
+            return null;
+        }
+
+        if ($result->isAsk()) {
+            return DenialKind::Unanswered->reason('a turn hook asked for a decision this path cannot present');
+        }
+
+        // Never an empty reason on the wire: a hook that denies silently still owes
+        // the user a sentence explaining what just stopped their prompt.
+        return DenialKind::Hook->reason($result->message !== ''
+            ? $result->message
+            : 'the hook blocked this prompt without giving a reason');
+    }
+
+    /**
+     * Fire `UserPromptSubmit` and (once per session) `SessionStart` for one
+     * submitted prompt, and say what the turn tail should do with the verdicts.
+     *
+     * Returns the `role: system` notes to place immediately BEFORE the user's
+     * message, or the refusal pair {@see submit()} must return instead of
+     * dispatching anything.
+     *
+     * THE TWO ORDERS DIFFER DELIBERATELY:
+     * - FIRED gate-first: UserPromptSubmit before SessionStart. Each event spawns a
+     *   real script process, and a SessionStart hook that fired only to discover its
+     *   own prompt was blocked would have produced a note with nowhere to go.
+     * - INSERTED in the order Anthropic's insertion-point table implies
+     *   (prompt_expand.md §4.12, external-verified 2026-09-05): SessionStart's note
+     *   at "start of conversation, before the first prompt" sits ahead of the
+     *   UserPromptSubmit note that rides "alongside the submitted prompt", and both
+     *   ahead of the user's line.
+     *
+     * role:system is the NON-SPOOFABLE operator channel (plan :2584-2586) and is
+     * already what {@see contextReminderMessage()} rides, so a hook note goes onto
+     * HISTORY and never into the prompt assembler — which is precisely why wiring
+     * these events moves no prompt golden. Hook text is expected to be factual
+     * statements rather than imperatives (§4.12 wording guidance); no wrapper or
+     * framing is added around it here, because a wrapper authored in this file would
+     * read as an instruction, which is what that guidance is against.
+     *
+     * NO HOOKS WIRED IS A LITERAL NO-OP: the guard below returns no notes and no
+     * refusal, so `$newTurnMessages` holds exactly what it held before this method
+     * existed and the request payload is byte-identical. A wired chain that produced
+     * no stdout lands the same way, since an empty `additionalContext` adds no
+     * message — the {@see applyPostToolUse()} contract, applied to turn events.
+     *
+     * DOCUMENTED GAP (decision A — startup-only, no second fire point). The
+     * SessionStart gate reads `count($this->history) === 0` AT THE DISPATCH POINT,
+     * which makes it a once-per-EMPTY-HISTORY gate rather than a once-per-SESSION
+     * one, and the two readings differ in BOTH directions:
+     *
+     * - A turn that wrote history before the first dispatched prompt takes the slot
+     *   and SessionStart then never fires for the session — an early-return slash
+     *   command, an idle-compaction prompt, or this method's own block notice.
+     *   `resume` and {@see handlePaletteNewSession()} do not re-fire it either: the
+     *   latter appends its notice to history rather than emptying anything.
+     * - {@see handleClearCommand()} IS the one production site that puts history back
+     *   to `[]`, so after `/clear` the gate re-opens and SessionStart fires AGAIN on
+     *   the next submitted prompt. What it fires with is still `source: startup`, so
+     *   Anthropic's `clear` source is not discriminated anywhere: `startup` is the
+     *   only value this call site ever sends, on a first turn where the label is
+     *   accurate and on a post-`/clear` turn where it is not. Discriminating them
+     *   needs a "session already started" flag this gate does not have — recorded as
+     *   a known gap for a follow-up, NOT changed here, because this step's done-when
+     *   is the two dispatch sites.
+     * - `compact` is genuinely unreachable on this path: every compaction tier either
+     *   returns before dispatch or rewrites history to a non-empty summary.
+     *
+     * Chat's {@see init()} cannot close any of this — TEA `init()` returns a
+     * Closure and cannot mutate the Model — and firing at construction/`withHooks()`
+     * would need an async command on an immutable model for a seam the done-when does
+     * not ask about. Recorded, not deleted: the two events still have exactly one
+     * production call site each.
+     *
+     * DOCUMENTED DIVERGENCE from `HookEvent::stderrToUserOnly()`'s strict reading:
+     * a block REASON surfaces as a transcript `Message::system()` rather than on
+     * stderr. WHY: `fwrite(STDERR, …)` from here is unassertable in a test and prints
+     * into the suite's own output — the ruling {@see \SugarCraft\Crush\Cli\Bootstrap}
+     * already records for this same question — and `tests/Cli/StderrEmitterCensusTest`
+     * pins Chat.php's emitter counts as a literal, so any new emitter means editing a
+     * census file outside this step's scope. The transcript seam IS the surface that
+     * answers "where does the user see it", and it is what the two refusal helpers in
+     * {@see submit()} already use. Decision E's load-bearing half IS honoured: the
+     * hook's note is discarded outright on block, never smuggled in anyway.
+     * `RuntimeNoticeSink` is the strict stderr-only realization, deferred with its
+     * reason rather than half-wired here.
+     *
+     * @return array{0: list<Message>, 1: ?array{0: self, 1: ?\Closure}}
+     */
+    private function dispatchTurnHooks(string $text): array
+    {
+        if ($this->hooks === null) {
+            return [[], null];
+        }
+
+        $promptResult = $this->hooks->userPromptSubmit(
+            $this->turnHookContext(\SugarCraft\Crush\Hooks\HookEvent::UserPromptSubmit->value, $text, false),
+        );
+
+        $blocked = $this->turnHookRefusalReason($promptResult);
+        if ($blocked !== null) {
+            // HookEvent::discardsOnBlock(): the prompt is NOT submitted. The draft
+            // stays in the box exactly as the other refusals in submit() leave it.
+            return [[], [$this->mutate([
+                'history' => [...$this->history, Message::system(
+                    $blocked . ' Your prompt was not sent and is still in the box.',
+                )],
+            ]), null]];
+        }
+
+        $notes = [];
+
+        if (count($this->history) === 0) {
+            $sessionResult = $this->hooks->sessionStart(
+                $this->turnHookContext(\SugarCraft\Crush\Hooks\HookEvent::SessionStart->value, $text, true),
+            );
+            $sessionBlocked = $this->turnHookRefusalReason($sessionResult);
+
+            if ($sessionBlocked !== null) {
+                $notes[] = Message::system($sessionBlocked
+                    . ' The hook\'s context note was discarded and the session continues.');
+            } elseif ($sessionResult->additionalContext !== '') {
+                $notes[] = Message::system($sessionResult->additionalContext);
+            }
+        }
+
+        if ($promptResult->additionalContext !== '') {
+            $notes[] = Message::system($promptResult->additionalContext);
+        }
+
+        return [$notes, null];
+    }
+
+    /**
      * Run a tool call that never crossed (or won't cross) a fork boundary -
      * pcntl unavailable, or this specific pcntl_fork() call failed. Safe,
      * and necessary, to fire $onToolCall directly here: there's no child
@@ -6089,12 +6274,36 @@ final class Chat implements Model
         // intra-exchange truncation second. The parked route has always carried
         // both (compactionChanges() writes that rewrite report into history when
         // it lands); silence here was this route's own doing.
+        //
+        // DROPPED ON A HOOK BLOCK, and safely so: the turn-hook refusal below returns
+        // its own notice only, so a rescue announced here goes unreported when a hook
+        // blocks the prompt. The rewrite is dropped with it, not persisted: the
+        // refusal commits pre-compaction history, so the tier re-runs next submit.
         if ($compactionNotice !== null) {
             $newTurnMessages[] = $compactionNotice;
         }
         if ($truncationNotice !== null) {
             $newTurnMessages[] = $truncationNotice;
         }
+
+        // TURN-LIFECYCLE HOOKS (P7.S2) fire here and nowhere earlier. Every arm
+        // above returns BEFORE a draft has become a submitted prompt — queued
+        // mid-turn, custom-command expansion, built-in dispatch, spend cap, idle
+        // compaction, the 85%/95% tiers — and Anthropic fires UserPromptSubmit on
+        // the real submitted text, so a slash command that never reached a model
+        // must not look like one to a hook. A blocked prompt returns the refusal
+        // pair instead of dispatching; the notes, when there are any, go
+        // immediately ahead of the user's line.
+        [$turnHookNotes, $turnHookRefusal] = $this->dispatchTurnHooks($text);
+
+        if ($turnHookRefusal !== null) {
+            return $turnHookRefusal;
+        }
+
+        foreach ($turnHookNotes as $note) {
+            $newTurnMessages[] = $note;
+        }
+
         $newTurnMessages[] = Message::user($text);
 
         return $this->dispatchTurn($baseHistory, $newTurnMessages, $tokenLimit);

@@ -218,6 +218,65 @@ final class HookManager
     }
 
     /**
+     * Session-start hook execution (P7.S2).
+     *
+     * Anthropic fires `SessionStart` at the "start of conversation, before the
+     * first prompt" — insertion-point table, prompt_expand.md §4.12 (Anthropic
+     * hooks documentation, external-verified 2026-09-05) — and it is one of only
+     * three events whose plain stdout reaches the model at all. Before this
+     * method existed the event PARSED and REGISTERED and was then never
+     * dispatched: {@see HookConfig::parse()} accepted the name, {@see HookRegistry}
+     * put the hook in its `SessionStart` bucket, and the hook sat there silent.
+     *
+     * WHY THE CONTEXT IS TOOL-SHAPED, i.e. why a session event arrives in a value
+     * whose fields are named `toolName`/`toolInput`/`toolOutput`: {@see HookContext}
+     * is the shared readonly value every hook in the tree already reads, and the
+     * script protocol already feeds it (`ScriptHook` hands the child
+     * `CRUSH_TOOL_NAME`/`CRUSH_TOOL_INPUT` and nothing else — there is no stdin
+     * payload). Adding `prompt`/`source` fields would ripple through the value's
+     * three withers and every construction site for no reach a smuggled field does
+     * not already give. So {@see \SugarCraft\Crush\Chat} packs the real payload the
+     * same way {@see \SugarCraft\Crush\Chat::gateToolCall()} always has:
+     *
+     * - `toolName` carries the EVENT NAME as a sentinel, because that slot is what
+     *   a hook's matcher is actually tested against
+     *   ({@see HookRegistry::findMatches()}) — for these two events the matcher is
+     *   the event itself.
+     * - `toolInput` carries a JSON object: `{"prompt": "<opening text>",
+     *   "source": "startup"}`.
+     * - `model`/`provider` are EMPTY, per the `gateToolCall()` precedent — Chat has
+     *   no model/provider identity to report at this seam, and guessing would be
+     *   worse than reporting nothing.
+     *
+     * A DENY here does not stop the session: `HookEvent::stderrToUserOnly()` says
+     * this event's block output is operator-facing, so the caller discards the note
+     * and surfaces the reason.
+     */
+    public function sessionStart(HookContext $context): HookResult
+    {
+        return $this->registry->executeHooks(HookEvent::SessionStart->value, $context);
+    }
+
+    /**
+     * User-prompt-submit hook execution (P7.S2).
+     *
+     * Anthropic fires `UserPromptSubmit` "alongside the submitted prompt"
+     * (prompt_expand.md §4.12, external-verified 2026-09-05) and a block there
+     * DISCARDS the prompt itself — that is what `HookEvent::discardsOnBlock()`
+     * declares, and it is the caller's decision to act on, not this method's: the
+     * verdict passes through verbatim exactly as {@see preToolUse()} passes an ASK
+     * through rather than collapsing it.
+     *
+     * Context smuggling is as described on {@see self::sessionStart()} —
+     * `toolName` = the `'UserPromptSubmit'` sentinel, `toolInput` = JSON
+     * `{"prompt": "<submitted text>"}`, `model`/`provider` empty.
+     */
+    public function userPromptSubmit(HookContext $context): HookResult
+    {
+        return $this->registry->executeHooks(HookEvent::UserPromptSubmit->value, $context);
+    }
+
+    /**
      * Apply hooks to a tool call input.
      */
     public function applyPreHooks(

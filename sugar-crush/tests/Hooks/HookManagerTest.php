@@ -589,8 +589,236 @@ YAML);
     }
 
     // =========================================================================
+    // sessionStart() / userPromptSubmit() Tests (P7.S2)
+    //
+    // The load-bearing question for a 2-line dispatch clone is "did the RIGHT
+    // enum case reach the registry", because every one of these clones is
+    // byte-identical to its siblings except the case named in it. Each test
+    // therefore registers a hook that answers differently per event and asserts
+    // the event-specific bytes come back — a clone dispatching the wrong case
+    // cannot pass, and neither can one dispatching nothing.
+    // =========================================================================
+
+    public function testSessionStartDispatchesTheSessionStartEvent(): void
+    {
+        $this->registry->register($this->createTurnHook('ss-note', HookEvent::SessionStart, '', 'deployment target is production'));
+        // Registered for the SIBLING event: if sessionStart() dispatched
+        // UserPromptSubmit (the copy-paste failure this clone invites), this hook's
+        // note would be the one that came back.
+        $this->registry->register($this->createTurnHook('ups-note', HookEvent::UserPromptSubmit, '', 'WRONG EVENT'));
+
+        $result = $this->manager->sessionStart($this->createTurnContext('SessionStart', '{"prompt":"hi","source":"startup"}'));
+
+        $this->assertTrue($result->isAllowed());
+        $this->assertSame('deployment target is production', $result->additionalContext);
+    }
+
+    public function testUserPromptSubmitDispatchesTheUserPromptSubmitEvent(): void
+    {
+        $this->registry->register($this->createTurnHook('ss-note', HookEvent::SessionStart, '', 'WRONG EVENT'));
+        $this->registry->register($this->createTurnHook('ups-note', HookEvent::UserPromptSubmit, '', 'repo uses bun test'));
+
+        $result = $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":"hi"}'));
+
+        $this->assertTrue($result->isAllowed());
+        $this->assertSame('repo uses bun test', $result->additionalContext);
+    }
+
+    public function testSessionStartWithNothingRegisteredForItProducesNoNote(): void
+    {
+        // The other polarity, and the no-op pin at this layer: a chain that holds
+        // only a UserPromptSubmit hook must give sessionStart() an empty note, or
+        // every session would start with someone else's context attached.
+        $this->registry->register($this->createTurnHook('ups-note', HookEvent::UserPromptSubmit, '', 'not for you'));
+
+        $result = $this->manager->sessionStart($this->createTurnContext('SessionStart', '{"prompt":"hi","source":"startup"}'));
+
+        $this->assertTrue($result->isAllowed());
+        $this->assertSame('', $result->additionalContext);
+        $this->assertSame('', $result->message);
+    }
+
+    public function testUserPromptSubmitWithNothingRegisteredForItProducesNoNote(): void
+    {
+        $this->registry->register($this->createTurnHook('ss-note', HookEvent::SessionStart, '', 'not for you'));
+
+        $result = $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":"hi"}'));
+
+        $this->assertTrue($result->isAllowed());
+        $this->assertSame('', $result->additionalContext);
+    }
+
+    public function testATurnHookWhoseMatcherMissesTheSentinelDoesNotFire(): void
+    {
+        // findMatches() tests the hook's matcher against toolName, and the sentinel
+        // IS the toolName for these events — so a matcher written for a tool name
+        // must not fire on a turn event. This is the pin on decision C's claim that
+        // the sentinel slot is what matching actually happens in.
+        $this->registry->register($this->createTurnHook('bash-only', HookEvent::UserPromptSubmit, '^Bash$', 'should never fire'));
+
+        $result = $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":"hi"}'));
+
+        $this->assertSame('', $result->additionalContext);
+    }
+
+    public function testSessionStartPassesTheSmuggledSentinelAndPromptToTheHook(): void
+    {
+        $captured = null;
+        $this->registry->register($this->createCapturingTurnHook(HookEvent::SessionStart, $captured));
+
+        $this->manager->sessionStart($this->createTurnContext(
+            'SessionStart',
+            '{"prompt":"first prompt of the run","source":"startup"}',
+        ));
+
+        $this->assertInstanceOf(HookContext::class, $captured);
+        $this->assertSame('SessionStart', $captured->toolName);
+        $this->assertSame('first prompt of the run', json_decode($captured->toolInput, true)['prompt']);
+        $this->assertSame('startup', json_decode($captured->toolInput, true)['source']);
+        // Empty by contract (gateToolCall precedent), not unset.
+        $this->assertSame('', $captured->model);
+        $this->assertSame('', $captured->provider);
+    }
+
+    public function testUserPromptSubmitPassesTheSmuggledSentinelAndPromptToTheHook(): void
+    {
+        $captured = null;
+        $this->registry->register($this->createCapturingTurnHook(HookEvent::UserPromptSubmit, $captured));
+
+        $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":"deploy it"}'));
+
+        $this->assertInstanceOf(HookContext::class, $captured);
+        $this->assertSame('UserPromptSubmit', $captured->toolName);
+        $decoded = json_decode($captured->toolInput, true);
+        $this->assertSame('deploy it', $decoded['prompt']);
+        // SessionStart's `"source":"startup"` must NOT leak into this event's payload:
+        // a script that branches on source has to be able to tell the two apart.
+        $this->assertSame(['prompt' => 'deploy it'], $decoded);
+    }
+
+    public function testAnEmptyPromptStillReachesAUserPromptSubmitHookAsValidJson(): void
+    {
+        // Pathological input: Chat guards the empty DRAFT above submit(), so the
+        // hook should never see '' — but the smuggled payload must stay parseable if
+        // it ever does, because the script protocol decodes CRUSH_TOOL_INPUT as JSON.
+        $captured = null;
+        $this->registry->register($this->createCapturingTurnHook(HookEvent::UserPromptSubmit, $captured));
+
+        $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":""}'));
+
+        $this->assertInstanceOf(HookContext::class, $captured);
+        $this->assertSame('{"prompt":""}', $captured->toolInput);
+        $this->assertSame('', json_decode($captured->toolInput, true)['prompt']);
+    }
+
+    public function testUserPromptSubmitDenyPassesThroughVerbatim(): void
+    {
+        // discardsOnBlock() is acted on by Chat, not here; this layer's contract is
+        // that the verdict survives dispatch unchanged, which is what makes the
+        // consumer's block handling testable at all.
+        $this->registry->register($this->createTurnHook('deny-submit', HookEvent::UserPromptSubmit, '', '', HookResult::deny('no prompts on a Friday')));
+
+        $result = $this->manager->userPromptSubmit($this->createTurnContext('UserPromptSubmit', '{"prompt":"hi"}'));
+
+        $this->assertTrue($result->isDenied());
+        $this->assertFalse($result->permitsExecution());
+        $this->assertSame('no prompts on a Friday', $result->message);
+    }
+
+    // =========================================================================
     // Helper Methods
     // =========================================================================
+
+    /**
+     * A turn-event hook that answers with a fixed note (or a fixed verdict).
+     *
+     * @param string $matcher a PHP regex WITH delimiters, matching HookRegistry::findMatches()
+     */
+    private function createTurnHook(
+        string $name,
+        HookEvent $event,
+        string $matcher,
+        string $note,
+        ?HookResult $verdict = null,
+    ): \SugarCraft\Crush\Hooks\HookInterface {
+        return new class($name, $event, $matcher, $note, $verdict) implements \SugarCraft\Crush\Hooks\HookInterface {
+            public function __construct(
+                private string $name,
+                private HookEvent $event,
+                private string $matcher,
+                private string $note,
+                private ?HookResult $verdict,
+            ) {}
+
+            public function name(): string
+            {
+                return $this->name;
+            }
+
+            public function event(): HookEvent
+            {
+                return $this->event;
+            }
+
+            public function matcher(): string
+            {
+                return $this->matcher;
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return $this->verdict ?? HookResult::allow('', $this->note);
+            }
+        };
+    }
+
+    /**
+     * Records the context it was dispatched with so the smuggling itself can be
+     * asserted rather than inferred from a note coming back.
+     */
+    private function createCapturingTurnHook(HookEvent $event, ?HookContext &$captured): \SugarCraft\Crush\Hooks\HookInterface
+    {
+        return new class($event, $captured) implements \SugarCraft\Crush\Hooks\HookInterface {
+            /** @param HookContext|null $captured */
+            public function __construct(private HookEvent $event, private ?HookContext &$captured) {}
+
+            public function name(): string
+            {
+                return 'capture-' . strtolower($this->event->name);
+            }
+
+            public function event(): HookEvent
+            {
+                return $this->event;
+            }
+
+            public function matcher(): string
+            {
+                return '';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                $this->captured = $context;
+
+                return HookResult::allow();
+            }
+        };
+    }
+
+    private function createTurnContext(string $sentinel, string $toolInput): HookContext
+    {
+        return new HookContext(
+            sessionId: '',
+            toolName: $sentinel,
+            toolArgs: [],
+            toolInput: $toolInput,
+            toolOutput: '',
+            model: '',
+            provider: '',
+            projectRoot: '/tmp',
+        );
+    }
 
     private function createAskHook(string $name, string $matcher, string $question): \SugarCraft\Crush\Hooks\HookInterface
     {
