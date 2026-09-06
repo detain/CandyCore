@@ -173,7 +173,7 @@ use SugarCraft\Crush\Tests\Support\RefusesAnUnreadableSourceTrait;
  * application does not write one. `Bootstrap`'s warnings are handed to
  * {@see \SugarCraft\Crush\Cli\Bootstrap::STDERR_LINE_FORMAT}, which adds the
  * prefix on the way out, so the message literals are invisible to a scan for
- * it — TWENTY-TWO call sites in `src/Cli/Bootstrap.php`, each producing a
+ * it — TWENTY-FOUR call sites in `src/Cli/Bootstrap.php`, each producing a
  * distinct `sugarcrush: ` line, against a channel-4 credit of four for that
  * file. Off by roughly four times, in the blind direction.
  *
@@ -349,7 +349,7 @@ final class StderrEmitterCensusTest extends TestCase
      * @var array<string, int>
      */
     private const PREFIXED_WRITER_SITES = [
-        'src/Cli/Bootstrap.php' => 22,
+        'src/Cli/Bootstrap.php' => 24,
     ];
 
     /**
@@ -571,7 +571,7 @@ final class StderrEmitterCensusTest extends TestCase
         'six' => 6, 'seven' => 7, 'eight' => 8, 'nine' => 9, 'ten' => 10,
         'eleven' => 11, 'twelve' => 12, 'thirteen' => 13, 'fourteen' => 14, 'fifteen' => 15,
         'eighteen' => 18,
-        'twenty-one' => 21, 'twenty-two' => 22, 'twenty-three' => 23,
+        'twenty-one' => 21, 'twenty-two' => 22, 'twenty-three' => 23, 'twenty-four' => 24,
         'twenty-seven' => 27,
         'thirty-three' => 33, 'thirty-four' => 34, 'thirty-five' => 35,
         'thirty-seven' => 37, 'thirty-eight' => 38, 'thirty-nine' => 39,
@@ -1136,9 +1136,9 @@ final class StderrEmitterCensusTest extends TestCase
      *
      * WHY THIS IS NOT A SECOND HAND-MAINTAINED INTEGER, which is the objection
      * the sibling census raises against exactly that shape and is right to.
-     * `PREFIXED_WRITER_SITES` says 22 and
+     * `PREFIXED_WRITER_SITES` says 24 and
      * {@see \SugarCraft\Crush\Cli\Bootstrap::TRANSCRIPT_SEAM_CALL_SITES}
-     * says 16; this test is what makes the second a COMPONENT of the first
+     * says 18; this test is what makes the second a COMPONENT of the first
      * rather than an unrelated number that happens to be smaller. Add a seam
      * call and both move together; add a stderr-only warning and only the total
      * moves, which is the distinction a reader of either census wants and

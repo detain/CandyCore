@@ -326,6 +326,155 @@ final class FeatWiringReachabilityTest extends TestCase
     }
 
     /**
+     * Write the persisted user config the way the CLI itself reads it —
+     * `$HOME/.sugar-crush/config.json` inside this test's home sandbox (see
+     * {@see setUp()}). `rawUserConfig()` is a free-form passthrough, so a
+     * key this step introduces (`enabledSkills`) lands without touching
+     * `LayeredSettings::LAYERED_KEYS` — that roster growth (settings.json
+     * tiering + its doc guards) is deliberately deferred out of P7.S3.
+     */
+    private function writeUserConfig(array $settings): void
+    {
+        $dir = $this->tempDir . '/home/.sugar-crush';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0o755, true);
+        }
+        file_put_contents($dir . '/config.json', json_encode($settings, JSON_PRETTY_PRINT));
+    }
+
+    /**
+     * P7.S3, the kill-shot against lesson 16.1: `EngineBackend::withSkills()`
+     * existed since P7.S1 with zero production callers — implemented,
+     * unreachable. This drives the WHOLE composition path a real launch takes
+     * (`Bootstrap::chat()` → `backend()` → `promptEnabledSkills()` reading
+     * `enabledSkills` from the user config → `withSkills()` → `complete()`
+     * rebuilding the App `withEnabledSkills()` → the Runtime body splice)
+     * and asserts on the bytes the PROVIDER PAYLOAD receives: the enabled
+     * skill's full `Skill::systemPromptContribution()` lands exactly once.
+     *
+     * And the exclusion rides the same capture: the enabled name must NOT
+     * also appear as its level-1 listing line — one fact, one presentation.
+     *
+     * RED-ON-REVERT: deleting the `->withSkills(self::promptEnabledSkills(
+     * $skills))` link from BOTH chains in Bootstrap.php (backend() and
+     * backendFor()) reds the substr_count here at 0 while the default-empty
+     * sibling test below stays green — which is exactly the asymmetry that
+     * proves the channel is this line's, not a fixture artifact. Reverting
+     * the Runtime/SkillMatcher exclusion seam reds the listing-count at 1.
+     */
+    public function testAnEnabledSkillBodyReachesTheProviderPayloadThroughARealLaunch(): void
+    {
+        $this->writeProjectSkill(
+            'p7s3-killshot-skill',
+            'Kills the implemented-but-unreachable class of bug.',
+            "# Killshot body\n\nMARKER-P7S3-BODY\n",
+        );
+        $this->writeUserConfig(['enabledSkills' => ['p7s3-killshot-skill']]);
+
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertSame(
+            1,
+            substr_count($prompt, '## Skill: p7s3-killshot-skill'),
+            'the pre-enabled body must reach the launched provider payload exactly once (P7.S3)',
+        );
+        $this->assertStringContainsString('MARKER-P7S3-BODY', $prompt);
+        $this->assertSame(
+            0,
+            substr_count($prompt, '- p7s3-killshot-skill:'),
+            'an enabled skill must not also be listed as a level-1 line (P7.S3 exclusion)',
+        );
+    }
+
+    /**
+     * The other polarity, at the same seam: the DEFAULT is the empty list, so
+     * a launch that configures nothing — whether the key is absent or present
+     * and empty — must hand the provider the same bytes it handed before
+     * P7.S3 existed. Byte-identical comparison of two real launches, one per
+     * spelling, plus the absence of the seeded body. If this reds while the
+     * kill-shot above also matches, the default is NOT empty — the one
+     * regression shape this step exists to forbid.
+     */
+    public function testTheDefaultEmptyEnabledSkillsKeepsTheLaunchedProviderPayloadByteIdentical(): void
+    {
+        $this->writeProjectSkill('p7s3-dormant-skill', 'Discovered, never enabled.', "# Dormant\n\nDORMANT-P7S3-BODY\n");
+
+        $withoutKey = $this->launchedSystemPrompt();
+
+        $this->writeUserConfig(['enabledSkills' => []]);
+        $emptyList = $this->launchedSystemPrompt();
+
+        $this->assertSame(
+            $withoutKey,
+            $emptyList,
+            'an absent key and an explicitly empty `enabledSkills` must produce the identical launched prompt — the default is empty either way (P7.S3)',
+        );
+        $this->assertStringNotContainsString('## Skill: p7s3-dormant-skill', $withoutKey);
+        $this->assertStringNotContainsString('DORMANT-P7S3-BODY', $withoutKey);
+        // And the listing still carries it, untouched: exclusion applies only
+        // to enabled names, the discovery half of the wire never changed.
+        $this->assertStringContainsString(
+            '- p7s3-dormant-skill: Discovered, never enabled.',
+            $withoutKey,
+        );
+    }
+
+    /**
+     * Fail-safe resolution, pinned launched: a config that names a skill the
+     * registry does not know must not brick the start — the body channel
+     * drops the name with a launch notice and the turn still reaches the
+     * provider. This is the deliberate exception to fail-loud: standing
+     * instructions a user half-configured beat a dead CLI, and the notice
+     * routes the miss to stderr AND the transcript.
+     */
+    public function testAnUnknownEnabledSkillNameDropsWithANoticeInsteadOfCrashingTheLaunch(): void
+    {
+        $this->writeUserConfig(['enabledSkills' => ['p7s3-no-such-skill']]);
+
+        // The launch completing AT ALL is the load-bearing half: a thrown
+        // PermissionConfigException-style failure here would take the whole
+        // CLI down for one stale name.
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertStringNotContainsString('## Skill: p7s3-no-such-skill', $prompt);
+
+        $misses = array_values(array_filter(
+            Bootstrap::launchNotices(),
+            static fn(string $notice): bool => str_contains($notice, 'p7s3-no-such-skill'),
+        ));
+        $this->assertNotEmpty(
+            $misses,
+            'a dropped enabled-skill name must be recorded as a launch notice, not swallowed (P7.S3)',
+        );
+    }
+
+    /**
+     * Both keys naming the same skill: the registry resolves `get()` through
+     * the disable, so the opt-out wins and the name follows the unknown-name
+     * drop path — a body can never be smuggled past a deliberate ban by also
+     * listing it as enabled. Pinned because nothing else in the suite decides
+     * this precedence, and the two keys are read by two different methods.
+     */
+    public function testADisabledSkillStaysOutOfThePromptEvenWhenAlsoEnabled(): void
+    {
+        $this->writeProjectSkill('p7s3-contested-skill', 'Banned and blessed in the same file.', "# Contested\n\nCONTESTED-P7S3-BODY\n");
+        $this->writeUserConfig([
+            'enabledSkills' => ['p7s3-contested-skill'],
+            'disabledSkills' => ['p7s3-contested-skill'],
+        ]);
+
+        $prompt = $this->launchedSystemPrompt();
+
+        $this->assertStringNotContainsString('## Skill: p7s3-contested-skill', $prompt);
+        $this->assertStringNotContainsString('CONTESTED-P7S3-BODY', $prompt);
+        $this->assertStringNotContainsString(
+            '- p7s3-contested-skill:',
+            $prompt,
+            'a disabled skill is out of the listing too — the disable happens registry-side',
+        );
+    }
+
+    /**
      * The registry is only half the wire: the model reaches a skill by calling
      * the `Skill` tool, which resolves names against whichever registry it was
      * constructed with. Two independently scanned registries would let a skill

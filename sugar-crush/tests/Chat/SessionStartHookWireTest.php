@@ -512,9 +512,13 @@ final class SessionStartHookWireTest extends TestCase
         $fixtures = dirname(__DIR__) . '/fixtures/prompt/';
 
         // Sizes first: a truncated read would hash-match nothing useful.
-        $this->assertSame(7829, filesize($fixtures . 'golden-system-prompt.txt'));
+        // (The system-prompt figures moved 7,829/f09f... -> 7,732/a5c5... at
+        // P7.S3, when the golden was regenerated to drop the enabled skill's
+        // double-presented listing line — see the measurement history in
+        // BaseSystemPromptTest; the pinned bytes are still pinned exactly.)
+        $this->assertSame(7732, filesize($fixtures . 'golden-system-prompt.txt'));
         $this->assertSame(1060, filesize($fixtures . 'golden-agent-prompt.txt'));
-        $this->assertSame('f09f37366a1925565dcc7725f659ff41', md5_file($fixtures . 'golden-system-prompt.txt'));
+        $this->assertSame('a5c5a14ca2e3ad891933ac7aefccc6af', md5_file($fixtures . 'golden-system-prompt.txt'));
         $this->assertSame('ef0326dd38535aaa2f1d715919bff26e', md5_file($fixtures . 'golden-agent-prompt.txt'));
 
         // And a hooked turn changes neither.
@@ -523,7 +527,7 @@ final class SessionStartHookWireTest extends TestCase
             $this->noteHook('ss', HookEvent::SessionStart, self::SESSION_NOTE),
         ]), 'a turn with a session note attached');
 
-        $this->assertSame('f09f37366a1925565dcc7725f659ff41', md5_file($fixtures . 'golden-system-prompt.txt'));
+        $this->assertSame('a5c5a14ca2e3ad891933ac7aefccc6af', md5_file($fixtures . 'golden-system-prompt.txt'));
         $this->assertSame('ef0326dd38535aaa2f1d715919bff26e', md5_file($fixtures . 'golden-agent-prompt.txt'));
     }
 

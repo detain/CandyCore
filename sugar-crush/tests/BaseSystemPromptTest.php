@@ -832,8 +832,22 @@ final class BaseSystemPromptTest extends TestCase
         // project-instructions fence - the user-rules splice of the single
         // construction site, rendered against the committed fixture user
         // home. No pre-existing byte moved anywhere in the file.
+        // MEASURED 2026-09-06 at P7.S3: 7,829 -> 7,732. The move is exactly
+        // ONE pure deletion of 97 B at offset 6,787 — proven by diff of the
+        // render against the old golden: single delete, zero replace/insert
+        // ops, old bytes [0:6787] identical, old bytes [6884:] identical and
+        // landing at new offset 6,787. Geometry of the 97: "\n" separator 1 + "Available
+        // skills (invoke via Skill tool):" 41 + "\n" 1 + "- fixture-helper:
+        // Fixture skill for the golden prompt" 53 + "\n" 1 = 97 — the
+        // level-1 listing line of the fixture's ONE skill, which the golden
+        // context also ENABLES, and which the P7.S3 splice-seam exclusion
+        // (Runtime.php/SkillMatcher.php) removes from the listing because its
+        // full body already stands in the prompt two sections earlier. The
+        // frozen double presentation was the defect the exclusion is licensed
+        // to close; the default-empty launch path is byte-identically pinned
+        // untouched in tests/Integration/FeatWiringReachabilityTest.php.
         self::assertSame(
-            7829,
+            7732,
             strlen($golden),
             'the system-prompt golden is not its committed length - it has been truncated or padded '
             . 'somewhere the absence assertions below would scan straight past',

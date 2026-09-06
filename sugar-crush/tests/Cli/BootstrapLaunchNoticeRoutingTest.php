@@ -10,24 +10,26 @@ use SugarCraft\Crush\Config\LayeredSettings;
 
 /**
  * Round 39 built {@see Bootstrap::warnPermissionConfigInTranscript()} and
- * migrated ONE caller onto it. This file is the guard for the other fifteen.
+ * migrated ONE caller onto it. This file is the guard for the other seventeen.
  *
  * HOW THAT NUMBER IS OBTAINED — not by `grep`, which overstates it by roughly
  * double because the identifier is mostly prose in `Bootstrap.php`'s
- * doc-blocks. `Bootstrap.php` holds SIXTEEN calls to the seam by a token scan
+ * doc-blocks. `Bootstrap.php` holds EIGHTEEN calls to the seam by a token scan
  * (`token_get_all()`, whitespace and comments stripped, T_STRING of that name
  * both preceded by `::` and followed by `(`); one of them is round 39's, so
- * this file guards the other fifteen. Re-derive it in one command:
+ * this file guards the other seventeen. Re-derive it in one command:
  * `vendor/bin/phpunit --filter BootstrapTranscriptSeamCallSiteCensusTest`,
  * which also fails on this sentence by name if the count moves.
  *
  * WHAT THIS SAID: "the other fourteen — thirteen until round 42 (E78) routed
  * Bootstrap::reportPrunedSessions()'s retention summary onto the seam as the
  * fifteenth call site". WHAT IS TRUE NOW: E78's summary was indeed the
- * fifteenth, and then E86 (round 43) routed `mcpClient()`'s start-then-throw
- * catch as the sixteenth, so "the other" is fifteen and not fourteen. WHY THE
+ * fifteenth, E86 (round 43) routed `mcpClient()`'s start-then-throw catch as
+ * the sixteenth, and P7.S3 routed the two enabled-skill drop notices in
+ * `Bootstrap::promptEnabledSkills()` as the seventeenth and eighteenth, so
+ * "the other" is seventeen and not fifteen. WHY THE
  * HISTORY STILL EARNS ITS PLACE: it records that this file's scope GROWS with
- * the seam — a reader who adds a seventeenth call site and does not add a case
+ * the seam — a reader who adds a nineteenth call site and does not add a case
  * here has left it unguarded, and the ordinals are what make that obligation
  * visible. Round 44 (E97) turned the obligation into a failing test rather
  * than a sentence, since three rounds of readers walked past the sentence.
@@ -204,8 +206,8 @@ final class BootstrapLaunchNoticeRoutingTest extends TestCase
      * have, and the user meets it as `/skill` not offering something they wrote.
      *
      * ONE ROW WHATEVER THE COUNT — this message is an aggregate, and that is
-     * what makes it safe to seat in a transcript that also carries fifteen
-     * other sources (sixteen seam call sites by the token scan in
+     * what makes it safe to seat in a transcript that also carries seventeen
+     * other sources (eighteen seam call sites by the token scan in
      * {@see BootstrapTranscriptSeamCallSiteCensusTest}, of which this is one;
      * `grep` gives about double and is the wrong tool). Two unreadable files,
      * one notice, and the notice says two.

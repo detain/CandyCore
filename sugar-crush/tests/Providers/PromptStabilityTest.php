@@ -894,7 +894,7 @@ final class PromptStabilityTest extends TestCase
         '<project-instructions>' => [self::FIXTURE_AGENTS_BODY],
         '<project-memory>' => [self::FIXTURE_MEMORY_NOTE],
         '## Skill: prefix-demo' => [self::FIXTURE_SKILL_NAME, self::FIXTURE_SKILL_BODY],
-        'Available skills (invoke via Skill tool):' => [self::FIXTURE_SKILL_NAME, self::FIXTURE_SKILL_DESCRIPTION],
+        'Available skills (invoke via Skill tool):' => [self::FIXTURE_LISTED_SKILL_NAME, self::FIXTURE_LISTED_SKILL_DESCRIPTION],
     ];
 
     /**
@@ -976,6 +976,23 @@ final class PromptStabilityTest extends TestCase
 
     /** @see self::FIXTURE_SKILL_NAME */
     private const FIXTURE_SKILL_BODY = "Use this skill when measuring the cache prefix.\n";
+
+    /**
+     * The fixture's one LISTING-ONLY skill — in the registry, not enabled, so
+     * it reaches the prompt only as a level-1 line.
+     *
+     * It exists because P7.S3 excluded enabled skills from the listing (a body
+     * already in the prompt is not also advertised as a Skill-tool call), and
+     * this fixture needs BOTH stable skill layers to render for the offsets
+     * below to mean anything. Its name and description are deliberately
+     * byte-equal to {@see self::FIXTURE_SKILL_NAME}'s pair (11 + 59), so every
+     * width in STABLE_LAYER_WIDTHS / STABLE_LAYER_FIXTURE_WIDTHS survives the
+     * swap: the listing layer changes words, not bytes.
+     */
+    private const FIXTURE_LISTED_SKILL_NAME = 'listed-demo';
+
+    /** @see self::FIXTURE_LISTED_SKILL_NAME */
+    private const FIXTURE_LISTED_SKILL_DESCRIPTION = 'A listed-only skill; the model may still invoke it via tool';
 
     /**
      * One marker per layer the reorder lifted into the cacheable prefix.
@@ -2572,6 +2589,26 @@ final class PromptStabilityTest extends TestCase
             paths: [],
             content: self::FIXTURE_SKILL_BODY,
             sourcePath: $root . '/.sugar-crush/skills/' . self::FIXTURE_SKILL_NAME . '/SKILL.md',
+            source: SkillSource::Native,
+        ));
+
+        // The listing half needs its own skill now: P7.S3 excludes enabled
+        // skills from the level-1 lines, so the fixture renders the body from
+        // the skill above and the listing from this one. Byte-balanced pair —
+        // see FIXTURE_LISTED_SKILL_NAME's docblock.
+        $fixture->addListedSkill(new Skill(
+            name: self::FIXTURE_LISTED_SKILL_NAME,
+            description: self::FIXTURE_LISTED_SKILL_DESCRIPTION,
+            userInvocable: true,
+            disableModelInvocation: false,
+            allowedTools: null,
+            disallowedTools: null,
+            model: null,
+            effort: 'medium',
+            context: '',
+            paths: [],
+            content: self::FIXTURE_SKILL_BODY,
+            sourcePath: $root . '/.sugar-crush/skills/' . self::FIXTURE_LISTED_SKILL_NAME . '/SKILL.md',
             source: SkillSource::Native,
         ));
 

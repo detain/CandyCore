@@ -29,11 +29,34 @@ final readonly class SkillMatcher
      * than via any PHP-side heuristic.
      *
      * @param SkillRegistry $registry The registry to query for auto-invocable skills
+     * @param list<string> $excludeNames Skills whose FULL BODY the prompt already
+     *                                   carries (the enabled-skills splice in
+     *                                   Runtime::buildSystemPrompt) — rendering them
+     *                                   here too would present one fact twice under
+     *                                   two different contracts: metadata inviting a
+     *                                   Skill-tool call, and standing instructions
+     *                                   that need no call. Their bodies say
+     *                                   everything the line would, louder.
      * @return string Formatted skill listing suitable for system-prompt injection
      */
-    public function listForPrompt(SkillRegistry $registry): string
+    public function listForPrompt(SkillRegistry $registry, array $excludeNames = []): string
     {
         $autoInvocable = $this->getAutoInvocable($registry);
+
+        if ($autoInvocable === []) {
+            return '';
+        }
+
+        // Guarded by non-empty exclusions so every pre-P7.S3 caller — and the
+        // default-config launch, where no skill is enabled — runs the exact
+        // filter path it ran before: the parameter exists for the splice that
+        // passes it, not for a cost on the common road.
+        if ($excludeNames !== []) {
+            $autoInvocable = array_values(array_filter(
+                $autoInvocable,
+                fn(Skill $s) => !\in_array($s->name, $excludeNames, true)
+            ));
+        }
 
         if ($autoInvocable === []) {
             return '';
