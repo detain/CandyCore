@@ -35,11 +35,12 @@ use SugarCraft\Crush\Skills\SkillSource;
  * (`.sugar-crush/memory/.imported-claude`) written by whoever invokes the
  * import, because only the caller knows whether a re-import was intentional.
  *
- * WIRED INTO THE RUNTIME as of P7.S6 by the `/memory import claude|opencode`
- * chat subcommand — `Chat::memoryImport()` is the one caller in `src/` and it
- * owns the sentinel described above and clamps each import to the headroom left
- * under `MemoryBlock::MAX_ENTRIES`. The spec's other trigger point, a first-run
- * one-shot prompt, remains unimplemented.
+ * NOT YET WIRED INTO THE RUNTIME. Nothing in `src/` or `bin/` constructs this
+ * class. The spec's trigger points are a `/memory import claude|opencode` chat
+ * subcommand (alongside the existing `/memory add|list|clear` handled by
+ * `Chat::handleMemoryCommand()`) or a first-run one-shot prompt; both live in
+ * `Chat.php`, which a later step owns. Until that lands, importing a foreign
+ * memory tree has no runtime effect.
  *
  * DORMANT IS NOT UNGATED. One of the two directories this class reads —
  * `{projectRoot}/.opencode/memory` — is a path a CLONED REPOSITORY chooses, and
@@ -118,8 +119,7 @@ final class ForeignMemoryImporter
      * — an entry a different local user wrote entering the memory store with
      * this tool's own provenance badge on it. A real launch refuses earlier, at
      * {@see \SugarCraft\Crush\Cli\Bootstrap::trustedConfigDirPath()}, and this
-     * class was dormant when its gate landed; both were the argument this
-     * package already rejected
+     * class is dormant; both were the argument this package already rejected
      * for {@see \SugarCraft\Crush\Agents\ForeignAgentPresetRegistry::userDir()},
      * which was gated in the same commit that left this line alone.
      *
@@ -127,18 +127,11 @@ final class ForeignMemoryImporter
      * directory rather than this class deriving one, which is what the
      * parameter is for.
      *
-     * `$limit` exists because the store's `add()` enforces no cap while
-     * `MemoryBlock::render()` silently drops everything past its entry limit:
-     * an unbounded import can crowd entries the user already had out of the
-     * prompt without saying so. A caller that knows the room left passes it
-     * here; `null` (the default, and every existing call) stays unbounded.
-     *
      * @param  string      $projectRoot Absolute project path, as Claude Code slugs it.
      * @param  string|null $claudeHome  Override for `~/.claude` (tests, non-default installs).
-     * @param  int|null    $limit       Stop after writing this many entries; null = unbounded.
-     * @return int Number of entries imported (at most `$limit` when one was given).
+     * @return int Number of entries imported.
      */
-    public function importClaudeCode(string $projectRoot, ?string $claudeHome = null, ?int $limit = null): int
+    public function importClaudeCode(string $projectRoot, ?string $claudeHome = null): int
     {
         $this->refusedDirectories = [];
 
@@ -161,10 +154,6 @@ final class ForeignMemoryImporter
         $imported = 0;
 
         foreach ($this->markdownFiles($dir) as $file) {
-            if ($limit !== null && $imported >= $limit) {
-                break;
-            }
-
             if (basename($file) === self::INDEX_FILENAME) {
                 continue;
             }
@@ -206,15 +195,10 @@ final class ForeignMemoryImporter
      * opencode's memory files carry no frontmatter, so the whole file is
      * imported under a title derived from its filename.
      *
-     * `$limit` behaves exactly as in {@see importClaudeCode()}: it bounds
-     * entries WRITTEN (skipped unreadable files do not consume it), and `null`
-     * keeps the call unbounded.
-     *
-     * @param  string   $projectRoot Project checkout root.
-     * @param  int|null $limit       Stop after writing this many entries; null = unbounded.
-     * @return int Number of entries imported (at most `$limit` when one was given).
+     * @param  string $projectRoot Project checkout root.
+     * @return int Number of entries imported.
      */
-    public function importOpencode(string $projectRoot, ?int $limit = null): int
+    public function importOpencode(string $projectRoot): int
     {
         $this->refusedDirectories = [];
 
@@ -227,10 +211,10 @@ final class ForeignMemoryImporter
         // anchor theirs: `{projectRoot}/.opencode/memory` is a path a clone
         // chooses, so a committed `.opencode/memory -> <outside>` would import
         // arbitrary files into this session's memory store under a
-        // `source:opencode` tag that says they came from the project. Being
-        // dormant (nothing constructed this class yet) was not a reason to
-        // leave it open — a containment rule added when the consumer lands is
-        // one written after the consumer already trusts the importer.
+        // `source:opencode` tag that says they came from the project. Dormant
+        // (nothing constructs this class yet) is not a reason to leave it open —
+        // a containment rule added when the consumer lands is one written after
+        // the consumer already trusts the importer.
         //
         // The refusal NOTICE is narrower than the decision, matching
         // {@see \SugarCraft\Crush\Agents\AgentPresetRegistry::readableSearchPaths()}:
@@ -250,10 +234,6 @@ final class ForeignMemoryImporter
         }
 
         foreach ($this->markdownFiles($dir) as $file) {
-            if ($limit !== null && $imported >= $limit) {
-                break;
-            }
-
             $content = file_get_contents($file);
             if ($content === false) {
                 continue;

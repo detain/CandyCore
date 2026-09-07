@@ -21,18 +21,20 @@ use SugarCraft\Crush\Tests\Support\HomeSandboxTrait;
  * Everything is driven as a real submitted draft through
  * `Chat::update(new KeyMsg(KeyType::Enter))` against a temp-dir real
  * `MemoryStore` (the {@see SlashDispatchTest} header idiom): the thing under
- * test is the command's three guards — target parsing, the
- * `.imported-{target}` sentinel, and the headroom clamp under
- * `MemoryBlock::MAX_ENTRIES` counted against the scope the importer ACTUALLY
- * writes — and none of them is visible from a unit test of the importer.
+ * test is the command's two guards — target parsing plus project root, and
+ * the `.imported-{target}` sentinel — the refusal surfacing, and one measured
+ * scope fact: imports land in the `agent` scope and can NEVER crowd the
+ * prompt block, because `MemoryBlock::capture()` folds only the project scope.
  *
  * MEASURED and pinned here, not assumed: `importClaudeCode()`/`importOpencode()`
  * write `MemoryScope::Local`, which `MemoryStore::normalizeScope()` persists
  * under the string `'agent'`; `MemoryBlock::capture()` on the other hand lists
- * `MemoryScope::Project`. Both facts have assertions below, because the
- * headroom math and the "beyond 12 renders omitted" behaviour are different
- * claims about different scopes and this plan has been burned by conflating
- * exactly that.
+ * `MemoryScope::Project` (src/Context/MemoryBlock.php:203), which is why the
+ * command applies no entry cap and why its response makes no cap claim. The
+ * P7.S6 fix-forward measured the original headroom clamp to be counting agent
+ * entries against a project-scope prompt bound they cannot reach, and the
+ * whole mechanism — importer-side `limit` parameter included — was dropped
+ * rather than left asserting an enforcement no caller runs.
  */
 final class MemoryImportCommandTest extends TestCase
 {
@@ -169,34 +171,44 @@ final class MemoryImportCommandTest extends TestCase
         $this->assertSame(['source:claude'], $entries[0]->tags());
     }
 
-    // ── 3. headroom clamp (the plan's hard constraint) ───────────────────────
+    // ── 3. beyond twelve: no cap, and the prompt block cannot be crowded ─────
 
-    public function testOverCapImportWritesOnlyTheHeadroomAndHintsRemainder(): void
+    public function testImportBeyondTwelveSucceedsAndCannotTouchThePromptBlock(): void
     {
+        // N > 12 in the scope the importer writes. The plan's original
+        // over-cap constraint assumed imports could crowd the 12-entry
+        // prompt block; measured on this tree they cannot — capture() folds
+        // PROJECT scope only (MemoryBlock.php:203) — so no clamp is applied,
+        // every readable file lands, and the response must not claim a cap
+        // bound it.
         $this->seedAgentEntries(10);
         $this->seedOpencodeMemory('a.md', 'b.md', 'c.md', 'd.md', 'e.md');
 
+        $before = count(MemoryBlock::capture($this->store)->entries());
         $reply = $this->reply('/memory import opencode');
 
-        $this->assertStringContainsString('**Imported 2**', $reply, 'headroom 12-10=2, not 5');
-        $this->assertCount(12, $this->store->list('agent'));
-        $this->assertStringContainsString('Stopped at the headroom', $reply);
-        $this->assertStringContainsString('unimported source files remain', $reply);
-        $this->assertFileExists($this->sentinel('opencode'), 'a partial import is still an import');
-    }
+        $this->assertStringContainsString('**Imported 5**', $reply, 'no cap: every readable file is imported');
+        $this->assertStringNotContainsString(
+            'prompt cap',
+            $reply,
+            'the response must not claim a bound that does not exist'
+        );
+        $this->assertCount(
+            15,
+            $this->store->list('agent'),
+            'the agent scope passed 12 and stayed intact'
+        );
 
-    public function testStoreFullRefusesImportAndWritesNoSentinel(): void
-    {
-        $this->seedAgentEntries(MemoryBlock::MAX_ENTRIES);
-        $this->seedOpencodeMemory('a.md', 'b.md');
+        $this->assertFileExists($this->sentinel('opencode'));
 
-        $reply = $this->reply('/memory import opencode');
+        // Scope separation: importing five changed nothing the prompt sees.
+        $this->assertCount($before, MemoryBlock::capture($this->store)->entries());
 
-        $this->assertStringContainsString('Nothing imported', $reply);
-        $this->assertStringContainsString('already holds 12', $reply);
-        $this->assertStringContainsString('/memory list agent', $reply);
-        $this->assertCount(MemoryBlock::MAX_ENTRIES, $this->store->list('agent'));
-        $this->assertFileDoesNotExist($this->sentinel('opencode'), 'nothing was imported, so the one-shot must not burn itself');
+        // And the imported bodies are reachable through the command surface —
+        // listing the scope shows every one, provenance tag included.
+        $listing = $this->reply('/memory list agent');
+        $this->assertStringContainsString('**Memories (agent):**', $listing);
+        $this->assertSame(5, substr_count($listing, '[source:opencode]'));
     }
 
     // ── 4. sentinel ──────────────────────────────────────────────────────────
@@ -210,7 +222,10 @@ final class MemoryImportCommandTest extends TestCase
 
         $sentinel = $this->sentinel('opencode');
         $this->assertFileExists($sentinel);
-        $this->assertStringContainsString('1 opencode memories imported by /memory import', (string) file_get_contents($sentinel));
+        $this->assertStringContainsString(
+            '1 opencode memories imported by /memory import',
+            (string) file_get_contents($sentinel)
+        );
 
         $second = $this->reply('/memory import opencode');
         $this->assertStringContainsString('Already imported (sentinel `', $second);
@@ -220,9 +235,9 @@ final class MemoryImportCommandTest extends TestCase
 
     public function testEmptyImportWritesNoSentinel(): void
     {
-        // Headroom exists, sentinel absent, but there is nothing to import:
-        // burning the one-shot guard here would block the day the user DOES
-        // have foreign memory files.
+        // Sentinel absent and the store has room for anything, but there is
+        // nothing to import: burning the one-shot guard here would block the
+        // day the user DOES have foreign memory files.
         $reply = $this->reply('/memory import opencode');
 
         $this->assertStringContainsString('no readable `opencode` memory files', $reply);
@@ -243,7 +258,11 @@ final class MemoryImportCommandTest extends TestCase
 
         $this->assertStringContainsString('**Directories not read:**', $reply);
         $this->assertStringContainsString('Nothing imported', $reply);
-        $this->assertStringContainsString($this->projectRoot . '/.opencode/memory', $reply, 'the refusal names the directory it refused');
+        $this->assertStringContainsString(
+            $this->projectRoot . '/.opencode/memory',
+            $reply,
+            'the refusal names the directory it refused'
+        );
         $this->assertSame([], $this->store->list('agent'));
         $this->assertFileDoesNotExist($this->sentinel('opencode'));
     }
@@ -257,31 +276,29 @@ final class MemoryImportCommandTest extends TestCase
         $this->assertStringContainsString('/memory import claude|opencode', $reply);
     }
 
-    // ── 7. measured render-cap interplay ─────────────────────────────────────
+    // ── 7. measured render-cap interplay (project scope, never agent) ────────
 
-    public function testImportedEntriesCannotOverflowAndTheRenderCapIsPinnedAsMeasured(): void
+    public function testRenderCapBoundsOnlyTheProjectScopeThePromptFolds(): void
     {
         $this->seedAgentEntries(MemoryBlock::MAX_ENTRIES - 1);
         $this->seedOpencodeMemory('x.md', 'y.md', 'z.md');
 
         $this->reply('/memory import opencode');
 
-        // Pin 1: the command path cannot push the `agent` scope past the cap —
-        // the headroom clamp is what makes the omission below unreachable here.
-        $this->assertCount(MemoryBlock::MAX_ENTRIES, $this->store->list('agent'));
+        // Pin 1: the `agent` scope is uncapped — 11 presets + 3 imports land
+        // as 14, past MAX_ENTRIES, and the command neither clamps nor warns.
+        $this->assertCount(14, $this->store->list('agent'));
 
-        // Pin 2 (MEASURED, premise §5 + R-2): MemoryBlock::capture() lists
-        // MemoryScope::Project, so agent-scope imports never enter the block —
-        // the crowding risk the clamp answers is the scope cap as the store's
-        // one shared bound, and this pins the two are different scopes.
+        // Pin 2 (MEASURED, R-2 + the fix-forward measurement): capture()
+        // lists MemoryScope::Project, so agent entries — capped or not —
+        // never enter the block. This is WHY the command needs no clamp.
         $this->assertSame([], MemoryBlock::capture($this->store)->entries());
 
-        // Pin 3: beyond 12 same-scope entries ARE silently omitted at render
-        // time — only a trailing-count notice marks them, which is exactly the
-        // silent crowding the importer-side clamp exists to prevent. WHICH
-        // note drops is not assertable: same-second modifiedAt ties break on
-        // the random UUID id (capture()'s documented comparator), so the pin
-        // is on the COUNT — twelve lines rendered, one reported omitted.
+        // Pin 3: beyond 12 SAME-scope entries ARE silently omitted at render
+        // time — only a trailing-count notice marks them. WHICH note drops is
+        // not assertable: same-second modifiedAt ties break on the random
+        // UUID id (capture()'s documented comparator), so the pin is on the
+        // COUNT — twelve lines rendered, one reported omitted.
         for ($i = 1; $i <= MemoryBlock::MAX_ENTRIES + 1; $i++) {
             $this->store->add(sprintf('project note %02d', $i), 'project');
         }

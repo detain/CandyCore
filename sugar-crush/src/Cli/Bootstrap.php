@@ -716,8 +716,10 @@ final class Bootstrap
      *    command surfaces refusals to the user, the collector still does not.
      *    The trigger also writes its re-import sentinel under `.sugar-crush/memory`
      *    in the project — a repository-chosen path gated at its call site
-     *    (`ContainedPath::below` + temp-create and rename, so no write follows a
-     *    planted symlink) and answered in the command response, drained nowhere;
+     *    (containment judged before the directory is ever created, re-judged
+     *    after, and the file lands by temp-create and rename, so no write —
+     *    and no mkdir — follows a planted symlink) and answered in the
+     *    command response, drained nowhere;
      *  - `.sugar-crush/hooks.yaml` has its own trust gate
      *    ({@see projectHooksAreTrusted()}) and refuses the LAUNCH rather than
      *    degrading, so a collector entry would be unreachable;

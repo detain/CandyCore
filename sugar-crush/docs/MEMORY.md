@@ -132,12 +132,13 @@ imported skills and agent presets. It is **read-only by design**: the foreign
 tree is harness-managed, so there is no export direction.
 
 **`Chat::memoryImport()` constructs it behind `/memory import claude|opencode`**
-(wired in P7.S6), so importing a foreign memory tree has a real runtime effect.
-The subcommand writes entries into the `agent` scope and clamps each run to the
-room left under `MemoryBlock::MAX_ENTRIES` — entries past that cap are silently
-omitted from the prompt block, so an unbounded import could crowd out entries
-you already had. Imports are **not idempotent** (`MemoryStore::add()` mints a
-fresh UUID per call), which is why de-duplication lives at the trigger point
+(wired in P7.S6). The subcommand writes entries into the `agent` scope —
+reachable through `/memory list agent` and `/memory search`, and, per the
+project-scope-only policy above, deliberately **not** folded into the prompt:
+`MemoryBlock::MAX_ENTRIES` bounds the `project` list, so no import can crowd
+the prompt block either way. Imports are **not idempotent**
+(`MemoryStore::add()` mints a fresh UUID per call), which is why de-duplication
+lives at the trigger point
 rather than in the importer: the command writes a sentinel at
 `.sugar-crush/memory/.imported-<target>` in the project after a non-empty
 import, and refuses to import again while that file exists — delete it to
