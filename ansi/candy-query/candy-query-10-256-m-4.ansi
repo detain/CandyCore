@@ -1,0 +1,22 @@
+[0m[38;5;203;1mC[0m[38;5;215;1ma[0m[38;5;180;1mn[0m[38;5;150;1md[0m[38;5;116;1my[0m[38;5;153;1mQ[0m[38;5;110;1mu[0m[38;5;141;1me[0m[38;5;176;1mr[0m[38;5;218;1my[0m                                         [0m[38;5;245;2mCONSERVATORY · PRACTICE-ROOM BOARD[0m [0m
+[0m[38;5;173;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;5;180;1mROOM  INSTRUMENT (TABLE)   EXERCISE           TEMPO rows/s  ADJUDICATION[0m             [0m
+[0m [0m[38;5;245m01[0m    [0m[38;5;150;1musers           [0m [0m[38;5;231mC-major scale id asc[0m [0m[38;5;150m   1,440[0m   [0m[38;5;245mflawless · pristine[0m           [0m
+[0m [0m[38;5;245m02[0m    [0m[38;5;116;1morders          [0m [0m[38;5;231marpeggios order_id  [0m [0m[38;5;116m     980[0m   [0m[38;5;245meven tone[0m                     [0m
+[0m [0m[38;5;245m03[0m    [0m[38;5;203;1msessions        [0m [0m[38;5;231mchromatic run ts    [0m [0m[38;5;203m      14[0m   [0m[38;5;245mcacophony — no index[0m          [0m
+[0m [0m[38;5;245m04[0m    [0m[38;5;192;1mproducts        [0m [0m[38;5;231metude UNIQUE price  [0m [0m[38;5;192m   1,204[0m   [0m[38;5;245mbright[0m                        [0m
+[0m [0m[38;5;245m05[0m    [0m[38;5;187;1mevents          [0m [0m[38;5;231mwaltz in 3/4 GROUP BY[0m[38;5;187m     640[0m   [0m[38;5;245mrubato on buckets[0m             [0m
+[0m [0m[38;5;245m06[0m    [0m[38;5;134;1maudit_log       [0m [0m[38;5;231mdirge on WAL        [0m [0m[38;5;134m      88[0m   [0m[38;5;245mfunereal · vacuum due[0m         [0m
+[0m [0m[38;5;245m07[0m    [0m[38;5;153;1mcart_items      [0m [0m[38;5;231mstaccato inserts    [0m [0m[38;5;153m   2,101[0m   [0m[38;5;245mpromising debut[0m               [0m
+[0m [0m[38;5;245m08[0m    [0m[38;5;79;1minvoices        [0m [0m[38;5;231mfugue, JOIN 3 voices[0m [0m[38;5;79m     310[0m   [0m[38;5;245mentries clean[0m                 [0m
+[0m[38;5;173;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;5;180;1m┌─ METRONOME ────────────────┐[0m  [0m[38;5;173;1m┌─ TUNING BENCH ───────────┐[0m  [0m[38;5;79;1m┌─ VOCALISES ─────────┐[0m
+[0m [0m[38;5;180;1m│[0m            [0m[38;5;231m/\[0m              [0m[38;5;180;1m│[0m  [0m[38;5;173;1m│[0m [0m[38;5;231mA=440 r/s = concert[0m      [0m[38;5;173;1m│[0m  [0m[38;5;79;1m│[0m [0m[38;5;150mroot ── branch[0m      [0m[38;5;79;1m│[0m
+[0m [0m[38;5;180;1m│[0m           [0m[38;5;231m/  \   |[0m         [0m[38;5;180;1m│[0m  [0m[38;5;173;1m│[0m [0m[38;5;187mpitch of plan-cache.[0m     [0m[38;5;173;1m│[0m  [0m[38;5;79;1m│[0m [0m[38;5;116m  └── leaf leaf[0m     [0m[38;5;79;1m│[0m
+[0m [0m[38;5;180;1m│[0m          [0m[38;5;245m/___\__|_[0m         [0m[38;5;180;1m│[0m  [0m[38;5;173;1m│[0m [0m[38;5;245mflat notes: seq-scans,[0m   [0m[38;5;173;1m│[0m  [0m[38;5;79;1m│[0m [0m[38;5;231mB-tree solfege:[0m     [0m[38;5;79;1m│[0m
+[0m [0m[38;5;180;1m│[0m [0m[38;5;180m♩ 60 …▸▸ 1,440 bpm[0m         [0m[38;5;180;1m│[0m  [0m[38;5;173;1m│[0m [0m[38;5;245msharp notes: PK seeks.[0m   [0m[38;5;173;1m│[0m  [0m[38;5;79;1m│[0m [0m[38;5;79mdo re mi ▸ page[0m     [0m[38;5;79;1m│[0m
+[0m [0m[38;5;180;1m└────────────────────────────┘[0m  [0m[38;5;173;1m└──────────────────────────┘[0m  [0m[38;5;79;1m└─────────────────────┘[0m
+[0m [0m[38;5;203;1mAUDITION NOTICE ▸ sessions missing an index — remediation scheduled:[0m                 [0m
+[0m   [0m[38;5;215mCREATE INDEX CONCURRENTLY sessions_ts_idx · the chromatic run must end[0m             [0m
+[0m[38;5;240;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;5;173;2mCandyQuery conservatory · every table practices what the planner preaches[0m            [0m

@@ -1,0 +1,28 @@
+[44m                                                    [0m[1;44;37mSugarTable · Milling Streams[0m[44m                                                     [0m
+┌────────────────────┬────────────────────────────┬─────────┬───────────┬────────────┬─────────────────┬────────────────────────────┐
+│[33m STREAM             [0m│[33m EXTRACTION                 [0m│[33m    ASH% [0m│[33m     PROT% [0m│[33m   CRUMB    [0m│[33m DRESSING        [0m│[33m GOES TO                    [0m│
+├────────────────────┼────────────────────────────┼─────────┼───────────┼────────────┼─────────────────┼────────────────────────────┤
+│[37m wholemeal          [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m 100%  │[36m    1.50 [0m│[36m      12.8 [0m│[35m   L* 74    [0m│[2m bolting cloth 1 [0m│[2m bread, biscuits, feed      [0m│
+│[37m straight-run       [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m·  95%  │[36m    1.10 [0m│[36m      12.4 [0m│[35m   L* 79    [0m│[2m silk 1          [0m│[2m country loaves, pastry     [0m│
+│[37m first clear        [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m··  88%  │[36m    0.86 [0m│[36m      12.1 [0m│[35m   L* 84    [0m│[2m silk 2          [0m│[2m hard wheat flour, pizza    [0m│
+│[37m seconds            [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m···  84%  │[36m    0.72 [0m│[36m      11.8 [0m│[35m   L* 86    [0m│[2m reduction 1     [0m│[2m standard white, extenders  [0m│
+│[37m reduction          [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m····  82%  │[36m    0.65 [0m│[36m      11.6 [0m│[35m   L* 87    [0m│[2m reduction 2     [0m│[2m house flour, thickening    [0m│
+│[37m medium grade       [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m····  80%  │[36m    0.58 [0m│[36m      11.4 [0m│[35m   L* 88    [0m│[2m midds sieve     [0m│[2m noodles, panelle           [0m│
+│[37m bakers' special    [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m·····  74%  │[36m    0.52 [0m│[36m      11.2 [0m│[35m   L* 90    [0m│[2m patent bolter   [0m│[2m pan loaves, rolls          [0m│
+│[37m patent             [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m······  72%  │[36m    0.48 [0m│[36m      11.0 [0m│[35m   L* 91    [0m│[2m fine bolter     [0m│[2m white bread, cakes         [0m│
+│[37m short patent       [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m······  70%  │[36m    0.44 [0m│[36m      10.6 [0m│[35m   L* 92    [0m│[2m silk fines      [0m│[2m pastry, sponge             [0m│
+├────────────────────┼────────────────────────────┼─────────┼───────────┼────────────┼─────────────────┼────────────────────────────┤
+│[37m first middlings    [0m│ [32m▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m····  78%  │[36m    0.68 [0m│[36m      11.9 [0m│[35m   L* 85    [0m│[2m midds purifier  [0m│[2m graham, pet food base      [0m│
+│[37m fine shorts        [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮▮[0m······  68%  │[36m    0.79 [0m│[36m      11.3 [0m│[35m   L* 82    [0m│[2m shorts bolter   [0m│[2m breakfast biscuit          [0m│
+│[37m medium shorts      [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮[0m·······  66%  │[36m    0.84 [0m│[36m      11.1 [0m│[35m   L* 81    [0m│[2m shorts bolter   [0m│[2m stock mix                  [0m│
+│[37m coarse shorts      [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮▮[0m·······  64%  │[36m    0.92 [0m│[36m      10.9 [0m│[35m   L* 80    [0m│[2m scalper         [0m│[2m poultry feed               [0m│
+│[37m fine sharps        [0m│ [33m▮▮▮▮▮▮▮▮▮▮▮▮[0m········  62%  │[36m    0.96 [0m│[36m      10.6 [0m│[35m   L* 78    [0m│[2m tailer 1        [0m│[2m cattle nuts                [0m│
+│[37m coarse sharps      [0m│ [31m▮▮▮▮▮▮▮▮▮▮▮▮[0m········  58%  │[36m    1.05 [0m│[36m      10.2 [0m│[35m   L* 76    [0m│[2m tailer 2        [0m│[2m pig wash                   [0m│
+│[37m millers' offal     [0m│ [31m▮▮▮▮▮▮▮▮▮▮[0m··········  52%  │[36m    1.30 [0m│[36m       9.8 [0m│[35m   L* 72    [0m│[2m dust collect    [0m│[2m mixed feed                 [0m│
+│[37m pollard            [0m│ [31m▮▮▮▮▮▮▮▮▮[0m···········  45%  │[36m    1.60 [0m│[36m       9.4 [0m│[35m   L* 68    [0m│[2m bran sifter     [0m│[2m dairy cubes                [0m│
+│[37m feed meal          [0m│ [31m▮▮▮▮▮▮▮▮[0m············  38%  │[36m    1.85 [0m│[36m       8.7 [0m│[35m   L* 64    [0m│[2m hammer mill     [0m│[2m pelleting                  [0m│
+│[37m bran               [0m│ [31m▮▮▮▮▮[0m···············  25%  │[36m    2.40 [0m│[36m       7.5 [0m│[35m   L* 55    [0m│[2m bran rolls      [0m│[2m mash, bulk laxative        [0m│
+│[33m TOTAL FLOUR        [0m│[33m 72% of grist milled        [0m│[33m    0.52 [0m│[33m      11.1 [0m│[33m   L* 90    [0m│[2m ————————        [0m│[36m sieved, weighed, sacked    [0m│
+└────────────────────┴────────────────────────────┴─────────┴───────────┴────────────┴─────────────────┴────────────────────────────┘
+[2mextraction bar per 100 kg grist · [0m[36mash reads on dry matter[0m[2m · bolter silk No. 7-9[0m
+[2msieve ledger sealed at [0m[33mweigh bridge 04:20[0m[2m · stones, not rolls, for the dark line[0m

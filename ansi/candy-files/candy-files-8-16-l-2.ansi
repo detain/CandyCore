@@ -1,0 +1,28 @@
+  [1;33m                                               CandyFiles - BAGGAGE CLAIM, ARRIVALS HALL 08                                               [0m
+ +==========================================================================================================================================+
+ |[2m    .          wall clock: GMT+inode          the beam carries six belts          .[0m                                                       |
+ |[1;36m  FLIGHT   PATH                STATUS      BELT[0m                                                                                           |
+ |  [37mCP-001   [0m[33m/home/ana          [0m[32mON BELT    [0m[37m04[0m                                                                                               |
+ |  [37mCP-002   [0m[33m/var/log           [0m[33mLOADED     [0m[37m04[0m                                                                                               |
+ |  [37mCP-003   [0m[33m/tmp/junk          [0m[31mMISSING    [0m[37m-[0m                                                                                                |
+ |  [37mCP-004   [0m[33m/srv/data          [0m[34mBOARDED    [0m[37m07[0m                                                                                               |
+ |  [37mCP-005   [0m[33m/etc               [0m[35mTSA HOLD   [0m[37m01[0m                                                                                               |
+ |  [37mCP-006   [0m[33m/usr/share         [0m[36mLANDED     [0m[37m07[0m                                                                                               |
+ |  [37mCP-007   [0m[33m/mnt/backup        [0m[33mDELAYED    [0m[37m02[0m                                                                                               |
+ |  [37mCP-008   [0m[33m/opt               [0m[31mSCRAPPED   [0m[37m-[0m                                                                                                |
+ |[2m  -----------------------------------------   belt 04   -----------------------------------------[0m                                         |
+ |   [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m                                                                    |
+ |   [1;37m[.bak][0m      [34m[.iso][0m       [31m[.psd][0m      [32m[.tar.gz][0m       [33m[.vhs][0m       [35m[.zip][0m                                                               |
+ |   [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m [36m(o)[0m                                                                    |
+ |[2m  belt reverses at the end of the volume - unmatched bags go out the back[0m                                                                 |
+ |[2m  one lone shoe (.swp) keeps circling; nobody has claimed it since the last reboot[0m                                                        |
+ |[37m  trolleys:[0m [2m[o]--[o]   [o]--[o]   [o]--[o][0m   [36mfree where the porter stands[0m[2m (inode wheels)[0m                                                  |
+ |[1;35m  PA:[0m [2m"final call for CP-003 /tmp/junk - last trip to /dev/null in five minutes"[0m                                                          |
+ |[2m  CCTV in the corner blinks: inotify watch, 512 events queued, nobody is watching[0m                                                         |
+ |[2m  the automatic doors part for any uid; they hesitate, once, for the daemon user[0m                                                          |
+ |[2m  floor waxed at 06:00 by the cleanup cron - mind the wet-gloss on /mnt[0m                                                                   |
+ |[1;33m INFO |[0m[2m  "my bag never arrived" - ask for the inode; the tag lies, the shelf does not[0m                                                     |
+ |[2m claims desk open 24h    lost & found: [0m[36m/lost+found[0m[2m    oversized: [0m[36m/mnt/archive[0m                                                             |
+ |[2m ground staff move bytes, not baggage - the carousel is a metaphor you chose[0m                                                              |
+ |[36mCandyFiles[0m [2m- welcome home; here is your other sock (.swp)[0m                                                                                 |
+ +==========================================================================================================================================+[0m

@@ -1,0 +1,23 @@
+[1;33m  THE VALIDATION LOCKSMITH[0m[2;37m · CANDY FORMS key-cutting bench · est. regex 101[0m     [0m
+[2;36m  lock = rule    key = value    a file is allowed, a pick is not[0m                [0m
+                                                                                [0m
+[1;35m  ┌─ cylinder: password ─ pins required at height 8 · digit · symbol ─┐[0m         [0m
+  │ driver pins  [32m▮▮▮▮▮▮▮▮[0m[37m   digits [0m[32m▮▮▮[0m[37m   symbols [0m[32m▮▮▮▮[0m[35m         │[0m                 [0m
+  │ shear line   [37m▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁[0m[35m  ← plug may now turn        │[0m               [0m
+  │ spring load  [33m░░░░[0m[37m [0m[33m▒▒▒▒[0m[37m [0m[33m▓▓▓▓[0m[37m [0m[33m████[0m[35m  bind test: firm, honest         │[0m         [0m
+[1;35m  └──────────────────────────────────────────────────────────────┘[0m              [0m
+[1;37m  key blanks in the rack:[0m                                                       [0m
+    [31m"hunter2"[0m        → ✗ [2;31mtoo short, no digit[0m                                    [0m
+    [31m"passw0rd"[0m       → ✗ [2;31mno symbol on the bitting[0m                               [0m
+    [32m"Passw0rd!"[0m      → ✓ [1;32mturns the plug — CLUNK[0m                                 [0m
+    [33m"Passw0rd!   "[0m    → ~ [2;33mcoerced: trailing blanks filed off[0m                    [0m
+                                                                                [0m
+  tumbler pins = checkboxes, each true check raises one pin:                    [0m
+    [32m[✓][✓][✓][✗][ ][0m  → 4 of 5 pins set · [1;31mplug holds? no.[0m                        [0m
+    [1;32m[✓][✓][✓][✓][✓][0m  → 5 of 5 pins set · [32mdoor swings, model notified[0m            [0m
+                                                                                [0m
+  [1;31mpick guard on duty: 422 — "do not bring a lockpick to a form"[0m                 [0m
+  [2;37mwax impression of the accepted key filed to the vault (state)[0m                 [0m
+  [4;33mbrass plate on the door: CANDY FORMS · locksmith certified[0m                    [0m
+                                                                                [0m
+  [2;35mbench clock stopped; keys do not care about time zones[0m                        [0m

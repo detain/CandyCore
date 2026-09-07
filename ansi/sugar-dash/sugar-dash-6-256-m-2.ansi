@@ -1,0 +1,19 @@
+[1;38;5;208m▌ SUGAR DASH [38;5;231mSORTATION BELT 3 · CHUTE BOARD · 21:47 peak                                  [0m
+                                                                                          [0m
+[1;38;5;244m CHUTE  REGION  PARCELS   BAR         BELT SPEED      STATE                               [0m
+[38;5;46m C01   NW       1284   ████████░░  [38;5;244m [38;5;231m2.1 m/s  [1;38;5;46mRUN                                          [0m
+[38;5;46m C02   NE        986   ██████▋░░░  [38;5;244m [38;5;231m1.9 m/s  [1;38;5;46mRUN                                          [0m
+[38;5;46m C03   SE       1544   ██████████  [38;5;244m [38;5;231m2.2 m/s  [1;38;5;46mRUN                                          [0m
+[38;5;226m C04   SW        402   ███░░░░░░░  [38;5;244m [38;5;231m1.2 m/s  [1;38;5;226mSLOW                                         [0m
+[38;5;46m C05   CTR      2210   ██████████  [38;5;244m [38;5;231m2.4 m/s  [1;38;5;46mRUN                                          [0m
+[38;5;196m C06   RET       178   █▌░░░░░░░░  [38;5;244m [38;5;231m0.0 m/s  [1;38;5;196mJAM                                          [0m
+[38;5;46m C07   INTL      655   █████░░░░░  [38;5;244m [38;5;231m1.7 m/s  [1;38;5;46mRUN                                          [0m
+[38;5;208m C08   OVRS       53   █░░░░░░░░░  [38;5;244m [38;5;231m0.6 m/s  [1;38;5;208mPURGE                                        [0m
+                                                                                          [0m
+[38;5;51m Belt feed [38;5;51m▄▅▅▆▇█▇█▇▆▇█ [38;5;231m4,892/hr induct                                                   [0m
+[38;5;196m CHUTE C06 JAM 41s — pusher arm stalled · tech W3 running · [38;5;226mreroute to C07                [0m
+[38;5;226m C04 slow: label glare on eye 2 — wiper blade due                                         [0m
+[38;5;148m Missed-scan rate [38;5;148m▁▁▂▁▂▂▁ [38;5;231m0.8% · diverter latency 34 ms                                   [0m
+[38;5;244m Bag build: Pallet 14 full (INTL) · 15 at 62% · cage van 22:10                            [0m
+[38;5;208m Volume vs plan [38;5;208m▅▅▆▆▇▇█▇ [38;5;231m+3.2% · overtime window armed                                    [0m
+[2;38;5;244m SugarDash · datagrid 8 chutes · spark bars x3 · alarm ribbon · 100ms                     [0m

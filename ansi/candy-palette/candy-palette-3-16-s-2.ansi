@@ -1,0 +1,9 @@
+[0m  [0m[1;35mSIMULATION MODE  ▸ [candy-palette Probe][0m                  [0m
+[0m  [0m[37m────────────────────────────────────────────────────────[0m  [0m
+[0m  [0m[1;37m●[0m [0m[34mNONE      [0m  [0m[31m▓[0m[33m▓[0m[35m▓[0m[37m▓[0m[31m▓[0m[33m▓[0m  [0m[37m  ▸ selected[0m                        [0m
+[0m  [0m[31m○[0m [0m[31mPROTANOPIA[0m  [0m[30m▓[0m[32m▓[0m[34m▓[0m[36m▓[0m[30m▓[0m[32m▓[0m  [0m[37m  ▸ reduced chroma[0m                  [0m
+[0m  [0m[32m○[0m [0m[32mDEUTERANOPIA[0m[30m▓[0m[32m▓[0m[34m▓[0m[36m▓[0m[30m▓[0m[32m▓[0m  [0m[37m  ▸ reduced chroma[0m                  [0m
+[0m  [0m[35m○[0m [0m[35mTRITANOPIA[0m  [0m[30m▓[0m[32m▓[0m[34m▓[0m[36m▓[0m[30m▓[0m[32m▓[0m  [0m[37m  ▸ reduced chroma[0m                  [0m
+[0m  [0m[3;33mprotan/deutan mute reds · tritan mutes blues[0m              [0m
+[0m                                                            [0m
+[0m                                               [0m[1;35mCandyPalette[0m [0m[0m

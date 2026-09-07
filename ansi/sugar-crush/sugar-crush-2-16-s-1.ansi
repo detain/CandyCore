@@ -1,0 +1,9 @@
+[1m[35m SUGAR CRUSH [0m[33m· permission gate · one press, one promise[0m
+[36m╭──────────────────────────────────────────────────────╮[0m
+[36m│[0m [1m[31m⚙ Bash[0m  [37mrm -rf cache/ && make clean[0m                  [36m│[0m
+[36m│[0m [2m[34mhook: PreToolUse · policy: ask[0m                       [36m│[0m
+[36m│[0m├────────────────────────────────────────────────────┤[36m│[0m
+[36m│[0m [1m[32m▸ [y] Allow once[0m   [33m[a] Always allow ⚡[0m                [36m│[0m
+[36m│[0m   [31m[n] Deny[0m           [35m[e] Explain the change[0m          [36m│[0m
+[36m╰──────────────────────────────────────────────────────╯[0m
+  [37mSugarCrush[0m[2m[37m · esc aborts, sugar-coats the failure notice[0m

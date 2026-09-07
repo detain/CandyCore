@@ -1,0 +1,19 @@
+[33mHONEY BOUNCE :: DOMINOES WITH SPRING-LOADED RECOVERY BASE[0m                             
+  [36mtiles on torsion springs: tipped tiles snap back, overshoot, settle[0m                 
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+                                                                                      
+  [1m[31m/[0m         [1m[31m/[0m                       [32m\[0m         [32m\[0m        [37m---[0m       [37m---[0m       [37m---[0m        
+   [1m[31m/[0m         [1m[31m/[0m                     [36m\[0m         [36m\[0m          [37m|[0m         [37m|[0m         [37m|[0m         
+    [1m[31m/[0m         [1m[31m/[0m                   [32m\[0m         [32m\[0m           [37m|[0m         [37m|[0m         [37m|[0m         
+     [33m/[0m         [33m/[0m                 [36m\[0m         [36m\[0m            [37m|[0m         [37m|[0m         [37m|[0m         
+      [33m/[0m         [33m/[0m      [1m[31m=======[0m  [32m\[0m         [32m\[0m             [37m|[0m         [37m|[0m         [37m|[0m         
+  [37m_________________________________________________________________________________[0m   
+    [33m(~)[0m       [33m(~)[0m       [33m(~)[0m       [33m(~)[0m       [33m(~)[0m       [33m(~)[0m       [33m(~)[0m       [33m(~)[0m         
+   [36m+0.90  [0m   [33m+0.83  [0m   [36m+0.76  [0m   [33m+0.69  [0m   [36m+0.62  [0m   [33m+0.55  [0m   [36m+0.48  [0m   [33m+0.41  [0m      
+                                                                                      
+  [32mrecovery torque tau = k*theta, k=12 mNm/rad  overshoot damped zeta=0.22[0m             
+  [33mchain reaction halts at tile 5 -- springs out-promise gravity. HONEY BOUNCE rig[0m     [0m

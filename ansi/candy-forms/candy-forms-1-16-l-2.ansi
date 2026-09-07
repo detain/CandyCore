@@ -1,0 +1,28 @@
+[93m▌[0m  FIELD LEDGER — the nightly roll of every little question                                                                                  [93m▐[0m
+   [91m▓[91m▓[91m▓[91m▓  [93m▓[93m▓[93m▓  [92m▓   [92m▓ [96m▓[96m▓[96m▓[96m▓  [94m▓   [94m▓       [91m▓[91m▓[91m▓[91m▓[91m▓  [93m▓[93m▓[93m▓  [92m▓[92m▓[92m▓[92m▓  [96m▓   [96m▓  [94m▓[94m▓[94m▓[94m▓ [0m                                                                          
+  [91m▓     [93m▓   [93m▓ [92m▓[92m▓  [92m▓ [96m▓   [96m▓ [94m▓   [94m▓       [91m▓     [93m▓   [93m▓ [92m▓   [92m▓ [96m▓[96m▓ [96m▓[96m▓ [94m▓     [0m                                                                          
+  [91m▓     [93m▓[93m▓[93m▓[93m▓[93m▓ [92m▓ [92m▓ [92m▓ [96m▓   [96m▓  [94m▓[94m▓[94m▓        [91m▓[91m▓[91m▓[91m▓  [93m▓   [93m▓ [92m▓[92m▓[92m▓[92m▓  [96m▓ [96m▓ [96m▓  [94m▓[94m▓[94m▓  [0m                                                                          
+  [91m▓     [93m▓   [93m▓ [92m▓  [92m▓[92m▓ [96m▓   [96m▓   [94m▓         [91m▓     [93m▓   [93m▓ [92m▓ [92m▓   [96m▓   [96m▓     [94m▓ [0m                                                                          
+   [91m▓[91m▓[91m▓[91m▓ [93m▓   [93m▓ [92m▓   [92m▓ [96m▓[96m▓[96m▓[96m▓    [94m▓         [91m▓      [93m▓[93m▓[93m▓  [92m▓   [92m▓ [96m▓   [96m▓ [94m▓[94m▓[94m▓[94m▓  [0m                                                                          
+[34m═[0m[34m════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════[0m 
+   [1;97mid    field               type          state       note[0m                                                                                   
+   [34m╞════════════════════════════════════════════════════════════════════════════════════════╡[0m                                                 
+   [33m001   [0m[96mname                [0m[34mTextInput     [0m [37m[92m✓ ready[0m[0m  [37mcursor parked after "Ada"[0m                                                                
+   [33m002   [0m[96memail               [0m[34mTextInput     [0m [37m[91m✗ invalid[0m[0m  [37mValidator\Email is grumbling[0m                                                           
+   [33m003   [0m[96mtheme               [0m[34mSelect        [0m [37m[96m◉ open[0m[0m  [37mfuzzy filter: noc → Nocturne[0m                                                              
+   [33m004   [0m[96msweets              [0m[34mMultiSelect   [0m [37m[93m☑ 3/12[0m[0m  [37mspace toggles, a selects all[0m                                                              
+   [33m005   [0m[96mterms               [0m[34mConfirm       [0m [37m[94m… pending[0m[0m  [37my / n — no maybe[0m                                                                       
+   [33m006   [0m[96mbio                 [0m[34mTextArea      [0m [37m[95m▮▯ 41%[0m[0m  [37mscrollbar hugs the right rail[0m                                                             
+   [33m007   [0m[96mavatar              [0m[34mFilePicker    [0m [37m[35m~ browse[0m[0m  [37m~/pictures, dirs listed first[0m                                                           
+   [33m008   [0m[96mprogress            [0m[34mSpinner       [0m [37m[92m◐ ◓ ◑[0m[0m  [37mcompiling the next field…[0m                                                                  
+   [33m009   [0m[96mgroup.a             [0m[34mGroup         [0m [37m[96m≡ 3 kids[0m[0m  [37mnested fields under one roof[0m                                                            
+   [33m010   [0m[96mnote                [0m[34mNote          [0m [37m[37m░ info[0m[0m  [37mhelps, never blocks[0m                                                                       
+   [33m011   [0m[96mage                 [0m[34mInput         [0m [37m[92m✓ 29[0m[0m  [37mMinLength·MaxLength both quiet[0m                                                              
+   [33m012   [0m[96mhandle              [0m[34mTextInput     [0m [37m[96m✎ typing[0m[0m  [37masync suggestions debounced 150ms[0m                                                       
+   [33m013   [0m[96mkeymap              [0m[34mKeyMap        [0m [37m[93m⌨ bound[0m[0m  [37mvim users rejoice: esc, ci"…[0m                                                             
+   [34m╘════════════════════════════════════════════════════════════════════════════════════════╛[0m                                                 
+                                                                                                                                              
+     legend: [92m✓[0m[37m valid  [0m[91m✗[0m[37m rejected  [0m[96m◉[0m[37m focused  [0m[93m☑[0m[37m chosen  [0m[95m▮[0m[37m scrolled  [0m[94m✎[0m[37m dirty[0m                                                                    
+     [93m░▒▓[0m[37m 13 rows · 3 valid · 1 invalid · 1 pending · rest browsing [0m[93m▓▒░[0m                                                                        
+     [1;95mCandyForms[0m[37m — the base every [0m[96msugar-bits[0m[37m and [0m[96mcandy-shell[0m[37m prompt stands on[0m                                                                  
+[93m▟[0m                                                                                                                                            [93m▙[0m[0m

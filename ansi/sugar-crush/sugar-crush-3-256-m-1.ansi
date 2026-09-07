@@ -1,0 +1,19 @@
+[231;38;5;1m SugarCrush[0m[38;5;245m · session tabs as stacked candy cards — front tab is live[0m
+[38;5;181m                         ╭────────────╮[0m                                           
+[1;38;5;181m                         │ docs-sweep │[0m                                           
+[38;5;114m                       ╭─────────────────╮[0m                                        
+[1;38;5;114m                       │ flaky-test-hunt │[0m                                        
+[38;5;117m                     ╭─────────────────╮[0m                                          
+[1;38;5;117m                     │ plan-migrations │[0m                                          
+[38;5;223m                   ╭───────────────╮[0m                                              
+[1;38;5;223m                   │ auth-refactor │[0m                                              
+                   [38;5;223m╭────────────────────────────────────────────────────────────╮[0m
+                   [38;5;223m│[0m[38;5;114m user> split auth mw into one service per tab               [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;231m asst  mapping the middleware graph first…                  [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;117m   ⚙ Read   src/Auth/Middleware.php    +412                 [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;117m   ⚙ Grep   "middleware(" --type php   14 hits              [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;117m   ⚙ Plan   6 steps ▸ awaiting approval                     [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;231m asst  no writes while plan mode is armed                   [0m[38;5;223m│[0m
+                   [38;5;223m│[0m[38;5;245m ctx [0m[38;5;214m▓[38;5;220m▓[38;5;190m▓[38;5;154m▓[38;5;118m▓[38;5;214m▓[38;5;220m▓[38;5;190m▒[38;5;154m▒[38;5;118m░[38;5;214m░[38;5;220m░[0m[38;5;220m 47% [0m[38;5;245mtab 1/5 · ctrl+→ · /compact[0m           [38;5;223m│[0m
+                   [38;5;223m╰────────────────────────────────────────────────────────────╯[0m
+[38;5;245m back tabs idle — their last line is frozen in SQLite, not in the window[0m[0m

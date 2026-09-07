@@ -1,0 +1,14 @@
+[1;35m           DICHOTOMOUS PLANT KEY - FIELD FLORA            [0m
+[36m┌[0m[36m────[0m[36m┬[0m[36m────────────────────────────────[0m[36m┬[0m[36m────[0m[36m┬[0m[36m─────────────[0m[36m┐[0m
+[36m│[0m[1;33mKey [0m[36m│[0m[1;33mCouplet - leading character     [0m[36m│[0m[1;33m    [0m[36m│[0m[1;33mReached taxon[0m[36m│[0m
+[36m├[0m[36m────[0m[36m┼[0m[36m────────────────────────────────[0m[36m┼[0m[36m────[0m[36m┼[0m[36m─────────────[0m[36m┤[0m
+[36m│[0m[1;36m 1a [0m[36m│[0m[37mLeaves needle-like, cones woody [0m[36m│[0m[33m 2  [0m[36m│[0m[1;32mPinophyta    [0m[36m│[0m
+[36m│[0m[1;36m 1b [0m[36m│[0m[37mLeaves broad, seeds enclosed    [0m[36m│[0m[33m 3  [0m[36m│[0m[1;32mAngiospermae [0m[36m│[0m
+[36m│[0m[1;36m 2a [0m[36m│[0m[37mNeedles in fascicles of two     [0m[36m│[0m[33m 5  [0m[36m│[0m[1;32mPinus        [0m[36m│[0m
+[36m│[0m[1;36m 2b [0m[36m│[0m[37mNeedles borne singly on twig    [0m[36m│[0m[33m 6  [0m[36m│[0m[1;32mAbies        [0m[36m│[0m
+[36m│[0m[1;36m 3a [0m[36m│[0m[37mCotyledons one, parallel veins  [0m[36m│[0m[33m 7  [0m[36m│[0m[1;32mMonocot      [0m[36m│[0m
+[36m│[0m[1;36m 3b [0m[36m│[0m[37mCotyledons two, netted veins    [0m[36m│[0m[33m 8  [0m[36m│[0m[1;32mEudicot      [0m[36m│[0m
+[36m│[0m[1;36m 4a [0m[36m│[0m[37mFlowers in a composite head     [0m[36m│[0m[33m 9  [0m[36m│[0m[1;32mAsteraceae   [0m[36m│[0m
+[36m└[0m[36m────[0m[36m┴[0m[36m────────────────────────────────[0m[36m┴[0m[36m────[0m[36m┴[0m[36m─────────────[0m[36m┘[0m
+[2;37mread the couplet pair, follow the arrow to the next number[0m
+[1;33mSugarTable · taxonomic key table                          [0m

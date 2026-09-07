@@ -1,0 +1,20 @@
+  [1;33mLUMBER CUT-LIST — nine parts fitted onto three 2400 mm boards[0m
+[0m
+                                                          [1;36mPART   LEN  QTY FIT[0m
+  [37mstock [33m╒[36m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[31m▕[35m▓▓▓▓▓▓▓▓▓▓▓▓[31m▕[37m░░░░[33m╕            [36mtop   1100  2  2 ✓[0m
+         [36mtop                [35mmid          [37moff[0m
+                                                          [35mmid    720  2  2 ✓[0m
+[0m
+  [37mstock [33m╒[36m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[31m▕[32m▓▓▓▓▓▓▓▓▓[31m▕[37m░░░[33m╕                [32mside   560  2  2 ✓[0m
+         [36mtop                [32msd[0m
+                                                          [31mrail   360  1  1 ✓[0m
+[0m
+  [37mstock [33m╒[35m▓▓▓▓▓▓▓▓▓▓▓▓[31m▕[32m▓▓▓▓▓▓▓▓▓[31m▕▓▓▓▓▓▕[37m░░[33m╕                 [37mpeg    180  4  4 ✓[0m
+         [35mmid          [32msd        [31mrl[0m
+[0m
+[0m
+  [34m──────────────────────────────────────────────────────────────────────────────[0m
+  [34mwaste 4.9% · first-fit descending · kerf 3 mm paid on every cut[0m
+  [32mzero parts orphaned, every offcut under the 200 mm reuse floor[0m
+  [1;35mCandyLayout [35m· the saw never guesses[0m
+[0m

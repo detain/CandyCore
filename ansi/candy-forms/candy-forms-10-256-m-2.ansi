@@ -1,0 +1,18 @@
+  [38;5;196;1mC[38;5;208;1ma[38;5;214;1mn[38;5;220;1md[38;5;118;1my[38;5;46;1mF[38;5;47;1mo[38;5;51;1mr[38;5;39;1mm[38;5;201;1ms[38;5;215;1m  THE VALIDATION QUILT — stitched in tab order[0m
+[38;5;172m        ╭───── embroidery hoop ─────╮[0m
+       [38;5;172m╭────── hoop ──────╮[0m
+[38;5;245;2m  hoop hums a lullaby of clean bytes   [38;5;245m  pin cushion: [38;5;180m● req ● pattern ● len ● sanity[0m
+[172m        │  [38;5;245m┌──────┬──────┬──────┬──────┐[172m  │[0m
+[172m        │  [38;5;245m│      [38;5;46;1;16m✓      [38;5;245m│      [38;5;46;1;16m✓      [38;5;245m│      [38;5;196;1;52m✗      [38;5;245m│      [38;5;46;1;16m✓      [38;5;245m│[172m  │[0m
+[172m        │  [38;5;245m│  [38;5;231;17mname  [38;5;245m│  [38;5;231;17mmail  [38;5;245m│  [38;5;231;52mpass  [38;5;245m│  [38;5;231;17mrole  [38;5;245m│[172m  │[0m
+[172m        │  [38;5;245m├──────┼──────┼──────┼──────┤[172m  │[0m
+[172m        │  [38;5;245m│      [38;5;226;1;17m▓      [38;5;245m│      [38;5;46;1;16m✓      [38;5;245m│      [38;5;245;1;236m☐      [38;5;245m│      [38;5;46;1;16m✓      [38;5;245m│[172m  │[0m
+[172m        │  [38;5;245m│  [38;5;231;17mcity  [38;5;245m│  [38;5;231;17mzip5  [38;5;245m│  [38;5;231;236mterm  [38;5;245m│  [38;5;231;17mbirth  [38;5;245m│[172m  │[0m
+[172m        │  [38;5;245m└──────┴──────┴──────┴──────┘[172m  │[0m
+[172m       ╲ [38;5;172m╰─ stitch count = 8 patches ─╯[0m
+[38;5;223m  needle [38;5;231;1m/\[38;5;245m thread follows the [38;5;114;1mtab order[38;5;180m:  name→email→pass→role→city→zip→term→birth[0m
+[38;5;245m  one mis-stitch unravels the row: [38;5;196mMaxLength rejected 'pass'[38;5;245;2m — frog it and re-sew[0m
+[38;5;245m  pattern scraps: [38;5;16;48;5;46m ☑ agree [38;5;16;48;5;236m ☐ newsletter [38;5;16;48;5;17m ✎ freeform note [38;5;245m  batting = schema[0m
+[38;5;245m  the wash test: [38;5;180mcold cycle normalizes whitespace [38;5;245m·[38;5;245;2m colors bleed only on FAIL[0m
+[38;5;245m  binding the edges: [38;5;16;48;5;94;1m SUBMIT [38;5;245m — quilt folded along the fieldset seam[0m
+[38;5;215;1m  a CANDY FORMS quilt warms a whole dashboard; every stitch passed its inspector[0m

@@ -1,0 +1,8 @@
+[1;37mcontext [0m[1;31m██████████████████████[0m[1;33m▓▓[0m[33m▒▒[0m[2;37m░░░░░░[0m[1;31m 91%[0m[2;37m 117k/128k[0m    
+[35m╭─ SugarCrush ─ /compact ──────────────────────────────────╮[0m
+[35m│[0m[37mtab [0m[1;36mauth-refactor[0m[37m is about to overflow.[0m                 [35m│[0m
+[35m│[0m[1;32mkeep [0m[37m▸ goals · file-map · decisions · TODOs[0m             [35m│[0m
+[35m│[0m[1;31mdrop [0m[2;37m▸ tool-noise · repeat diffs · chatter[0m              [35m│[0m
+[35m│[0m                                                        [35m│[0m
+[35m│[0m[1;37;42m [Y] [0m[32mcompact now [0m[1;37;43m [N] [0m[33mcancel [0m[1;37;45m [M] [0m[35mhand-edit[0m             [35m│[0m
+[35m╰────────────────────────────────────────────────────────╯[0m[0m

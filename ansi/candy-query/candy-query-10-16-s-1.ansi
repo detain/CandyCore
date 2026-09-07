@@ -1,0 +1,11 @@
+[0m[31;1mC[0m[33;1ma[0m[32;1mn[0m[36;1md[0m[34;1my[0m[35;1mQ[0m[37;1mu[0m[31;1me[0m[33;1mr[0m[32;1my[0m                           [0m[37;2mQUERY KITCHEN · THE PASS[0m [0m
+[0m [0m[30;2m═══════[0m[33;1m╠[0m[30;2m═════════[0m[33;1m╠[0m[30;2m═════════════════════[0m[33;1m╠[0m[30;2m════════════════════[0m [0m
+[0m   [0m[33;1m┌─ #42 ORDER BY ─────────┐[0m   [0m[31;1m┌─ #43 SEQ-SCAN ──────────┐[0m   [0m
+[0m   [0m[33;1m│[0m [0m[33msugar DESC · 8 covers[0m  [0m[33;1m│[0m   [0m[31;1m│[0m [0m[37mFROM audit_log[0m          [0m[31;1m│[0m   [0m
+[0m   [0m[33;1m│[0m [0m[32mfire: grill station[0m    [0m[33;1m│[0m   [0m[31;1m│[0m [0m[31;1m86'd: stale stats[0m       [0m[31;1m│[0m   [0m
+[0m   [0m[33;1m└────────────────────────┘[0m   [0m[31;1m└─────────────────────────┘[0m   [0m
+[0m  [0m[36;1mALL DAY  20 covers · 12 ms · expo 0.4 ms[0m                    [0m
+[0m  [0m[31mPASS ══ heat lamp ◆◆◆◆◆◆ ══ 4 plates up[0m                     [0m
+[0m  [0m[37m╭──────────────╮[0m [0m[32mid,flavor FROM sweets ▸[0m                    [0m
+[0m  [0m[37mplated 12ms · #42 fired ✓ · mise en place[0m                   [0m
+[0m  [0m[30;3mbrigade du SQL · service 07:42 · no rewinds[0m                 [0m

@@ -1,0 +1,16 @@
+[0m  [0m[96m── SMTP LADDER · relay.sugar.post ──[0m                          [0m
+[0m [0m[93m●[0m [0m[92m220 smtp.sugar.post ESMTP SugarPost[0m                          [0m
+[0m [0m[90m│[0m [0m[97m  EHLO mail.sugar.post[0m                                       [0m
+[0m [0m[90m│[0m [0m[92m  250-AUTH LOGIN PLAIN[0m                                       [0m
+[0m [0m[90m│[0m [0m[92m  250 HELP[0m                                                   [0m
+[0m [0m[93m●[0m [0m[93mMAIL FROM:<chef@sugar.post>[0m                                  [0m
+[0m [0m[90m│[0m [0m[92m  250 2.1.0 Sender ok[0m                                        [0m
+[0m [0m[90m│[0m [0m[93mRCPT TO:<you@example.com>[0m                                    [0m
+[0m [0m[90m│[0m [0m[92m  252 2.1.5 Recipient ok[0m                                     [0m
+[0m [0m[93m●[0m [0m[95mDATA  ·  354 end with <CR><LF>.<CR><LF>[0m                      [0m
+[0m [0m[90m│[0m [0m[90m  ..  From: SugarPost[0m                                        [0m
+[0m [0m[90m│[0m [0m[90m  ..  Subject: sweet bytes[0m                                   [0m
+[0m [0m[90m│[0m [0m[90m  ..  ..[0m                                                     [0m
+[0m [0m[90m│[0m                                                              [0m
+[0m [0m[93m●[0m [0m[96m250 2.0.0 Ok: queued 4A9F-SP[0m                                 [0m
+[0m   [0m[94mdispatched in 0.31s — sugar post always clears[0m               [0m

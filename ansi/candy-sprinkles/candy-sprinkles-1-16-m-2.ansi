@@ -1,0 +1,18 @@
+  [0m[0m[97m[1mStyle::new() - the sugar catalog                                          [0m
+  [0m[0m[90m───────────────────────────────────────────────────────────               [0m
+                                                                            [0m
+   [0m[0m[94m->bold()                 [0m[90m=>    [0m[1m[97mBOLD AS FUDGE                             [0m
+   [0m[0m[94m->faint()                [0m[90m=>    [0m[2m[37mghost sugar                               [0m
+   [0m[0m[94m->italic()               [0m[90m=>    [0m[3m[95mcursive caramel                           [0m
+   [0m[0m[94m->underline()            [0m[90m=>    [0m[4m[96mribbon candy                              [0m
+   [0m[0m[94m->strikethrough()        [0m[90m=>    [0m[91mmelted drop                               [0m
+   [0m[0m[94m->reverse()              [0m[90m=>    [0m[7m[93mOUTSIDE-IN                                [0m
+   [0m[0m[94m->blink()                [0m[90m=>    [0m[94mdisco sprinkle                            [0m
+                                                                            [0m
+         [0m[0m[91m╭───────────────────────╮      [0m┏[0m[35m━━━━━━━━━━━━━━━━━━━━━━[0m┓            [0m
+         [0m[0m[94m│ [0m[91mborderTop(red)        [0m[96m│      [0m[35m┃ [0m[95mmargin(1, 2)         [0m[35m┃            [0m
+         [0m[0m[94m│ [0m[93mborderRight(yellow)   [0m[96m│      [0m[35m┃                      ┃            [0m
+         [0m[0m[94m│ [0m[92mborderBottom(green)   [0m[96m│      [0m[35m┃   [0m[37m[2mbreathing room     [0m[35m┃            [0m
+         [0m[0m[94m│ [0m[96mborderLeft(cyan)      │      [0m[35m┃                      ┃            [0m
+         [0m[0m[93m╰───────────────────────╯      [0m┗[0m[35m━━━━━━━━━━━━━━━━━━━━━━[0m┛            [0m
+  [0m[0m[90m[2mcandy-sprinkles - ~40 with*() verbs, zero mutation                        [0m

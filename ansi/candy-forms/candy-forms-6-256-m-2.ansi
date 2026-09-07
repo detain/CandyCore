@@ -1,0 +1,18 @@
+[1;38;5;223m             CandyForms KAITEN SELECT — options glide past on the belt              [0m
+[38;5;240m┌──────────────────────────────────────────────────────────────────────────────────┐[0m
+[38;5;240m│[0m[2;38;5;226m                          heat lamp marks the cursor row                          [0m[38;5;240m│[0m
+[38;5;240m│[0m[38;5;226m     \\                   //[0m                                       [38;5;240m│[0m
+[38;5;240m│[0m[38;5;240m >>-> [0m[38;5;231m( [0m[38;5;203m tuna  [0m[38;5;231m )[0m[38;5;240m >>-> [0m[1;38;5;231;48;5;24m([ salmon])[0m[38;5;240m >>-> [0m[38;5;231m( [0m[38;5;101m eel   [0m[38;5;231m )[0m[38;5;240m >>-> [0m[38;5;231m( [0m[38;5;202m roe   [0m[38;5;231m )[0m[38;5;240m >>[0m[38;5;240m│[0m
+[38;5;240m│[0m[2;38;5;187m   (lamp: j/k moves — [space] lifts the plate)[0m                   [38;5;240m│[0m
+[38;5;240m├──────────────────────────────────────────────────────────────────────────────────┤[0m
+[38;5;240m│[0m[38;5;245m <<<<<<<  return rail: ([]) ([]) ([]) ([]) ([]) ([]) ([]) ([]) ([]) ([][38;5;240m│[0m
+[38;5;240m└──────────────────────────────────────────────────────────────────────────────────┘[0m
+[38;5;118m wasabi mound (textarea): [0m[38;5;150m,/\/\/\/\/\/\/\,[0m
+[38;5;217m ginger palette (clear) [0m[2;38;5;245m| esc resets the belt[0m
+[1;38;5;231m order slip:[0m[38;5;203m [x]tuna[0m[38;5;209m [x]salmon[0m[38;5;101m [ ]eel[0m[38;5;202m [ ]roe[0m[2;38;5;223m  2/4 plates — multi-select[0m
+[38;5;223m  chef's call:  [0m[1;38;5;231m"salmon, one! salmon, one!"[0m[2;38;5;245m  (the label echoes your cursor row)[0m
+[38;5;187m  tip jar (spinner): [0m[38;5;231m[ o ] [ O ] [ o ][0m[2;38;5;245m clinks while the belt re-sorts by menu[0m
+[2;38;5;117m  belt speed: h slow / l fast · enter lifts the plate · esc parks the whole rail[0m
+[2;38;5;150m  green tea at the rail's end: // ~ (house cup, refilled on every blur event)[0m
+[38;5;203m  raw bar note: [0m[2;38;5;245mgreyed plates swim upstream — they exist, but the kitchen is out[0m
+[2;38;5;187m             single-select: the chef keeps only the last plate you lift             [0m

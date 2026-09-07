@@ -1,0 +1,28 @@
+      [31;1mC[33;1ma[32;1mn[34;1md[36;1my[35;1mF[31;1mo[33;1mr[32;1mm[34;1ms[36;1m    GLACIER LINE — a chairlift of committed fields[0m
+[37;2m   ✦        ·        ☁          ·     ✦       ☁☁        ·        ✦        ·        ☁      ✦      ·[0m
+[37m  ·     ✦        ╱╲          ·       ╱██╲        ✦    ╱╲         ·       ✦   ╱╲        ·     ☁    ·[0m
+[34m     ·      ╱████╲     ☁  ✦    ╱██████╲       ·    ╱████╲     ✦   ·      ╱██████╲    ·   ✦      ·[0m
+[36;1m ─ ─ ╱·▓▓▓▓▓▓·╲─ ─ ─ ─ ─ ╱▓▓▓▓▓▓▓▓▓╲─ ─ ─ ╱▓▓▓▓▓▓▓▓╲─ ─ ─ ─ ╱▓▓▓▓▓▓▓▓▓▓▓▓╲─ ─ ─ ▸ SUMMIT[0m
+[37m⛷··╱·▓▓▓▓▓▓▓▓▓·╲···  ╱▓▓▓▓▓▓▓▓▓▓▓▓╲  ╱▓▓▓▓▓▓▓▓▓▓▓▓▓╲ ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲  snow stakes ░▒░[0m
+[33m  ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲······[0m
+[34;1m ═══════════════╳═══════════════════╳═════════════════╳══════════════════  regex switchbacks[0m
+[33m        ╤               ╤              ╲╱             ╤               ╤            ╤[0m
+[36m        ▐☰               ▐☰             ▐☰             ▐☰              ▐☰            ▐☰[0m
+[37;2m  chair 01         chair 02        chair 03        chair 04        chair 05       chair 06[0m
+[32m   name ✓           email ✓         passwd ▓        role            city           zip[0m
+[33m   ▀                 ▀               ▀              ▀               ▀              ▀[0m
+[37;2m  ·        ✦            ·      ·        ☁       ✦        ·     ☁        ·    ✦      ·     ✦[0m
+[36;1m ▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁[0m
+[33m   ┌────────── BASE STATION ──────────┐       ┌────────────── LIFT LODGE ──────────────┐[0m
+[37m   │ turnstile gate ░▒▓▒░             │     │  ☕ cocoa     ⚡ refocus bus   🎫 reissue │[0m
+[36m   │ scanner   pass ▓▓▓▓░░   [TAB]      │     │  📋 piste map  🧤 glove rule  📻 patrol   │[0m
+[33m   └───────────────────────────────────┘     └────────────────────────────────────────┘[0m
+[33m   GATES  01 [32;1m✓[33m 02 [32;1m✓[33m 03 [31;1m✗[33m 04 [32;1m✓[33m 05 [31;1m✗[33m 06 [32;1m✓[33m 07 [32;1m✓[33m 08 [32;1m✓[36m   arms down at last call[0m
+[31;2m   green arm rides · red arm walks you back to the queue — required!* enforced at the boot warmer[0m
+[37m   piste grades:  [32m● nursery = required[34m    ● blue = pattern[37m    ● black diamond = custom validator[0m
+[33m   avalanche board: [32;1mrisk LOW [36m· debouncer armed [35m· 0 open tickets · rope cut = shift-submit unlocked[0m
+[37;2m  ✦     ·       ✦       ·    ✦      ·        ✦      ·   ✦       ·      ✦    ·   ✦      ·     ✦    ·[0m
+[34m   terrain park:  kicker ░▒▓ required · rail ▔▔▔▔▔ pattern · halfpipe ◜◝ min-length · box ┌─┐ max-length[0m
+[32m   liftie calls the roll:  "name? boarded.  email? boarded.  passwd? stow the weak ones — 12 bits won't clear the chair."[0m
+[36m  ▔▔▔▔▔ snowfall rate = keystrokes per minute · the groomer lays regex corduroy overnight · fresh track ≠ dirty value ▔▔▔▔[0m
+[35m   night crew re-sweeps the validators, waxes the focus rails, and closes CANDY FORMS mountain until first TAB.[0m

@@ -1,0 +1,18 @@
+[1;35mCandyForms[0m ▸ [1;36mField\Confirm[0m  [2;37mthe fork in every form[0m[0m
+[0m
+  [33m? format as csv?  [0m[1;32m(y)[0m [1;31m(n)[0m[7m▌[0m[2;37m·····························[0m [2;37menter gives n[0m[0m
+  [33m? overwrite file? [0m[1;32m(y)[0m [1;31m(N)[0m[7m▌[0m[2;37m··························[0m [2;37mcapital N guards[0m[0m
+  [33m? discard draft?   [0m[1;32m(Y)[0m [1;31m(n)[0m[7m▌[0m[2;37m························[0m [2;37mcapital Y answers[0m[0m
+  [33m? leave page?      [0m[1;32myes[0m [1;31mno[0m[7m▌[0m[2;37m··························[0m [2;37mword answers too[0m[0m
+  [33m? melt the batch?  [0m[1;33m(y/N)[0m[7m▌[0m[2;37m······················[0m [2;37mbracket shows default[0m[0m
+[0m
+  [37m┌────────────────────────────────────────────────────────────────────┐[0m[0m
+  [1;33mkey  [0m[32my/Y/yes ⇒ true[0m[2;37m·································[0m [2;37mcase-insensitive[0m[0m
+  [1;33mkey  [0m[31mn/N/no ⇒ false[0m[2;37m································[0m [2;37mtrim + fold first[0m[0m
+  [37menter ⇒ the capital letter wins[0m[2;37m··························[0m [2;37mno coercion[0m[0m
+  [37mbackspace retypes — line re-renders[0m[2;37m················[0m [2;37mbuffer stays warm[0m[0m
+  [1;33mgarbage   [0m[31mre-prompt once, gently, never crash[0m[2;37m··············[0m [2;37mfail kind[0m[0m
+  [1;33mtheme     [0m[37mprompt cyan · affirmative green · regret red[0m[2;37m··[0m [2;37mTheme colors[0m[0m
+  [37m└────────────────────────────────────────────────────────────────────┘[0m[0m
+[0m
+  [36mConfirm::new([0m[33m"melt"[0m[36m)->withDefault([0m[31mfalse[0m[36m)[0m[2;37m·············[0m [2;37mthe whole story[0m[0m

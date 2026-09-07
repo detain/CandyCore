@@ -1,0 +1,22 @@
+[0m[31;1mC[0m[33;1ma[0m[32;1mn[0m[36;1md[0m[34;1my[0m[35;1mQ[0m[37;1mu[0m[31;1me[0m[33;1mr[0m[32;1my[0m                                                       [0m[37;2mKEY SHOP · THE BENCH[0m [0m
+[0m[33;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[33;1mPEGBOARD · tags hang from nails · blanks sleep in the drawer[0m                         [0m
+[0m      [0m[37;2m│[0m                    [0m[37;2m│[0m                    [0m[37;2m│[0m                    [0m[37;2m│[0m                [0m
+[0m [0m[32;1m╭──────────╮[0m         [0m[33;1m╭──────────╮[0m         [0m[36;1m╭──────────╮[0m         [0m[31;1m╭──────────╮[0m          [0m
+[0m  [0m[37m users.id [0m           [0m[37morders.uid[0m           [0m[37m prod.sku [0m           [0m[37m sess.tok [0m           [0m
+[0m  [0m[32;1m  master  [0m           [0m[33;1m   pass   [0m           [0m[36;1m  warded  [0m           [0m[31;1m  BLANK   [0m           [0m
+[0m  [0m[37;2mPK · original[0m        [0m[37;2m4,120 dupes[0m          [0m[37;2m  UNIQUE  [0m           [0m[37;2m  uncut!  [0m           [0m
+[0m      [0m[37;2m│[0m                    [0m[37;2m│[0m                    [0m[37;2m│[0m                    [0m[37;2m│[0m                [0m
+[0m [0m[37;1m╭──────────╮[0m         [0m[30;1m╭──────────╮[0m         [0m[32;1m╭──────────╮[0m         [0m[35;1m╭──────────╮[0m          [0m
+[0m  [0m[37mevents.who[0m           [0m[37m inv.qty  [0m           [0m[37m  pay.id  [0m           [0m[37m cart.id  [0m           [0m
+[0m  [0m[37;1m  lever   [0m           [0m[30;1m   none   [0m           [0m[32;1m  master  [0m           [0m[35;1m   dup    [0m           [0m
+[0m  [0m[37;2m partial  [0m           [0m[37;2mno key cut[0m           [0m[37;2mPK · original[0m        [0m[37;2mfrom master[0m          [0m
+[0m [0m[33m●─┬┘ key on tag 04 · ●──┴┴├ blank stock · warding file on the wall[0m                   [0m
+[0m[33;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[35;1m┌─ CUTTING LATHE · impressioning ────────┐[0m  [0m[33;1m┌─ KEY RING · FK chain ─────────────────┐[0m
+[0m [0m[35;1m│[0m [0m[37mblank  orders.user_id ▸ depth 3[0m        [0m[35;1m│[0m  [0m[33;1m│[0m [0m[33musers 1—○ orders 1—○ items[0m            [0m[33;1m│[0m
+[0m [0m[35;1m│[0m [0m[37mbitting 1–7–3  │ │ │  from B-tree[0m      [0m[35;1m│[0m  [0m[33;1m│[0m [0m[37meach ring turn = one cascade[0m          [0m[33;1m│[0m
+[0m [0m[35;1m│[0m [0m[31mfile: SEQ SCAN (slow, noisy)[0m           [0m[35;1m│[0m  [0m[33;1m│[0m [0m[37mmaster key opens the plan cache[0m       [0m[33;1m│[0m
+[0m [0m[35;1m│[0m [0m[32mtest-fit ▸ turns at first try[0m          [0m[35;1m│[0m  [0m[33;1m│[0m [0m[31;1mDo Not Duplicate: tag 06[0m              [0m[33;1m│[0m
+[0m [0m[35;1m└────────────────────────────────────────┘[0m  [0m[33;1m└───────────────────────────────────────┘[0m
+[0m [0m[33;2mCandyQuery lock shop · we cut by bitting, never by luck[0m                              [0m

@@ -1,0 +1,19 @@
+  [1;95m▄▄ CandyForms window pile ▄▄[0m                                               
+  [96m┌───── [1;97mCandyForms :: setup[0m[96m [0m──────┐[0m     [95m┌───────── [1;97mname *[0m[95m [0m─────────┐[0m        
+  [96m│[0m [97mtheme[0m[1;93m  ◉[0m[97m Nocturne[0m              [96m│[0m     [95m│[0m [92mAda L[0m[1;96m▉[0m                   [95m│[0m        
+  [96m│[0m [94m        ○[0m[37m Daylight[0m             [96m│[0m     [95m│[0m [1;91mrequired! [0m[1;91m✗[0m              [95m│[0m        
+  [96m│[0m [94m        ○[0m[37m Midnight[0m             [96m│[0m     [95m│[0m [37m(letters so far: 5)[0m      [95m│[0m        
+  [96m│[0m [94m        ○[0m[37m Sugarpaper[0m           [96m│[0m     [95m│[0m                          [95m│[0m        
+  [96m│[0m [1;92m/ filter: noct_[0m                [96m│[0m     [95m│[0m [37menter to retry[0m           [95m│[0m        
+  [96m│[0m [34m──────────────────────────────[0m [96m│[0m     [95m│[0m [94mtab next field[0m           [95m│[0m        
+  [96m│[0m [92m☑ remember my choice[0m           [96m│[0m     [95m└──────────────────────────┘[0m        
+  [96m└────────────────────────────────┘[0m                                         
+                                                                             
+                        [93m▌▌[0m [93m┌─────── [1;97mconfirm[0m[93m [0m────────┐[0m                        
+                         [93m▐[0m [93m│[0m [97msubmit this form?[0m      [93m│[0m                        
+                         [93m▐[0m [93m│[0m [93m▸ [0m[1;92mY[0m[92mes    [0m[1;91mN[0m[91mo[0m            [93m│[0m                        
+                         [93m▐[0m [93m│[0m [33mesc bails, no shame[0m    [93m│[0m                        
+                         [93m▐[0m [93m└────────────────────────┘[0m                        
+                        [93m▀▀[0m [34manother field requests audience [0m                  
+                                                                             
+        [35mthree little dialogs, one big feeling — CandyForms stacks them neatly[0m[0m

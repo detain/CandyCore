@@ -1,0 +1,28 @@
+   [1m[38;5;175mS U G A R   C R U S H[0m   [38;5;61m— sugarcrush doctor · install health wall · v0.3.2[0m
+  [38;5;114m[1mprovider latency        [0m          [38;5;111m[1mhook coverage           [0m          [38;5;215m[1mmcp reach               [0m          [38;5;182m[1msession db              [0m          
+  [48;5;114m███████[48;5;238m░░░░░░░░░░░░░░░░░[0m          [48;5;111m████████████████████████[48;5;238m[0m          [48;5;215m███████████████[48;5;238m░░░░░░░░░[0m          [48;5;182m██████████[48;5;238m░░░░░░░░░░░░░░[0m          
+  [38;5;114m 31.0%                  [38;5;245m 31[0m       [38;5;111m100.0%                  [38;5;245m[1m100[0m       [38;5;215m 66.0%                  [38;5;245m 66[0m       [38;5;182m 42.0%                  [38;5;245m 42[0m       
+                                                                                                                                          
+
+  [38;5;61m[1mCHECK                   DETAIL                                                        STATE[0m
+  [38;5;114m✔[0m [38;5;245mphp >= 8.3              8.3.12 · extensions loaded                                  [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245msqlite3 driver          sessions.db 1.2MB · 7 rows                                  [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245mhook: PreToolUse        4 registered · 0 failing                                    [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245mhook: PostToolUse       golden crumbs enabled                                       [0m[38;5;114m  OK[0m
+  [38;5;215m⚠[0m [38;5;245mmcp: filesystem         handshake ok · cache degraded                               [0m[38;5;215mWARN[0m
+  [38;5;215m⚠[0m [38;5;245mpermissions             Bash(rm *) asks often — allowlist?                          [0m[38;5;215mWARN[0m
+  [38;5;114m✔[0m [38;5;245mskills loader           .sugar-crush/skills · 12 parsed                             [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245mprovider echo           offline fallback armed                                      [0m[38;5;114m  OK[0m
+  [38;5;182m⚠[0m [38;5;245mmodel sglang            ctx 68% · compaction pending                                [0m[38;5;182mWARN[0m
+  [38;5;114m✔[0m [38;5;245mterminal palette        256 colors · gradients smooth                               [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245mreact event loop        idle 0.4ms · timers stable                                  [0m[38;5;114m  OK[0m
+  [38;5;114m✔[0m [38;5;245mconfig chain            4 files · highest wins per key                              [0m[38;5;114m  OK[0m
+  [38;5;222m⚠[0m [38;5;245mdemo tapes              vhs matrix lists 1 of 3 crush demos                         [0m[38;5;222mWARN[0m
+  [38;5;114m✔[0m [38;5;245mgit workspace           clean tree · hooks synced                                   [0m[38;5;114m  OK[0m
+
+  [38;5;245m03:12[0m [38;5;111m⚙ Edit src/Press/Jaw.php                            [0m
+  [38;5;245m03:12[0m [38;5;182m⚡ hook PreToolUse → allow                           [0m
+  [38;5;245m03:13[0m [38;5;114m⚙ Bash phpunit → 22/22 green                        [0m
+  [38;5;245m03:14[0m [38;5;222m◆ SUGAR CRUSH crumb count 148                       [0m
+  [38;5;245msweetness [48;5;238m██████████████████████████████[0m[48;5;114m▓▓▓▓▓▓▓▓▓▓▓▓[0m [38;5;114m[1m10 green · 4 amber · 0 red — crush responsibly[0m
+  [38;5;175mSUGAR CRUSH[0m [2m[38;5;245m· every crumb accounted for · next visit in 24h[0m

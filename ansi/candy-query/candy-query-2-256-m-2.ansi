@@ -1,0 +1,23 @@
+ [1;223mCandyQuery[0m[38;5;110m ▸ schema browser — app.sqlite[0m                                     [0m
+[38;5;240m[0m[38;5;228m◆ [1mapp.sqlite[0m[38;5;102m  2.1 MB · WAL · journal_mode=wal[0m[0m
+[38;5;240m├─ [0m[38;5;180m▸ attached[0m[38;5;66m  (1)[0m[0m
+[38;5;240m├─ [0m[38;5;180m▸ views[0m[38;5;66m  (3)[0m[0m
+[38;5;240m├─ [0m[38;5;216m▾ indexes[0m[38;5;66m  (9)[0m[0m
+[38;5;240m│   ├─ [0m[38;5;84midx_flavor[0m[38;5;102m  ON candies(flavor_id)[0m[0m
+[38;5;240m│   └─ [0m[38;5;84midx_orders_candy[0m[38;5;102m  ON orders(candy_id)[0m[0m
+[38;5;240m└─ [0m[38;5;216m▾ tables[0m[38;5;66m  (24)[0m[0m
+[38;5;240m    ├─ [0m[1m[38;5;189m▾ candies[0m[38;5;102m  ◀ 1,204 rows · focused[0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m● id          [0m[38;5;179mINTEGER   [0m[38;5;223m⚿ PK[0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m○ name        [0m[38;5;117mTEXT      [0m[38;5;223mUQ[0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m● flavor_id   [0m[38;5;179mINTEGER   [0m[38;5;223mFK→flavors[0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m● price_cents [0m[38;5;179mINTEGER   [0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m◐ cocoa_pct   [0m[38;5;212mREAL      [0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m◔ in_stock    [0m[38;5;120mBOOLEAN   [0m[0m
+[38;5;240m    │   ├─ [0m[38;5;144m◆ wrapping    [0m[38;5;84mBLOB      [0m[0m
+[38;5;240m        └─ [0m[38;5;144m◷ created_at  [0m[38;5;183mTIMESTAMP [0m[0m
+[38;5;240m    ├─ [0m[38;5;180m▸ orders[0m[38;5;66m  · 9,820 rows[0m[0m
+[38;5;240m    ├─ [0m[38;5;180m▸ customers[0m[38;5;66m  · 455 rows[0m[0m
+[38;5;240m    ├─ [0m[38;5;180m▸ flavors[0m[38;5;66m  · 6 rows[0m[0m
+[38;5;240m    ├─ [0m[38;5;180m▸ batches[0m[38;5;66m  · 122 rows[0m[0m
+[38;5;240m    └─ [0m[38;5;180m▸ reviews[0m[38;5;66m  · 87 rows[0m[0m
+ [2mPRAGMA table_info(candies) · enter loads rows pane · Tab switches focus[0m      [0m

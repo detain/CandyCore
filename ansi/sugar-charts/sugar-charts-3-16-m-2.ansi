@@ -1,0 +1,20 @@
+[0m [1m[33mANATOMY OF A CHART AXIS[0m      [2m[37m· SugarCharts field guide, plate ⑧ · a dissection in ten[0m
+[0m                                                                                      [0m
+[0m                              [36m② PLOT AREA[0m                         [33m④ TICK LABELS[0m       [0m
+[0m      [35m① Y-AXIS TITLE[0m                                              [31m⑥ DATA SERIES ↙[0m     [0m
+[0m      [2m[35m"shipments kt"[0m                                              [34m⑤ GRID LINES[0m        [0m
+[0m                      [37m┌──────────────────────────────────────┐[0m    [36m⑧ FRAME CORNER[0m      [0m
+[0m                   [33m60[0m[37m┤│[0m   [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [37m│[0m                        [0m
+[0m                      [37m│[0m   [34m┄[0m    [34m┄[0m   [31m╱[0m[1m[31m●[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [37m│[0m                        [0m
+[0m                   [33m40[0m[37m┤│[0m   [34m┄[0m [1m[31m●[0m[31m╲[0m [34m┄[0m  [31m╱[0m [34m┄[0m[31m╲[0m   [34m┄[0m  [1m[31m●[0m [34m┄[0m    [34m┄[0m    [34m┄[0m    [37m│[0m                        [0m
+[0m                      [37m│[0m   [34m┄[0m   [31m╲╲[0m[1m[31m●[0m[31m╱[0m  [34m┄[0m [31m╲╲[0m [31m╱╱╱[0m [31m╲╲[0m    [31m╱[0m[1m[31m●[0m[31m╲╲[0m [34m┄[0m    [37m│[0m                        [0m
+[0m                   [33m20[0m[37m┤│[0m   [34m┄[0m    [34m┄[0m    [34m┄[0m   [1m[31m●[0m[34m┄[0m    [34m┄[0m[31m╲[0m  [31m╱[0m[34m┄[0m   [31m╲[0m[1m[31m●[0m    [37m│[0m                        [0m
+[0m                      [37m│[0m   [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m [1m[31m●[0m[31m╱[0m [34m┄[0m    [34m┄[0m    [37m│[0m                        [0m
+[0m  [32m⑦ ZERO LINE[0m  [32m──────────↘[0m[34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [34m┄[0m    [37m│[0m                        [0m
+[0m                      [37m└──────────────────────────────────────┘[0m                        [0m
+[0m                          [35m⑨[0m             [35m⑨[0m             [35m⑨[0m                               [0m
+[0m                                                                  [37m③ AXIS SPINE[0m        [0m
+[0m                    [33m⑩ AXIS LABEL:  "month →"[0m                      [2m[37m│ the unblinking ║ o[0m
+[0m [1m[37mparts: [0m[37maxis · [0m[33mtick[0m[37m · [0m[34mgrid[0m[37m · [0m[31mseries[0m[37m · [0m[36mframe[0m[37m · [0m[35mlabel[0m[37m · [0m[32mzero[0m[37m · [0m                         [0m
+[0m [3m[36mevery chart you will ever read is these ten things, holding hands[0m                    [0m
+[0m [2m[37mGraph::drawXYAxis() · drawXYAxisLabel() · LineChart::withAxes()->withYLabels()[0m       [0m

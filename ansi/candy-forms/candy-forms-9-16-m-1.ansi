@@ -1,0 +1,21 @@
+[1;33m    ╔═══════════ [0m[1;37mTOLL PLAZA · keystrokes only[0m[1;33m ═══════════╗[0m                          [0m
+[33m    ║ [0m[1;36mCANDY FORMS turnpike authority — every valid character pays a coin[0m[33m ║[0m          [0m
+[1;33m    ╚═══════════════════════════════════════════════════════════════════╝[0m           [0m
+                                                                                    [0m
+     [34m▒▒▒▒▒[0m          [34m▒▒▒▒▒[0m          [34m▒▒▒▒▒[0m          [34m▒▒▒▒▒[0m                             [0m
+     [1;33m╔═══╗[0m          [1;33m╔═══╗[0m          [1;33m╔═══╗[0m          [1;31m╔═══╗[0m                             [0m
+     [33m║ ≥8║[0m          [33m║has║[0m          [33m║Y-M║[0m          [1;31m║ ✗ ║[0m     booths = rules          [0m
+     [33m║chr║[0m          [33m║ @ ║[0m          [33m║MMM║[0m          [31m║LANE CLOSED[0m[1;31m║[0m                     [0m
+     [1;33m╚═╤═╝[0m           [1;33m╚═╤═╝[0m           [1;33m╚═╤═╝[0m           [1;31m╚═╤═╝[0m                          [0m
+[37m  ──┼──────────────────┼──────────────────┼──────────────────┼──────[0m                [0m
+[1;35m ═══╪══════════════════╪══════════════════╪══════════════════╪═══ road[0m              [0m
+   [32m◢█◣[0m [name]         [36m◢█◣[0m [email]        [32m◢█◣[0m [date]         [31m◢█◣[0m [card??]            [0m
+   [32mbarrier ▁▁▁▁ UP[0m   [32mbarrier ▂▂▂ open[0m  [32mbarrier ▁▁▁▁ UP[0m   [1;31mbarrier ███ DOWN[0m           [0m
+   paid [32m▓▓▓▓▓▓▓▓░░[0m 8/8 ✓  paid [36m▓▓▓▓▓▓▓[0m 7/7 ✓  paid [32m▓▓▓▓▓▓▓▓▓▓[0m 10/10 ✓               [0m
+   rejected: [1;31mcoin slot ate a '~'[0m  BEEP! [2;31mtoo tall for the gantry[0m                     [0m
+                                                                                    [0m
+   queue behind: [35m( ) (●) ( )[0m radio car #2 tied for lane 2   [2;33mhonk = Ctrl-C[0m           [0m
+   toll clerk stamp: [1;32m"EXACT VALIDATION ONLY"[0m  · no IOUs, no coercing coins          [0m
+   receipt ribbon ↓  [2;36mthank you — your field passed, drive safe[0m                      [0m
+   [33m▒[0m [33m▒[0m [33m▒[0m [33m▒[0m   [31m402 toll-dodger (required, empty) — boot clamped on submit[0m             [0m
+   [33m▒[0m [33m▒[0m [33m▒[0m [33m▒[0m[2;37m   plaza lights dim while idle · focus beam follows the lead car[0m          [0m

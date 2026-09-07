@@ -1,0 +1,9 @@
+[1;33mSUGAR DASH ▸ REFRESH HEARTBEAT ▸ 1 TICK = 250ms             [0m
+                                                            [0m
+[1;32mLEAD I ▸ [32m▁▁▁▂▁▁▁▁▁▁█▁▁▁▁▂▃▃▂▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁█▁▁▁▁▂▃▃▂▁▁▁▁▁▁▁ [0m
+[1;36mLEAD II▸ [36m▂▁▁▁▁▁▁█▁▁▁▁▂▃▃▂▁▁▁▁▁▁▁▁▂▁▁▁▁▁▁█▁▁▁▁▂▃▃▂▁▁▁▁▁▁▁▁▂▁ [0m
+[1;35mRHYTHM▸  [1;35m              *                       *            [0m
+                                                            [0m
+[2;37m        └─P─┘  └QRS┘  └─T─┘   P=prime  QRS=composite  T=term[0m
+[37mrate 72 refresh/min · coupling LOCKED · miss 0              [0m
+[2;36m     ┼─────┼─────┼─────┼─────┼─────┼  t                     [0m

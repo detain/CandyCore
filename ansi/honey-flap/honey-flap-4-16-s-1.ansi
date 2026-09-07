@@ -1,0 +1,8 @@
+[1;33m═ HONEY FLAP · WIND TUNNEL RIG-07 · RUN 214 ═[0m                 
+[36minlet [0m[36m→→→   [0m[36m~~~~>  [0mstation grid[34m  <~~~~ [0m[34m←←← return[0m             
+[37m───┬──────┬─────[0m[ [1;33m≡●≡[0m ][37m─────┬──────┬───[0m                       
+[35mP-tap   [0m[35m▁▂▃▅▇▆▄▂   [0m[35mΔP −0.31 kPa[0m  ·  clamp load 4.2 N          
+[34mwake    [0m[34m◄≋≋≋≋  [0mturbulence band[31m  ≋≋≋►[0m                          
+[37mRe 4.2e5   Ma 0.12   drag 0.31   lift 0.88[0m                    
+[1;32mVERDICT  [0m[32m▓▓▓▓▓▓▓▓░░[0m[32m 82%   [0m[1;32mPASS[0m                                
+[2;36mclamps firm · hive-telemetry OK · next run 06:40[0m              [0m

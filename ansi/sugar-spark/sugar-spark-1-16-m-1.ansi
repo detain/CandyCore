@@ -1,0 +1,18 @@
+[96m╔════════════════ sugar-spark · inspect — the escape-sequence x-ray ════════════════╗[0m
+[96m║[0m [37m$ [0m[92mprintf '\e[31mhello\e[0m world\n'[0m[90m | sugarspark[0m                         [90m27 bytes[0m [96m║[0m
+[96m║[0m [90mstdin ── 27 bytes ──► Inspector::parse() ──► segments[0m                             [96m║[0m
+[96m╠═════════════════════════════════════════╦══════════════════════════════════════════╣[0m
+[96m║[0m [1m[33mRAW BYTE STREAM[0m[0m                                                           [1m[35mDECODER[0m[0m [96m║[0m
+[96m║[0m [36m00000000  1B 5B 33 31 6D 68 65 6C[0m                    [91mESC[31m[0m [90m→[0m [31mSGR foreground red[0m [96m║[0m
+[96m║[0m [36m00000009  6C 6F 20 77 6F 72 6C 64[0m                      [37mhello[0m [90m→[0m [90mtext run — 6 bytes[0m [96m║[0m
+[96m║[0m [33m00000011  0A 1B 5B 30 6D 20 1B 5B[0m                              [97mESC[0m[0m [90m→[0m [37mSGR reset[0m [96m║[0m
+[96m║[0m [33m0000001A  3F 32 35 6C 1B 5B 3F 32[0m            [94mESC[?25l[0m [90m→[0m [34mDEC private — hide cursor[0m [96m║[0m
+[96m║[0m [35m00000022  30 32 36 68 1B 5D 30 3B[0m             [96mESC[?2026h[0m [90m→[0m [36msynchronized output ON[0m [96m║[0m
+[96m║[0m [95m0000002A  74 69 74 6C 65 07 1B 28[0m        [95mESC]0;title BEL[0m [90m→[0m [35mOSC — set window title[0m [96m║[0m
+[96m║[0m [90m00000032  42 0A[0m                                                      [37mworld[0m [90m→[0m [90mtext[0m [96m║[0m
+[96m╟───────────────────────────────────────────────────────────────────────────────────╢[0m
+[96m║[0m [90mfamilies[0m [37mSGR[0m [91m▇▇▇▇▇▇[0m▁  [37mCSI[0m [96m▇▇▇▇▇[0m▁▁  [37mOSC[0m [95m▇▇▇[0m▁▁▁▁  [37mDEC[0m [94m▇▇▇▇[0m▁▁▁  [37mDCS[0m [33m▇▇[0m▁▁▁▁▁      [90mn=5[0m [96m║[0m
+[96m║[0m [91m▮ [0mSGR  [96m▮ [0mCSI  [95m▮ [0mOSC  [94m▮ [0mDEC  [33m▮ [0mDCS/APC               [90mnothing is silently swallowed[0m [96m║[0m
+[96m║[0m [90mfilter [0m[92mnone[0m   [90mmode [0m[93mdecode-all[0m   [90mfallback [0m[91mgeneric descriptor[0m  [90mno silent swallowing[0m [96m║[0m
+[96m║[0m [90msegments [0m[92m11[0m   [90mescapes [0m[92m6[0m   [90munrecognised [0m[93m0[0m         [7m sugar-spark [0m[90mq quit · j/k scroll[0m [96m║[0m
+[96m╚═════════════════════════════════════════╩══════════════════════════════════════════╝[0m

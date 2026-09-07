@@ -1,0 +1,28 @@
+[38;5;111mC[0m[38;5;174ma[0m[38;5;180mn[0m[38;5;110md[0m[38;5;80my[0m[38;5;109mF[0m[38;5;179mo[0m[38;5;150mr[0m[38;5;223mm[0m[38;5;114ms[0m[38;5;245m  ·  theme console  ·  Form::withConstraints()  ·  Nocturne profile[0m[0m
+[38;5;110m┌────────────────────────────┬───────────────────────────────────────────────────────────────────────────────────────────────┐[0m[0m
+[38;5;110m│[0m[48;5;110;38;5;16m ▸ ACCOUNT [0m                 [38;5;110m│[0m [38;5;223mTheme · Nocturne — palette slots used by every field                                         [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  THEME[0m                     [38;5;110m│[0m [38;5;110m✓ prompt    [0m[48;5;223;38;5;16m 223 [0m   [38;5;110m✓ cursor     [0m[48;5;174;38;5;16m 174 [0m                                                       [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  FIELDS[0m                    [38;5;110m│[0m [38;5;110m✓ help      [0m[48;5;245;38;5;231m 245 [0m   [38;5;110m✓ error      [0m[48;5;203;38;5;16m 203 [0m                                                       [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  VALIDATORS[0m                [38;5;110m│[0m [38;5;110m✓ success   [0m[48;5;114;38;5;16m 114 [0m   [38;5;110m✓ muted      [0m[48;5;238;38;5;245m 238 [0m                                                       [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  KEYMAP[0m                    [38;5;110m│[0m                                                                                              [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  SPINNERS[0m                  [38;5;110m│[0m [38;5;180m? input width[0m  [38;5;250m│[0m[38;5;150m42[0m[7m [0m[38;5;250m│   [38;5;245mConstraint::length(42)[0m                                                [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;250m  DRAFTS[0m                    [38;5;110m│[0m [38;5;180m? autosave  [0m  [38;5;114m(•) every key[0m   [38;5;250m( ) on blur    ( ) never                                       [38;5;110m│[0m[0m
+[38;5;110m│[0m                            [38;5;110m│[0m [38;5;180m? fuzzy     [0m  [38;5;114m☑ SmithWaterman[0m   [38;5;114m☑ case-insensitive[0m  ☐ diacritics                             [38;5;110m│[0m[0m
+[38;5;110m│[0m                            [38;5;110m│[0m [38;5;245mpreview: [0m[38;5;223m? taste [0m[38;5;174m▓▓▓▓▓▓░░░[0m sweet 66%   [38;5;114m⠹ validating[0m                                          [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  ────────────[0m              [38;5;110m│[0m [38;5;245mdraft:   [0m[38;5;150m~/candy-forms/drafts/signup-2.json[0m[38;5;245m  saved 4s ago[0m                                    [38;5;110m│[0m[0m
+[38;5;110m│[0m                            [38;5;110m│[0m [38;5;245mspinner: [0m[38;5;114m⠋⠙⠹⠸[0m[38;5;245m  dot · 90ms · Style::dot()[0m                                                     [38;5;110m│[0m[0m
+[38;5;110m│[0m                            [38;5;110m│[0m [38;5;245mkeymap:  [0m[38;5;250mctrl-s save draft · ctrl-z undo · tab advances the field[0m                            [38;5;110m│[0m[0m
+[38;5;110m│[0m                            [38;5;110m│[0m [38;5;180m? group    [0m[38;5;114m☑ collapse empty fields[0m[38;5;245m   Group renders notes inline[0m                              [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  ────────────[0m              [38;5;110m│[0m [38;5;245m         [0m[38;5;223mevery slot above is painted from this Theme struct[0m                                  [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  v1 · nocturne[0m             [38;5;110m│[0m [38;5;245mhistory: [0m[38;5;250mctrl-z rewinds field edits one keystroke at a time[0m                                  [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  v1 · nocturne[0m             [38;5;110m│[0m [38;5;245mexport:  [0m[38;5;150mvalues as JSON · TOML · or a shared sugar-bits form[0m                                 [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  v1 · nocturne[0m             [38;5;110m│[0m                                                                                              [38;5;110m│[0m[0m
+[38;5;110m│[0m[38;5;245m  v1 · nocturne[0m             [38;5;110m│[0m                                                                                              [38;5;110m│[0m[0m
+[38;5;110m└────────────────────────────┴───────────────────────────────────────────────────────────────────────────────────────────────┘[0m[0m
+[38;5;245mtab cycles fields · enter advances · ctrl-s writes theme.toml · [0m[38;5;179mesc discards the draft[0m[0m
+[38;5;66m┌ console ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[0m[0m
+[38;5;66m│[0m [38;5;114m$[0m [38;5;250mphp examples/theme-console.php --profile nocturne[0m                         [38;5;66m│[0m[0m
+[38;5;66m│[0m [38;5;245mloaded 14 slots · painted 8 widgets · latency 3ms · 0 warnings · 5 distinct colors, as served[0m                               [38;5;66m│[0m[0m
+[38;5;66m│[0m [38;5;114m$[0m [38;5;250mphp examples/validators.php --strict --flavor=nocturne[0m                                                            [38;5;66m│[0m[0m
+[38;5;66m│[0m [38;5;203m0 errors[0m · [38;5;179m1 warning (MaxLen near limit)[0m · [38;5;114m14 fields green[0m                                                                          [38;5;66m│[0m[0m
+[38;5;66m└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘[0m[0m

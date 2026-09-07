@@ -1,0 +1,11 @@
+[0m[38;2;240;113;120;1mC[0m[38;2;254;160;80;1ma[0m[38;2;255;215;130;1mn[0m[38;2;158;206;106;1md[0m[38;2;125;207;255;1my[0m[38;2;130;210;255;1mQ[0m[38;2;122;162;247;1mu[0m[38;2;180;140;255;1me[0m[38;2;243;139;168;1mr[0m[38;2;255;170;200;1my[0m                            [0m[38;2;165;165;178;2mLOCKSMITH · KEY CABINET[0m [0m
+[0m[38;2;210;140;90;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;2;255;215;130;1mTAG  KEY CUT (expression)   TYPE    ISSUES[0m                   [0m
+[0m [0m[38;2;158;206;106m01   users.id               master  one original[0m             [0m
+[0m [0m[38;2;254;160;80m02   orders.user_id         pass    4,120 duplicates[0m         [0m
+[0m [0m[38;2;240;113;120m03   sessions.token         BLANK   uncut ▸ seq-scan[0m         [0m
+[0m [0m[38;2;125;207;255m04   products.sku           warded  UNIQUE, never copied[0m     [0m
+[0m  [0m[38;2;210;140;90;1m●───┴┴─├   ●───┴┘   ●──┴┴┘[0m                                  [0m
+[0m  [0m[38;2;225;225;235mbitting from B-tree path: 1–7–3 · depth 3 · 48 mm[0m           [0m
+[0m  [0m[38;2;165;165;178mkey control: read-only · no duplication · ask the DBA[0m       [0m
+[0m [0m[38;2;95;95;115;2mCandyQuery key shop · an uncut column is a dark hallway[0m      [0m

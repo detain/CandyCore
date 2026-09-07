@@ -1,0 +1,9 @@
+[90m  ╭─ markup playground ──────────────────────────────[0m[0m
+  [37mMarkup::parse([0m[33m'[0m[91m[bold red][0m[3m[0m[31msweet[0m[91m[/][0m[95m[bg:blue][0m[94mpane[0m[95m[/][0m[33m'[0m[37m)[0m[0m
+ 
+   [2mrendered:[0m[0m
+    [1m[31msweet[0m  [1m[94mpane[0m  [4m[32munderline[0m  [91m[1mBOLD[0m[0m
+ 
+  [green]Apples[/]  [red]Bananas[/]  [yellow]Cherries[/]
+  [32mApples[0m   [31mBananas[0m   [33mCherries[0m   [90m…Enumerator::roman()[0m[0m
+  [4mcandy-sprinkles[0m[90m · declarative terminal styling[0m[0m

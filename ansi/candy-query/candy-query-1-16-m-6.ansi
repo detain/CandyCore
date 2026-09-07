@@ -1,0 +1,24 @@
+[0m[93mc[0m[92ma[0m[96mn[0m[37mdy[0m[90m-[0m[91mqu[0m[93me[0m[92mr[0m[96my[0m [0m[95m· EXPLAIN QUERY PLAN[0m                                                    [0m[90m·[0m [0m
+[0m[95mSELECT[0m[37m s.name, SUM(o.qty) [0m[95mAS[0m[37m [0m[96mboxes[0m[37m [0m[95mFROM[0m[37m [0m[96msweets[0m[37m [0m[96ms[0m[37m [0m[95mJOIN[0m[37m [0m[96morders[0m[37m [0m[96mo[0m[37m [0m[95mON[0m[37m o.sweet_id = s.id[0m   [0m
+[0m[95mWHERE[0m[37m s.flavor = [0m[92m'cherry'[0m[37m [0m[95mGROUP[0m[37m [0m[95mBY[0m[37m s.name [0m[95mORDER[0m[37m [0m[95mBY[0m[37m [0m[96mboxes[0m[37m [0m[95mDESC;[0m                        [0m
+[0m[90m┌─[0m[95;40m SELECT [0m[90m  planner picks the sweetest path[0m      [0m[90m·[0m                                    [0m
+[0m[90m├──[0m[96;40m SEARCH s [0m[92m USING INDEX flavor_idx (flavor=?)[0m[93m   1.2k rows[0m                  [0m[90m·[0m        [0m
+ [0m[90m│[0m  [0m[90m└──[0m[37;40m JOIN o [0m[96mON o.sweet_id = s.id[0m[93m   8.4k probes[0m          [0m[90m·[0m                          [0m
+ [0m[90m│[0m   [0m[90m└──[0m[95m USE TEMP B-TREE FOR GROUP BY[0m                                  [0m[90m·[0m              [0m
+ [0m[90m│[0m   [0m[90m│[0m   [0m[90m└──[0m[91;40m AGGREGATE [0m[96mSUM(qty)[0m                                                       [0m
+ [0m[90m│[0m  [0m[90m·│[0m      [0m[90m└──[0m[93;40m SORT [0m[96mboxes DESC[0m[93m   ~6 rows[0m                           [0m[90m·[0m [0m[90m·[0m              [0m[90m·[0m
+ [0m[90m│[0m                               [0m[90m·[0m          [0m[90m·[0m        [0m[90m·[0m                                [0m
+  [0m[92m→ 6 rows[0m[90m in [0m[96m0.042s[0m[90m · cost 38.4 · cache hit [0m[92m98.2%[0m       [0m[90m·[0m      [0m[90m·[0m                     [0m
+                                                                  [0m[90m·[0m                   [0m
+[0m[90m────────────────────────────────[0m[90;40m storage ┤ B+tree idx_sweets_flavor ├ engine [0m[90m─────────[0m
+[0m[90m·[0m                                    [0m[37m╔══════════╗[0m                                     [0m
+            [0m[90m·[0m             [0m[90m·[0m [0m[90m·[0m [0m[90m·[0m      [0m[37m║[0m[90m·[0m[37m17│42[0m    [0m[37m║[0m [0m[90m◄─ root[0m           [0m[90m·[0m                 [0m
+       [0m[90m·[0m                             [0m[37m╚══════════╝[0m                                     [0m
+                            [0m[90m│────────────────────────────│[0m                            [0m
+                            [0m[90m│[0m             [0m[90m│[0m              [0m[90m│·[0m [0m[90m·[0m                 [0m[90m·[0m       [0m
+                       [0m[96m╭──────────╮[0m                 [0m[96m╭──────────╮[0m                      [0m
+  [0m[90m·[0m                    [0m[96m│[0m [0m[96m5│11[0m     [0m[96m│[0m       [0m[90m·[0m         [0m[96m│[0m [0m[96m60│88[0m    [0m[96m│[0m              [0m[90m·[0m       [0m
+      [0m[90m·[0m                [0m[96m╰──────────╯[0m  [0m[90m·[0m              [0m[96m╰──────────╯[0m                      [0m
+          [0m[92m╟[0m[37m02│05[0m[92m╢[0m[90m ╌ ╌ ╌[0m[92m╟[0m[37m07│09[0m[92m╢[0m[90m╌ ╌ ╌╌[0m[92m╟[0m[37m11│14[0m[92m╢[0m[90m ╌ ╌ ╌ ╌ ╌ ╌╌[0m[92m╟[0m[37m23│31[0m[92m╢[0m[90m ╌ ╌ ╌[0m[92m╟[0m[37m88│91[0m[92m╢[0m          [0m
+[0m[90mdepth 2 · 5 pages · 3 leaves scanned of 412        legend: [0m[96mSEARCH[0m[90m [0m[93mSCAN[0m[90m [0m[37mJOIN[0m[90m [0m[95mSORT[0m      [0m
+     [0m[90m·[0m           [0m[90m·[0m   [0m[95mcandy-query — the query plan, drawn in candy[0m           [0m[90m·[0m         [0m

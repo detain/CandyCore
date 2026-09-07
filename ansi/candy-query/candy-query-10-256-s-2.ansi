@@ -1,0 +1,12 @@
+[0m[38;5;203;1mC[0m[38;5;215;1ma[0m[38;5;180;1mn[0m[38;5;150;1md[0m[38;5;116;1my[0m[38;5;153;1mQ[0m[38;5;110;1mu[0m[38;5;141;1me[0m[38;5;176;1mr[0m[38;5;218;1my[0m                               [0m[38;5;245;2mTXN WEDDING REGISTRY[0m [0m
+[0m [0m[38;5;134mtxn#7 ♡ txn#8 · witness: WAL · OFFICIANT: autocommit OFF[0m     [0m
+[0m[38;5;217;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;5;180;1mGIFT (object)          CLAIMED     LOCK[0m                      [0m
+[0m [0m[38;5;217mrow-exclusive orders#42  txn#7      ■ worn[0m                   [0m
+[0m [0m[38;5;153mindex share users_pk     txn#8      □ shared[0m                 [0m
+[0m [0m[38;5;150mtoast flutes, pair       both       open[0m                     [0m
+[0m[38;5;217;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[38;5;218;1m♡ 3 gifts · 1 union · 0 uncommitted regrets[0m                  [0m
+[0m [0m[38;5;245mregistry cq-1200 · due: next checkpoint[0m    [0m[38;5;180m╭─╮[0m               [0m
+[0m [0m[38;5;240;2mCandyQuery · until commit do you part[0m      [0m[38;5;180m├┴┤[0m               [0m
+[0m [0m[38;5;134;2mgifts are locks · locks are promises[0m       [0m[38;5;180m╰─╯[0m               [0m

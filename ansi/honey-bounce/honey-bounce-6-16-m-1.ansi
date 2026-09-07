@@ -1,0 +1,22 @@
+[33mHONEY BOUNCE :: SQUIRREL FENCE-HOP TRAJECTORY STUDY (spring model, damped hops)[0m       
+                                                                                      
+              [37m(o_o)/\  T+0.31s[0m                                                        
+                                                                                      
+            [36m..[0m[33m*[0m[36m..[0m                                                                     
+           [36m..[0m   [36m..[0m                    [37m \o_o/  T+0.52s[0m                                 
+          [36m.[0m       [36m.[0m        [33m*[0m                                                          
+         [36m..[0m       [36m..[0m     [36m.....[0m                                                        
+        [36m..[0m         [36m..[0m   [36m..[0m   [36m..[0m    [33m*[0m                  [37m  >o_o  T+0.66s[0m                 
+       [36m..[0m           [36m..[0m [36m..[0m     [36m..[0m   [36m....[0m [33m*[0m                                             
+       [36m.[0m             [36m.[0m [36m.[0m       [36m..[0m [36m..[0m  [36m..[0m [36m....[0m                     [37m o_o.  tired[0m        
+      [36m..[0m             [36m...[0m        [36m...[0m    [36m...[0m  [36m.[0m                                         
+      [36m.[0m [31m|[0m             [36m.[0m [31m|[0m       [36m..[0m      [36m.[0m   [36m..[0m          [31m|[0m               [31m|[0m             
+    [31m====|===============|===============|===============|===============|======[0m       
+        [31m|[0m               [31m|[0m               [31m|[0m               [31m|[0m               [31m|[0m             
+    [31m====|===============|===============|===============|===============|======[0m       
+       [37m_[0m[31m|[0m[37m_[0m             [37m_[0m[31m|[0m[37m_[0m             [37m_[0m[31m|[0m[37m_[0m             [37m_[0m[31m|[0m[37m_[0m             [37m_[0m[31m|[0m[37m_[0m            
+    [36mapex decay h(n) = 1.40 * 0.66^n m   post spring k=48 N/m   tail damping zeta=0.31[0m 
+    [32mrail flex 6 mm at landing (sag), recovered in 0.4 s -- spring energy on loan[0m      
+    [33mgarden survey site 7   logged by HoneyBounce field kit[0m                            
+    [33mverdict: squirrel restitution 0.66, enthusiasm 1.0[0m                                
+                                                                                      [0m

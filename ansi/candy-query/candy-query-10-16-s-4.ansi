@@ -1,0 +1,11 @@
+[0m[31;1mC[0m[33;1ma[0m[32;1mn[0m[36;1md[0m[34;1my[0m[35;1mQ[0m[37;1mu[0m[31;1me[0m[33;1mr[0m[32;1my[0m                             [0m[37;2mCONSERVATORY · ROOM 03[0m [0m
+[0m [0m[33;1m┌─ ROOM 03 — table: users ─────────────────────────────────┐[0m [0m
+[0m [0m[33;1m│[0m [0m[37minstrument   users_pkey (B-tree)[0m                         [0m[33;1m│[0m [0m
+[0m [0m[33;1m│[0m [0m[37mexercise     ascending scale id 1..8[0m                     [0m[33;1m│[0m [0m
+[0m [0m[33;1m│[0m [0m[32mtempo        1,440 rows per second[0m                       [0m[33;1m│[0m [0m
+[0m [0m[33;1m│[0m [0m[33mtuner        A=440 · drift ±0.0[0m                          [0m[33;1m│[0m [0m
+[0m [0m[33;1m└──────────────────────────────────────────────────────────┘[0m [0m
+[0m  [0m[36m♩ ♪ ♫ ♬ ♩ ♪ ♫ ♬  ▸ index scan, clean air[0m                    [0m
+[0m  [0m[35m♯♯ ♭  key: two sharps, one flat (NULL)[0m                      [0m
+[0m  [0m[37mmetronome  ││││ tick tick tick (fsync off)[0m                  [0m
+[0m  [0m[30;2mCandyQuery conservatory · practice makes plan[0m               [0m

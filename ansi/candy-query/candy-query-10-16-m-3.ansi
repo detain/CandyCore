@@ -1,0 +1,22 @@
+[0m[31;1mC[0m[33;1ma[0m[32;1mn[0m[36;1md[0m[34;1my[0m[35;1mQ[0m[37;1mu[0m[31;1me[0m[33;1mr[0m[32;1my[0m                                              [0m[37;2mFRAUD LAB · EXAMINATION BENCH[0m [0m
+[0m[30;2m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m
+[0m [0m[37mcase #12-0042 · 'the underestimated seq-scan ring' · 3 exhibits[0m                      [0m
+[0m [0m[34;1m┌─ EXHIBIT A · MONEY-ORDER ─────────────┐[0m  [0m[36;1m┌─ EXHIBIT B · EXPLAIN ──────────────────┐[0m
+[0m [0m[34;1m│[0m [0m[37mserial   042-88-19[0m                    [0m[34;1m│[0m  [0m[36;1m│[0m [0m[31mSeqScan on audit_log[0m                   [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[32mpayee    result-set[0m                   [0m[34;1m│[0m  [0m[36;1m│[0m [0m[37m  cost=2.10 rows=1200[0m                  [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[37mamount   20 rows[0m                      [0m[34;1m│[0m  [0m[36;1m│[0m [0m[37m  width=44 · loops=1[0m                   [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[36mchecksum 8f31  ok[0m                     [0m[34;1m│[0m  [0m[36;1m│[0m [0m[33;1mclaimed → true cost 8.31[0m               [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[31;1mwatermark      MISSING[0m                [0m[34;1m│[0m  [0m[36;1m│[0m [0m[31;1moverstatement: +294 pct[0m                [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[37mfee      1.2 ms[0m                       [0m[34;1m│[0m  [0m[36;1m│[0m [0m[36mmotive: stale statistics[0m               [0m[36;1m│[0m
+[0m [0m[34;1m│[0m [0m[37;2missued   at checkpoint-3[0m              [0m[34;1m│[0m  [0m[36;1m│[0m [0m[36;2maccomplice: autovacuum idle[0m            [0m[36;1m│[0m
+[0m [0m[34;1m└───────────────────────────────────────┘[0m  [0m[36;1m└────────────────────────────────────────┘[0m
+[0m [0m[35;1mTEST PANEL · run on every exhibit[0m                                                    [0m
+[0m  [0m[37m▣ watermark                 [0m[31;1mMISSING[0m                                                 [0m
+[0m  [0m[37m▣ checksum                  [0m[32;1mok[0m                                                      [0m
+[0m  [0m[37m▣ serial order (LSN)        [0m[33;1mgapped at #44[0m                                           [0m
+[0m  [0m[37m▣ ink density (row width)   [0m[33;1mvariance high[0m                                           [0m
+[0m  [0m[37m▣ signature (FK)            [0m[32;1mauthentic[0m                                               [0m
+[0m  [0m[37m▣ UV fluorescence           [0m[35;1mcounterfeit plan glows[0m                                  [0m
+[0m [0m[33mEVIDENCE BAG 3/12 · sealed · chain of custody: main.c[0m                                [0m
+[0m [0m[31;1mANOMALY ▸ forged cost card · sentence: ANALYZE[0m   [0m[33;2mwatch list: orders + events[0m         [0m
+[0m [0m[30;2mCandyQuery fraud division · don't trust a quiet plan cache[0m                           [0m

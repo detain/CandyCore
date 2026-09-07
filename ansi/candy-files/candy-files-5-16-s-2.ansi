@@ -1,0 +1,9 @@
+[0m[1;33mCANDY FILES [2m· [37mBULK RENAME PRESS — No. 3                               [0m
+[0m[2min-feed              ┌──────────────────┐        out-tray             [0m
+[0m[31mIMG_0001.jpg  [33m══» [1;31mFIND   IMG_(\d+)  [33m│ [32mholiday-2024-0001.jpg           [0m
+[0m[31mIMG_0002.jpg  [33m══» [1;32mREPL   holiday-[1;33m\1 [33m│ [32mholiday-2024-0002.jpg           [0m
+[0m[31mIMG_0003.jpg  [33m══» [1;33mPAD    width 4     [33m│ [32mholiday-2024-0003.jpg          [0m
+[0m[2m…1,199 more           └──────────────────┘ [33m»»» [32m…done 1,204            [0m
+[0m[33m  ink [36m▓▓▓▓▓▓▓▓▓▓░░░░ [2m8mm     carriage [37m══»                             [0m
+[0m[35m  stamps 12/s     [34mmisfeeds 0     [32mundo armed                           [0m
+[0m[2m  "select all → r → pattern → y to pull the lever"                    [0m

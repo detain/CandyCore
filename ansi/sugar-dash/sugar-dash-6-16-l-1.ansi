@@ -1,0 +1,31 @@
+[1;33m▌ SUGAR DASH [33mTOWER CLOCK WORKSHOP · movement bench 4 · 05:50                                                                                          [0m
+                                                                                                                                                      [0m
+[35m BEAT   tick . tock . tick . tock . tick   1.000 s escapement   [2;37min beat                                                                               [0m
+[37m     ┌─ 12 ─┐         ┌─ 12 ─┐         ┌─ 12 ─┐                                                                                                       [0m
+[37m   9 ─┼╲  3       9 ──●  3        9 ─┼╱  3                                                                                                            [0m
+[37m     └─────┘         └─────┘         └─────┘                                                                                                          [0m
+[33m    Westminster        AllSouls        St Mary Bow                                                                                                    [0m
+                                                                                                                                                      [0m
+[1;37m CLOCK           MOVEMENT   BEAT   DRIFT-7D          CHIMES   TORQUE     OIL      STATE                                                               [0m
+[33m Westminster      Ehq-118    1.00s  ▂▁▂▁▃▂▁           4,208    ██████░░   21d      [32mIN SERVICE                                                         [0m
+[33m AllSouls          Gillett-44 1.02s  ▄▄▃▄▅▄▃           4,208    █████░░░   9d       [1;33mOIL SOON                                                          [0m
+[34m StMaryBow         Moore-12   0.99s  ▁▂▁▁▂▁▁           8,417    ███████░   40d      [32mIN SERVICE                                                        [0m
+[36m Grantham          Smith-86   1.01s  ▃▃▄▃▂▃▃           1,906    ████░░░░   2d       [1;31mSTOPPED                                                           [0m
+[36m Salisbury         Posled-69  1.00s  ▁▁▂▁▂▁▁           3,611    ██████░░   31d      [32mIN SERVICE                                                        [0m
+[35m Whitby            Norton-31  0.98s  ▅▄▄▅▆▅▄           2,050    ███░░░░░   OVERDUE   [1;33mRUNNING DOWN                                                     [0m
+                                                                                                                                                      [0m
+[37m Strike train 06:00 [33m▮▮▮▮▮▮[37m gong · hammer current [36m340mA[37m · bell 2 felt damped                                                                           [0m
+[35m Mains wind log [35m▂▄▆█▇▆▅▇█▇[37m torque avg 71% · remelt of wheel 7 pending                                                                                 [0m
+[34m Hour-strike spark [34m▁▁▂▂▃▃▄▄▅▅▆▆▇[37m peak 18:00 · count wheel notch 7 worn 0.3mm                                                                          [0m
+                                                                                                                                                      [0m
+[37m Pendulum bobs 3 s · 994 mm effective · mercury temperature jar level OK                                                                              [0m
+[2;37m Winding rota: Thu 16:00 tower crew · lift safety rope doubled · gloves x2                                                                            [0m
+[33m Bench clock 05:50 · lamp 4 · tea kettle pressure [32m92%[33m · no oil on brass shelf                                                                         [0m
+                                                                                                                                                      [0m
+[37m Count wheel grid · [1;33mGrantham[37m stopped by blown strike fuse · spare on hook 2                                                                           [0m
+[36m Chime sequence audit · Westminster quarters [32m1-4 verified[36m · AllSouls third tone flat                                                                  [0m
+[33m Mainspring barrels on stand: 2 stripped · bridle strip reorder · let-down vise clamped                                                               [0m
+[33m Gear tooth wear map · pinion 12 [33m▃▃▂▂▂▁▁[33m within tolerance · arbitude true                                                                             [0m
+[36m Fuse stock · 5A [32m18[36m · 13A [32m9[36m · strike relay coils on bench 2 · calendar ring off                                                                       [0m
+                                                                                                                                                      [0m
+[2;37m SugarDash · datagrid 6 movements · gauge torque x6 · sparklines drift+wind · loop 500ms                                                              [0m

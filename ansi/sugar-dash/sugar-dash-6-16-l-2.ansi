@@ -1,0 +1,28 @@
+[1;44m▌ SUGAR DASH [34mMILL STREET WATER TOWER · LEVEL BOARD · 09:12                                                                                  [0m
+[37m  LEVEL TANK COLUMN      │  HOUR-BY-HOUR   SUPPLY  /  DRAW   (blocks = m3/h x8)                                                             [0m
+[37m 42m ─┤[2;37m░░░░░░░░░░░░░░░[2;37m│[37m  04:00  [32mS ██░░░░░░[37m  [33mD █░░░░░░░                                                                                      [0m
+[37m 39m ─┤[2;37m░░░░░░░░░░░░░░░[2;37m│[37m  05:00  [32mS ██░░░░░░[37m  [33mD ░░░░░░░░                                                                                      [0m
+[37m 36m ─┤[2;37m░░░░░░░░░░░░░░░[2;37m│[37m  06:00  [32mS ██░░░░░░[37m  [33mD ░░░░░░░░                                                                                      [0m
+[37m 33m ─┤[2;37m░░░░░░░░░░░░░░░[2;37m│[37m  07:00  [32mS ███░░░░░[37m  [33mD █░░░░░░░                                                                                      [0m
+[37m 30m ─┤[2;37m░░░░░░░░░░░░░░░[2;37m│[37m  08:00  [32mS ███░░░░░[37m  [33mD █░░░░░░░                                                                                      [0m
+[37m 27m ─┤[1;46;30m█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀[1;36m│◄ 27.4m[37m  09:00  [32mS █████░░░[37m  [33mD ███░░░░░                                                                              [0m
+[37m 24m ─┤[34;44m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[2;34m│[37m  10:00  [32mS ███████░[37m  [33mD █████░░░                                                                                      [0m
+[37m 21m ─┤[34;44m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[2;34m│[37m  11:00  [32mS ████████[37m  [33mD ██████░░                                                                                      [0m
+[37m 18m ─┤[34;44m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[2;34m│[37m  12:00  [32mS ███████░[37m  [33mD ██████░░                                                                                      [0m
+[37m 15m ─┤[34;44m▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓[2;34m│[37m  13:00  [32mS ██████░░[37m  [33mD █████░░░                                                                                      [0m
+[37m 12m ─┤[34;44m███████████████[2;34m│[37m  14:00  [32mS █████░░░[37m  [33mD ████░░░░                                                                                      [0m
+[37m  9m ─┤[34;44m███████████████[2;34m│[37m  15:00  [32mS ████░░░░[37m  [33mD ███░░░░░                                                                                      [0m
+[37m  6m ─┤[34;44m███████████████[2;34m│[37m  16:00  [32mS ████░░░░[37m  [33mD ██░░░░░░                                                                                      [0m
+[37m  3m ─┤[34;44m███████████████[2;34m│[37m  17:00  [32mS ███░░░░░[37m  [33mD █░░░░░░░                                                                                      [0m
+[2;37m        0m └──────────────┘[37m   capacity 1.8 Ml · shell age 61y · anode probe 3 OK                                                            [0m
+                                                                                                                                            [0m
+[1;31m ALARM [31moverflow weir ran 06:41 for 90s · float switch 2 sluggish — flagged                                                                  [0m
+[36m Inlet valve IV-1 [32mOPEN 62%[36m · outlet OV-2 [32mOPEN 100%[36m · washout WV-3 [2;37mSEATED                                                                    [0m
+[34m Pump house [37mP1 duty ▆▇█▇▆ 55Hz · P2 standby warm · P3 seal seep — gasket kit                                                                [0m
+[37m Chlorine residual [32m0.62 mg/l[37m · turbidity [32m0.31 NTU[37m · pH [36m7.4                                                                                  [0m
+[35m Night make-up [35m▄▄▃▃▃▂▂▂▂▁▁▁[37m pumps prefer 23:00-04:00 tariff window                                                                          [0m
+[33m Freeze watch [37mriser trace heater ON · weir lid de-icer OK · -2C tonight                                                                     [0m
+[37m Riser inspection [32mcathodic probe 1-4 pass[37m · ladder cage 12 m recertified · aviation bulb swapped                                            [0m
+[2;37m Day sheet · demand 612 m3 · supply 618 m3 · balance +6 m3 · leakage guess 3%                                                               [0m
+                                                                                                                                            [0m
+[2;37m SugarDash · gauge ladder widget · column chart x14 · status bar · grid h2 · 250ms                                                          [0m

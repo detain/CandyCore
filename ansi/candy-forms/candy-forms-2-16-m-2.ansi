@@ -1,0 +1,18 @@
+[1;35mCandyForms[0m[37m ▸ [0m[1;36mField\Select[0m  [2;37mfuzzy filter engaged · 10 flavors[0m[0m
+[33m? Choose a candy  [0m[1;36m▾[0m[2;37m   ↑↓ move · enter pick · / filter[0m[0m
+   [33m/ [0m[7;4mnoct[0m[7m▌[0m[2;37m  filter buffer — fuzzy matches light up mid-word[0m        [0m
+[36m╭────────────────────────────────────────────────────────────────────────╮[0m[0m
+[36m│[0m  [37m▸ toffee[0m                                                              [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ toffee crunch[0m                                                       [35m░[0m[36m│[0m[0m
+[36m│[0m[1;33m▶[0m [4;1;33mnoct[0m[7murne fudge[0m                                                      [1;35m▓[0m[36m│[0m[0m
+[36m│[0m  [37m▸ nougat bar[0m                                                          [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ neuros soda[0m                                                         [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ nibs dark[0m                                                           [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ caramel sea salt[0m                                                    [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ candy cane slices[0m                                                   [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ rocky road cubes[0m                                                    [35m░[0m[36m│[0m[0m
+[36m│[0m  [37m▸ silver pearls[0m                                                       [35m░[0m[36m│[0m[0m
+[36m╰────────────────────────────────────────────────────────────────────────╯[0m[0m
+[2;37mcursor ▌ rests on “nocturne fudge”[0m   [32mmatch: noct +0.92[0m   [1;35mesc → previous field[0m[0m
+[33mhistory: [0m[37mtoffee → nibs → nocturne[0m        [2;37mlist cached by Viewport · scroll offset 0[0m[0m
+[1;35m10 flavors · 1 cursor · 0 regrets — Field\Select keeps the pantry tidy[0m[0m

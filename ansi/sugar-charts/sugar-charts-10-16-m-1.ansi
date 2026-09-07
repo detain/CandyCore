@@ -1,0 +1,23 @@
+[1;34m  MINUTES VS TIMETABLE · CANTON RAIL PUNCTUALITY · Q3 MEAN DEVIATION[0m
+             EARLY ◀[2;32m──────────────[1;37m│[2;31m────────────── ▶ LATE[0m
+  LINE                         [37m│0  NOTE[0m
+  [36mBERNA              [32m███████[37m│                  [32m  -3.4[2;37m[0m
+  [36mFURKA                   [32m██[37m│                  [32m  -1.2[2;37m[0m
+  [36mGEMB                      [37m│[31m█                 [31m  +0.4[2;37m[0m
+  [36mWENGER                    [37m│[31m████              [31m  +2.1[2;37m[0m
+  [36mMURREN                  [32m██[37m│                  [32m  -0.8[2;37m[0m
+  [36mAROSA                     [37m│[31m███████████       [31m  +5.6[2;37m  works detour[0m
+  [36mPIZ                   [32m████[37m│                  [32m  -2.2[2;37m[0m
+  [36mSCHYN                     [37m│[31m███               [31m  +1.4[2;37m[0m
+  [36mLANDWA                    [37m│[31m████████████████  [31m  +8.2[2;37m  cattle on line[0m
+  [36mALBULA           [32m█████████[37m│                  [32m  -4.6[2;37m  rail restress[0m
+  [36mROVAS                     [37m│[31m██████            [31m  +3.2[2;37m[0m
+  [36mTAVCHA        [32m████████████[37m│                  [32m  -6.1[2;37m  leaf-season slips[0m
+  [36mBERNINA                   [37m│[31m██████████        [31m  +4.8[2;37m  lake fog[0m
+  [36mMALOJA              [32m██████[37m│                  [32m  -2.9[2;37m[0m
+  [36mFANS                      [37m│[31m██                [31m  +1.1[2;37m[0m
+  [36mSERTIG                    [37m│[31m██████████████    [31m  +6.9[2;37m  rack test holds[0m
+             [33m90% of all runs stay inside the +/-5 min band (hatched target strip)[0m
+             [2;32m------------------[37m   +[2;31m------------------[0m
+             [2;37m-9      -4.5     0      4.5       9  min[0m
+  [1;35mSugarCharts[36m  diverging deviation bars · winter timetable[0m

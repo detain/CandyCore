@@ -1,0 +1,22 @@
+[44m                               [0m[1;44;37mSugarTable · Walk Sequence[0m[44m                               [0m
+┌──────┬────────────────────┬─────────┬──────────┬────────┬────────────────────────────┐
+│[33m SEQ  [0m│[33m STREET / RUNG      [0m│[33m  HOUSES [0m│[33m  LETTERS [0m│[33m   PKGS [0m│[33m REMARKS                    [0m│
+├──────┼────────────────────┼─────────┼──────────┼────────┼────────────────────────────┤
+│[36m  01  [0m│[37m Elm Row, east curb [0m│[32m      18 [0m│[32m       24 [0m│[35m      2 [0m│ parcels at No.14           │
+│[36m  02  [0m│[37m Elm Row, west curb [0m│[32m      22 [0m│[32m       31 [0m│      — │ cluster boxes x6           │
+│[36m  03  [0m│[37m Sycamore Ter.      [0m│[32m       9 [0m│[32m       12 [0m│[35m      1 [0m│ steep — cart chained       │
+│[36m  04  [0m│[37m Sycamore Cres.     [0m│[32m      14 [0m│[32m       19 [0m│      — │[31m two dogs, yard only        [0m│
+│[36m  05  [0m│[37m Chapel Ln north    [0m│[32m      11 [0m│[32m       16 [0m│[35m      2 [0m│[31m church mail hold           [0m│
+│[33m 05A  [0m│[37m Chapel Ln south    [0m│[32m      13 [0m│[32m       17 [0m│      — │ new estate, 4 blank        │
+│[36m  06  [0m│[37m Mill Fold          [0m│[32m       7 [0m│[32m        9 [0m│      — │ gate codes updated         │
+├──────┼────────────────────┼─────────┼──────────┼────────┼────────────────────────────┤
+│[36m  07  [0m│[37m Weavers Ct         [0m│[32m      16 [0m│[32m       22 [0m│[35m      3 [0m│ press delivery 06:40       │
+│[36m  08  [0m│[37m Foundry Yard       [0m│[32m       5 [0m│[32m        6 [0m│[35m      4 [0m│ trade bulk — van trip      │
+│[36m  09  [0m│[37m Kiln Fields        [0m│[32m      20 [0m│[32m       27 [0m│[35m      1 [0m│ forwarding x3 noted        │
+│[36m  10  [0m│[37m Vine Terrace       [0m│[32m      15 [0m│[32m       21 [0m│      — │ street P.O. last call      │
+│[36m  11  [0m│[37m Alms House row     [0m│[32m       8 [0m│[32m       11 [0m│      — │ senior list, knock twice   │
+│[36m  12  [0m│[37m Bellrope Pendle    [0m│[32m       6 [0m│[32m        8 [0m│[35m      2 [0m│[31m flood risk, take lane      [0m│
+│[36m  13  [0m│[37m Croft End          [0m│[32m      12 [0m│[32m       18 [0m│      — │ return to van 15:10        │
+│[33m  —   [0m│[1;37m ROUND TOTAL        [0m│[33m     176 [0m│[33m      241 [0m│[33m     15 [0m│[36m walk 4 h 20                [0m│
+└──────┴────────────────────┴─────────┴──────────┴────────┴────────────────────────────┘
+round sheet 12 · [36mRFD 3[0m · walking order fixed — [33mdeviate only for weather[0m

@@ -1,0 +1,28 @@
+          [38;5;196;1m ███  [38;5;208;1m ███  [38;5;214;1m█   █ [38;5;220;1m████  [38;5;118;1m█   █ [38;5;46;1m    [38;5;47;1m█████ [38;5;51;1m ███  [38;5;39;1m████  [38;5;201;1m█   █ [38;5;129;1m ████ [0m
+          [38;5;196;1m█    [38;5;208;1m█   █ [38;5;214;1m██  █ [38;5;220;1m█   █ [38;5;118;1m█   █ [38;5;46;1m    [38;5;47;1m█     [38;5;51;1m█   █ [38;5;39;1m█   █ [38;5;201;1m██ ██ [38;5;129;1m█     [0m
+          [38;5;196;1m█    [38;5;208;1m█████ [38;5;214;1m█ █ █ [38;5;220;1m█   █ [38;5;118;1m ███  [38;5;46;1m    [38;5;47;1m████  [38;5;51;1m█   █ [38;5;39;1m████  [38;5;201;1m█ █ █ [38;5;129;1m ███  [0m
+          [38;5;196;1m█    [38;5;208;1m█   █ [38;5;214;1m█  ██ [38;5;220;1m█   █ [38;5;118;1m   █  [38;5;46;1m    [38;5;47;1m█     [38;5;51;1m█   █ [38;5;39;1m█  █  [38;5;201;1m█   █ [38;5;129;1m    █ [0m
+          [38;5;196;1m ███  [38;5;208;1m█   █ [38;5;214;1m█   █ [38;5;220;1m████  [38;5;118;1m   █  [38;5;46;1m    [38;5;47;1m█     [38;5;51;1m ███  [38;5;39;1m█   █ [38;5;201;1m█   █ [38;5;129;1m████  [0m
+[38;5;215;1m        the CAFÉ of COMMITTED INPUTS — order wheel spinning since boot[0m
+[38;5;172m  ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[0m
+[172m  │[38;5;223;1m   ▄▄▄▄▄▄▄▄ ESPRESSO MACHINE ▄▄▄▄▄▄▄▄    order wheel: [38;5;16;48;5;230m #041 [38;5;16;48;5;226m #042 [38;5;16;48;5;180m #043 [38;5;180m  chalk: name grande                                    [38;5;172m│[0m
+[172m  │[38;5;245m   ┌───────────────────────────┐  [38;5;94;2m ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  queue of forms at the bar                                           [38;5;172m│[0m
+[172m  │[38;5;250m   │ ◉    ◉    ◉    ◉  │ ← group heads = RADIO GROUP[38;5;245;2m ▓   ☕   ☕   ⌛   ⌛   +    +                                                 [38;5;172m│[0m
+[172m  │[38;5;180m   │  ▄▀▄  ▄▀▄  ▄▀▄  ▄▀▄  │  one portafilter per field; lock it or fail[38;5;245;2m ▓   ☕   ⌛   +    +    +                                 [38;5;172m│[0m
+[172m  │[38;5;245m   │  steam wand ⌁   drip ▒░   │[38;5;114m  ☝ tap-to-order: the focus ring glows 226 on the cup                                           [38;5;172m│[0m
+[172m  │[38;5;245m   └───────────────────────────┘  [38;5;215mbarista reads the ticket aloud — one field per slur                                           [38;5;172m│[0m
+[172m  │[38;5;223;1m      MENU BOARD · every widget gets a cup                                                                                      [38;5;172m│[0m
+[172m  │[38;5;180m  form ......... ☕ house blend · required, max 64[38;5;215;1m        ▄▄███▄▄[38;5;245;2m   latte art: a ☑ in microfoam                                  [38;5;172m│[0m
+[172m  │[38;5;180m  email ........ ☕ single origin · regex ^.+@.+$[38;5;231;16m       ██[38;5;215;16m▄▄[38;5;231;16m██                                                                   [38;5;172m│[0m
+[172m  │[38;5;180m  passwd ....... ☕ quadruple shot · strength [38;5;46;1m▓▓▓▓▒[38;5;231;16m      ██[38;5;215;16m▀▀[38;5;231;16m██                                                                  [38;5;172m│[0m
+[172m  │[38;5;180m  checkbox ..... ☕ sprinkles on top · multi-select[38;5;231;16m        ▀▀██▀▀[38;5;215m   CANDY FORMS heart in the foam                                [38;5;172m│[0m
+[172m  │[38;5;180m  radio ........ exactly one roast · none|decaf|caffè[38;5;231;16m         ▀  ▀                                                              [38;5;172m│[0m
+[172m  │[38;5;180m  slider ....... sweetness 0-10, knob at 7, never molten[38;5;245;2m        ╲  ╱[38;5;208m  the grinder is unforgiving                                [38;5;172m│[0m
+[172m  │[38;5;180m  select ....... roast: light ▸ medium ▸ dark ▸ espresso[38;5;245m        ( cup )                                                         [38;5;172m│[0m
+[172m  │[38;5;145m  autocomplete . oat|oh|honey → ghost-writes [38;5;145;1mhoney latte[38;5;245;2m  ·  server tips: no substitutions after VALIDATE                       [38;5;172m│[0m
+[172m  │[38;5;114m  spinner ...... the milk froth ◜◝◟◞ keeps whisking until the promise settles                                                   [38;5;172m│[0m
+[172m  │[38;5;180m  confirm ........ [38;5;16;48;5;88;1m DISCARD ORDER? y/n [38;5;245m  default: n — bitter decaf awaits the careless                                          [38;5;172m│[0m
+[172m  │[38;5;245;2m  the owner wipes the counter: [38;5;114;2mevery CANDY FORMS cup is rinsed in a stream of clean events                                      [38;5;172m│[0m
+[172m  │[38;5;245m  last call: [38;5;215;2mvalidators on the stove overnight — the café reopens on the next keystroke                                         [38;5;172m│[0m
+[38;5;172m  └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘[0m
+[38;5;245m   tip jar: [38;5;16;48;5;226;1m +5 validation points [38;5;215m  ·  order up! CANDY FORMS written on the saucer in cocoa[0m
