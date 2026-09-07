@@ -267,6 +267,41 @@ final class MemoryImportCommandTest extends TestCase
         $this->assertFileDoesNotExist($this->sentinel('opencode'));
     }
 
+    public function testPlantedSugarCrushSymlinkRefusesTheSentinelWhileTheImportStands(): void
+    {
+        // The WRITE-side gate of the sentinel directory, proven behaviorally
+        // (the read-side gate has the test above): with `.sugar-crush` a
+        // committed symlink to an outside directory the import still lands
+        // its entries — the agent store lives under the configured store
+        // dir, not the project — but no mkdir and no sentinel may follow the
+        // link out of the project, and the response says so.
+        $outside = $this->sandbox . '/outside-sentinel-target';
+        mkdir($outside, 0700, true);
+
+        try {
+            if (!@symlink($outside, $this->projectRoot . '/.sugar-crush')) {
+                $this->markTestSkipped('symlink() unavailable on this filesystem');
+            }
+
+            $this->seedOpencodeMemory('keep-me.md');
+            $reply = $this->reply('/memory import opencode');
+
+            $this->assertStringContainsString('**Imported 1**', $reply);
+            $this->assertStringContainsString('does not resolve inside this project', $reply);
+            $this->assertStringContainsString('WILL duplicate these entries', $reply);
+
+            $this->assertFileDoesNotExist($this->sentinel('opencode'));
+            $this->assertFileDoesNotExist($outside . '/memory/.imported-opencode');
+            $this->assertFalse(is_dir($outside . '/memory'), 'no mkdir followed the planted link');
+
+            $entries = $this->store->list('agent');
+            $this->assertCount(1, $entries, 'the import itself stands; only the sentinel failed');
+            $this->assertSame(['source:opencode'], $entries[0]->tags());
+        } finally {
+            @unlink($this->projectRoot . '/.sugar-crush');
+        }
+    }
+
     // ── 6. help roster ───────────────────────────────────────────────────────
 
     public function testHelpNowListsTheImportVerb(): void

@@ -10411,12 +10411,17 @@ final class Chat implements Model
             );
         }
 
+        // Defense-in-depth, not a behaviorally reachable branch: projectRoot()
+        // falls back to getcwd(), so '' is observable only when neither an
+        // explicit root nor a working directory exists. The guard is still
+        // answered rather than letting the sentinel path dangle at a bare
+        // '/.sugar-crush/...'.
         $projectRoot = $this->projectRoot();
         if ($projectRoot === '') {
             return $this->memoryResponse(
                 $inputText,
-                '**Nothing imported:** no project root could be determined, so there is neither'
-                . " a place to read `{$target}` memory from nor a project to hold the"
+                '**Nothing imported:** no project root could be determined, so this command has no'
+                . " project to read `{$target}` memory against or record the"
                 . " `.imported-{$target}` sentinel in."
             );
         }
@@ -10491,6 +10496,13 @@ final class Chat implements Model
     private function writeImportSentinel(string $sentinel, string $target, int $imported): string
     {
         $dir = dirname($sentinel);
+        // First of the two containment gates the docblock above describes
+        // (pre-check here, post-mkdir re-check below): this one is reachable
+        // through /memory import whenever a planted out-of-tree `.sugar-crush`
+        // symlink points the sentinel directory outside the project, while it
+        // also re-derives the caller's non-empty-root precondition as defense
+        // in depth; only the re-check below has no reachable path absent a
+        // race.
         if (!$this->importSentinelDirIsContained($dir)) {
             return ' **Warning:** the sentinel directory does not resolve inside this project, so no'
                 . ' sentinel was written and re-running the import WILL duplicate these entries.';
@@ -10499,6 +10511,8 @@ final class Chat implements Model
             return ' **Warning:** the sentinel directory could not be created, so re-running the import'
                 . ' WILL duplicate these entries.';
         }
+        // The post-create re-check: defensive against a symlink appearing at
+        // the checked path between the gates above and this moment.
         if (!$this->importSentinelDirIsContained($dir)) {
             return ' **Warning:** the sentinel directory does not resolve inside this project, so no'
                 . ' sentinel was written and re-running the import WILL duplicate these entries.';

@@ -233,8 +233,9 @@ the **next** `Runtime`, not the next step.
 not a launch failure.
 
 `/memory import claude|opencode` is wired (`Chat::memoryImport()`): it writes
-the foreign tree into the `agent` scope — the scope the paragraph above is
-about, the one the prompt never folds — and then records a
+the foreign tree into the `agent` scope — which the prompt never folds: only
+`project`-scope entries reach the `<project-memory>` block (see above) — and
+then records a
 `.sugar-crush/memory/.imported-<target>` sentinel; while that sentinel exists a
 re-run answers "already imported" instead of duplicating every entry, so delete
 it to re-import deliberately.
