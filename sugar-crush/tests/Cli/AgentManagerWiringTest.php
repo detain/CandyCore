@@ -7,8 +7,11 @@ namespace SugarCraft\Crush\Tests\Cli;
 use PHPUnit\Framework\TestCase;
 use SugarCraft\Core\KeyType;
 use SugarCraft\Core\Msg\KeyMsg;
-use SugarCraft\Crush\App\App;
+use SugarCraft\Crush\Agents\Agent;
+use SugarCraft\Crush\Agents\AgentDefinition;
 use SugarCraft\Crush\Agents\AgentManager;
+use SugarCraft\Crush\Agents\Isolation;
+use SugarCraft\Crush\App\App;
 use SugarCraft\Crush\Chat;
 use SugarCraft\Crush\Cli\Bootstrap;
 use SugarCraft\Crush\Providers\EchoProvider;
@@ -557,6 +560,440 @@ final class AgentManagerWiringTest extends TestCase
     // =========================================================================
 
     /** The Chat the shared shell hosts — the one `Bootstrap::chat()` built. */
+    // =========================================================================
+    // P7.S5 — a body-less native preset inherits the prompt it shadowed
+    // =========================================================================
+
+    /**
+     * THE HEADLINE, RUN AGAINST THE REAL BUNDLE THIS REPOSITORY SHIPS.
+     *
+     * `.sugar-crush/agents/{coder,reviewer,security-auditor}.md` are frontmatter
+     * only, so before this merge the first two arrived at a delegated sub-agent
+     * with an EMPTY prompt — the built-in instructions were overwritten by a
+     * preset that never said anything about instructions. No test had ever
+     * loaded that bundle; every preset test in the tree writes its own fixture.
+     *
+     * Reads the built-in text off `AgentDefinition` at runtime rather than
+     * retyping a paragraph that a reworded definition would silently outlive.
+     *
+     * Fails if the inherit branch is reverted: both prompts come back as ''.
+     */
+    public function testTheRealPresetsThatDeclareNoPromptInheritTheirBuiltInInstructions(): void
+    {
+        $agents = self::rosterFromRealBundle();
+
+        $coder = self::named($agents, 'coder');
+        $reviewer = self::named($agents, 'reviewer');
+
+        $this->assertSame(
+            self::attributed(AgentDefinition::fromType('coder', 'coder')->prompt, 'coder'),
+            $coder->prompt,
+        );
+        $this->assertSame(
+            self::attributed(AgentDefinition::fromType('reviewer', 'reviewer')->prompt, 'reviewer'),
+            $reviewer->prompt,
+        );
+
+        // Exactly once, not twice: the merge appends, so a second application
+        // over the same tree is the failure mode this pins.
+        $this->assertSame(1, substr_count($coder->prompt, self::ATTRIBUTION_BUILT_IN));
+        $this->assertSame(1, substr_count($reviewer->prompt, self::ATTRIBUTION_BUILT_IN));
+
+        // And the frontmatter still supplies what it alone can supply. `AgentDefinition`
+        // declares neither a colour nor an isolation mode, so both of these can only
+        // have arrived from `.sugar-crush/agents/reviewer.md` -- which is the proof
+        // that the merge replaced the prompt and nothing else.
+        $this->assertSame(Isolation::Worktree, $reviewer->isolation);
+        $this->assertSame('green', $reviewer->color);
+        $this->assertSame('sonnet', $reviewer->model);
+    }
+
+    /**
+     * `security-auditor` has no built-in twin, so there is nothing to inherit.
+     * It keeps the empty prompt it has always had, and this pins that state
+     * AS-IS rather than pretending it is a fix: authoring instructions for it is
+     * a content decision that belongs to the user, not to this step.
+     *
+     * The launch-notice delta is asserted EMPTY on purpose. The recorded reason
+     * for the absent prompt is deferred to P7.S5b because the transcript seam is
+     * census-pinned; when that step lands the notice, THIS is the assertion it
+     * must update, and a test that quietly allowed a notice today would let the
+     * deferral disappear unnoticed.
+     */
+    public function testATwinlessBodylessPresetCarriesNoPromptAndRaisesNothingYet(): void
+    {
+        $this->assertNull(AgentDefinition::fromType('security-auditor', 'security-auditor'));
+
+        // `$launchNotices` is process-global and this class's own broken-preset
+        // fixture has already written to it, so the honest assertion is a DELTA
+        // around the roster call rather than emptiness.
+        $before = Bootstrap::launchNotices();
+        $auditor = self::named(self::rosterFromRealBundle(), 'security-auditor');
+
+        $this->assertSame('', $auditor->prompt);
+        $this->assertStringNotContainsString(self::ATTRIBUTION_BUILT_IN, $auditor->prompt);
+        $this->assertSame($before, Bootstrap::launchNotices());
+    }
+
+    /**
+     * The same inherit on a synthetic root, isolating WHICH TIER supplied WHAT:
+     * the prompt comes from below, the frontmatter from above, and a distinctive
+     * colour the built-in coder does not have makes the direction undeniable.
+     */
+    public function testABodylessPresetInheritsTheBuiltInPromptAndKeepsItsOwnFrontmatter(): void
+    {
+        $root = self::makeRoot('inherit');
+        self::writeBodylessPreset($root, 'coder', ["color: \"#123456\"", 'model: gpt-why']);
+
+        $coder = self::named(self::roster($root), 'coder');
+
+        $this->assertSame(
+            self::attributed(AgentDefinition::fromType('coder', 'coder')->prompt, 'coder'),
+            $coder->prompt,
+        );
+        $this->assertSame('#123456', $coder->color);
+        $this->assertSame('gpt-why', $coder->model, 'the preset still chooses the model');
+        $this->assertSame(1, substr_count($coder->prompt, self::ATTRIBUTION_BUILT_IN));
+    }
+
+    /**
+     * The imported tier's wording. A native body-less preset shadowing an
+     * IMPORTED agent of the same name must attribute the text to the imported
+     * definition, because saying "built-in" about a `.opencode/agents` file
+     * would be a false statement inside the agent's own instructions.
+     *
+     * Also pins the layering the merge must not disturb: foreign < built-in <
+     * native, so a name that exists in the foreign tree and the native tree but
+     * has no built-in twin still resolves through the foreign entry.
+     */
+    public function testABodylessPresetShadowingAnImportedAgentAttributesTheImportedTier(): void
+    {
+        $root = self::makeRoot('foreign');
+        mkdir($root . '/.opencode/agents', 0755, true);
+        file_put_contents(
+            $root . '/.opencode/agents/zorg.md',
+            "---\nname: zorg\ndescription: Imported on purpose\n---\n\nZorg instructions verbatim.\n",
+        );
+        self::writeBodylessPreset($root, 'zorg');
+
+        $zorg = self::named(self::roster($root), 'zorg');
+
+        $this->assertStringStartsWith('Zorg instructions verbatim.', $zorg->prompt);
+        $this->assertSame(
+            self::attributed('Zorg instructions verbatim.', 'zorg', false),
+            $zorg->prompt,
+        );
+        $this->assertSame(1, substr_count($zorg->prompt, self::ATTRIBUTION_IMPORTED));
+        $this->assertStringNotContainsString(self::ATTRIBUTION_BUILT_IN, $zorg->prompt);
+    }
+
+    /**
+     * The two non-effect polarities. A preset that DOES supply a prompt -- by
+     * body or by `initialPrompt:` -- is a preset that said something, and the
+     * merge must not edit what it said or imply that it was silent.
+     */
+    public function testAPresetThatSuppliesItsOwnPromptIsLeftByteForByteAlone(): void
+    {
+        $root = self::makeRoot('silent');
+        self::writeBodylessPreset($root, 'solo', ['color: teal']);
+        self::writePreset($root . '/.sugar-crush/agents', 'docent', 'Has a body');
+        file_put_contents(
+            $root . '/.sugar-crush/agents/declared.md',
+            "---\nname: declared\ndescription: Declares one\n"
+                . "initialPrompt: Declared verbatim.\n---\n\nIgnored body.\n",
+        );
+
+        $agents = self::roster($root);
+
+        // Body-less AND twinless: nothing to inherit, so nothing is invented.
+        $this->assertSame('', self::named($agents, 'solo')->prompt);
+        $this->assertSame('Body prose.', self::named($agents, 'docent')->prompt);
+        $this->assertSame('Declared verbatim.', self::named($agents, 'declared')->prompt);
+        foreach (['solo', 'docent', 'declared'] as $untouched) {
+            $this->assertStringNotContainsString(
+                self::ATTRIBUTION_BUILT_IN,
+                self::named($agents, $untouched)->prompt,
+            );
+        }
+    }
+
+    /**
+     * IDEMPOTENCE. `agentRoster()` is called more than once per process --
+     * `agentManager()` and the roster helpers each resolve it -- so a merge that
+     * mutated anything durable would stack a second attribution sentence on the
+     * first. Two consecutive calls over one root must answer byte-identically.
+     *
+     * Full-list equality rather than the two prompts alone, because it also
+     * catches the roster GROWING, which is how a leaked static would show up.
+     */
+    public function testTwoRosterBuildsOverOneRootAnswerByteIdentically(): void
+    {
+        $root = self::makeRoot('idem');
+        self::writeBodylessPreset($root, 'coder');
+        self::writeBodylessPreset($root, 'reviewer', ['color: purple']);
+
+        $first = self::roster($root);
+        $second = self::roster($root);
+
+        $this->assertSame(
+            array_map(static fn($agent) => $agent->name, $first),
+            array_map(static fn($agent) => $agent->name, $second),
+        );
+        $this->assertSame(
+            array_map(static fn($agent) => $agent->prompt, $first),
+            array_map(static fn($agent) => $agent->prompt, $second),
+        );
+        $this->assertSame(1, substr_count(self::named($second, 'reviewer')->prompt, self::ATTRIBUTION_BUILT_IN));
+    }
+
+    /**
+     * Roster integrity around the merge: one row per name, and the merge may
+     * neither add nor lose an entry. The count is derived from a twin run over
+     * the same root with no presets at all, never hard-coded, so the assertion
+     * keeps its meaning on a machine whose user tier holds its own presets.
+     *
+     * The last clause is the precedence the merge must not disturb -- a project
+     * `coder.md` still wins over an imported one, and here it wins by inheriting
+     * the BUILT-IN text rather than the foreign text, because the built-in loop
+     * inserts above the foreign one.
+     */
+    public function testTheMergeAddsNoRowAndNeverLetsAnImportShadowTheBuiltInItReplaces(): void
+    {
+        $root = self::makeRoot('roster');
+        mkdir($root . '/.opencode/agents', 0755, true);
+        file_put_contents(
+            $root . '/.opencode/agents/coder.md',
+            "---\nname: coder\ndescription: Foreign coder\n---\n\nForeign coder text.\n",
+        );
+        self::writeBodylessPreset($root, 'coder');
+        self::writeBodylessPreset($root, 'newcomer');
+
+        $agents = self::roster($root);
+        $names = array_map(static fn($agent) => $agent->name, $agents);
+
+        $this->assertSame(\count($names), \count(array_unique($names)), 'a name appeared twice');
+        $this->assertContains('coder', $names);
+
+        $bare = self::roster(self::makeRoot('roster-bare'));
+        // One new row, not two: `coder` shadows the built-in of the same name and
+        // `newcomer` is genuinely additive.
+        $this->assertSame(\count($bare) + 1, \count($agents));
+
+        $coder = self::named($agents, 'coder');
+        $this->assertStringStartsWith(AgentDefinition::fromType('coder', 'coder')->prompt, $coder->prompt);
+        $this->assertStringNotContainsString('Foreign coder text.', $coder->prompt);
+    }
+
+    /**
+     * The sentence itself, pinned as fixed bytes for BOTH tiers and including
+     * the two edges of the helper: an empty inherited prompt returns its input
+     * unchanged, and the join is one blank line rather than two.
+     */
+    public function testTheAttributionSentenceIsRenderedFromTheConstForBothTiers(): void
+    {
+        $this->assertSame(
+            'Body of instructions.' . "\n\n"
+                . "Your operating instructions were supplied by the built-in agent definition 'coder'; "
+                . 'this preset contributed only its frontmatter settings.',
+            self::attributed('Body of instructions.', 'coder'),
+        );
+        $this->assertSame(
+            'Body of instructions.' . "\n\n"
+                . "Your operating instructions were supplied by the imported agent definition 'zorg'; "
+                . 'this preset contributed only its frontmatter settings.',
+            self::attributed('Body of instructions.', 'zorg', false),
+        );
+
+        $this->assertSame('', self::attributed('', 'coder'));
+        $this->assertStringNotContainsString("\n\n\n", self::attributed('Body of instructions.', 'coder'));
+    }
+
+    /**
+     * `presetCarryingPrompt()` copies a preset by spreading its own public
+     * properties, so a field added to that class travels by construction rather
+     * than by someone remembering to extend a list. That is the claim, and this
+     * is what makes it unfalsifiable-by-accident: it compares the merged agent
+     * with the agent the SAME preset produced unmerged, field by field off the
+     * object, so there is no field list here either. Delete the spread, name the
+     * fields, drop one, and this reddens on the difference.
+     */
+    public function testTheInheritMergeCarriesEveryOtherPresetField(): void
+    {
+        $root = self::makeRoot('fields');
+        self::writeBodylessPreset($root, 'reviewer', [
+            'color: orange',
+            'model: gpt-again',
+            'maxTurns: 12',
+            'permissionMode: plan',
+            'effort: high',
+            'skills: [code-review]',
+        ]);
+
+        $merged = self::named(self::roster($root), 'reviewer');
+
+        $unmerged = Agent::fromPreset(Bootstrap::agentPresets($root)['reviewer'], 'echo', 'm');
+
+        $differences = [];
+        foreach (get_object_vars($merged) as $field => $value) {
+            if (!($value === $unmerged->{$field})) {
+                $differences[] = $field;
+            }
+        }
+
+        $this->assertSame(['prompt'], $differences, 'every field but the prompt must survive the merge');
+        $this->assertNotSame($unmerged->prompt, $merged->prompt);
+    }
+
+    /**
+     * C7, restated as an assertion. A preset's `tools:` frontmatter is resolved
+     * against a registry the roster never builds, so a prompt claiming a tool
+     * grant would be provably false in production. Nothing this merge WRITES may
+     * make such a claim; the sentences are about provenance and about nothing
+     * the agent can do.
+     *
+     * The inherited reviewer text says "skills you have been granted" -- that is
+     * `AgentDefinition`'s own wording, copied byte-verbatim, and it is a SKILL
+     * claim rather than a tool one. This test is deliberately scoped to the
+     * attribution sentence plus a grant-shaped scan of the merged prompts, and
+     * the skill phrasing is recorded as an observation for the reviewer lane.
+     */
+    public function testNoMergedPromptAssertsAToolGrant(): void
+    {
+        $root = self::makeRoot('c7');
+        self::writeBodylessPreset($root, 'coder');
+        mkdir($root . '/.opencode/agents', 0755, true);
+        file_put_contents(
+            $root . '/.opencode/agents/zorg.md',
+            "---\nname: zorg\ndescription: Imported\n---\n\nZorg text.\n",
+        );
+        self::writeBodylessPreset($root, 'zorg');
+
+        $checked = 0;
+        $violations = [];
+        foreach (self::roster($root) as $agent) {
+            if (!\in_array($agent->name, ['coder', 'zorg'], true)) {
+                continue;
+            }
+
+            $checked++;
+            if (preg_match('/\b(?:tools?)[^.]{0,40}\bgranted\b|\bgranted[^.]{0,40}\btools?\b/i', $agent->prompt)) {
+                $violations[] = $agent->name;
+            }
+        }
+
+        $this->assertSame(2, $checked, 'both merged agents must have been examined');
+        $this->assertSame([], $violations);
+        $this->assertStringNotContainsString('tool', self::attributed('x', 'coder'));
+    }
+
+    // ---------------------------------------------------------------------
+    // P7.S5 fixtures
+    // ---------------------------------------------------------------------
+
+    /** The rendered built-in-tier sentence, taken from the production helper. */
+    private const ATTRIBUTION_BUILT_IN = 'supplied by the built-in agent definition';
+
+    /** The rendered imported-tier sentence, same source of truth. */
+    private const ATTRIBUTION_IMPORTED = 'supplied by the imported agent definition';
+
+    /**
+     * The production renderer, called rather than copied: an assertion that
+     * retyped the sentence would keep passing after the wording changed, which
+     * is the one thing a pin on that sentence must not do.
+     */
+    private static function attributed(string $inherited, string $definitionName, bool $builtIn = true): string
+    {
+        $method = new \ReflectionMethod(Bootstrap::class, 'attributeInheritedPrompt');
+        $method->setAccessible(true);
+
+        return $method->invoke(null, $inherited, $definitionName, $builtIn);
+    }
+
+    /**
+     * `Bootstrap::agentRoster()` is what the merge changed, so the tests call it
+     * directly. Going through `chat()` instead would pay for a whole launch for
+     * no extra truth -- and this class's docblock records that launch-based test
+     * files destabilise two forked-completion tests elsewhere in the suite.
+     */
+    private static function roster(string $root): array
+    {
+        $method = new \ReflectionMethod(Bootstrap::class, 'agentRoster');
+        $method->setAccessible(true);
+
+        /** @var list<Agent> $agents */
+        return $method->invoke(null, $root, 'echo', 'm');
+    }
+
+    /**
+     * The roster over THIS CHECKOUT -- the only bundle whose prompt-less state
+     * actually matters to a user of the binary.
+     *
+     * The root is found by walking up from this file rather than hard-coded, so
+     * the test still names the right tree from a worktree, a clone or a
+     * packaged copy. `$HOME` is already redirected to an empty temp home by
+     * `setUpBeforeClass()`, which is what stops whoever runs CI from contributing
+     * their own `~/.sugar-crush/agents` to the roster these assertions read.
+     */
+    private static function rosterFromRealBundle(): array
+    {
+        for ($path = \dirname(__DIR__, 3); is_string($path) && $path !== ''; $path = \dirname($path)) {
+            if (!is_dir($path . '/.sugar-crush/agents')) {
+                continue;
+            }
+
+            $agents = self::roster($path);
+
+            // The bundle is only a real test of the merge if these three are
+            // still the frontmatter-only files the premise describes.
+            foreach (['coder', 'reviewer', 'security-auditor'] as $name) {
+                self::assertFileExists($path . '/.sugar-crush/agents/' . $name . '.md');
+            }
+
+            return $agents;
+        }
+
+        self::fail('no checkout root carrying .sugar-crush/agents above ' . \dirname(__DIR__));
+    }
+
+    /** @param list<Agent> $agents */
+    private static function named(array $agents, string $name): Agent
+    {
+        foreach ($agents as $agent) {
+            if ($agent->name === $name) {
+                return $agent;
+            }
+        }
+
+        self::fail("roster has no agent named {$name}");
+    }
+
+    private static function makeRoot(string $label): string
+    {
+        $root = self::$tempDir . '/' . $label . '-' . uniqid('', true);
+        mkdir($root . '/.sugar-crush/agents', 0755, true);
+
+        return $root;
+    }
+
+    /**
+     * A frontmatter-only preset: the closing fence, a newline, and nothing after
+     * it -- exactly the shape of this repository's own three.
+     *
+     * @param list<string> $extraFrontmatter
+     */
+    private static function writeBodylessPreset(string $root, string $name, array $extraFrontmatter = []): void
+    {
+        $frontmatter = "name: {$name}\ndescription: Bodyless on purpose\n";
+        foreach ($extraFrontmatter as $line) {
+            $frontmatter .= $line . "\n";
+        }
+
+        file_put_contents(
+            $root . '/.sugar-crush/agents/' . $name . '.md',
+            "---\n{$frontmatter}---\n",
+        );
+    }
+
     private function chat(): Chat
     {
         $chat = self::$app?->chat;
