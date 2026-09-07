@@ -2631,6 +2631,11 @@ number". Both are acceptable outcomes; "wired it, seems fine" is not.
 
 ### P7.S5 — The three empty agent presets
 
+**Status 2026-09-07: MERGED — merge `f4493a68a` (branch `c623d97ed` + `19ddecb1a` + `322808eed`; floor
+11,008/169,071 gated `322808eed`). Shipped Bootstrap-only merge-at-load; RULING P7.S5-R2 defers the no-twin
+launch notice to NEW step P7.S5b (the `ignoring %s` PROJECT_TIER_REFUSAL envelope would assert a falsehood —
+C7 honesty doctrine). Full record: worklog P7.S5 entry.**
+
 **Goal** `.sugar-crush/agents/{coder,reviewer,security-auditor}.md` are 15 lines of YAML frontmatter
 with **nothing after the closing `---`**. `Agent::fromPreset()` does `prompt: $preset->initialPrompt ?? ''`,
 and `Bootstrap::agentRoster()`'s precedence is `foreign < built-in < native preset`. So on this
