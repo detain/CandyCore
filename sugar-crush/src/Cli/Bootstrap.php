@@ -717,8 +717,9 @@ final class Bootstrap
      *    The trigger also writes its re-import sentinel under `.sugar-crush/memory`
      *    in the project — a repository-chosen path gated at its call site
      *    (containment judged before the directory is ever created, re-judged
-     *    after, and the file lands by temp-create and rename, so no write —
-     *    and no mkdir — follows a planted symlink) and answered in the
+     *    after, and the file lands by temp-create and rename: no write follows
+     *    a planted symlink, and no mkdir follows one that was there when the
+     *    gate ran) and answered in the
      *    command response, drained nowhere;
      *  - `.sugar-crush/hooks.yaml` has its own trust gate
      *    ({@see projectHooksAreTrusted()}) and refuses the LAUNCH rather than

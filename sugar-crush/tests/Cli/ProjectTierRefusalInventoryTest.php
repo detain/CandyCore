@@ -533,11 +533,13 @@ final class ProjectTierRefusalInventoryTest extends TestCase
         // stale unnoticed — the assertions above only ever read `Bootstrap`'s.
         // Spelled out in words in the prose, so they are compared in words:
         // a digit here would pass against a paragraph that says something else.
-        $ownWords = [30 => 'THIRTY', 31 => 'THIRTY-ONE', 32 => 'THIRTY-TWO', 33 => 'THIRTY-THREE', 34 => 'THIRTY-FOUR',
-            35 => 'THIRTY-FIVE', 36 => 'THIRTY-SIX', 37 => 'THIRTY-SEVEN', 38 => 'THIRTY-EIGHT'];
-        $pathWords = [21 => 'TWENTY-ONE', 22 => 'TWENTY-TWO', 23 => 'TWENTY-THREE', 24 => 'TWENTY-FOUR', 25 => 'TWENTY-FIVE',
-            26 => 'TWENTY-SIX'];
-        $repoWords = [13 => 'THIRTEEN', 14 => 'FOURTEEN', 15 => 'FIFTEEN', 16 => 'SIXTEEN', 17 => 'SEVENTEEN', 18 => 'EIGHTEEN'];
+        $ownWords = [30 => 'THIRTY', 31 => 'THIRTY-ONE', 32 => 'THIRTY-TWO',
+            33 => 'THIRTY-THREE', 34 => 'THIRTY-FOUR', 35 => 'THIRTY-FIVE',
+            36 => 'THIRTY-SIX', 37 => 'THIRTY-SEVEN', 38 => 'THIRTY-EIGHT'];
+        $pathWords = [21 => 'TWENTY-ONE', 22 => 'TWENTY-TWO', 23 => 'TWENTY-THREE',
+            24 => 'TWENTY-FOUR', 25 => 'TWENTY-FIVE', 26 => 'TWENTY-SIX'];
+        $repoWords = [13 => 'THIRTEEN', 14 => 'FOURTEEN', 15 => 'FIFTEEN',
+            16 => 'SIXTEEN', 17 => 'SEVENTEEN', 18 => 'EIGHTEEN'];
 
         $occurrences = \count(self::DOT_PATHS);
         $repositoryOccurrences = 0;

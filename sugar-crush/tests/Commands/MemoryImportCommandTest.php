@@ -185,6 +185,7 @@ final class MemoryImportCommandTest extends TestCase
         $this->seedOpencodeMemory('a.md', 'b.md', 'c.md', 'd.md', 'e.md');
 
         $before = count(MemoryBlock::capture($this->store)->entries());
+        $this->assertSame(0, $before, 'the store holds no project notes, so the unchanged-pin below is honest');
         $reply = $this->reply('/memory import opencode');
 
         $this->assertStringContainsString('**Imported 5**', $reply, 'no cap: every readable file is imported');
@@ -192,6 +193,11 @@ final class MemoryImportCommandTest extends TestCase
             'prompt cap',
             $reply,
             'the response must not claim a bound that does not exist'
+        );
+        $this->assertStringNotContainsString(
+            'Stopped at',
+            $reply,
+            'and must not contain the deleted headroom sentence in any wording of it'
         );
         $this->assertCount(
             15,

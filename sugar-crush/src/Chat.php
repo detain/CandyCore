@@ -10514,8 +10514,9 @@ final class Chat implements Model
         // The post-create re-check: defensive against a symlink appearing at
         // the checked path between the gates above and this moment.
         if (!$this->importSentinelDirIsContained($dir)) {
-            return ' **Warning:** the sentinel directory does not resolve inside this project, so no'
-                . ' sentinel was written and re-running the import WILL duplicate these entries.';
+            return ' **Warning:** the sentinel directory resolved outside this project after directory'
+                . ' creation, so no sentinel was written and re-running the import WILL duplicate'
+                . ' these entries.';
         }
 
         $tmp = $dir . '/sentinel-tmp-' . bin2hex(random_bytes(6));

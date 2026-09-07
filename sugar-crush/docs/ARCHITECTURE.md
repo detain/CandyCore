@@ -490,8 +490,9 @@ Four patterns worth recognising, because they explain otherwise-odd code:
 1. **Built but unwired.** Several subsystems were finished, tested and reachable
    from nothing. Each one that has been found is now either wired or documented
    as a seam — never deleted. Live examples of the seam form: `SkillDiscovery`,
-   `ForeignMemoryImporter`, `App::dispatchSkill()`, `LspTool`'s missing server
-   config.
+   `App::dispatchSkill()`, `LspTool`'s missing server config.
+   (`ForeignMemoryImporter` was on this list until P7.S6 wired it behind
+   `/memory import`.)
 2. **Absence is a no-op; present-but-unusable is a refusal.** Applied to
    `config.json`, `hooks.yaml`, `.mcp.json`, `--config`, `--root`, and every
    `SUGARCRUSH_*` variable that carries policy.
