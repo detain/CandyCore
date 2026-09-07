@@ -556,11 +556,6 @@ final class AgentManagerWiringTest extends TestCase
     }
 
     // =========================================================================
-    // Helpers
-    // =========================================================================
-
-    /** The Chat the shared shell hosts — the one `Bootstrap::chat()` built. */
-    // =========================================================================
     // P7.S5 — a body-less native preset inherits the prompt it shadowed
     // =========================================================================
 
@@ -994,6 +989,11 @@ final class AgentManagerWiringTest extends TestCase
         );
     }
 
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+
+    /** The Chat the shared shell hosts — the one `Bootstrap::chat()` built. */
     private function chat(): Chat
     {
         $chat = self::$app?->chat;
