@@ -213,6 +213,12 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
         'PROJECT_TIER_REFUSAL_FORMAT' => ['method' => 'reportProjectTierRefusals', 'conversions' => 2],
         'MCP_PARTIAL_START_LOG_FORMAT' => ['method' => 'mcpClient', 'conversions' => 3],
         'MCP_PARTIAL_START_NOTICE_FORMAT' => ['method' => 'mcpClient', 'conversions' => 2],
+        // The in-prompt attribution sentence a body-less preset inherits a
+        // built-in's text with. Both `%s` slots are the tier word and the
+        // definition name; nothing external reads the rendered line (it lives
+        // inside the agent's prompt, not on a launch page), so it carries no
+        // PAGE_QUOTES row — the census only needs to know the format is named.
+        'PROMPT_ATTRIBUTION_FORMAT' => ['method' => 'attributeInheritedPrompt', 'conversions' => 2],
     ];
 
     /**
@@ -411,6 +417,10 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
         'reportProjectTierRefusals' => ["'.'"],
         // The two decision keys it reads; both messages are named now.
         'mcpClient' => ["'path'", "'status'"],
+        // The empty-inherited short circuit and the two tier words the ternary
+        // picks between; the sentence itself is the named constant, so the only
+        // literals in the body are the `''` guard and those two words.
+        'attributeInheritedPrompt' => ["''", "'built-in'", "'imported'", "\"\\n\\n\""],
     ];
 
     public function testEveryNamedFormatIsReferencedByTheMethodThatEmitsIt(): void
@@ -512,7 +522,7 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
     public function testEachNamedFormatAsksForExactlyTheConversionsItsCallersPass(): void
     {
         foreach (self::NAMED_FORMATS as $constant => $spec) {
-            $value = (string) \constant(Bootstrap::class . '::' . $constant);
+            $value = self::formatValue($constant);
 
             self::assertSame(
                 $spec['conversions'],
@@ -647,7 +657,7 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
         $census = self::sprintfCensus(self::bootstrapSource());
 
         self::assertSame(
-            12,
+            13,
             $census['calls'],
             "Bootstrap.php's sprintf() call-site count moved; see this test's doc-block",
         );
@@ -1482,6 +1492,25 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
     // ── the scanners ─────────────────────────────────────────────────────
 
     /**
+     * The VALUE of a promoted format constant, fetched by reflection rather than
+     * a plain `\constant()` so the roster can name a `private const`. The census
+     * counts every `sprintf(self::X, …)` site by its TOKENS, blind to visibility,
+     * and the attribution sentence is deliberately private — a bare constant
+     * fetch would throw before any assertion runs, which is not the same thing
+     * as the format failing the census. A non-string/missing name still halts.
+     */
+    private static function formatValue(string $constant): string
+    {
+        $value = (new \ReflectionClass(Bootstrap::class))->getConstant($constant);
+
+        if (!\is_string($value)) {
+            throw new \RuntimeException("Bootstrap::{$constant} is not a readable string constant");
+        }
+
+        return $value;
+    }
+
+    /**
      * Every promoted constant's VALUE, keyed by name — the sweep's domain.
      *
      * @return array<string, string>
@@ -1490,7 +1519,7 @@ final class BootstrapLaunchFormatConstantsTest extends TestCase
     {
         $out = [];
         foreach (self::obligations() as $constant => $_) {
-            $out[$constant] = (string) \constant(Bootstrap::class . '::' . $constant);
+            $out[$constant] = self::formatValue($constant);
         }
 
         return $out;

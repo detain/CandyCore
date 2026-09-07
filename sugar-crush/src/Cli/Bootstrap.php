@@ -7,6 +7,7 @@ namespace SugarCraft\Crush\Cli;
 use SugarCraft\Crush\Agents\Agent;
 use SugarCraft\Crush\Agents\AgentDefinition;
 use SugarCraft\Crush\Agents\AgentManager;
+use SugarCraft\Crush\Agents\AgentPreset;
 use SugarCraft\Crush\Agents\AgentPresetRegistry;
 use SugarCraft\Crush\Agents\ForeignAgentPresetRegistry;
 use SugarCraft\Crush\App\App;
@@ -1527,6 +1528,27 @@ final class Bootstrap
     }
 
     /**
+     * The sentence {@see attributeInheritedPrompt()} appends to a prompt a
+     * body-less preset inherited instead of erasing.
+     *
+     * WHY THE FIRST `%s` IS A SEPARATE ARGUMENT rather than two whole sentences:
+     * built-in and imported are the same claim about the same two tiers, and a
+     * second copy of the sentence would be free to drift from the first. The two
+     * words are also the entire difference between the variants, so a test can
+     * pin both from one place.
+     *
+     * WHAT THIS MUST NEVER SAY. No prompt written here may claim a TOOL grant —
+     * a preset's `tools:` frontmatter is resolved against a registry the roster
+     * never builds, so such a claim would be provably false in production. This
+     * sentence is deliberately about the SOURCE of the prose and about nothing
+     * the agent can do. (The inherited reviewer prompt does say "skills you have
+     * been granted"; that is `AgentDefinition`'s own wording, copied
+     * byte-verbatim, and a SKILL claim rather than a tool one.)
+     */
+    private const PROMPT_ATTRIBUTION_FORMAT = 'Your operating instructions were supplied by the %s '
+        . "agent definition '%s'; this preset contributed only its frontmatter settings.";
+
+    /**
      * Every agent a launch can delegate to: the six built-in
      * {@see AgentDefinition} templates, then any `.md`+frontmatter preset
      * discovered under `{root}/.sugar-crush/agents` or `~/.sugar-crush/agents`.
@@ -1561,6 +1583,17 @@ final class Bootstrap
      * `.claude/agents/reviewer.md` must not silently re-point `reviewer` at
      * somebody else's prompt. Additive is the only safe direction for a new
      * discovery source.
+     *
+     * WINNING IS PER FIELD, AND THE PROMPT IS THE ONE FIELD A PRESET MIGHT NOT
+     * HAVE. A native preset declaring no prompt at all — no markdown body and no
+     * `initialPrompt:` — does not win an empty prompt over a written one: it
+     * inherits the prompt it shadowed and carries
+     * {@see PROMPT_ATTRIBUTION_FORMAT} so the agent can say where the text came
+     * from. Read the precedence above as "every setting the preset DECLARES
+     * replaces the built-in's", which is what it always meant, and not as "the
+     * whole built-in entry is discarded" — that second reading is precisely the
+     * defect the frontmatter-only `coder.md` and `reviewer.md` this repository
+     * ships fell through.
      *
      * WHAT THE IMPORT CARRIES INTO THE ROSTER USED TO BE NARROWER THAN THE
      * PRESET, AND NO LONGER IS — read this before relying on the sentence it
@@ -1622,6 +1655,7 @@ final class Bootstrap
             $agents[$name] = Agent::fromPreset($preset, $provider, $model);
         }
 
+        $builtInNames = [];
         foreach ([
             AgentDefinition::TYPE_CODER,
             AgentDefinition::TYPE_REVIEWER,
@@ -1633,14 +1667,135 @@ final class Bootstrap
             $definition = AgentDefinition::fromType($type, $type);
             if ($definition !== null) {
                 $agents[$definition->name] = Agent::fromDefinition($definition, $provider, $model);
+                // Recorded AS THE LOOP ENUMERATES rather than restated as a second
+                // list: the merge below has to know which shadowed entries came from
+                // the built-in tier so it can name that tier in its attribution, and
+                // a duplicated six-name literal is one rename away from lying.
+                $builtInNames[$definition->name] = true;
             }
         }
 
+        // BODY-LESS NATIVE PRESETS INHERIT THE BUILT-IN PROMPT RATHER THAN ERASE
+        // IT. A preset with no markdown body and no `initialPrompt:` key resolves
+        // to null ({@see \SugarCraft\Crush\Agents\AgentPresetRegistry::resolveInitialPrompt()}),
+        // which {@see Agent::fromPreset()} maps to the empty string — so the two
+        // frontmatter-only presets this repository ships, `coder.md` and
+        // `reviewer.md`, were overwriting their built-in twins' prompts with
+        // nothing, and every sub-agent delegated to them arrived carrying only its
+        // environment block. This merge replaces ONLY the prompt the preset never
+        // declared: every other field still comes from the frontmatter above it,
+        // which is the whole difference between "the preset was silent about the
+        // prompt" and "the preset said the prompt should be empty".
+        //
+        // AT THE ROSTER, AND NOWHERE LOWER. The built-in definitions are invisible
+        // to `AgentPresetRegistry`, whose instances are transient inside
+        // {@see agentPresets()}, so this loop is the only seam that has both tiers
+        // in hand at once.
+        //
+        // A BODY-LESS PRESET WITH NOTHING TO INHERIT keeps the empty prompt it has
+        // always had — the real case is this repository's `security-auditor.md`,
+        // which has no built-in twin. No instructions are invented for it here,
+        // because that is a content decision rather than this step's authority. It
+        // also gets NO notice, and the reason is honest rather than an oversight:
+        // the transcript seam is census-pinned by {@see TRANSCRIPT_SEAM_CALL_SITES}
+        // and asserted against ten prose sites in five files, two of which are
+        // outside this step's reach, so a new call site here moves a number this
+        // lane cannot correct. No existing envelope states the truth either —
+        // {@see PROJECT_TIER_REFUSAL_FORMAT} reads "ignoring", and nothing is being
+        // ignored: the agent IS launched, with its frontmatter. The recorded reason
+        // is therefore deferred to P7.S5b, which owns choosing the channel.
         foreach ($native as $name => $preset) {
+            // The `!== ''` test is what separates inherit from no-twin: a shadowed
+            // entry with an empty prompt has nothing worth inheriting, and
+            // attributing one would hand the agent a sentence about instructions it
+            // does not have.
+            $shadowed = $agents[$name] ?? null;
+            if ($preset->initialPrompt === null && $shadowed !== null && $shadowed->prompt !== '') {
+                $preset = self::presetCarryingPrompt(
+                    $preset,
+                    self::attributeInheritedPrompt(
+                        $shadowed->prompt,
+                        $name,
+                        isset($builtInNames[$name]),
+                    ),
+                );
+            }
+
             $agents[$name] = Agent::fromPreset($preset, $provider, $model);
         }
 
         return array_values($agents);
+    }
+
+    /**
+     * The same preset with one prompt, so {@see Agent::fromPreset()} can be run
+     * over it unchanged.
+     *
+     * WHY THE PRESET IS COPIED AND NOT THE AGENT. `Agent` is a `final readonly`
+     * class with no `withPrompt()`, so the alternative is spelling out its
+     * twenty-one constructor arguments — which would freeze `fromPreset()`'s own
+     * decisions (the `model: inherit` substitution, the permission mode gated on
+     * native-versus-foreign provenance) into a second copy inside this file.
+     * Copying the preset and calling `fromPreset()` keeps every one of those
+     * rules on the single code path that owns them.
+     *
+     * WHY A SPREAD INSTEAD OF A FIELD LIST. Neither class declares a `with*()`
+     * for this, and a list of the preset's sixteen fields would carry two costs
+     * at once: a field ADDED to `AgentPreset` later would default here rather
+     * than travel, and naming its `permissionMode` at all trips
+     * {@see \SugarCraft\Crush\Tests\Integration\ForeignAgentPresetWiringTest::testNoSourceFileOutsideAgentReadsAnAgentsPermissionMode()},
+     * whose census of that property is deliberately text-based because
+     * `Agent`'s fields are public and reach the wire through `toArray()`. That
+     * guard is right to stay ignorant of presets, and this copy has no business
+     * making it less so. Spreading the object's own public properties names no
+     * field, so a future one travels by construction and the census stays about
+     * `Agent`.
+     *
+     * `get_object_vars()` called from OUTSIDE the class returns the public half
+     * only, which is all `AgentPreset` has, and the keys are the property names —
+     * exactly the named-argument shape the constructor wants.
+     */
+    private static function presetCarryingPrompt(AgentPreset $preset, string $prompt): AgentPreset
+    {
+        $fields = \get_object_vars($preset);
+        $fields['initialPrompt'] = $prompt;
+
+        return new AgentPreset(...$fields);
+    }
+
+    /**
+     * Appends {@see PROMPT_ATTRIBUTION_FORMAT} to a prompt the preset did not
+     * supply, so the agent can say where its instructions came from.
+     *
+     * WHY A HELPER AT ALL, rather than an inline `sprintf` at the one call site:
+     * the merge and the idempotence guard have to agree on the exact bytes, and a
+     * literal copied into a test would stop pinning anything the moment this
+     * wording changed.
+     *
+     * The empty-input short circuit is not defensive padding — it is what keeps
+     * the no-twin case byte-identical to what it was before this merge existed.
+     */
+    private static function attributeInheritedPrompt(
+        string $inherited,
+        string $definitionName,
+        bool $fromBuiltInTier,
+    ): string {
+        if ($inherited === '') {
+            return $inherited;
+        }
+
+        $attribution = sprintf(
+            self::PROMPT_ATTRIBUTION_FORMAT,
+            $fromBuiltInTier ? 'built-in' : 'imported',
+            $definitionName,
+        );
+
+        // A SUFFIX test, not a substring one. A prompt that merely quoted this
+        // sentence somewhere in its middle has not already been attributed, and
+        // skipping it there would lose the record the sentence exists to carry.
+        return str_ends_with($inherited, $attribution)
+            ? $inherited
+            : $inherited . "\n\n" . $attribution;
     }
 
     /**
