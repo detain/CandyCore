@@ -1,0 +1,28 @@
+[35m╔═══════════════════════════════════════════════════════════════════════╦═════════════════════════════════════════════════════════════════════════╗[0m
+[35m║[0m [1;33mS U G A R  P O S T[0m   [2m· relay console v1 · dual transport · 2026-09-06[0m [35m║[0m [2msession #4213 · you@sugarpost.dev[0m                                       [35m║[0m
+[35m╟───────────────────────────────────────────────────────────────────────╬─────────────────────────────────────────────────────────────────────────╢[0m
+[35m║[0m [1;36mREQUEST[0m                                                               [35m║[0m [1;32mRESPONSE[0m                                                                [35m║[0m
+[35m║[0m [1;31mPOST[0m [1;37m/api/send[0m [2mHTTP/1.1[0m                                               [35m║[0m [2mSMTP dialogue · smtp.sugarpost.dev[0m                                      [35m║[0m
+[35m║[0m [33mAuthorization:[0m [37mBearer re_candy_9f2…[0m                                   [35m║[0m [34mS:[0m [1;32m220[0m [37msmtp.sugarpost.dev ESMTP SugarPost[0m                               [35m║[0m
+[35m║[0m [33mContent-Type:[0m  [37mapplication/json[0m                                       [35m║[0m [35mC:[0m [37mEHLO terminal.candy[0m                                                  [35m║[0m
+[35m║[0m [33mX-Sugar-From:[0m [36myou@sugarpost.dev[0m                                       [35m║[0m [34mS:[0m [32m250[0m [37m-SIZE 10485760  -8BITMIME[0m                                        [35m║[0m
+[35m║[0m [33mX-Sugar-To:[0m   [36mthem@candy.io[0m                                           [35m║[0m [35mC:[0m [37mMAIL FROM:<you@sugarpost.dev>[0m                                        [35m║[0m
+[35m║[0m [33mX-Attachment:[0m  [34mcake.json[0m [2m(inline, cid:cake)[0m                           [35m║[0m [34mS:[0m [32m250[0m [36m2.1.0 sender sweetened[0m                                           [35m║[0m
+[35m║[0m                                                                       [35m║[0m [35mC:[0m [37mRCPT TO:<them@candy.io>[0m                                              [35m║[0m
+[35m║[0m [37m{[0m                                                                     [35m║[0m [34mS:[0m [32m250[0m [36m2.1.5 recipient accepted[0m                                         [35m║[0m
+[35m║[0m   [35m"from"[0m[37m: [32m"you@sugarpost.dev"[0m[37m,[0m                                        [35m║[0m [35mC:[0m [37mDATA[0m                                                                 [35m║[0m
+[35m║[0m   [35m"to"[0m[37m: [37m[[36m"them@candy.io"[37m],[0m                                            [35m║[0m [34mS:[0m [32m354[0m [33msend sugar; end with <CRLF>.<CRLF>[0m                               [35m║[0m
+[35m║[0m   [35m"subject"[0m[37m: [32m"A sweet hello"[0m[37m,[0m                                         [35m║[0m [35mC:[0m [33mSubject:[0m [37mA sweet hello[0m                                               [35m║[0m
+[35m║[0m   [35m"html"[0m[37m: [32m"Sent via the Resend API."[0m                                  [35m║[0m [35mC:[0m [37m{"sent_with": "SugarPost"}[0m                                           [35m║[0m
+[35m║[0m [37m}[0m                                                                     [35m║[0m [35mC:[0m [37m.[0m                                                                    [35m║[0m
+[35m║[0m                                                                       [35m║[0m [34mS:[0m [1;32m250[0m [32m2.0.0 queued 7g3h2k sugar-1[0m                                      [35m║[0m
+[35m║[0m [2m─ compose once, relay everywhere ─[0m                                    [35m║[0m                                                                         [35m║[0m
+[35m║[0m [1;36m↑[0m [36m412 bytes queued for the candy wire[0m                                 [35m║[0m [2mdialogue closed · TLS1.3 · 0.9 s[0m                                        [35m║[0m
+[35m║[0m [33mIdempotency-Key:[0m [37msp-7g3h2k-sugar[0m                                      [35m║[0m [34mS:[0m [32m221[0m [37m2.0.0 Bye — relay rests[0m                                          [35m║[0m
+[35m║[0m [33mRetry:[0m          [37m2 × exponential backoff[0m                               [35m║[0m [2mre-verify over the API twin:[0m                                            [35m║[0m
+[35m║[0m                                                                       [35m║[0m [35mGET[0m [37m/api/send/msg_candy_9f2[0m                                             [35m║[0m
+[35m║[0m [2mpreflight: [0m[34mOPTIONS[0m [2m/api/send →[0m [33m405[0m [2m(POST only)[0m                        [35m║[0m [34m→[0m [1;32m201 Created[0m [37m{ "status": "queued" }[0m                                    [35m║[0m
+[35m║[0m                                                                       [35m║[0m    [36mqueue: 1 · ETA 0.4 s · bounces: 0[0m                                    [35m║[0m
+[35m╠═══════════════════════════════════════════════════════════════════════╬═════════════════════════════════════════════════════════════════════════╣[0m
+[35m║[0m [1;32m201 Created[0m  [36m██████████[0m[2m░░░░[0m  [2m118 ms · via Resend[0m                                                                                                  [35m║[0m
+[35m╚═══════════════════════════════════════════════════════════════════════╩═════════════════════════════════════════════════════════════════════════╝[0m

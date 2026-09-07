@@ -1,0 +1,6 @@
+              [38;5;231mSUGAR POST · RETRY BAY[0m              [0m
+  [38;5;46m⠋ attempt 1/5[0m             [38;5;245mqueued[0m                [0m
+  [38;5;214m⠹ attempt 3/5[0m             [38;5;214mbackoff 4s[0m            [0m
+  [38;5;196m⠿ attempt 5/5[0m             [38;5;196m429 THROTTLED[0m         [0m
+  [38;5;37mnext try ░░░░░░░░▓▓[0m                             [0m
+    [38;5;245mgive-up threshold: 6 — dead letter awaits[0m     [0m

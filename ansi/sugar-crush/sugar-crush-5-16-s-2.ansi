@@ -1,0 +1,14 @@
+║                   [37m╭─┐ ┌─┖[0m                    ║[0m
+╔══════════════════════════════════════════════╗[0m
+║      [1;33mS U G A R   C R U S H   D I N E R[0m       ║[0m
+║   [2mTABLE 07 · ORDER #118 · RUNNER crush-bot[0m   ║[0m
+╠══════════════════════════════════════════════╣[0m
+║ [37m2× [0m[0m[32mREAD[0m   [0m[2msrc/Lang.php[0m                       ║[0m
+║ [37m1× [0m[0m[32mBASH[0m  [0m[2mphpunit --filter Replay[0m             ║[0m
+║ [37m4× [0m[0m[33mEDIT[0m  [0m[2m+128 −12 patch hunks[0m                ║[0m
+║ [37m1× [0m[0m[36mGREP[0m  [0m[2m'crush' in **/*.php[0m                 ║[0m
+║ [37m1× [0m[0m[35mSKILL[0m [0m[2mtea-snapshot-test[0m                   ║[0m
+├──────────────────────────────────────────────┤[0m
+║         [1;31m▮▮▮ ON THE FLY ▮▮▮[0m   [0m[1;32m✓ FIRED[0m         ║[0m
+║    [2mallergy notice: contains untested code[0m    ║[0m
+╚══════════════════════════════════════════════╝[0m

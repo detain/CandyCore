@@ -1,0 +1,34 @@
+[37m╔══════════════════════════════════════════════════════════════════════[0m[37m══════════════════════════════════════════════════════════════════════════════╗[0m[0m
+[33m        A G E N T I C   C H A T   S H E L L   ·   P L A N · T O O L · S H I P        [0m[0m
+[37m║[0m                                                                                                                                                    [37m║[0m[0m
+                                           [33m█████[0m [35m█   █[0m [32m ███ [0m [36m ███ [0m [34m████ [0m     [31m ████[0m [33m████ [0m [36m█   █[0m [35m█████[0m [32m█   █[0m[0m
+                                           [33m█    [0m [35m█   █[0m [32m█    [0m [36m█   █[0m [34m█   █[0m     [31m█    [0m [33m█   █[0m [36m█   █[0m [35m█    [0m [32m█   █[0m[0m
+                                           [33m█████[0m [35m█   █[0m [32m█ ██ [0m [36m█████[0m [34m████ [0m     [31m█    [0m [33m████ [0m [36m█   █[0m [35m█████[0m [32m█████[0m[0m
+                                           [33m    █[0m [35m█   █[0m [32m█   █[0m [36m█   █[0m [34m█  █ [0m     [31m█    [0m [33m█  █ [0m [36m█   █[0m [35m    █[0m [32m█   █[0m[0m
+                                           [33m█████[0m [35m█████[0m [32m ███ [0m [36m█   █[0m [34m█   █[0m     [31m ████[0m [33m█   █[0m [36m█████[0m [35m█████[0m [32m█   █[0m[0m
+[37m║[0m                                                                                                                                                    [37m║[0m[0m
+[36m   the agentic AI coding-assistant chat shell — PHP port of charmbracelet/crush   [0m[0m
+[37m╠══════════════════════════════════════════════════════════════════[0m[37m══════════════════════════════════════════════════════════════════════════════════╣[0m[0m
+[37m║ [0m[36muser > [0m[37mgenerate slot-4: eighteen originals across nine cells, no repeats[0m                                                                          [37m ║[0m[0m
+[37m║ [0m[35magent ... [0m[37mrecalling slot 1/2/3 compositions from memory; steering clear of them[0m                                                                   [37m ║[0m[0m
+[37m║ [0m[37m  tool  [0m[33mRead  [0m[37mansi/sugar-crush/.slot1.list .slot2.list .slot3.list[0m[34m 188ms [0m[32mok[0m                                                                       [37m ║[0m[0m
+[37m║ [0m[37m  tool  [0m[33mWrite [0m[37m/tmp/opencode/gen_sc4.py[0m[34m 402ms [0m[32mok[0m                                                                                                   [37m ║[0m[0m
+[37m║ [0m[35magent > [0m[37mgreenhouse at dawn · token mint · memory stacks · customs · weather[0m                                                                       [37m ║[0m[0m
+[37m║ [0m[37m  tool  [0m[33mBash  [0m[34mpython3 [0m[37mgen_sc4.py[0m[34m  1.9s [0m[32m18 ok[0m                                                                                                      [37m ║[0m[0m
+[37m║ [0m[37m  ┌─ diff [0m[32m+2,114 [0m[37mansi/sugar-crush/ new files [0m                                                                                                     [37m ║[0m[0m
+[37m║ [0m[37m  │ [0m[32m+ sugar-crush-4-16-s-1.ansi ... sugar-crush-4-tc-l-2.ansi[0m                                                                                     [37m ║[0m[0m
+[37m║ [0m[37m  │ [0m[31m- (no prior slot-4 files existed to repeat)[0m                                                                                                   [37m ║[0m[0m
+[37m║ [0m[31mhook PreToolUse > Bash("git push") [0m[1;31mDENIED[0m[34m rule: ai/ship-via-pr-only[0m                                                                               [37m ║[0m[0m
+[37m║ [0m[35magent > [0m[37mverdict respected — staging stays with the orchestrator[0m                                                                                   [37m ║[0m[0m
+[37m║ [0m[36muser > [0m[37m/budget[0m[35m  agent › [0m[37mspend 0.41 · reserve 1.22 · burn 3.0%[0m                                                                                     [37m ║[0m[0m
+[37m║ [0m[36muser > [0m[37m/memory[0m[35m  agent › [0m[37m41 spines filed under notes/, drafts/, moods/[0m                                                                             [37m ║[0m[0m
+[37m║ [0m[32mplan 7/7 complete · sidecar .slot4.list written · all nine cells stocked[0m                                                                          [37m ║[0m[0m
+[37m╟──────────────────────────────────────────────────────────────────[0m[37m──────────────────────────────────────────────────────────────────────────────────╢[0m[0m
+[37m  > [0m[1;37mrun the final pass[0m[37m█[0m[33m   shift+tab[0m[37m plan  [0m[33mctrl+p[0m[37m palette  [0m[33mesc[0m[37m interrupt  [0m[33mctrl+o[0m[37m tools  [0m[0m
+[37m║[0m                                                                                                                                                    [37m║[0m[0m
+[35m            "crush the work, keep the sugar"[0m[37m — house motto, minted at SUGARCRUSH.io [0m[0m
+[37m║[0m                                                                                                                                                    [37m║[0m[0m
+[33m      SugarCrush · slot-4 mint edition · 18 originals · 9 cells stocked      [0m[0m
+[37m║[0m                                                                                                                                                    [37m║[0m[0m
+[34m  transcript · tool calls · diffs · hooks · plan mode · sub-agents · MCP · /compact  [0m[0m
+[37m╚══════════════════════════════════════════════════════════════════════[0m[37m══════════════════════════════════════════════════════════════════════════════╝[0m[0m

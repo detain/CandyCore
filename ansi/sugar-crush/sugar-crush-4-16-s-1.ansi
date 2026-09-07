@@ -1,0 +1,12 @@
+[1;33mSUGAR CRUSH[0m[37m  TOKEN RESERVE[0m[34m ── mint ledger ──[0m[0m
+[34m┌─────────────┐[0m[37m   rate per 1,000 tokens[0m[0m
+[34m│ [0m[33m████████[0m[34m     │[0m[36m input ........[0m[33m 37 tk[0m[0m
+[34m│ [0m[33m████[0m[34m       │[0m[36m output .......[0m[33m 110 tk[0m[0m
+[34m│ [0m[33m█[0m[34m         │[0m[36m cache read ...[0m[32m  4 tk[0m[0m
+[34m└────┬─────┬──┘[0m[37m  vault · till · purse[0m[0m
+[31mspend v 0.41[0m[37m    [0m[32mreserve ^ 1.22[0m[37m    [0m[35mburn 3.0%[0m[0m
+[37mbudget  [0m[32m█████████████[0m[34m░░░░░░░░░░░░[0m[37m 48%[0m[0m
+[36m"every token counts"[0m[37m  · house motto · [0m[33m/budget[0m[0m
+[35m coins [0m[33m((o)) ((o)) ((o))[0m[37m  jars: in · out · cache[0m[0m
+[37m minted by [0m[1;33mSugarCrush[0m[37m · session 0 · balance 128,540 tk[0m[0m
+[34m────────────────────────────────────────────────────────────────[0m[0m

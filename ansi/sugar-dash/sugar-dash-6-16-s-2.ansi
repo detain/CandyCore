@@ -1,0 +1,12 @@
+[1;44m▌ SugarDash [34mCIRCULATION DESK · Wed 06:40 pre-open               [0m
+[2;34m ───────────────────────────────────────────────────────        [0m
+[1;37m slip   patron          shelf      due     status               [0m
+[33m #201   HUCKLEBERRY F.  813/.5Q    +14d    [1;33mON LOAN              [0m
+[33m #202   OKONKWO T.      005.13     +14d    [1;33mON LOAN              [0m
+[31m #198   DELACROIX M.    759.4      -3d     [1;31mOVERDUE              [0m
+[35m #205   BRAMBLES J.     823.91     hold    [1;35mON HOLD              [0m
+[32m #177   VASQUEZ L.      636.7      today   [1;32mRETURNED             [0m
+[32m #181   FERREIRA K.     943.2      today   [1;32mRETURNED             [0m
+[36m Returns/hr [36m▁▁▂▂▃▅▆██▆▅▃▂▁▁▂▃▅ [37mpeak 22                          [0m
+[31m OVERDUE 3 [35mHOLDS 7 [32mRETURNED 41 [37mSHELVED 63                       [0m
+[2;37m datagrid 12 slips · SUGAR DASH grid · drawer 4 JAMMED          [0m

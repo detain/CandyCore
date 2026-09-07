@@ -1,0 +1,21 @@
+[40m[44m[1;37m════════════════════════ CANDY QUERY · MATERIALIZED-VIEW PRESS ═════════════════════════[0m[44m[0m
+[40m                                                                                      [0m
+[40m[36m   ╭────────────╮                                                                     [0m
+[40m[37m   │ feed: base  │          [33m┌──────────────────────────┐                              [0m
+[40m[37m   │ tables      │          [33m│ inked plate: GROUP BY    │                              [0m
+[40m[36m   ╰┬─────┬─────╯          [33m│  SELECT city, sum(total) │                               [0m
+[40m[37m    │     │     [32m┌───────┐  [33m│  FROM orders GROUP BY 1  │                               [0m
+[40m[37m    │     │     [32m│ paper │  [33m└────────────┬─────────────┘                               [0m
+[40m[31m    ▼     ▼     [32m│ roll  │              [37m▼                                              [0m
+[40m[35m   ╔════════╣═════╧═══════╧═════╗   [32m┌────────────┐                                    [0m
+[40m[1;37m   ║  PRESS ══▶  platen  ══▶ ink ║══▶│ fresh stack│                                   [0m
+[40m[35m   ╚════════════════════════════╝   [32m│  ████ ▓▓░░ │                                    [0m
+[40m        [36m↳ REFRESH 03:00 · 1.2 s · 42 ms/1k · 8,910 rows set                           [0m
+[40m                     [37morders_summary — served straight off the print                   [0m
+[40m        [36mcust  │ city     │ n        │ freshness                                       [0m
+[40m        [36m──────┼──────────┼──────────┼──────────────                                   [0m
+[40m        [32m 42   │ Lisbon   │   1.2k   │ ▲ hit                                           [0m
+[40m        [32m 17   │ Osaka    │     840  │ ▲ hit                                           [0m
+[40m        [31m 09   │ Lima     │      96  │ ▽ miss → reprint                                [0m
+[40m   [33mink ▰▰▰▰▰▰▰▰▱▱ · [36mvacuum 2 passes · the cache smells of fresh paper                 [0m
+[40m[44m[1;37m═════════════════ CandyQuery — print the answer once, hand it out fast ═════════════════[0m[44m[0m

@@ -1,0 +1,30 @@
+[1;35m                                              T H E   CandyForms   M A R I O N E T T E   W O R K S H O P                                              [0m
+[2;36m                                      strings are validators — taut green passes, frayed red knots fail the act                                       [0m
+[33m  ==================================================================================================================================================[0m
+[1;33m  ##HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HOOK HO##[0m
+  [2;37m             |              [0m[2;37m             |              [0m[2;37m             |              [0m[2;37m             |              [0m[2;37m             |              [0m
+  [1;32m             |              [0m[1;32m             |              [0m[31m             :              [0m[33m             ~              [0m[1;32m             |              [0m
+  [1;37m            +·+             [0m[1;37m            +·+             [0m[1;37m            +·+             [0m[1;37m            +·+             [0m[1;37m            +·+             [0m
+  [37m            | |             [0m[37m            | |             [0m[37m            | |             [0m[37m            | |             [0m[37m            | |             [0m
+  [1;36m           (o o)            [0m[1;36m           (o.o)            [0m[1;36m           (x_x)            [0m[1;36m           (- -)            [0m[1;36m           (o o)            [0m
+  [36m           --+--            [0m[36m           --+--            [0m[36m           --+--            [0m[36m           --+--            [0m[36m           --+--            [0m
+  [36m            /|\             [0m[36m            /|\             [0m[36m            /|\             [0m[36m            /|\             [0m[36m            /|\             [0m
+  [36m            | |             [0m[36m            | |             [0m[36m            | |             [0m[36m            | |             [0m[36m            | |             [0m
+  [2;36m            v v             [0m[2;36m            v v             [0m[2;36m            v v             [0m[2;36m            v v             [0m[2;36m            v v             [0m
+  [2;33m           ~~~~~            [0m[2;33m           ~~~~~            [0m[2;33m           ~~~~~            [0m[2;33m           ~~~~~            [0m[2;33m           ~~~~~            [0m
+  [1;37m      [ name  = Ana ]       [0m[1;37m       [ email ok? ]        [0m[1;37m        [ zip 902 ]         [0m[1;37m        [ note ... ]        [0m[1;37m        [ card ****]        [0m
+  [1;32m     PASS · taut string     [0m[1;32m     PASS · taut string     [0m[1;31m    FAIL · frayed string    [0m[2;33m    DRAFT · slack string    [0m[1;35m     MASK · taut string     [0m
+[33m  ==================================================================================================================================================[0m
+[1;34m  workbench: ---------------------------------------------------------------------------------------------------------------------------------------[0m
+[37m   [ focus needle ]   [ blur shears ]   [ spool A-Z ]   [ rosin for sticky keys ]   [ spare glass eyes ][0m
+[35m   pegboard, right wall:  required roles hang on RED cord (no skipping a scene)[0m
+[2;37m                         optional roles stay on the nail, collected when handy[0m
+[34m   stage plan: Tab hands the next puppet its strings; Shift-Tab bows them back in line[0m
+[36m   conductor's score:[0m
+[37m   +----------------------------------------------------------------------------------------------------------------------------------------------+[0m
+[37m   |[0m[2;37mact I   idle        all puppets curtain-side, waiting for the downbeat of a click                                                             [0m[37m|[0m
+[37m   |[0m[1;36mact II  editing     one puppet center stage, strings taut, the rest slack in the wings                                                        [0m[37m|[0m
+[37m   |[0m[33mact III validating  prompter reads each banner; red-knotted puppets shuffle their lines                                                       [0m[37m|[0m
+[37m   |[0m[1;32mact IV  submitted   bows, curtain, and the playbill stamps CandyForms in the margin                                                           [0m[37m|[0m
+[37m   +----------------------------------------------------------------------------------------------------------------------------------------------+[0m
+[2;36m                                               rehearse: type -> validate -> tighten -> curtain: SUBMIT                                               [0m

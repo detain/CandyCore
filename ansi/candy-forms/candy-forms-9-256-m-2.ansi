@@ -1,0 +1,25 @@
+  [38;5;220m┌─── FIELD CONDITIONS STATION [0m[38;5;231;48;5;23mCANDY FORMS[0m[38;5;220m ───┐[0m                                    [0m
+  │ [38;5;245mthe weather inside a form, logged every keystroke[0m        │                      [0m
+  [38;5;220m└───────────────────────────────────────────────────┘[0m                             [0m
+                                                                                    [0m
+   anemometer (spinner cups):  [38;5;111m  ╭─┬─╮  [0m  turning [38;5;215m◐[0m at 12 rpm = still loading       [0m
+        [38;5;111m──┤@├──[0m   wind from: the autocomplete server                                [0m
+        [38;5;111m  ╰─┴─╯  [0m                                                                   [0m
+   rain gauge (chars typed / min):  [38;5;75m▃▃▅▅▇[0m[38;5;245m  |[0m   18mm — light drizzle                 [0m
+   wind vane = predictor:   points [38;5;79m↗ "Ada Lovelace"  87%[0m                            [0m
+   barometer (required-field pressure):                                             [0m
+        [38;5;222m╭───────╮[0m                                                                   [0m
+        [38;5;222m│  [0m[38;5;203m▲[0m[38;5;245m rising fast  |  fields open: 5  satisfied: 3[0m[38;5;222m │[0m                         [0m
+        [38;5;222m╰───────╯[0m                                                                   [0m
+   thermometer (progress to submit):  [38;5;203m─┤[0m[38;5;203m▓▓▓▓▓▓░░░░[0m[38;5;245m 61°C / ENTER at 100°C[0m            [0m
+                                                                                    [0m
+   logbook, last three entries:                                                     [0m
+    [38;5;220m09:02[0m  email    [38;5;114mclear[0m        valid on first reading                             [0m
+    [38;5;220m09:04[0m  phone    [38;5;215mgusty[0m        reformat 555-01xx                                  [0m
+    [38;5;220m09:07[0m  date     [38;5;75mheavy rain[0m      pasted 1970..2038 ranges                        [0m
+                                                                                    [0m
+   [38;5;1mforecast:[0m[38;5;111m scattered validation errors this morning, clearing by submit,[0m          [0m
+   [38;5;114mwith a high chance of confetti near the success banner[0m                           [0m
+   [38;5;240mvisibility: good · cursor steady · do not feed the clouds raw JSON[0m               [0m
+   [38;5;222mstation bell rings once per field, twice on submit[0m                               [0m
+   [38;5;245msnow = stale cache; sweep it off the rails before observing[0m                      [0m

@@ -1,0 +1,20 @@
+[37m┌──────[0m[1;33m SUGAR CRUSH :: PLAN MODE [0m[33mread-only [0m                                          [37m┐[0m[0m
+[37m│[0m[36mobjective: [0m[37mship slot-4 art: 18 originals across the nine cells[0m                      [37m│[0m[0m
+[37m│[0m                                                                                    [37m│[0m[0m
+[37m│[0m[32m[x] 1  [0m[37msurvey prior slots 1/2/3 for used angles[0m[34m      done 12m ago[0m                   [37m│[0m[0m
+[37m│[0m[32m[x] 2  [0m[37mdraft six fresh compositions: greenhouse, mint...[0m[34m      done[0m                  [37m│[0m[0m
+[37m│[0m[36m[ ] 3  [0m[37mgenerate s-tier set: 6 files (40-70 cells wide)[0m[33m      next ~3m[0m                [37m│[0m[0m
+[37m│[0m[36m[ ] 4  [0m[37mgenerate m-tier set: 6 files (70-90 wide)[0m[34m      queued[0m                        [37m│[0m[0m
+[37m│[0m[36m[ ] 5  [0m[37mgenerate l-tier set: 6 files (120-225 wide)[0m[34m      queued[0m                      [37m│[0m[0m
+[37m│[0m[36m[ ] 6  [0m[37mverify dims, SGR class, color counts per file[0m[34m      queued[0m                    [37m│[0m[0m
+[37m│[0m[36m[ ] 7  [0m[37mwrite .slot4.list sidecar + report to lead[0m[34m      queued[0m                       [37m│[0m[0m
+[37m│[0m                                                                                    [37m│[0m[0m
+[37m│[0m[35mpolicy: [0m[32mreads ok[0m[37m   [0m[31medits blocked[0m[37m   [0m[33mbudget 3.1k tk / turn[0m                            [37m│[0m[0m
+[37m├────────────────────────────────────────────────────────────[0m                        [37m┤[0m[0m
+[37m│[0m[1;37my[0m[37m approve    [0m[1;37me[0m[37m edit plan    [0m[1;37mn[0m[37m reject    [0m[2;37mshift+tab[0m[37m toggle build[0m                      [37m│[0m[0m
+[37m│[0m                                                                                    [37m│[0m[0m
+[37m│[0m[34mplan tokens: [0m[37m61 tk/step est [0m[36m· reads only, zero side effects[0m                         [37m│[0m[0m
+[37m│[0m[33mSugarCrush[0m[37m · the plan is law once approved [0m[34m· est 14 min[0m                             [37m│[0m[0m
+[37m│[0m[37m  progress: [0m[32m███[0m[36m░░░░[0m[37m 2/7 steps  · 0 blockers  · 1 risk: repeats[0m                      [37m│[0m[0m
+[37m│[0m                                                                                    [37m│[0m[0m
+[37m└[0m                                                                                    [37m┘[0m[0m

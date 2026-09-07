@@ -1,0 +1,28 @@
+[1;38;5;223m                                          T H E   CandyForms   A T E L I E R  —  field layout painted in oil                                          [0m
+[2;38;5;117m                           skylight washes the studio; canvases hang where the eye travels: name, email, then the great bio                           [0m
+[38;5;245m   /----------------------------\[0m
+[38;5;245m  /[0m[48;5;24;38;5;117m   north skylight   [0m[38;5;245m\[0m
+[38;5;245m  |[0m[48;5;23m                            [0m[38;5;245m|[0m
+[38;5;245m  \----------------------------/[0m
+        [38;5;172m+====================+[0m[38;5;172m+====================+[0m[38;5;172m+======================================+[0m
+        [38;5;172m|[0m[1;38;5;223m        name        [0m[38;5;172m|[0m[38;5;172m|[0m[1;38;5;223m       email        [0m[38;5;172m|[0m[38;5;172m|[0m[1;38;5;223m            bio (textarea)            [0m[38;5;172m|[0m
+        [38;5;172m|[0m[38;5;245m+------------------+[0m[38;5;172m|[0m[38;5;172m|[0m[38;5;245m+------------------+[0m[38;5;172m|[0m[38;5;172m|[0m[38;5;250m 1 | sugar lover, form painter ...    [0m[38;5;172m|[0m
+        [38;5;172m|[0m[1;38;5;231m| Ana            _ |[0m[38;5;172m|[0m[38;5;172m|[0m[1;38;5;231m| a@b.io         @ |[0m[38;5;172m|[0m[38;5;172m|[0m[38;5;250m 2 | brushing fields with care ....   [0m[38;5;172m|[0m
+        [38;5;172m|[0m[38;5;245m+------------------+[0m[38;5;172m|[0m[38;5;172m|[0m[38;5;245m+------------------+[0m[38;5;172m|[0m[38;5;172m|[0m[38;5;245m 3 |                                  [0m[38;5;172m|[0m
+        [38;5;172m|[0m[38;5;114mcaret blinks · 1 Hz [0m[38;5;172m|[0m[38;5;172m|[0m[4;38;5;114mglaze: match on .io [0m[38;5;172m|[0m[38;5;172m|[0m[38;5;117m 4 | # gutter + rope scroll  |o|      [0m[38;5;172m|[0m
+        [38;5;172m|[0m[2;38;5;180mmin 1 word required [0m[38;5;172m|[0m[38;5;172m|[0m[2;38;5;180mvernis: regex ^\S+@\[0m[38;5;172m|[0m[38;5;172m|[0m[2;38;5;187m   soft wrap · 512 gilded chars       [0m[38;5;172m|[0m
+        [38;5;172m|[0m[38;5;203mred pin: not skippab[0m[38;5;172m|[0m[38;5;172m|[0m[2;38;5;245mcharcoal: hint ghost[0m[38;5;172m|[0m[38;5;172m|[0m[2;38;5;245m   the lower register of the wall     [0m[38;5;172m|[0m
+        [38;5;172m+====================+[0m[38;5;172m+====================+[0m[38;5;172m+======================================+[0m
+           easel A · focus         easel B · tabbed             great canvas C
+[38;5;245m  __________________________________________________________________________________________________________________________________________________[0m
+[38;5;215m   palette: [0m[48;5;52;38;5;52m  [0m[48;5;167;38;5;167m  [0m[48;5;114;38;5;114m  [0m[48;5;223;38;5;223m  [0m[48;5;117;38;5;117m  [0m[48;5;187;38;5;187m  [0m[2;38;5;245m  <- six field tints; the thumb-hole is required-red[0m
+[38;5;223m   brush jar: [0m[38;5;172m |\ | /| |\ | [0m[2;38;5;245m( caret, block, thin hint-liner, fat wash for :disabled )[0m
+[38;5;245m    ladder           stool            cat asleep on the reject pile:[0m
+[38;5;250m     |==|          (====)            /\_/\   zzz 'blinked past validation'[0m
+[38;5;245m     |==|          _|    |_          ( -.- )[0m
+[38;5;245m    /|  |\[0m
+[2;38;5;245m   turpentine tin (reset): rinse the brush, paint anew — esc returns a field to its sketch[0m
+[2;38;5;250m   layout ledger: rule-of-thirds hangs name|email side by side; bio keeps the lower register[0m
+[2;38;5;250m                  ragged right margin means flex wrap; gold leaf marks :disabled, do not touch[0m
+[2;38;5;187m   apprentice's note: focus travels left-to-right, then top-to-bottom, like reading a wall[0m
+[2;38;5;187m                                              varnish: once every canvas validates, the doc signs itself                                              [0m

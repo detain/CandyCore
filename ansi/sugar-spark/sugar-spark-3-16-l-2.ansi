@@ -1,0 +1,29 @@
+[1;33m  ▄▄ SUGARSPARK ENGINE BAY ▄▄ — four cylinders of parsed colour, firing on every escape[0m
+[2;37m  ┌────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐[0m
+[2;37m  │[0m[2;37m  firing order: [0m[1;33m1-3-4-2[0m[2;37m · a byte in, a spark out, a line rendered[0m                                                                                           [2;37m│[0m
+[2;37m  │[0m[37m   ┌─────┐     ┌─────┐     ┌─────┐     ┌─────┐[0m                                                                                                [2;37mcylinder heads[0m[2;37m│[0m
+[2;37m  │[0m[37m   │ ▓ ▓ │     │ ░ ░ │     │ ▓ ▓ │     │ ░ ░ │[0m                                                                                                  [2;37mvalve covers[0m[2;37m│[0m
+[2;37m  │[0m[1;33m   └──┬──┘     └──┬──┘     └──┬──┘     └──┬──┘[0m                                                                                                              [2;37m│[0m
+[2;37m  │[0m[1;33m    ╷│        ╷│        ╷│        ╷│[0m                                                                                                        [2;37mspark plug leads[0m[2;37m│[0m
+[2;37m  │[0m[1;35m   ╭─╮      ╭─╮      ╭─╮      ╭─╮[0m                                                                                                        [2;37mcoil packs, charged[0m[2;37m│[0m
+[2;37m  │[0m[35m   │▒│      │▒│      │▒│      │▒│[0m[2;37m   the distributor keeps the tempo[0m                                                                                         [2;37m│[0m
+[2;37m  │[0m[33m    │▟█▙       │▟█▙       │▟█▙       │▟█▙[0m                                                                                                   [2;37mplugs seated hot[0m[2;37m│[0m
+[2;37m  │[0m[1;33m    '·│·'      ' │ '       ' │ '       ' │ '[0m[1;31m ◂cyl1[0m                                                                                          [2;37m0ms — bold fires[0m[2;37m│[0m
+[2;37m  │[0m[2;37m     ✶[0m[33m     ' │ '       ' │ '       ' │ '[0m[1;33m ◂cyl2[0m                                                                                            [2;37m90ms — amber fires[0m[2;37m│[0m
+[2;37m  │[0m[2;37m   '·│·'       ✶[0m[33m  ' │ '       ' │ '[0m[1;32m ◂cyl3[0m                                                                                                [2;37m180ms — green fires[0m[2;37m│[0m
+[2;37m  │[0m[2;37m    ' │ '    '·│·'        ✶[0m[33m ' │ '[0m[1;36m ◂cyl4[0m                                                                                                   [2;37m270ms — cyan fires[0m[2;37m│[0m
+[2;37m  │[0m[33m   ▜██████▛  ▜██████▛  ▜██████▛  ▜██████▛[0m                                                                                                   [2;37mcombustion roofs[0m[2;37m│[0m
+[2;37m  │[0m[1;33m   ████████  ████████  ████████  ████████[0m                                                                                                      [2;37mpower strokes[0m[2;37m│[0m
+[2;37m  │[0m[36m      ║          ║          ║          ║[0m                                                                                                  [2;37mpistons of payload[0m[2;37m│[0m
+[2;37m  │[0m[36m   ╒╧╕      ╒╧╕      ╒╧╕      ╒╧╕[0m                                                                                                                   [2;37mcon-rods[0m[2;37m│[0m
+[2;37m  │[0m[1;36m   ╘═╪══════╪══════╪══════╪═══ >[0m                                                                                        [2;37mcrankshaft: one turn per stream byte[0m[2;37m│[0m
+[2;37m  │[0m[36m      ◌          ◌          ◌          ◌[0m                                                                                                      [2;37mbearing shells[0m[2;37m│[0m
+[2;37m  │[0m[31m   ~~~   ~~~   ~~~   ~~~[0m[2;37m   exhaust: spent escapes, faint and warm[0m                                                                                           [2;37m│[0m
+[2;37m  │[0m[2;31m    ~     ~     ~     ~[0m                                                                                                         [2;37mthe tailpipe whispers ESC[2m[0m[2;37m│[0m
+[2;37m  │[0m[2;37m   oil pan: [0m[33m▂▂▂▂▂▂▂▂▂▂[0m[2;37m  level OK — do not run the parser dry[0m                                                                                                [2;37m│[0m
+[2;37m  │[0m[2;37m   ◜◝  RPM ▸ [0m[32m▂▃▄▅▆▇█[0m[1;32m redline parsed[0m[2;37m   ◟◞  idle is a lullaby of null diffs[0m                                                                                   [2;37m│[0m
+[2;37m  │[0m[2;37m   coolant: [0m[36m≈≈≈≈≈≈≈≈≈≈[0m[2;37m  temperature steady — the stream flows cool[0m                                                                                          [2;37m│[0m
+[2;37m  │[0m[2;37m   serial SB-SPARK-0004 · tuned by the inspector · do not reset while hot[0m                                                                                   [2;37m│[0m
+[2;37m  │[0m[2;37m   fuel: sugar · air: escapes · ignition: [0m[1;33mInspector::parse()[0m                                                                                                [2;37m│[0m
+[2;37m  └────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘[0m
+[0m

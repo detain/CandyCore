@@ -1,0 +1,30 @@
+[1;35mCandyForms[0m presents ── [1;33mTHE SIGN-UP GAUNTLET[0m[2;37m···························································[0m [2;37ma validation drama[0m[0m
+[0m
+[1;36mcast: [0m[37mname · email · password · terms[0m — four fields, five validators, one submit key[2;37m················[0m [2;37mact structure: I→III[0m[0m
+[1;36msetting: [0m[37ma warm terminal, sixteen honest colors, no truecolor luxuries[0m[2;37m·······························[0m [2;37mprops: a blinking ▌[0m[0m
+[0m
+[1;36mACT I · the empty submit[0m [2;37m──────────────────────────────────────────────────────────────────────────[0m[31m form: 0/4 green[0m[0m
+   [33m? name[0m      [37m│ [0m[7m [0m[37m│[0m   [1;31m✘ Required: “a name, please”[0m[2;37m·······················································[0m [31mform: 0/4 green[0m[0m
+   [33m? email[0m     [37m│           │[0m [1;31m✘ Email: “where should the sugar go?”[0m[2;37m·······································[0m [31mform: 0/4 green[0m[0m
+   [33m? password[0m  [37m│           │[0m [1;31m✘ MinLength: 8 required, 0 delivered[0m[2;37m········································[0m [31msubmit: refused[0m[0m
+   [33m? terms[0m      [37m☐[0m            [1;31m✘ Confirm: “check the little box”[0m[2;37m·········································[0m [31mvalidators: 4 red[0m[0m
+[0m
+[1;36mACT II · the almosts[0m [2;37m────────────────────────────────────────────────────────────────────────────[0m[33m form: 1/4 green[0m[0m
+   [33m? name[0m      [37m│ [0m[32mAda[0m[7m▌[0m[37m     │[0m  [1;32m✔ required · ✔ maxlength[0m[2;37m····················································[0m [33mcandy ▓▓▓░░ 30%[0m[0m
+   [33m? email[0m     [37m│ [0m[36mada@ca[0m[7m▌[0m[37mndy.dev │[0m  [33m…pattern amber, still typing[0m[2;37m··········································[0m [33mcandy ▓▓▓▓░ 55%[0m[0m
+   [33m? password[0m  [37m│ [0m[35m•••[0m[37m        │[0m  [1;31m✘ MinLength: need 8, have 3[0m[2;37m·············································[0m [2;37mqueue: 1 red left[0m[0m
+   [33m? terms[0m      [37m☐[0m            [1;31m✘ Confirm: the box stares back, unmarked[0m[2;37m··································[0m [2;37mhint: press space[0m[0m
+   [33mprogress [0m[33m▓▓▓▓▓▓░░░░░░░░░ 41%[0m   [37mthe form warms one field at a time[0m[2;37m······································[0m [35mspinner ⠹ idle[0m[0m
+[0m
+[1;36mINTERMISSION · the buffer dreams[0m [2;37m───────────────────────────────────────────────────────────[0m[2;37m validators napping[0m[0m
+   [35m⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏[0m  [2;37mdraft kept · nothing lost · the caret never blinks twice the same[0m[2;37m···························[0m [2;37m60ms per tick[0m[0m
+[0m
+[1;36mACT III · redemption[0m [2;37m──────────────────────────────────────────────────────────────────────────[0m[32m form: 2/4 green[0m[0m
+   [33m? password[0m  [37m│ [0m[35m••••••••[0m[37m  [0m[33m▓▓▓▓▓▓▓▒░░[0m[37m  │[0m[1;32m✔ strong enough to crunch[0m[2;37m········································[0m [32mform: 3/4 green[0m[0m
+   [33m? terms[0m      [32m☑[0m            [1;32m✔ accepted, no coercion needed[0m[2;37m··············································[0m [32mform: 4/4 green[0m[0m
+   [33m? email[0m     [37m│ [0m[32mada@candy.dev[0m[32m  ✔[0m          [1;32m✔ Pattern: RFC-correct[0m[2;37m·········································[0m [32mbus: all green[0m[0m
+   [33m? name[0m      [37m│ [0m[32mAda L.[0m[32m        ✔  [0m[2;37mshortened to dodge MaxLength[0m[2;37m·············································[0m [2;37mwits: engaged[0m[0m
+   [7;1;32m submit [0m   [35m⠹ posting form values…   [0m[1;34m▓▓▓▓▓▓▓▓▓▓ 100%[0m[2;37m····················································[0m [1;33mhold the sugar[0m[0m
+[0m
+   [1;32m✔ CURTAIN[0m[37m  Form::submit() -> Ok(values) · Theme repaints · the terminal exhales.[0m[2;37m······················[0m [33mapplause: ▓▓▓▓▓[0m[0m
+   [2;37mepilogue: [0m[2;37mevery red line above was a teacher in cheap costumes — CandyForms kept the receipt[0m[2;37m·····················[0m [1;35mfin.[0m[0m

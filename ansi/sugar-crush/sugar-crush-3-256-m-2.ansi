@@ -1,0 +1,18 @@
+[231;90;38;5;1m SugarCrush · PLAN-MODE GANTT [0m[38;5;245m plan "tab compaction" approved 02:12[0m
+[38;5;245m steps              [38;5;245m0h[0m       [38;5;245m2h[0m       [38;5;245m4h[0m       [38;5;245m6h[0m       [38;5;245m8h[0m       [0m
+[38;5;240m                   ┼┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄[0m
+[38;5;231m 1 config parse    [0m[38;5;240m│[0m[1;38;5;196m██████[0m                                                            
+[38;5;231m 2 prompt template [0m[38;5;240m│[0m    [1;38;5;208m████████[0m                                                      
+[38;5;231m 3 summary rows    [0m[38;5;240m│[0m          [1;38;5;226m████████[0m                                                
+[38;5;231m 4 /compact cmd    [0m[38;5;240m│[0m            [1;38;5;118m███████[0m                                               
+[38;5;231m 5 fold tests      [0m[38;5;240m│[0m                [1;38;5;51m████████[0m                                          
+[38;5;231m 6 re-key titles   [0m[38;5;240m│[0m                    [1;38;5;141m██████[0m                                        
+[38;5;231m 7 doctor + palette[0m[38;5;240m│[0m                        [1;38;5;65m█████[0m                                     
+[38;5;231m 8 ship PR, docs   [0m[38;5;240m│[0m                            [1;38;5;182m████[0m                                  
+[38;5;240m                   ┆[0m[46;38;5;1m               ▲ now[0m
+[1;38;5;245m deps   [0m[38;5;196m1[0m[38;5;245m → [0m[38;5;208m2[0m[38;5;245m → {[0m[38;5;226m3[0m[38;5;245m, [0m[38;5;118m4[0m[38;5;245m} → [0m[38;5;51m5[0m[38;5;245m → [0m[38;5;141m6[0m[38;5;245m → [0m[38;5;65m7[0m[38;5;245m → [0m[38;5;182m8[0m[38;5;245m   critical path 34h[0m                            
+[1;38;5;245m miles   [0m[38;5;226m◆ [0m[38;5;255msummary row lands  [0m[38;5;51m◆ [0m[38;5;255mfold snapshot green  [0m[38;5;182m◆ [0m[38;5;255mmerged + docs tile lit[0m         
+[1;38;5;245m lanes   [0m[38;5;114m{3,4} [0m[38;5;245mand [0m[38;5;65m{5,7} [0m[38;5;245mrun in parallel · sub-agent per lane, crumbs merge here[0m      
+[1;38;5;245m budget  [0m[114;38;5;1m▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░[0m[38;5;245m 12/20 tool-calls · writes unlock on approve[0m
+[1;38;5;245m mode    [0m[220;38;5;1mREAD-ONLY [0m[38;5;203mbash denied · edits staged as diff previews until [A][0m
+[1;38;5;245m risk    [0m[114;38;5;1mlow[0m[38;5;245m — no schema migration touches prod rows in-place[0m[0m

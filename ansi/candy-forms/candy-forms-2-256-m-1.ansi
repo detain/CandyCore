@@ -1,0 +1,18 @@
+[38;5;111mC[0m[38;5;174ma[0m[38;5;180mn[0m[38;5;110md[0m[38;5;80my[0m[38;5;109mF[0m[38;5;179mo[0m[38;5;150mr[0m[38;5;223mm[0m[38;5;114ms[0m[38;5;245m  ▸ Field\MultiSelect · space toggles[0m[0m
+[38;5;223m? Toppings[0m[38;5;245m   filter [[0m[38;5;114msugar[0m[38;5;245m]   3/6 chosen[0m[0m
+[38;5;110m┌────────────────────────────────────────────────────────────────────────────┐[0m[0m
+[38;5;110m│[0m[114m☑[0m [150msprinkles[0m[245m  · kept by filter[0m                                              [179m▓[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[114m☑[0m [150msugar beads[0m[245m  · kept by filter[0m                                            [179m▓[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[114m☑[0m [150mcandy pearls[0m[245m  · kept by filter[0m                                           [179m▓[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[245m☐[0m [250mshredded wafer[0m                                                           [179m▒[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[245m☐[0m [250mstar anise[0m                                                               [179m▒[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[245m☐[0m [250mlicorice wheel[0m                                                           [179m░[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[245m☐[0m [250mhoneycomb shard[0m                                                          [179m░[0m[38;5;110m│[0m[0m
+[38;5;110m│[0m[245m☐[0m [250mnibs dark[0m                                                                [179m░[0m[38;5;110m│[0m[0m
+[38;5;110m└────────────────────────────────────────────────────────────────────────────┘[0m[0m
+[38;5;245msmith-waterman: [0m[38;5;114msprinkles 0.92  [0m[38;5;179msugar beads 0.71  [0m[38;5;223mcandy pearls 0.66[0m[0m
+[38;5;180menter confirms a list[0m[38;5;245m · ctrl-a selects all · esc discards the basket[0m[0m
+[0m
+[38;5;231mbasket: [0m[38;5;150msprinkles[0m  [38;5;150msugar beads[0m  [38;5;150mcandy pearls[0m[38;5;245m   insertion order preserved[0m[0m
+[38;5;245mengine: candy-fuzzy local alignment finds s.g.r inside sprinkles[0m[0m
+[38;5;223mviewport: [0m[38;5;245m8 of 46 toppings in view · scroll thumb = basket share · ItemList keeps order[0m[0m

@@ -1,0 +1,33 @@
+ [37m╔──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╗[0m 
+ [37m│[0m                                         [1;37;44mCANDY QUERY · PLAN ANATOMY — EXPLAIN (ANALYZE, BUFFERS) · pt. 42[0m                                         [37m│[0m 
+ [37m╚──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╝[0m 
+                                                                                                                                                      
+   [1;33mPATIENT:[0m[1;32mSELECT u.name, sum(o.total) FROM orders o JOIN users u ON u.id=o.uid ORDER BY 2 DESC LIMIT 1;[0m                                              
+                                                                                    [37m┌────────────────────────────────────────────────────────────┐[0m    
+   [37mSPINE OF THE PLAN (vertebrae = operators, ribs = children):[0m                      [37m│[0m  [1;33mMEASURED (self-time, ms)[0m                                  [37m│[0m    
+          [1;36m│◉[0m[1;33m◉ LIMIT[0m  [2;37mcost 8.72 · 0.04ms · 1 row leaves the body[0m                     [37m│[0m [2;37m──────────────────────────────────────────────────────────[0m [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m  [37mLimit     [0m   [1;32m0.04[0m                                         [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m                                                            [37m│[0m    
+          [1;36m│[0m [1;33m◉ SORT[0m  [2;37mcost 9.30 · 12.90ms · quicksort 41kB[0m                            [37m│[0m  [37mSort      [0m  [1;33m████████[0m [1;33m12.90[0m                                [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m                                                            [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m  [37mHash Join [0m  [1;35m███████[0m [1;35m11.20[0m                                 [37m│[0m    
+          [1;36m│[0m [1;35m◉ HASH JOIN[0m  [2;37mcost 14.44 · 11.20ms · 318 rows fused[0m                      [37m│[0m                                                            [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m  [37mSeq Scan  [0m  [1;31m██████████████████████████[0m [1;31m38.40[0m              [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m                                                            [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m  [37mHash      [0m  [1;36m█[0m [1;36m1.60[0m                                        [37m│[0m    
+          [1;36m│──[0m [1;31m◉ SEQ SCAN on orders[0m  [2;37mrows=100,000 · 38.40ms ·[0m[1;31m▲ ◀ 87% of the blood flo[0m[37m│[0m                                                            [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m  [37mIndex Scan[0m   [1;32m0.90[0m                                         [37m│[0m    
+          [1;36m│[0m                                                                         [37m│[0m                                                            [37m│[0m    
+          [1;36m│────[0m [1;33m◉ HASH[0m  [2;37mcost 3.20 · buckets 512[0m                                     [37m└────────────────────────────────────────────────────────────┘[0m    
+          [1;36m│[0m                                                                                                                                           
+          [1;36m│────[0m [1;32m◉ INDEX SCAN on users[0m  [2;37musers_pkey · 0.90ms · healthy organ[0m                                                                            
+          [1;36m│[0m                                                                                                                                           
+                                                                                                                                                      
+   [1;33mSURGICAL NOTE[0m[37mremove the appendix → CREATE INDEX idx_orders_uid ON orders(uid);  est. 38.4ms → 1.2ms[0m                                                
+                                                                                                                                                      
+   [37mGROSS SPECIMEN TABLE (shares):[0m                                                                                                                     
+   [2;37m┌─[0m[1;36mblk read 2,204 · hit 41,220 · rows out 1 · loops 1[0m[2;37m───────┐[0m     [1;33mattending: CANDY QUERY, M.D.[0m                                                      
+   [2;37m└──────────────────────────────────────────────────────────┘[0m                                                                                       
+                                                                    [2;37msecond opinion free: EXPLAIN FORMAT JSON[0m                                          
+                                                                                                                                                      
+[0m

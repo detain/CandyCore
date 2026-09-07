@@ -1,0 +1,11 @@
+[0m                    [0m[38;5;201ms[0m [0m[38;5;99mu[0m [0m[38;5;39mg[0m [0m[38;5;201ma[0m [0m[38;5;99mr[0m   [0m[38;5;201mp[0m [0m[38;5;99mo[0m [0m[38;5;39ms[0m [0m[38;5;201mt[0m                       [0m
+[0m                                                              [0m
+[0m           [0m[48;5;236m [0m[38;5;240mqueued[0m[48;5;236m [0m [0m[38;5;240m[[0m[38;5;220m▓[0m[38;5;214m▓[0m[38;5;215m▓▓[0m[38;5;209m▓▓▓▓[0m[38;5;203m▓▓▓▓[0m[38;5;204m▓[0m[38;5;238m░░░░░░░░[0m[38;5;240m][0m  [0m[38;5;214m62%[0m              [0m
+[0m                                                              [0m
+[0m      [0m[38;5;39m→ smtp relay 198.51.100.7:587[0m   [0m[38;5;120m   250 OK[0m               [0m
+[0m      [0m[38;5;141m→ resend api re_****abcd[0m        [0m[38;5;120m   200 sent[0m             [0m
+[0m      [0m[38;5;103m→ attachment invoice.pdf (212 KB[0m[38;5;75m   base64[0m               [0m
+[0m      [0m[38;5;179m→ lane bcc-list ×48[0m             [0m[38;5;214m   throttled[0m            [0m
+[0m      [0m[38;5;84m✓ 49 delivered · 1 in flight · 0 bounced[0m                [0m
+[0m      [0m[38;5;243m  cancellation token armed — candy-async[0m                [0m
+[0m      [0m[38;5;99mSugarPost · dual transport · pop from stdin[0m             [0m

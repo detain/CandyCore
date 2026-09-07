@@ -1,0 +1,10 @@
+[37m┌──[0m[33m SUGAR CRUSH CUSTOMS [0m[37m─ [0m[31m DENY GATE [0m                   [37m─┐[0m[0m
+[37m│[0m[37m inbound ticket [0m[35m#007[0m[37m: [0m[35mBash( rm -rf /var )[0m               [37m│[0m[0m
+[37m│[0m[37m  ┌─────┐   [0m[31m══╡ barrier: DOWN[0m                           [37m│[0m[0m
+[37m│[0m[37m  │  [0m[31mX[0m[37m  │[0m[36m <══ scan beam (PreToolUse)[0m                    [37m│[0m[0m
+[37m│[0m[37m  └──┬──┘   [0m[31m[ 403 BLOCKED BY HOOK ][0m                     [37m│[0m[0m
+[37m│[0m[37m pass: [0m[31mnone[0m[37m   waiting: [0m[32m3 in queue[0m                       [37m│[0m[0m
+[37m│[0m[37m rule [0m[33mdeny-all[0m[37m  mode [0m[36mplan-locked[0m[37m  officer [0m[35mhook#3[0m        [37m│[0m[0m
+[37m│[0m[31mstamp > D E N I E D <  logged to transcript[0m             [37m│[0m[0m
+[37m└──[0m[31m verdict is final [0m[37m── appeal at [0m[33m/permissions[0m           [37m┘[0m[0m
+[37mno call clears the shell without [0m[33mSugarCrush[0m[37m customs[0m[0m

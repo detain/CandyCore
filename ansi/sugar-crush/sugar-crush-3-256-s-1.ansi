@@ -1,0 +1,8 @@
+[1;38;5;231m SugarCrush ▸ MCP SERVERS[0m                                         
+ [1;38;5;46m●[0m [1;38;5;231mfilesystem  [0m [38;5;245mv1.4.2    [0m[38;5;114m14 tools  [0m[38;5;245m3ms [0m                          
+ [1;38;5;46m●[0m [1;38;5;231mgit         [0m [38;5;245mv0.9.1    [0m[38;5;114m6 tools   [0m[38;5;245m1ms [0m                          
+ [1;38;5;220m●[0m [1;38;5;231msearch-web  [0m [38;5;245mspawning  [0m[38;5;229mpid 41207 [0m[38;5;245m··· [0m                          
+ [1;38;5;46m●[0m [1;38;5;231mpostgres    [0m [38;5;245mv2.0.0    [0m[38;5;114m9 tools   [0m[38;5;245m8ms [0m                          
+ [1;38;5;196m●[0m [1;38;5;231mbrowser-ctl [0m [38;5;245mtimeout   [0m[38;5;203merrno 111 [0m[38;5;245m✗   [0m                          
+[38;5;245m 3 online · 1 spawning · 1 down · [0m[38;5;141m29 tools exposed to the loop[0m    
+[114;38;5;1m ▸ ctrl+P [0m[38;5;245minspect · toggle · JSON-RPC over stdio[0m                  [0m

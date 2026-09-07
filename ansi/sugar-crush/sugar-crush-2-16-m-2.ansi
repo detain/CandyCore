@@ -1,0 +1,18 @@
+[33m┌─ [1m[35mSUGAR CRUSH[0m[33m · plan + policy[0m                                                [33m┐[0m
+[33m│ [1m[36mPLAN — candy press refactor[0m          [33m│ [1m[34mpermissionRules · fnmatch[0m              [33m│[0m
+[33m│ [2m[37m────────────────────────[0m             [33m│ [2m[37m────────────────────────[0m               [33m│[0m
+[33m│ [32m✔ crush config loader[0m                [33m│ [32mBash(git *)     allow[0m                  [33m│[0m
+[33m│ [32m✔ split jaw crusher step[0m             [33m│ [32mEdit(src/**)    allow[0m                  [33m│[0m
+[33m│ [32m✔ mesh the rollers[0m                   [33m│ [31mBash(rm *)        ask[0m                  [33m│[0m
+[33m│ [33m▸ wire sugar meter[0m                   [33m│ [31mWrite(./.env)    deny[0m                  [33m│[0m
+[33m│ [37m· queue polish hook[0m                  [33m│ [33mWebFetch          ask[0m                  [33m│[0m
+[33m│ [37m· golden-file snapshot[0m               [33m│ [33mWebSearch         ask[0m                  [33m│[0m
+[33m│ [37m· crumb re-collector[0m                 [33m│ [32mRead(**)        allow[0m                  [33m│[0m
+[33m│ [37m· wrappers re-wrap[0m                   [33m│ [32mGrep(**)        allow[0m                  [33m│[0m
+[33m│ [37m· ship + squash docs[0m                 [33m│ [31mBash(sudo *)     deny[0m                  [33m│[0m
+[33m│ [33m9 steps · 3 done[0m                     [33m│ [31m4 gated[0m [32m5 open[0m                         [33m│[0m
+[33m├──────────────────────────────────────┼────────────────────────────────────────┤[0m
+[33m│ [37mdefault[0m  [37maccept-edits[0m  [1m[35m[ plan ][0m  [2m[37mauto · dont-ask · bypass-permissions[0m         [33m│[0m
+[33m│ [2m[37mplan mode never touches disk — SUGAR CRUSH only dreams in candy[0m               [33m│[0m
+[33m│ [36mtip[0m [37mShift+Tab cycles all six permission modes, live[0m                           [33m│[0m
+[33m└──────────────────────────────────────────────────────────────────────────────┘[0m

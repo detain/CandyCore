@@ -1,0 +1,11 @@
+[32mHoneyBounce field guide: squirrel hop dynamics[0m            
+                                                          
+[1m[33m  (o_o)/   launch v0=6.2 m/s   theta=58 deg[0m               
+[36m   /|*     g=9.81  k_post=48 N/m  [0m    [31md=0.62[0m              
+[37m  /        hop apex: h(n)=h0*d^n[0m                          
+  [35m__||__ ~^~ __||__ ~^~ __||__[0m                            
+  [36mpost 1     post 2     post 3[0m                            
+[1m[33mapex 1.40m   0.87m   0.54m   tail acts as damper[0m          
+[37mlegend: ~^~ arc   || post   * squirrel   _ rail[0m           
+[32mspring-back index 0.81  (acorn landed safely)[0m             
+[35mHoneyBounce physics engine v6[0m                             [0m

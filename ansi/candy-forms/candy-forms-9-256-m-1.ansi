@@ -1,0 +1,23 @@
+  [38;5;79m╔══════════ [0m[38;5;231;48;5;23mPAYLOAD FERRY TERMINAL[0m[38;5;79m · CANDY FORMS harbour ══════════╗[0m            [0m
+  [38;5;245m║ the input stream is wide; the model quay is on the far side[0m[38;5;79m            ║[0m      [0m
+  [38;5;79m╚═══════════════════════════════════════════════════════════════════════╝[0m       [0m
+                                                                                  [0m
+    slipway: [38;5;240mcars drive on bow-first, fields lashed down[0m                          [0m
+    [38;5;75m┌───────── deck ─────────┐[0m                                                    [0m
+    │ [38;5;114m[name][0m [38;5;114m[email][0m [38;5;114m[agree][0m  │   lashings: [38;5;114m✓ ✓ ✓[0m                                 [0m
+    │ [38;5;220m[phone][0m [38;5;240m( )[0m [38;5;240m( )[0m        │   cargo: 4 items, 1 loose                          [0m
+    [38;5;75m└───┬────────────────────┘[0m                                                    [0m
+        [38;5;245m│ ramp raised at high tide (ENTER)[0m                                        [0m
+                                                                                  [0m
+    mooring bollards = radio posts:  [38;5;215m(●)[0m[38;5;240m ( ) ( )[0m   rope tied: option A            [0m
+    [38;5;111m≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈[0m                                   [0m
+      [38;5;75m▄▄█▄▄[0m  hull: [38;5;245mform data, manifest sealed[0m                                     [0m
+    [38;5;111m≈≈≈≈≈≈≈≈≈≈~~~▄▄▄▄▄~~~≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈[0m                             [0m
+      wake trail: [38;5;240m~ ~ ~ ~ ~ ~ ~ ~ ~[0m  crossing takes [38;5;220m3 round-trips[0m                 [0m
+    [38;5;79m≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈≈[0m                              [0m
+                                                                                  [0m
+    lifebuoy on the rail spins: [38;5;215m○ ◐ ◓ ◑ ◒[0m   (connection slow — hold position)     [0m
+    tide table: departures at every [38;5;114mvalid state[0m · none for ghosts (empty required)[0m
+    harbourmaster's flag: [38;5;114mgreen = submit window open[0m / [38;5;203mred = 1 field adrift[0m       [0m
+    fare office coins each ticket from [38;5;222mthe keystroke toll[0m next door               [0m
+    [38;5;240mchips: CANDY FORMS — everything that floats gets across[0m                       [0m

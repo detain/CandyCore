@@ -1,0 +1,9 @@
+[1m[36m──────────────── CANDY QUERY · LATENCY BAROMETER ─────────────────[0m
+[33m   ┌──────────────┐                                               [0m
+[33m   │   [37m.̂[36m  1200  [37m···[33m│                                             [0m
+[33m   │[37m ╱[30m      [1m[31m││[30m    [33m│                                               [0m
+[33m   │[32mFAST [33m◀───┬───▶ [31mSLOW[33m  │                                        [0m
+[33m   └─┬─┘   [36mneedle 46 ms · steady                                  [0m
+   [36mglass ▼[37m trend [32m█▆▅▃▂▁[33m  Δp falling                               [0m
+   [35mwind-vane ⟶ rows/s   [36mdew-pt cache 92%  [33m☀ fair plan             [0m
+[1m[36m CANDYQUERY ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[0m

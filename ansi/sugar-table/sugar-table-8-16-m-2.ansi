@@ -1,0 +1,20 @@
+[1;35m                 INSECT ORDERS - WING & LIFE CYCLE KEY                  [0m
+[36m┌[0m[36m─────────────[0m[36m┬[0m[36m──────────────────[0m[36m┬[0m[36m─────────────[0m[36m┬[0m[36m─────────────[0m[36m┬[0m[36m─────────[0m[36m┐[0m
+[36m│[0m[1;33mOrder        [0m[36m│[0m[1;33mCommon name       [0m[36m│[0m[1;33mWings        [0m[36m│[0m[1;33mMetamorphosis[0m[36m│[0m[1;33m  Species[0m[36m│[0m
+[36m├[0m[36m─────────────[0m[36m┼[0m[36m──────────────────[0m[36m┼[0m[36m─────────────[0m[36m┼[0m[36m─────────────[0m[36m┼[0m[36m─────────[0m[36m┤[0m
+[36m│[0m[1;36mColeoptera   [0m[36m│[0m[37mBeetles           [0m[36m│[0m[33mElytra (hard)[0m[36m│[0m[30;46mComplete     [0m[36m│[0m[33m  400,000[0m[36m│[0m
+[36m│[0m[1;36mLepidoptera  [0m[36m│[0m[37mButterflies       [0m[36m│[0m[33mScaled       [0m[36m│[0m[30;46mComplete     [0m[36m│[0m[33m  180,000[0m[36m│[0m
+[36m│[0m[1;36mHymenoptera  [0m[36m│[0m[37mAnts, bees        [0m[36m│[0m[37mMembranous   [0m[36m│[0m[30;46mComplete     [0m[36m│[0m[33m  155,000[0m[36m│[0m
+[36m│[0m[1;36mDiptera      [0m[36m│[0m[37mFlies             [0m[36m│[0m[34mOne pair     [0m[36m│[0m[30;46mComplete     [0m[36m│[0m[33m  155,000[0m[36m│[0m
+[36m│[0m[1;36mHemiptera    [0m[36m│[0m[37mTrue bugs         [0m[36m│[0m[37mHemielytra   [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m   82,000[0m[36m│[0m
+[36m│[0m[1;36mOdonata      [0m[36m│[0m[37mDragonflies       [0m[36m│[0m[37mTwo pairs    [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m    6,000[0m[36m│[0m
+[36m│[0m[1;36mOrthoptera   [0m[36m│[0m[37mGrasshoppers      [0m[36m│[0m[37mTegmina      [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m   28,000[0m[36m│[0m
+[36m│[0m[1;36mBlattodea    [0m[36m│[0m[37mCockroaches       [0m[36m│[0m[37mTegmina      [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m    7,500[0m[36m│[0m
+[36m│[0m[1;36mThysanoptera [0m[36m│[0m[37mThrips            [0m[36m│[0m[34mFringed      [0m[36m│[0m[37;44mIntermediate [0m[36m│[0m[33m    6,000[0m[36m│[0m
+[36m│[0m[1;36mEphemeroptera[0m[36m│[0m[37mMayflies          [0m[36m│[0m[34mUpright      [0m[36m│[0m[37;44mIncomplete   [0m[36m│[0m[33m    3,500[0m[36m│[0m
+[36m│[0m[1;36mPlecoptera   [0m[36m│[0m[37mStoneflies        [0m[36m│[0m[37mMembranous   [0m[36m│[0m[37;44mIncomplete   [0m[36m│[0m[33m    3,500[0m[36m│[0m
+[36m│[0m[1;36mMantodea     [0m[36m│[0m[37mPraying mantis    [0m[36m│[0m[37mTegmina      [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m    2,400[0m[36m│[0m
+[36m│[0m[1;36mPhthiraptera [0m[36m│[0m[37mLice              [0m[36m│[0m[2;37mNone         [0m[36m│[0m[30;43mSimple       [0m[36m│[0m[33m    5,000[0m[36m│[0m
+[36m└[0m[36m─────────────[0m[36m┴[0m[36m──────────────────[0m[36m┴[0m[36m─────────────[0m[36m┴[0m[36m─────────────[0m[36m┴[0m[36m─────────[0m[36m┘[0m
+[2;37mcomplete = egg-larva-pupa-adult, simple/incomplete skips the pupa       [0m
+[1;33mSugarTable · entomological register                                     [0m

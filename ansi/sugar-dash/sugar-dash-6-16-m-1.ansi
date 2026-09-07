@@ -1,0 +1,20 @@
+[1;45m▌ SUGAR DASH [35mFUNFAIR CONTROL BOOTH · RIDE INTERLOCK MATRIX · 14:05                      [0m
+                                                                                        [0m
+[1;37m RIDE            HEIGHT  BARS    BLOCK    QUEUE            STATE                        [0m
+[32m Merry-Go-Round    0.9m   28/28   clear    ██████░░░░  62   [1;32mRUNNING                     [0m
+[32m Ferris Wheel      1.2m   40/40   clear    ████████░░ 118   [1;32mRUNNING                     [0m
+[32m Looping Star      1.4m   24/24   zone-2   ██████████ 203   [1;32mRUNNING                     [0m
+[32m Dodgems           1.1m   16/16   clear    ████░░░░░░  44   [1;32mRUNNING                     [0m
+[36m Log Flume         1.3m   22/22   wet      ███████░░░  96   [1;36mRUNNING                     [0m
+[33m Top Drop          1.4m   18/18   zone-1   ██████████ 240   [1;33mHOLD WIND                   [0m
+[2;37m Teacups           0.8m   12/12   clear    ██░░░░░░░░  31   [2;37mSTANDBY                     [0m
+[31m Ghost Train       1.2m   32/32   LOCKED   ███░░░░░░░  47   [1;31mE-STOP 3                    [0m
+[32m Swing Ships       1.2m   20/20   clear    █████░░░░░  58   [1;32mRUNNING                     [0m
+[36m Bumper Boats      1.0m   14/14   water    ██████░░░░  71   [1;32mRUNNING                     [0m
+                                                                                        [0m
+[36m Wind  ▁▂▂▃▃▄▅▅▆▇ [33m12 km/h [2;37mgust limit 40 · tower auto-hold                               [0m
+[35m Amps  ▅▅▆▆▇█▇▆▆▅ [37m212A / 400A panel B                                                   [0m
+[33m GATE 2 SPILL · [37mstaff call 14:15 · candy cart meter 81% · WC 3                          [0m
+[1;31m E-STOP 3 [37mchute sensor damp — reset key #7 · lockout tag logged                         [0m
+                                                                                        [0m
+[2;37m SUGAR DASH grid · 12 ride widgets · loop 250ms · operator R1                           [0m

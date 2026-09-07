@@ -1,0 +1,20 @@
+[1;36m┌──────────────────────────────────────────────────────────────────────────────┐[0m
+[1;36m│[0m                       [1;37m✦ ✦ ✦  CANDY QUERY METRO  ✦ ✦ ✦[0m                        [1;36m│[0m
+[1;36m│[0m                [37msingle SELECT — valid in all zones of public.*[0m                [1;36m│[0m
+[1;36m│[0m                                                                              [1;36m│[0m
+[1;36m│[0m   [1;33mLEGEND[0m                                                                     [1;36m│[0m
+[1;36m│[0m   [33m══ PK EXPRESS ────────── stops at every primary key[0m                        [1;36m│[0m
+[1;36m│[0m   [1;32m-- FK LOCAL -------------- terminates are foreign keys[0m                     [1;36m│[0m
+[1;36m│[0m   [1;35m·· AGGREGATE LOOP ....... circle-the-bucket service[0m                        [1;36m│[0m
+[1;36m│[0m   [1;36m◉ station = table        ◎ interchange = JOIN[0m                              [1;36m│[0m
+[1;36m│[0m   [1;31m✕ closed tunnel = orphan row (do not alight)[0m                               [1;36m│[0m
+[1;36m│[0m                                                                              [1;36m│[0m
+[1;36m│[0m   [1;33mTERMS[0m                                                                      [1;36m│[0m
+[1;36m│[0m   [2;37m1. Transfers at any JOIN are free but cost 0.01 of your seq_page_cost.[0m     [1;36m│[0m
+[1;36m│[0m   [2;37m2. No smoking in the sort area. Spill to disk at own risk.[0m                 [1;36m│[0m
+[1;36m│[0m   [2;37m3. Lost property: one (1) index, expression, slightly warm.[0m                [1;36m│[0m
+[1;36m│[0m                                                                              [1;36m│[0m
+[1;36m│[0m   [37mTO FARE:  cost = est_rows × cpu_tuple_cost[0m                                 [1;36m│[0m
+[1;36m│[0m   [1;31mMIND THE GAP between planner estimate and actual rows.[0m                     [1;36m│[0m
+[1;36m│[0m   [2;37missued by CandyQuery Transit · migration ∞[0m                                 [1;36m│[0m
+[1;36m└──────────────────────────────────────────────────────────────────────────────┘[0m

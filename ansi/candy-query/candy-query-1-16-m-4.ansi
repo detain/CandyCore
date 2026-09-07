@@ -1,0 +1,24 @@
+[0m[95msqlite>[0m [0m[95mSELECT[0m[37m id, name, flavor, sugar, [0m[96min_stock[0m                                      [0m
+        [0m[95mFROM[0m[37m [0m[96msweets[0m[37m [0m[95mWHERE[0m[37m [0m[96mcraving[0m[37m = [0m[93m1[0m[37m [0m[95mORDER[0m[37m [0m[95mBY[0m[37m [0m[96msugar[0m[37m [0m[95mDESC;[0m                            [0m
+                                                                                      [0m
+[0m[96m┌──────┬────────────────┬──────────────┬─────────┬──────────┬─────────┬─────────────┐[0m [0m
+[0m[96;100m│   id │ name           │ flavor       │   sugar │ in_stock │  rating │ shop        │[0m [0m
+[0m[96m├──────┼────────────────┼──────────────┼─────────┼──────────┼─────────┼─────────────┤[0m [0m
+[0m[96m│[0m[91m    1 [0m[96m│[0m[92m gumdrop        [0m[96m│[0m[92m cherry       [0m[96m│      92 │      140 │[0m[93m     4.8 [0m[96m│[0m[97m sugar-hollow[0m[96m│[0m [0m
+[0m[96m│[0m[91m    2 [0m[96m│[0m[92m acid-pop       [0m[96m│[0m[92m cola         [0m[96m│      88 │       96 │[0m[93m     4.6 [0m[96m│[0m[97m fizz-factory[0m[96m│[0m [0m
+[0m[96m│[0m[91m    3 [0m[96m│[0m[92m marshmallow    [0m[96m│[0m[92m vanilla      [0m[96m│      41 │[0m[91m     NULL [0m[96m│[0m[93m     4.2 [0m[96m│[0m[97m cloud-confy [0m[96m│[0m [0m
+[0m[96m│[0m[91m    4 [0m[96m│[0m[92m licorice       [0m[96m│[0m[92m anise        [0m[96m│      63 │       12 │[0m[93m     3.9 [0m[96m│[0m[97m night-root  [0m[96m│[0m [0m
+[0m[96m│[0m[91m    5 [0m[96m│[0m[92m toffee         [0m[96m│[0m[92m butter       [0m[96m│      77 │      203 │[0m[93m     4.5 [0m[96m│[0m[97m golden-mill [0m[96m│[0m [0m
+[0m[96m│[0m[91m    6 [0m[96m│[0m[92m rock-candy     [0m[96m│[0m[92m mint         [0m[96m│      69 │       58 │[0m[93m     4.1 [0m[96m│[0m[97m crystal-cave[0m[96m│[0m [0m
+[0m[96m└──────┴────────────────┴──────────────┴─────────┴──────────┴─────────┴─────────────┘[0m [0m
+                                                                                      [0m
+ [0m[92m6 rows[0m[90m · [0m[96m0.042s[0m[90m · focus: [0m[93mrows[0m[90m pane[0m                         [0m[91mNULL[0m[90m = unknown[0m            [0m
+                                                                                      [0m
+[0m[95msugar by flavor[0m  [0m[91mcherry[0m [0m[91m▓▓▓▓▓▓▓▓▓▓[0m   [0m[91mcola[0m [0m[91m▓▓▓▓▓▓▓▓▓[0m   [0m[93mvanilla[0m [0m[93m▓▓▓▓▓[0m   [0m[96mmint[0m [0m[96m▓▓▓▓▓▓▓[0m    [0m
+                                                                                      [0m
+[0m[95mEXPLAIN[0m[37m [0m[95mQUERY[0m[37m [0m[95mPLAN[0m[37m → [0m[95mSEARCH[0m[37m [0m[96msweets[0m[37m [0m[95mUSING[0m[37m [0m[95mINDEX[0m[37m [0m[96msugar_idx[0m[37m (craving=?)[0m                  [0m
+                                                                                      [0m
+  [0m[33m▄[0m[91m▀▀▀[0m [0m[33m▄[0m[91m▀▀[0m[33m▄[0m [0m[93;43m▀[0m[33m▄[0m [0m[92;100m▀[0m [0m[92;100m▀[0m[96m▀▀[0m[36m▄[0m [0m[37;104m▀[0m  [0m[37;104m▀[0m  [0m[95mcandy-query — the terminal SQLite browser[0m                 [0m
+  [0m[91;43m▀[0m    [0m[91;43m▀[0m[33m▄▄[0m[93;43m▀[0m [0m[93;43m▀[0m[93m▀[0m[90m▄[0m[92;100m▀[0m [0m[92;100m▀[0m  [0m[96;46m▀[0m  [0m[37;104m▀▀[0m   [0m[90mtables · rows · query · explain · dashboard[0m               [0m
+  [0m[91m▀[0m[33m▄▄▄[0m [0m[91;43m▀[0m  [0m[93;43m▀[0m [0m[93;43m▀[0m [0m[92m▀[0m[92;100m▀[0m [0m[92;100m▀[0m[36m▄▄[0m[96m▀[0m  [0m[37;104m▀▀[0m   [0m[93m[Tab][0m[90m panes  [0m[93m[↑/↓][0m[90m navigate  [0m[93m[Ctrl+R][0m[90m run  [0m[93m[q][0m[90m quit[0m       [0m
+                                                                                      [0m

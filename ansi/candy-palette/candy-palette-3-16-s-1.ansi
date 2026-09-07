@@ -1,0 +1,11 @@
+[0m  [0m[1;33mCANDY PALETTE · CONTRAST PASS/FAIL[0m                          [0m
+[0m  [0m[37m──────────────────────────────────────────────────────────[0m  [0m
+[0m  [0m[1;37;44m Aa [0m  [0m[37mwhite on blue  [0m   [0m[36m13.29:1[0m   [0m[1;10m AAA [0m[33m▶[0m                    [0m
+[0m  [0m[30;43m Aa [0m  [0m[37mblack on yellow[0m   [0m[36m19.69:1[0m   [0m[1;10m AAA [0m[33m▶[0m                    [0m
+[0m  [0m[37;47m Aa [0m  [0m[37mgrey  on grey  [0m   [0m[36m 1.00:1[0m   [0m[1;31m FAIL[0m[33m◀[0m                    [0m
+[0m  [0m[1;31;40m Aa [0m  [0m[37mlt-red on black[0m   [0m[36m 6.68:1[0m   [0m[1;10m AA  [0m[33m▶[0m                    [0m
+[0m  [0m[31;47m Aa [0m  [0m[37mred    on white[0m   [0m[36m 7.75:1[0m   [0m[1;10m AAA [0m[33m▶[0m                    [0m
+[0m                                                              [0m
+[0m  [0m[3;37mProbe::isNoColor() collapses all to 21:1 black/white.[0m       [0m
+[0m                                                              [0m
+[0m                                                              [0m[0m

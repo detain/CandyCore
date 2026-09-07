@@ -1,0 +1,21 @@
+╔═════════════════════════════════════════════════════════════════════════════════════╗[0m
+║[1m SUGAR DASH  STRATOSonde LAUNCH PAD 4  [32mASCENT LOG                                   ║[0m
+╠═══════╦══════╦═══════╦════════╦════════╦════════════════════════════════════════════╣[0m
+║ TIME  PRES hPa TEMP °C  ALT m    WIND    NOTES                                     ║[0m
+╠═══════╬══════╬═══════╬════════╬════════╬════════════════════════════════════════════╣[0m
+║ 06:02  1013  +14.2     320 [36m▁▁▂▂▃▃[0m  [3msurface drift E                                 ║[0m
+║ 06:14   941   +9.8   1,180 [36m▁▂▂▃▄▄[0m  [3mcloud layer 900                                 ║[0m
+║ 06:31   812   +2.4   2,940 [32m▂▃▄▄▅▅[0m  [3micing band                                      ║[0m
+║ 06:55   664   -8.1   5,020 [33m▃▄▅▆▆▇[0m  [3mjet stream edge                                 ║[0m
+║ 07:24   498  -27.6   7,740 [33m▄▅▆▇▇█[0m  [3mburst watch                                     ║[0m
+║ 07:58   301  -48.3  11,180 [31m▅▆▇█▇▆[0m  [3mtropopause                                      ║[0m
+║ 08:33   188  -56.9  13,410 [31m▆▇█▇▆▅[0m  [3mlevel float                                     ║[0m
+║ 09:01   121  -51.0  15,290 [35m▇█▇▆▅▅[0m  [3mdescent armed                                   ║[0m
+╚═══════╩══════╩═══════╩════════╩════════╩════════════════════════════════════════════╝[0m
+[36mSugarDash radiosonde 403 MHz · latex 1200g · recovery grid KL-7                     [0m
+ascent rate m/s  [32m▁▂▄▅▆▆▇█▇▆▅▄▃▂▁ [0m[31m[1mMAX 7.9 [0m[3m@ 07:41[0m
+burst forecast   [33m▇▇▆▆▅▅▄▄▃▃▂▂▁▁  [0m[3mover 18.2 km · float 96 min[0m
+radar track      [35m▁▂▃▅▆▇▇▆▅▄▄▃▂  [0m[3mazimuth 044 drifting NE[0m
+hydrometeor    [36m░▒▓ rain  ice  snow ░ [0m[3mtwo phase changes logged[0m
+pad windsurf   [31m▲[0m 340° 6kt · chain snap point inspected · chute nominal[0m
+[0m

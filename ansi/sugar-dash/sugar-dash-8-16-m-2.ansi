@@ -1,0 +1,18 @@
+[1;31m┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓[0m
+[37m┃[1;37;44m                SUGAR DASH · FIRE STATION 22 — APPARATUS & TONES                [37m┃[0m
+[31m┃[31m┃[40m                                                                                [0m
+[31m┃[1;33m  E-1  [37m▓▓[37m ENGINE 1   [37m│[37m BAY GATE DOWN[37m│[1;31m  OUT — 2-ALARM[31m┃[40m                            [0m
+[31m┃[1;33m  L-1  [37m░░[37m LADDER 1   [37m│[37m BAY GATE UP[37m│[32m  STANDBY[31m┃[40m                                    [0m
+[31m┃[1;33m  R-1  [37m░░[37m RESCUE     [37m│[37m BAY GATE UP[37m│[32m  STANDBY[31m┃[40m                                    [0m
+[31m┃[1;33m  S-2  [37m░░[37m SQUAD      [37m│[37m BAY GATE UP[37m│[32m  IN SERVICE[31m┃[40m                                 [0m
+[31m┃[1;33m  C-3  [37m▓▓[37m CHIEF CAR  [37m│[37m BAY GATE DOWN[37m│[33m  EN ROUTE[31m┃[40m                                 [0m
+[31m┃[31m────────────────────────────────────────────────────────────────────────────────[31m┃[0m
+[31m┃[1;33m RUN 214 ▸ [1;31m2ND ALARM — 1400 BLOCK CANAL ST — STRUCTURE FIRE[31m┃[40m                     [0m
+[31m┃[37m DISPATCHED 03:41 [37m│ UNITS 9 [37m│ ON-SCENE 03:49 [33m│ WORKING [31m┃[40m                         [0m
+[31m┃[1;36m TONES [36m[1] 2-ALARM  [2] RESCUE  [3] M-AID DELTA  [4] ─       [31m┃[40m                   [0m
+[31m┃[33m ZONES [32mA[32m█[33m B[33m█[1;31m C[1;31m█[37m D[37m░[37m   WATER TANK [32m91%[m       [31m┃[40m                                      [0m
+[31m┃[1;36m CREW [37mON-DUTY 11 [37m│ TURNOUT AVG 62s [37m│ 24H RUNS 7 [m    [31m┃[40m                            [0m
+[31m┃[33m HYDRANT [37mH-221 [32mOK [36m│ 750 GPM [37m│ SIAMESE [32mCHARGED[37m│ AIR PACK [36m4/6[m  [31m┃[40m                   [0m
+[31m┃[35m ▁▂▃▅▆▇ RUNS/HOUR ▇▆▅▃▂▁ — busiest watch 02:00-04:00         [31m┃[40m                   [0m
+[31m┃[37m legend [1;31m▓▓ rolling[32m  ░░ in quarters[33m  █ zone hot[m        [31m┃[40m                          [0m
+[1;31m┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛[0m

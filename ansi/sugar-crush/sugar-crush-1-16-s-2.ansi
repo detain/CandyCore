@@ -1,0 +1,10 @@
+[1;30;46m SUGAR-CRUSH v0.9 - agent chat shell            [0m
+[36m┌──────────────────────────────────────────────┐[0m
+[36m│[0m [1;95muser> [0m[97mrefactor the token buffer[0m              [36m│[0m
+[36m│[0m [1;93massistant [0m[35m- thinking [0m[2;37m▓▒░[0m[90m 2.3k tok[0m            [36m│[0m
+[36m│[0m[32m ✓ Read   src/Agents/TokenBuf.php[0m             [36m│[0m
+[36m│[0m[33m ✎ Edit   src/Agents/TokenBuf.php +9 -2[0m       [36m│[0m
+[36m│[0m[31m ✖ hook   deny: rm -rf /tmp/cache[0m             [36m│[0m
+[36m│[0m[36m ▸ stream [0m[96m38 tok/s[0m [1;97m█[0m                          [36m│[0m
+[36m└──────────────────────────────────────────────┘[0m
+[90mEnter send  │  /keys  │  Ctrl+P palette  │  Esc Esc cancel[0m

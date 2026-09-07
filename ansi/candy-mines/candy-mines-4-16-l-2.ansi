@@ -1,0 +1,28 @@
+[33;1m╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗[0m
+[33m║[32;1m     CANDY MINES BOTANIC GARDEN - PLOT SURVEY No. 12 - HEAD GARDENER'S COPY                                                           [33m║[0m
+[33;1m╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝[0m
+[0m
+      [37;1mBED   [36mA B C D E F G H I J K L M N O P[0m
+   [37m┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐[0m
+   [37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│[37;2m .[37m│ [31m3[37m│[32;1m w[37m│[37;2m .[37m│[37;2m .[37m│ [34m1[37m│[32;1m w[37m│[31;1m F[37m│[37;2m .[37m│[37;2m .[37m│  [36;2m1   south wall[0m
+   [37m├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤[0m
+   [37m│[37;2m .[37m│[32;1m w[37m│ [31m3[37m│[33m X[37m│[33m X[37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│[32;1m w[37m│[31;1m F[37m│[37;2m .[37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│[37;2m .[37m│  [36;2m2   rose walk[0m
+   [37m├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤[0m
+   [37m│ [34m1[37m│ [32m2[37m│[33m X[37m│[33;1m $[37m│[33m X[37m│ [34m1[37m│[37;2m .[37m│[32;1m w[37m│[37;2m .[37m│ [31m3[37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│[33m X[37m│[31;1m F[37m│[32;1m w[37m│  [36;2m3   treasure lawn[0m
+   [37m├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤[0m
+   [37m│[32;1m w[37m│ [34m1[37m│[37;2m .[37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│[31;1m F[37m│ [34m1[37m│ [32m2[37m│[33m X[37m│[33m X[37m│ [31m3[37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│[37;2m .[37m│  [36;2m4   new seedlings[0m
+   [37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│[37;2m .[37m│[31;1m F[37m│[32;1m w[37m│ [32m2[37m│[33m X[37m│[33m X[37m│ [34m1[37m│[32;1m w[37m│[37;2m .[37m│ [31m3[37m│[32;1m w[37m│[37;2m .[37m│  [36;2m5   fern circle[0m
+   [37m│[37;2m .[37m│ [31m3[37m│[33m X[37m│[33m X[37m│ [32m2[37m│[32;1m w[37m│[37;2m .[37m│ [34m1[37m│[32;1m w[37m│[37;2m .[37m│ [32m2[37m│[33m X[37m│[33m X[37m│ [34m1[37m│[37;2m .[37m│[32;1m w[37m│  [36;2m6   gate border[0m
+   [37m└──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘[0m
+[0m
+   [33;1mLEGEND [37mw flowering bed (safe)    X turned soil (revealed)    $ buried treasure chest[0m
+          [37;2m1-8 bulbs per bed = adjacency count of buried chests    F flag ribbon on suspect bed[0m
+   [31;1mNOTE   [37mthe first bed is planted blind and always opens safe - mines are buried[0m
+          [37monly after the gardener's trowel touches down, 3x3 around it untouched.[0m
+   [36;1mSURVEY [37m30 chests buried in 16x6 rows; 3 flags placed; 27 beds still holding petals.[0m
+   [36;1mCOMPASS     [37;1mN        sundial at bed A1 - the chest beneath it keeps the time[0m
+          [36m\ | /     (the trowel points where the flags point; the roses never lie)[0m
+     [36mW -+- E   gate side: dig gently, count petals, never rush a chest[0m
+          [36m/ | \[0m
+[0m
+[32;1m                                               CANDY MINES BOTANIC - BURIED TREASURE DEPT                                               [0m

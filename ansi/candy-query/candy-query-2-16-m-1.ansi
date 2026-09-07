@@ -1,0 +1,20 @@
+ [1;36mCandyQuery[0m[37m ▸ sqlite:///confections.db                [2mTab switch · Ctrl+R run · q quit[0m[0m
+[36m╭────────────────────┬────────────────────────────────────┬──────────────────────────╮[0m[0m
+[36m│[0m[7m▾ candies[0m           [36m│[0m [1;33m┌───┬─────────────┬──────┬────────┐[0m[36m│[0m[1;34mSELECT[0m name, price,       [36m[0m[0m
+[36m│[0m  orders            [36m│[0m [1;33m│[0m[1;33m id│     name    │price │ stock  [0m[1;33m│[36m│[0m       stock              [36m[0m[0m
+[36m│[0m  customers         [36m│[0m [1;33m├───┼─────────────┼──────┼────────┤[0m[36m│[0m[1;34mFROM[0m   candies            [36m[0m[0m
+[36m│[0m  flavors           [36m│[0m [1;33m│[0m[1;33m[37m  7│[36m toffee twist│[32m  2.40│[35m     132│[0m[36m│[0m[1;34mWHERE[0m flavor =            [36m[0m[0m
+[36m│[0m  batches           [36m│[0m [1;33m│[0m[1;33m[37m 12│[36m drop comet  │[32m  1.10│[2;3m    NULL│[0m[36m│[0m[32m  'caramel'[0m               [36m[0m[0m
+[36m│[0m  suppliers         [36m│[0m [1;33m│[0m[1;33m[37m 18│[36m fizz gem    │[32m  3.75│[35m      98│[0m[36m│[0m[1;34mORDER BY[0m price            [36m[0m[0m
+[36m│[0m  reviews           [36m│[0m [1;33m│[0m[1;33m[37m 23│[36m amber humbug│[32m  4.20│[2;3m    NULL│[0m[36m│[0m[1;33mDESC[0m [1;34mLIMIT[0m [35m50[37m;[0m            [36m[0m[0m
+[36m│[0m  receipts          [36m│[0m [1;33m│[0m[1;33m[37m 31│[36m pearl dragee│[32m  0.95│[35m      61│[0m[36m│[0m                          [36m[0m[0m
+[36m│[0m  stock_log         [36m│[0m [1;33m│[0m[1;33m[37m 34│[36m caramel coin│[32m  1.85│[35m     204│[0m[36m│[0m                          [36m[0m[0m
+[36m│[0m  discounts         [36m│[0m [1;33m│[0m[1;33m[37m 42│[36m sour meteor │[32m  2.10│[35m      77│[0m[36m│[0m[2m-- sweet analytics[0m        [36m[0m[0m
+[36m│[0m  coupons           [36m│[0m [1;33m└───┴─────────────┴──────┴────────┘[0m[36m│[0m                          [36m[0m[0m
+[36m│[0m▸ sqlite_sequence   [36m│[0m [2m7 of 1204 rows · h/l scroll[0m        [36m│[0m                          [36m[0m[0m
+[36m│[0m                    [36m│[0m                                    [36m│[0m                          [36m[0m[0m
+[36m│[0m[2m11 tables[0m           [36m│[0m                                    [36m│[0m                          [36m[0m[0m
+[36m│[0m                    [36m│[0m                                    [36m│[0m                          [36m[0m[0m
+[36m│[0m                    [36m│[0m                                    [36m│[0m                          [36m[0m[0m
+[36m╰────────────────────┴────────────────────────────────────┴──────────────────────────╯[0m[0m
+[7m rows │ 7/1204 │ NULL×2 │ flavors 6 │ [1mCtrl+R 18ms[0m │ focus: rows                       [0m[0m

@@ -1,0 +1,18 @@
+[34m┌─[0m[1;33m SugarCrush — PLAN MODE [0m[34m─────────────────────────────────────────[0m[2;36m (read-only)[0m[34m┐[0m
+[34m│[0m[1;35m PLAN v2 [0m[37m· [0m[3;37m"add compaction summaries to session tabs"[0m                         [34m│[0m
+[34m│[0m                                                                              [34m│[0m
+[34m│[0m[37m   [[0m[1;32mx[0m[37m] [0m[37mParse CompactorConfig boundaries   [0m[2;36mcandy-core/src[0m                      [34m│[0m
+[34m│[0m[37m   [[0m[1;32mx[0m[37m] [0m[37mDraft summary prompt template      [0m[2;36msugar-crush/prompts[0m                 [34m│[0m
+[34m│[0m[37m   [[0m[1;33m [0m[37m] [0m[37mEmit SessionSummary row (SQLite)   [0m[2;36msessions.php[0m                        [34m│[0m
+[34m│[0m[37m   [[0m[1;33m [0m[37m] [0m[37mWire /compact slash command        [0m[2;36mui/commands.php[0m                     [34m│[0m
+[34m│[0m[37m   [[0m[1;36m>[0m[37m] [0m[37mSnapshot tests, folded transcript  [0m[2;36mtests/Compaction[0m                    [34m│[0m
+[34m│[0m[37m   [[0m[1;2m [0m[37m] [0m[37mRe-key tab titles from summary     [0m[2;36mtabs.php[0m                            [34m│[0m
+[34m│[0m[37m   [[0m[1;2m [0m[37m] [0m[37mShip PR, merge, refresh docs site  [0m[2;36mgh · ship-pr[0m                        [34m│[0m
+[34m│[0m                                                                              [34m│[0m
+[34m│[0m[1;35m rationale [0m[37mthree failed auth flows cluster on the middleware chain[0m            [34m│[0m
+[34m│[0m[1;35m effort   [0m[37m~15 tool calls · 2 new files · 9 modified · no schema change[0m        [34m│[0m
+[34m│[0m[2;37m files [0m[1;33m11[0m[2;37m · est. tool calls [0m[1;33m~15[0m[2;37m · bash [0m[1;31mdenied in plan mode[0m                    [34m│[0m
+[34m│[0m                                                                              [34m│[0m
+[34m├──────────────────────────────────────────────────────────────────────────────┤[0m
+[34m│[0m[1;37;42m [A] [0m[32mapprove & execute [0m[1;37;44m [E] [0m[34medit plan [0m[1;37;41m [R] [0m[31mreject → chat[0m                      [34m│[0m
+[34m└──────────────────────────────────────────────────────────────────────────────┘[0m[0m

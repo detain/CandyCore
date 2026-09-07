@@ -1,0 +1,9 @@
+[1;38;5;203m       CandyForms FIELD HOSPITAL — input triage       [0m
+[38;5;245m+----------------------------------------------------+[0m
+[38;5;245m|[0m[38;5;252m cot 01 [0m[1;38;5;231m[me@io.com]  [0m[1;38;5;46mTAG: GREEN[0m[38;5;245m admit, healthy    [0m[38;5;245m|[0m
+[38;5;245m|[0m[38;5;252m cot 02 [0m[1;38;5;231m[ab@cd]      [0m[1;38;5;196mTAG: RED  [0m[38;5;245m no TLD, operate   [0m[38;5;245m|[0m
+[38;5;245m|[0m[38;5;252m cot 03 [0m[1;38;5;231m[####-##]    [0m[1;38;5;214mTAG: AMBER[0m[38;5;245m masked, observe   [0m[38;5;245m|[0m
+[38;5;245m|[0m[38;5;252m cot 04 [0m[1;38;5;231m[]           [0m[1;38;5;196mTAG: RED  [0m[38;5;245m empty, required   [0m[38;5;245m|[0m
+[38;5;245m+----------------------------------------------------+[0m
+[38;5;46m  vitals [0m[38;5;83m~^~~^~~^~~^~ [0m[38;5;117mward calm on blur[0m
+[2;38;5;223msort first, submit second — the validator never sleeps[0m

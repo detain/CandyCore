@@ -1,0 +1,28 @@
+[38;5;111mC[0m[38;5;174ma[0m[38;5;180mn[0m[38;5;110md[0m[38;5;80my[0m[38;5;109mF[0m[38;5;179mo[0m[38;5;150mr[0m[38;5;223mm[0m[38;5;114ms[0m[38;5;245m  ▸ VimKeyHandler — one grammar, four libs[0m[0m
+[0m
+[38;5;110m        esc ──────────▶[0m                 [38;5;114mi  a  o  O[0m            [38;5;179mv / V[0m[0m
+[38;5;110m   ┌────────────────┐                 ┌────────────────┐      [0m[38;5;110m┌────────────────┐[0m[0m
+[38;5;110m   │[0m[48;5;236;38;5;231m     NORMAL      [0m[38;5;110m│   [0m        │[48;5;236;38;5;231m     INSERT      [0m│      │[48;5;236;38;5;231m     VISUAL      [0m│[0m
+[38;5;110m   │ hjkl dd yy .   │[0m[38;5;245m◀───────────▶[0m[38;5;110m│ ▌ caret · runes  │[0m      │ selection live │[0m
+[38;5;110m   └────────────────┘                 └────────┬───────┘      [0m[38;5;110m└────────┬───────┘[0m[0m
+[38;5;110m            [0m                            [38;5;245mesc[0m                            [38;5;245mc d y[0m[0m
+[38;5;110m                                              ▼                              [0m          ▼[0m
+[38;5;110m                                   ┌────────────────┐                 ┌────────────────┐[0m[0m
+[38;5;110m                                   │[0m[48;5;236;38;5;231m   OPERATOR      [0m[38;5;110m│   [0m│[48;5;236;38;5;231m  TEXT OBJECT    [0m│[0m
+[38;5;110m                                   │ c d y pending  │                 │ i / a + target │[0m[0m
+[38;5;110m                                   └────────────────┘                 └────────────────┘[0m[0m
+[0m
+  [38;5;203moperator[0m  [38;5;179mscope[0m  [38;5;110mtarget[0m   [38;5;223mresolution — TextObject::resolve()[0m[0m
+    [48;5;236;38;5;203m c [0m[48;5;236;38;5;179m i [0m[48;5;236;38;5;110m " [0m   [38;5;250mchange inside "quotes"[0m                                                                          [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m d [0m[48;5;236;38;5;179m a [0m[48;5;236;38;5;110m { [0m   [38;5;250mdelete around {braces}, innermost pair wins[0m                                                     [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m y [0m[48;5;236;38;5;179m i [0m[48;5;236;38;5;110m w [0m   [38;5;250myank the word under the cursor[0m                                                                  [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m c [0m[48;5;236;38;5;179m i [0m[48;5;236;38;5;110m ( [0m   [38;5;250mretype inside (parens) without touching them[0m                                                    [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m d [0m[48;5;236;38;5;179m a [0m[48;5;236;38;5;110m " [0m   [38;5;250mdelete around "quotes" including the quotes[0m                                                     [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m y [0m[48;5;236;38;5;179m y [0m[48;5;236;38;5;110m y [0m   [38;5;250myank the whole line — register keeps the sugar[0m                                                  [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m c [0m[48;5;236;38;5;179m i [0m[48;5;236;38;5;110m [ [0m   [38;5;250mretype inside [brackets] without waking them[0m                                                    [38;5;114m✓ buffer range [start,end)[0m[0m
+    [48;5;236;38;5;203m d [0m[48;5;236;38;5;179m i [0m[48;5;236;38;5;110m ' [0m   [38;5;250mdelete inside 'single quotes'[0m                                                                   [38;5;114m✓ buffer range [start,end)[0m[0m
+[0m
+[38;5;245m  unmatched delimiter -> null -> vim's silent beep.  [0m[38;5;180msugar-prompt · sugar-bits · sugar-readline · candy-forms — bind once, benefit all four.[0m[0m
+[38;5;179m  registers: [0m[38;5;250m"_ blackhole · +. append · 0. yank-first — small muscle memory behind every field"[0m[0m
+[38;5;179m  motions:   [0m[38;5;250mw b e 0 $ f,t ; t x — motions arm operators; the caret keeps the count[0m[0m
+[38;5;245m  visual:    [0m[38;5;250mv selects chars, V takes lines; c d y burn the selection into the buffer[0m[0m

@@ -1,0 +1,28 @@
+[36m╔[0m══════════════════════════════[36m╤[0m═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════[36m╗[0m
+[36m║[0m[1;33m SESSION TABS[0m                 [36m║[0m[1;36m SugarCrush ▸ tab 1/5 — auth-refactor [0m                                                                               [36m║[0m
+[36m╟[0m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌[36m╬[0m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌[36m╢[0m
+[36m║[0m[1;37;44m▸1 [0m[1;37;44mauth-refactor    [0m[1;37;44mact 92%   [0m[36m║[0m[1m user>[0m[37m split the auth middleware into one service per tab[0m                                                            [36m║[0m
+[36m║[0m[2;37m 2 [0m[36mplan-migrations  [0m[2;37midl 41%   [0m[36m║[0m[37m   [0m                                                                                                                  [36m║[0m
+[36m║[0m[2;37m 3 [0m[35mflaky-test-hunt  [0m[2;37midl 66%   [0m[36m║[0m[1m assistant[0m[37m [0m                                                                                                          [36m║[0m
+[36m║[0m[2;37m 4 [0m[32mdocs-sweep       [0m[2;37mdone 12%  [0m[36m║[0m[37m   I'll map the middleware graph first, then extract each[0m                                                            [36m║[0m
+[36m║[0m[2;37m 5 [0m[33mspike-tea-loop   [0m[2;37midl  5%   [0m[36m║[0m[37m   service behind an interface. Plan drafted — awaiting[0m                                                              [36m║[0m
+[36m║[0m                              [36m║[0m[36m ⚙ Read[0m[37m src/Auth/Middleware.php            tab-1 local[0m                                                               [36m║[0m
+[36m║[0m[32m ▸ + new  ctrl+t[0m              [36m║[0m[36m ⚙ Grep[0m[37m "middleware(" --type php  →  14 hits in 6 files[0m                                                              [36m║[0m
+[36m║[0m                              [36m║[0m[1m ⚙ Plan[0m[37m propose 6 steps  ▸  read-only, bash denied in plan[0m                                                           [36m║[0m
+[36m║[0m[2;33m grouped[0m                      [36m║[0m[37m   diff preview queued for tab 2 (plan-migrations)[0m                                                                   [36m║[0m
+[36m║[0m[2;37m  work 3 · spike 2[0m            [36m║[0m[1m user>[0m[37m approve, then open tab 2 from the migration list[0m                                                              [36m║[0m
+[36m║[0m                              [36m║[0m[37m   [0m                                                                                                                  [36m║[0m
+[36m║[0m                              [36m║[0m[1m assistant[0m[37m approved — plan frozen; switching lanes: writes unlock[0m                                                    [36m║[0m
+[36m║[0m                              [36m║[0m[37m   ⚙ Edit  src/Auth/Middleware.php (-118 +12) ▸ diff ▾[0m                                                               [36m║[0m
+[36m║[0m                              [36m║[0m[37m   ▏streaming…[0m                                                                                                       [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m║[0m                              [36m║[0m                                                                                                                     [36m║[0m
+[36m╟[0m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌[36m╬[0m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌[36m╢[0m
+[36m║[0m[2;37m⧉ 5 tabs · 2 busy[0m             [36m║[0m[1;37;44m ctrl+→ [0m[34m next tab  [0m[1;37;45m ctrl+w [0m[35m close  [0m[1;37;43m /compact [0m[33m fold  [0m[1;32m plan [0m[1;32mON [0m[2;37mctx [0m[1;31m█████████▓▒░[0m[31m 92%[0m                                    [36m║[0m
+[36m╚[0m══════════════════════════════[36m╧[0m═════════════════════════════════════════════════════════════════════════════════════════════════════════════════════[36m╝[0m[0m

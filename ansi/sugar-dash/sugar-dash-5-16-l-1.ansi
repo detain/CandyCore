@@ -1,0 +1,28 @@
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗[0m
+║[84m[1m[37m SUGAR DASH  CONTROL ROOM  ·  SS-518 SUGARGLIDER [0m[32m  RIG: SILENT · DECK 2                                                                                ║[0m
+╠══════════════════════════════════════════════════╦════════════════════════════════════════════════╦══════════════════════════════════════════════════╣[0m
+║      ●  A H E A D  ●                            ║  FWD TRIM [36m███████████[0m░░░░░░░[36m  62%             ║  depth ladder (periscope)                       ║[0m
+║    ┌─────────────┐                              ║                                               ║  ────── 0 m   surface                           ║[0m
+║ ▐  │ FULL        │ 72% │                        ║  BALLAST 1[34m██████████████████[0m[34m 100%             ║       │                                         ║[0m
+║ ▐  │ HALF        │ ──  │                        ║                                               ║  ────── 20 m  ▓◄ HOLD 27                        ║[0m
+║ ▐  │ STANDARD  ◄═╡     │                        ║  BALLAST 2[34m██████████████████[0m[34m 100%             ║       │  ░                                      ║[0m
+║ ▐  │ SLOW        │ ──  │                        ║                                               ║  ────── 50 m  test                              ║[0m
+║ ▐  │ ALL STOP    │ ──  │                        ║  SOFT TANK[32m████[0m░░░░░░░░░░░░░░[32m  24%             ║       │  ░                                      ║[0m
+║    └─────────────┘                              ║                                               ║  ────── 100 m                                   ║[0m
+║    ● ASTERN ●                                   ║  AFT TRIM [36m██████████[0m░░░░░░░░[36m  58%             ║       │  ░ crush 240                            ║[0m
+║ revolutions 86 · shaft 41C                      ║                                               ║  ────── 150 m                                   ║[0m
+║ prop pitch  ▓▓▓▓▓▒░  cav  low                   ║  PURGE LN [33m█[0m░░░░░░░░░░░░░░░░░[33m   8%             ║       ▒                                         ║[0m
+║ telegraph clanks loud twice                     ║                                               ║ rate 0.0 m/s steady                             ║[0m
+║                                                 ║  HOLD-1   [35m████████████████[0m░░[35m  91%             ║                                                 ║[0m
+║                                                 ║                                               ║                                                 ║[0m
+╠══════════════════════════════════════════════════╬════════════════════════════════════════════════╬══════════════════════════════════════════════════╣[0m
+║ tubes [32mT-1 READY[0m  [32mT-2 READY[0m  [33mT-3 LOAD[0m  [37mT-4 SAFE[0m  [37mT-5 SAFE[0m  [31mT-6 FAULT[0m   hatch [32m▣ sealed[0m   trim [36m+0.2° up                                                  ║[0m
+║ O2 [33m20.9%[0m  CO2 [31m0.34%[0m  SugarDash dive plot [36m▁▂▄▆█▇▆▅▃[0m   blow rate 12 m³/min                                                                              ║[0m
+║ rudder 004 starboard · planes +2 ·  list 0.0° · angle alarm SILENCED                                                                                  ║[0m
+║ main battery [32m▓▓▓▓▓▓▓▒░░ 74%[0m  silver zinc trim cell isolated                                                                                           ║[0m
+║ conning: capt [36m◉[0m  xox [33m◉[0m  helmo [32m◉[0m  dirty  [31m◉[0m  cook  [35m◉                                                                                                    ║[0m
+║ SugarDash status bar · [32mhull quiet[0m · [33mradar passive[0m · [36mcomms buoy 03:20[0m · coffee reserves critical                                                       ║[0m
+║ sound: [36m▁▂▁▃▁▂ shipping 181° [0m[31mscrew sync 12Hz[0m · classify SugarDash-own-boat                                                                             ║[0m
+║ gyro 214° · repeater helm [36m◐[0m · starboard tracker [33m◑[0m · log 4,112 yd                                                                                      ║[0m
+║ [32m[1mDIVE DIVE[0m replay flagged 02:11 · depth curve [34m▁▁▃▄▆▇█[0m · SugarDash widget archive updated                                                               ║[0m
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝[0m

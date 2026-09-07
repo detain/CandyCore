@@ -1,0 +1,19 @@
+[38;5;63m╔═══════════════════[1m SUGARCRUSH MESSAGE SORTING OFFICE — COUNTER 06 [38;5;63m═══════════════════╗[0m
+  [38;5;105m┏━━┳━━┳━━┳━━┳━━┳━━┳━━┳━━┓  wall of 64 pigeonholes[0m
+  [38;5;105m┃[0m[38;5;223m┃▤ [0m[38;5;117m┃▭ [0m[38;5;217m┃✉ [0m[38;5;151m┃▪ [0m[38;5;223m┃▤ [0m[38;5;79m┃▭ [0m[38;5;180m┃✉ [0m[38;5;117m┃▪ [0m[38;5;105m┃[0m   [38;5;245mrack 1: prompts[0m
+  [38;5;105m┃[0m[38;5;117m┃▤ [0m[38;5;217m┃▭ [0m[38;5;151m┃✉ [0m[38;5;223m┃▪ [0m[38;5;79m┃▤ [0m[38;5;180m┃▭ [0m[38;5;117m┃✉ [0m[38;5;223m┃▪ [0m[38;5;105m┃[0m   [38;5;245mrack 2: tool results[0m
+  [38;5;105m┃[0m[38;5;217m┃▤ [0m[38;5;151m┃▭ [0m[38;5;223m┃✉ [0m[38;5;79m┃▪ [0m[38;5;180m┃▤ [0m[38;5;117m┃▭ [0m[38;5;223m┃✉ [0m[38;5;117m┃▪ [0m[38;5;105m┃[0m   [38;5;245mrack 3: hook notices[0m
+  [38;5;105m┃[0m[38;5;151m┃▤ [0m[38;5;223m┃▭ [0m[38;5;79m┃✉ [0m[38;5;180m┃▪ [0m[38;5;117m┃▤ [0m[38;5;223m┃▭ [0m[38;5;117m┃✉ [0m[38;5;217m┃▪ [0m[38;5;105m┃[0m   [38;5;245mrack 4: plan drafts[0m
+  [38;5;105m┗━━┻━━┻━━┻━━┻━━┻━━┻━━┻━━┛[0m
+  [38;5;220m ◉      ◉      ◉ [0m[38;5;245m  ceiling lamps over the sorting floor[0m
+     [38;5;230m▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒[0m conveyor — 41 items/min, timed by the main loop
+  [38;5;189m   ▄▄█▄▄[0m      [38;5;230m▭[0m[38;5;117m▭[0m[38;5;217m▭[0m   ← clerk [38;5;245mroutes each item by its header line[0m
+  [38;5;189m   ▐█▌  [0m      [38;5;245m┌─ return address ─────────┐[0m
+  [38;5;189m   ▟ ▙ [0m      [38;5;245m│ from:     <user>         │[0m
+  [38;5;189m  ╘═══╛ [0m      [38;5;245m│ to:       <model>        │[0m
+        [38;5;245m│ postage: attention(paid)  │[0m
+        [38;5;245m└──────────────────────────┘[0m
+  [38;5;110m  [▰] collection box — emptied hourly[0m
+  [38;5;245m  between the racks: [38;5;114mheld[0m[38;5;245m | [38;5;203murgent[0m[38;5;245m | [38;5;170mparcels (files >1k tok)[0m
+  [38;5;250mnotice board: [38;5;223m"no mail sorts itself — the loop does"[38;5;250m          signed, the postmaster[0m
+  [38;5;63mSugarCrush-6[0m · nothing mis-sorted since the last refactor · counter open 09:00–close[0m

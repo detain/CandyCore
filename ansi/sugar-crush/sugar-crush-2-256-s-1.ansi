@@ -1,0 +1,7 @@
+[1m[38;5;175mSUGAR CRUSH[0m [38;5;245m— tool waterfall · session #a7f3[0m
+[1m[38;5;111mRead  [0m [38;5;245msrc/Util/Width.php        [0m[48;5;238m [0m[48;5;111m████[0m [38;5;111m148ms[0m
+[1m[38;5;182mGrep  [0m [38;5;245m"clamp" tests/            [0m[48;5;238m  [0m[48;5;182m██████[0m [38;5;182m222ms[0m
+[1m[38;5;175mEdit  [0m [38;5;245mtests/Util/WidthTest.php  [0m[48;5;238m    [0m[48;5;175m█████████[0m [38;5;175m333ms[0m
+[1m[38;5;215mBash  [0m [38;5;245mvendor/bin/phpunit        [0m[48;5;238m      [0m[48;5;215m██████████████[0m [38;5;215m518ms[0m
+[1m[38;5;114m✔ done  [0m [38;5;245m14 tests · 0 fails        [48;5;238m        [0m[48;5;114m▓▓▓[0m [38;5;114msugar 92%[0m
+[2m[38;5;245mcrushed sugar = shipped code · SugarCrush dissolves tokens sweetly[0m

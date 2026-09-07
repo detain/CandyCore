@@ -1,0 +1,13 @@
+[1;38;5;196mSUGAR DASH ▸ 214 UNACKNOWLEDGED ALERTS ▸ 03:41                [0m
+                                                              [0m
+ [48;5;88m [38;5;231;48;5;88mCRIT cache evict storm · api-3 · 00:12[48;5;88m                      [0m
+    [48;5;94m [38;5;230;48;5;94mWARN p95 812ms · edge-gw · 00:20[48;5;94m                         [0m
+  [48;5;52m [38;5;231;48;5;52mCRIT node-7 disk 98% · 00:31[48;5;52m                               [0m
+      [48;5;237m [38;5;245;48;5;237mINFO deploys 3 queued · 00:33[48;5;237m                          [0m
+   [48;5;130m [38;5;230;48;5;130mWARN queue lag 4.2k · 00:40[48;5;130m                               [0m
+     [48;5;88m [38;5;231;48;5;88mCRIT TLS cert 2d expiry · 00:52[48;5;88m                         [0m
+ [48;5;124m [38;5;231;48;5;124mSEV2 disk raid degraded · 01:03[48;5;124m                             [0m
+    [48;5;94m [38;5;230;48;5;94mWARN GC pause 440ms · 01:11[48;5;94m                              [0m
+  [48;5;237m [38;5;245;48;5;237mINFO autoheal fired x2 · 01:19[48;5;237m                             [0m
+[1;38;5;203mfatigue ▓▓▓▓▓▓▓▓▓▒▒▒▒░░ 91%  ack 3 · silence 15m              [0m
+[2;38;5;179mon-call: dash-pager · SUGAR DASH triage ▸ mute the noise      [0m

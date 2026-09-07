@@ -1,0 +1,12 @@
+  [1;33mSTYLE CHAIN — every link forks a new Style[0m
+
+  [37m┌─────┐[0m   [1;37m┌──────┐[0m   [1;31m┌────┐[0m   [1;34m┌────┐[0m   [1;36m┌─────┐[0m   [1;32m┌─────┐[0m
+  [37m│[0m [37mnew[0m [37m│[0m [33m▶[0m [1;37m│[0m [1;37mbold[0m [1;37m│[0m [33m▶[0m [1;31m│[0m [1;31mfg[0m [1;31m│[0m [33m▶[0m [1;34m│[0m [1;34mbg[0m [1;34m│[0m [33m▶[0m [1;36m│[0m [1;36mpad[0m [1;36m│[0m [33m▶[0m [1;32m│[0m [1;32mout[0m [1;32m│[0m
+  [37m└─────┘[0m   [1;37m└──────┘[0m   [1;31m└────┘[0m   [1;34m└────┘[0m   [1;36m└─────┘[0m   [1;32m└─────┘[0m
+
+  [37msource:  [0m[3;35mthe immutable parent[0m
+  [36mfork via:[0m[3;36mwith*() → fresh instance[0m
+
+  [36moutput:[0m [1;37;41m CANDY [0m  [1;33;44m SPRINKLES [0m
+
+  [3;32mCandySprinkles — declarative, chainable[0m
