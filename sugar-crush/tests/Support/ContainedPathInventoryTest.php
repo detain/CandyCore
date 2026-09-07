@@ -176,6 +176,7 @@ final class ContainedPathInventoryTest extends TestCase
         'Agents/ForeignAgentPresetRegistry.php' => 2,
         'Agents/WorktreeConfig.php' => 2,
         'Agents/WorktreeManager.php' => 2,
+        'Chat.php' => 1,
         'Cli/Bootstrap.php' => 1,
         'Commands/CommandLoader.php' => 2,
         'Commands/CommandSpec.php' => 1,
@@ -197,6 +198,16 @@ final class ContainedPathInventoryTest extends TestCase
     }
 
     /**
+     * `Chat.php` is the SIXTEENTH file, and like `Cli/Bootstrap.php` it arrived
+     * with the operation it gates — a WRITE rather than a read: the
+     * `/memory import` sentinel directory `.sugar-crush/memory` under the
+     * project root is chosen by the clone, so `Chat::writeImportSentinel()`
+     * anchors it before recording anything (and lands the file by temp-create
+     * + rename, so the compare plus the rename together leave a planted
+     * symlink neither a read target nor a write path). ONE compare, the
+     * Bootstrap shape: the boundary is the project root and the guarded path
+     * is a single directory, not a walk over a directory's entries.
+     *
      * `Config/LayeredSettings.php` is the THIRTEENTH file, and it arrived with
      * the reads it gates: the project tier's `.sugar-crush/settings.json` and
      * `settings.local.json` are chosen by whoever wrote the repository, so the

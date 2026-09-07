@@ -10404,7 +10404,7 @@ final class Chat implements Model
 
         $projectRoot = $this->projectRoot();
         if ($projectRoot === '') {
-            return $this->memoryResponse($inputText, "**Import refused:** no project root could be determined, so there is neither a place to read `{$target}` memory from nor a project to hold the `.imported-{$target}` sentinel in.");
+            return $this->memoryResponse($inputText, "**Nothing imported:** no project root could be determined, so there is neither a place to read `{$target}` memory from nor a project to hold the `.imported-{$target}` sentinel in.");
         }
 
         $sentinel = $projectRoot . '/.sugar-crush/memory/.imported-' . $target;
@@ -10438,7 +10438,7 @@ final class Chat implements Model
             }
             if ($refused !== []) {
                 $lines[] = '';
-                $lines[] = '**Refused directories:**';
+                $lines[] = '**Directories not read:**';
                 foreach ($refused as $path => $why) {
                     $lines[] = "- `{$path}`: {$why}";
                 }

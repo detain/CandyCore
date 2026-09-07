@@ -241,7 +241,7 @@ final class MemoryImportCommandTest extends TestCase
 
         $reply = $this->reply('/memory import opencode');
 
-        $this->assertStringContainsString('**Refused directories:**', $reply);
+        $this->assertStringContainsString('**Directories not read:**', $reply);
         $this->assertStringContainsString('Nothing imported', $reply);
         $this->assertStringContainsString($this->projectRoot . '/.opencode/memory', $reply, 'the refusal names the directory it refused');
         $this->assertSame([], $this->store->list('agent'));
