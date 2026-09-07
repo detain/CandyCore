@@ -222,13 +222,25 @@ final class ProjectTierRefusalInventoryTest extends TestCase
         'Agents/WorktreeConfig.php|.sugar-crush/config.json' => self::REPOSITORY,
         // The settings layering's project tier. Both files arrive with a CLONE,
         // and neither feeds this collector — see the gap list in
-        // {@see testTheEightThatFeedTheCollectorAndTheSixThatAreNamedGaps()}
+        // {@see testTheEightThatFeedTheCollectorAndTheSevenThatAreNamedGaps()}
         // for why a silent refusal is right for these two specifically. THREE
         // rows joined the repository-chosen block in this change-set; the row
         // above is the third and it is a RECLASSIFICATION, not a new path, so
         // "these two" means the two settings files and nothing else.
         'Config/LayeredSettings.php|.sugar-crush/settings.json' => self::REPOSITORY,
         'Config/LayeredSettings.php|.sugar-crush/settings.local.json' => self::REPOSITORY,
+        // P7.S6: the sentinel directory of `/memory import`. `Chat::memoryImport()`
+        // records its re-import guard at `.sugar-crush/memory/.imported-<target>`
+        // under the PROJECT root, so the clone under analysis chooses where it
+        // points — repository-chosen on the same basis as `Chat.php`'s workflows
+        // row above. It is a named GAP like `.opencode/memory` directly below:
+        // the refusals surface in the Chat command's own response and nothing
+        // reaches `$projectTierRefusals` (DRAIN_EVIDENCE stays without an entry,
+        // which is what keeps the derivation calling it a gap). The write is
+        // gated AT THE CALL SITE — `ContainedPath::below` on the directory and
+        // temp-create + rename for the file, so no write ever follows a planted
+        // symlink — which is why no collector entry is owed here.
+        'Chat.php|.sugar-crush/memory' => self::REPOSITORY,
         'Memory/ForeignMemoryImporter.php|.opencode/memory' => self::REPOSITORY,
         'Skills/ForeignSkillDiscovery.php|.opencode/skills' => self::REPOSITORY,
         'Skills/SkillLoader.php|.sugar-crush/skills' => self::REPOSITORY,
@@ -334,11 +346,11 @@ final class ProjectTierRefusalInventoryTest extends TestCase
      *
      * This walks `src/` with `token_get_all()`, takes every string literal, and
      * pulls out every `.<dot-dir>/<segment>` it contains, KEYED BY THE FILE IT
-     * APPEARS IN. On this tree that is THIRTY-SEVEN occurrences — one per entry
-     * in {@see DOT_PATHS} — of TWENTY-FIVE distinct paths. SEVENTEEN of those
+     * APPEARS IN. On this tree that is THIRTY-EIGHT occurrences — one per entry
+     * in {@see DOT_PATHS} — of TWENTY-SIX distinct paths. EIGHTEEN of those
      * occurrences are repository-chosen by this file's own definition
      * ({@see repositoryChosenPaths()}: class `REPOSITORY` or class `BOTH`), and
-     * they are FOURTEEN distinct paths — which is the figure
+     * they are FIFTEEN distinct paths — which is the figure
      * {@see testEveryRepositoryChosenPathIsNamedWhereTheClaimIsMade()} asserts,
      * on PATHS. All four figures are measured off the map above, and each is
      * written next to the thing it counts because the pair has been mixed up in
@@ -409,10 +421,10 @@ final class ProjectTierRefusalInventoryTest extends TestCase
     }
 
     /**
-     * FOURTEEN repository-chosen paths, and the enumeration in
+     * FIFTEEN repository-chosen paths, and the enumeration in
      * {@see Bootstrap::projectTierRefusals()}'s own doc-block must name every one
      * of them. It named FOUR, then FIVE, both hand-written, while `src/` held
-     * ten; it now names fourteen. See that doc-block for which of the three
+     * ten; it now names fifteen. See that doc-block for which of the three
      * additions is a NEW path and which is one literal reclassified.
      *
      * `BOTH` counts here: a string serving the project tier is repository-chosen
@@ -422,7 +434,7 @@ final class ProjectTierRefusalInventoryTest extends TestCase
     {
         $repository = $this->repositoryChosenPaths();
 
-        $this->assertCount(14, $repository);
+        $this->assertCount(15, $repository);
 
         // SCOPED TO THE DOC-BLOCKS THAT MAKE THE CLAIM, not to the file. Asserted
         // file-wide, this passed while the enumeration itself was missing a name,
@@ -506,25 +518,26 @@ final class ProjectTierRefusalInventoryTest extends TestCase
             $distinct[$path] = true;
         }
 
-        self::assertCount(25, $distinct, 'distinct dot-DIRECTORY paths in src/');
-        self::assertCount(14, $this->repositoryChosenPaths(), 'of which repository-chosen');
+        self::assertCount(26, $distinct, 'distinct dot-DIRECTORY paths in src/');
+        self::assertCount(15, $this->repositoryChosenPaths(), 'of which repository-chosen');
 
         $enumeration = $this->docBlockAbove(
             \dirname(__DIR__, 2) . '/src/Cli/Bootstrap.php',
             'public static function projectTierRefusals()',
         );
 
-        self::assertStringContainsString('FOURTEEN repository-chosen', $enumeration);
-        self::assertStringContainsString('TWENTY-FIVE distinct', $enumeration);
+        self::assertStringContainsString('FIFTEEN repository-chosen', $enumeration);
+        self::assertStringContainsString('TWENTY-SIX distinct', $enumeration);
 
         // AND THIS FILE'S OWN DOC-BLOCK, which is where all four figures went
         // stale unnoticed — the assertions above only ever read `Bootstrap`'s.
         // Spelled out in words in the prose, so they are compared in words:
         // a digit here would pass against a paragraph that says something else.
         $ownWords = [30 => 'THIRTY', 31 => 'THIRTY-ONE', 32 => 'THIRTY-TWO', 33 => 'THIRTY-THREE', 34 => 'THIRTY-FOUR',
-            35 => 'THIRTY-FIVE', 36 => 'THIRTY-SIX', 37 => 'THIRTY-SEVEN'];
-        $pathWords = [21 => 'TWENTY-ONE', 22 => 'TWENTY-TWO', 23 => 'TWENTY-THREE', 24 => 'TWENTY-FOUR', 25 => 'TWENTY-FIVE'];
-        $repoWords = [13 => 'THIRTEEN', 14 => 'FOURTEEN', 15 => 'FIFTEEN', 16 => 'SIXTEEN', 17 => 'SEVENTEEN'];
+            35 => 'THIRTY-FIVE', 36 => 'THIRTY-SIX', 37 => 'THIRTY-SEVEN', 38 => 'THIRTY-EIGHT'];
+        $pathWords = [21 => 'TWENTY-ONE', 22 => 'TWENTY-TWO', 23 => 'TWENTY-THREE', 24 => 'TWENTY-FOUR', 25 => 'TWENTY-FIVE',
+            26 => 'TWENTY-SIX'];
+        $repoWords = [13 => 'THIRTEEN', 14 => 'FOURTEEN', 15 => 'FIFTEEN', 16 => 'SIXTEEN', 17 => 'SEVENTEEN', 18 => 'EIGHTEEN'];
 
         $occurrences = \count(self::DOT_PATHS);
         $repositoryOccurrences = 0;
@@ -562,9 +575,9 @@ final class ProjectTierRefusalInventoryTest extends TestCase
     }
 
     /**
-     * Which of the FOURTEEN reach the collector, and which are gated elsewhere.
-     * EIGHT and SIX — stated here so "eight feeders" cannot quietly stand in
-     * for "and six paths nobody drains".
+     * Which of the FIFTEEN reach the collector, and which are gated elsewhere.
+     * EIGHT and SEVEN — stated here so "eight feeders" cannot quietly stand in
+     * for "and seven paths nobody drains".
      *
      * It was FIVE AND FIVE until crush_code.md Phase 1 item 3 wired
      * {@see Bootstrap::foreignAgentPresets()}: `.claude/agents` and
@@ -577,7 +590,10 @@ final class ProjectTierRefusalInventoryTest extends TestCase
      * and P6.S2 added a SIXTH gap: `.sugar-crush/rules`, whose `RuleLoader` records
      * refusals loader-local in its own `refusedPaths()` and is never drained into
      * `$projectTierRefusals` (OD2) — a gap DELIBERATELY, not pending work, so the
-     * feeder column stays EIGHT.
+     * feeder column stays EIGHT. P7.S6 added a SEVENTH gap, `.sugar-crush/memory`
+     * — the sentinel directory `Chat::memoryImport()` records for `/memory import`
+     * — gated AT ITS CALL SITE and answered in the command's own response, never
+     * drained here, so the feeder column again stays EIGHT.
      *
      * `.sugar-crush/commands` NEARLY WENT BACK TO THE GAP COLUMN, and the union
      * check below could not have stopped it: `assertSame($union, $paths)` plus
@@ -599,17 +615,18 @@ final class ProjectTierRefusalInventoryTest extends TestCase
      * matching evidence row in the same edit. The positive direction is what
      * this covers, and it is the direction the defect ran in.
      */
-    public function testTheEightThatFeedTheCollectorAndTheSixThatAreNamedGaps(): void
+    public function testTheEightThatFeedTheCollectorAndTheSevenThatAreNamedGaps(): void
     {
         $feeders = ['.claude/agents', '.claude/skills', '.opencode/agents',
             '.opencode/skills', '.sugar-crush/agents', '.sugar-crush/commands',
             '.sugar-crush/skills', '.sugar-crush/workflows'];
         $gaps = ['.opencode/memory', '.sugar-crush/hooks.yaml',
-            '.sugar-crush/config.json', '.sugar-crush/settings.json',
-            '.sugar-crush/settings.local.json', '.sugar-crush/rules'];
+            '.sugar-crush/config.json', '.sugar-crush/memory',
+            '.sugar-crush/settings.json', '.sugar-crush/settings.local.json',
+            '.sugar-crush/rules'];
 
         $this->assertCount(8, $feeders, 'the EIGHT this test is named for');
-        $this->assertCount(6, $gaps, 'and the SIX');
+        $this->assertCount(7, $gaps, 'and the SEVEN');
 
         $union = array_merge($feeders, $gaps);
         sort($union);
@@ -772,11 +789,6 @@ final class ProjectTierRefusalInventoryTest extends TestCase
     public static function dormantHolders(): array
     {
         return [
-            'foreign memory import' => [
-                'src/Memory/ForeignMemoryImporter.php',
-                \SugarCraft\Crush\Tests\Memory\ForeignMemoryImporterContainmentTest::class,
-                ['below', 'within'],
-            ],
             'worktree config' => [
                 'src/Agents/WorktreeConfig.php',
                 \SugarCraft\Crush\Tests\Agents\WorktreeConfigTest::class,
@@ -834,6 +846,18 @@ final class ProjectTierRefusalInventoryTest extends TestCase
             'rule files' => [
                 'src/Context/RuleLoader.php',
                 \SugarCraft\Crush\Tests\Context\RuleLoaderContainmentTest::class,
+                ['below', 'within'],
+            ],
+            // Left dormantHolders() when P7.S6 wired it into
+            // Chat::memoryImport() behind `/memory import`. Same tuple,
+            // deliberately — the gate requirement is keyed to holding the
+            // repository-chosen `.opencode/memory` directory, not to being
+            // dormant, so acquiring a production caller must not drop a single
+            // required gate, exactly as the `custom commands` precedent above
+            // records.
+            'foreign memory import' => [
+                'src/Memory/ForeignMemoryImporter.php',
+                \SugarCraft\Crush\Tests\Memory\ForeignMemoryImporterContainmentTest::class,
                 ['below', 'within'],
             ],
         ];

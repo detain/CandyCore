@@ -74,6 +74,10 @@ use SugarCraft\Crush\Context\IdleCompactionPolicy;
 use SugarCraft\Crush\Context\RuleLoader;
 use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Memory\MemoryStore;
+use SugarCraft\Crush\Memory\ForeignMemoryImporter;
+use SugarCraft\Crush\Support\ContainedPath;
+use SugarCraft\Crush\Agents\MemoryScope;
+use SugarCraft\Crush\Context\MemoryBlock;
 use SugarCraft\Crush\Session\EnhancedSessionStore;
 use SugarCraft\Crush\Session\SessionStore;
 use SugarCraft\Crush\Util\TokenTracker;
@@ -10280,6 +10284,7 @@ final class Chat implements Model
             'delete' => $this->memoryDelete($inputText, $args),
             'clear' => $this->memoryClear($inputText, $args),
             'edit' => $this->memoryEdit($inputText, $args),
+            'import' => $this->memoryImport($inputText, $args),
             default => $this->memoryHelpResponse($inputText, "Unknown command '{$command}'."),
         };
     }
@@ -10319,6 +10324,7 @@ final class Chat implements Model
         $lines[] = '`/memory delete <id>` — Delete a memory by ID';
         $lines[] = '`/memory edit <id> <new_content>` — Edit an existing memory';
         $lines[] = '`/memory clear --scope <scope> --confirm` — Clear all memories for a scope';
+        $lines[] = '`/memory import claude|opencode` — Import foreign memory files (one-shot per tool)';
         $lines[] = '`/memory` — Show this help text';
         $lines[] = '';
         $lines[] = 'Scopes: `user` (default), `project`, `agent`';
@@ -10361,6 +10367,130 @@ final class Chat implements Model
         }
 
         return $this->memoryResponse($inputText, $response);
+    }
+
+    /**
+     * Handle `/memory import claude|opencode` — the runtime trigger point of
+     * {@see ForeignMemoryImporter}, wired P7.S6 per the importer's own docblock
+     * contract (sentinel + cap live HERE, at the caller, because only the
+     * caller knows whether a re-import was intentional).
+     *
+     * Three guards run before a single foreign byte reaches the store:
+     * a determinable project root (the sentinel must live inside the project),
+     * an absent `.imported-{target}` sentinel (imports are not idempotent —
+     * `MemoryStore::add()` mints a fresh UUID per entry), and headroom under
+     * {@see MemoryBlock::MAX_ENTRIES} counted against the scope the importer
+     * actually writes (`MemoryScope::Local`, which the store persists under
+     * the string `'agent'` — measured, not assumed). The headroom clamp exists
+     * because `add()` enforces no cap of its own while the prompt block
+     * silently omits everything past twelve: an unbounded import could push
+     * entries the user already had out of the prompt without a word.
+     *
+     * Refusals the importer records ({@see ForeignMemoryImporter::refusedDirectories()})
+     * surface in the response text — the command answers, it does not warn
+     * through the transcript seams.
+     *
+     * @return array{0:Chat,1:?\Closure}
+     */
+    private function memoryImport(string $inputText, string $args): array
+    {
+        $target = strtolower(trim($args));
+        if ($target === '') {
+            return $this->memoryHelpResponse($inputText, 'Usage: /memory import claude|opencode');
+        }
+        if ($target !== 'claude' && $target !== 'opencode') {
+            return $this->memoryHelpResponse($inputText, "Unknown import target '{$target}'. Use `claude` or `opencode`.");
+        }
+
+        $projectRoot = $this->projectRoot();
+        if ($projectRoot === '') {
+            return $this->memoryResponse($inputText, "**Import refused:** no project root could be determined, so there is neither a place to read `{$target}` memory from nor a project to hold the `.imported-{$target}` sentinel in.");
+        }
+
+        $sentinel = $projectRoot . '/.sugar-crush/memory/.imported-' . $target;
+        if (file_exists($sentinel)) {
+            return $this->memoryResponse($inputText, "Already imported (sentinel `{$sentinel}`; delete it to re-import).");
+        }
+
+        $current = count($this->memoryStore->list(MemoryScope::Local));
+        $headroom = max(0, MemoryBlock::MAX_ENTRIES - $current);
+        if ($headroom === 0) {
+            return $this->memoryResponse($inputText, "**Nothing imported:** the `agent` scope already holds {$current} entries and the prompt block caps at " . MemoryBlock::MAX_ENTRIES . '. Use `/memory list agent` to review and `/memory delete <id>` to make room, then re-run `/memory import ' . $target . '`.');
+        }
+
+        try {
+            $importer = new ForeignMemoryImporter($this->memoryStore);
+            $imported = $target === 'claude'
+                ? $importer->importClaudeCode($projectRoot, null, $headroom)
+                : $importer->importOpencode($projectRoot, $headroom);
+            $refused = $importer->refusedDirectories();
+
+            $lines = [];
+            if ($imported > 0) {
+                $sentinelNote = $this->writeImportSentinel($sentinel, $target, $imported);
+                $lines[] = "**Imported {$imported}** `{$target}` memories into the `agent` scope." . $sentinelNote;
+                if ($imported >= $headroom) {
+                    $lines[] = '';
+                    $lines[] = 'Stopped at the headroom left under the ' . MemoryBlock::MAX_ENTRIES . "-entry prompt cap ({$headroom} of " . MemoryBlock::MAX_ENTRIES . ') — unimported source files remain. Prune with `/memory delete <id>`, delete the sentinel, and re-run to continue.';
+                }
+            } else {
+                $lines[] = "Nothing imported — no readable `{$target}` memory files were found for this project.";
+            }
+            if ($refused !== []) {
+                $lines[] = '';
+                $lines[] = '**Refused directories:**';
+                foreach ($refused as $path => $why) {
+                    $lines[] = "- `{$path}`: {$why}";
+                }
+            }
+
+            return $this->memoryResponse($inputText, implode("\n", $lines));
+        } catch (\Throwable $e) {
+            return $this->memoryResponse($inputText, "**Error:** {$e->getMessage()}");
+        }
+    }
+
+    /**
+     * Write the re-import sentinel, creating its directories defensively; a
+     * foreign tree that imported but could not record its sentinel would be
+     * silently re-importable, so the response says so when that happens
+     * rather than pretending the guard exists.
+     *
+     * The sentinel's DIRECTORY is under project control like everything else
+     * this command reads, so both write hazards of a repository-chosen path
+     * are closed HERE rather than named as a gap to fix later: the directory
+     * must resolve inside the project (a committed
+     * `.sugar-crush/memory -> <outside>` symlink would otherwise point the
+     * write anywhere), and the file lands by temp-create + rename so
+     * `rename()` replaces the final directory entry instead of
+     * `file_put_contents()` writing THROUGH a planted symlink — the same
+     * atomic-rename answer this repo's GIF writer ships for the same CWE-59
+     * shape, and what makes a pre-planted `.imported-<target>` symlink a
+     * refusal the user can see (via the exists-check in the caller) rather
+     * than an arbitrary-file truncation performed by this launch.
+     */
+    private function writeImportSentinel(string $sentinel, string $target, int $imported): string
+    {
+        $dir = dirname($sentinel);
+        if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
+            return ' **Warning:** the sentinel directory could not be created, so re-running the import WILL duplicate these entries.';
+        }
+        if (!ContainedPath::below($dir, $this->projectRoot())) {
+            return ' **Warning:** the sentinel directory does not resolve inside this project, so no sentinel was written and re-running the import WILL duplicate these entries.';
+        }
+
+        $tmp = $dir . '/sentinel-tmp-' . bin2hex(random_bytes(6));
+        $written = @file_put_contents(
+            $tmp,
+            "{$imported} {$target} memories imported by /memory import at " . date('c') . "\n"
+        );
+        if ($written === false || !@rename($tmp, $sentinel)) {
+            @unlink($tmp);
+
+            return ' **Warning:** the sentinel could not be written, so re-running the import WILL duplicate these entries.';
+        }
+
+        return " Sentinel: `{$sentinel}` (delete it to re-import).";
     }
 
     /**

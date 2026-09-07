@@ -232,7 +232,12 @@ the **next** `Runtime`, not the next step.
 `~/.sugar-crush/memory` could not be created or is not writable — deliberately
 not a launch failure.
 
-`/memory import` does not exist: `ForeignMemoryImporter` has no runtime caller.
+`/memory import claude|opencode` is wired (`Chat::memoryImport()`): it writes
+the foreign tree into the `agent` scope up to the room left under the
+`MemoryBlock::MAX_ENTRIES` prompt cap, then records a
+`.sugar-crush/memory/.imported-<target>` sentinel — while that sentinel exists a
+re-run answers "already imported" instead of duplicating every entry, so delete
+it to re-import deliberately.
 
 ---
 
