@@ -1798,7 +1798,6 @@ final class Bootstrap
             : $inherited . "\n\n" . $attribution;
     }
 
-
     /**
      * The agent presets other coding CLIs left on disk — Claude Code's
      * `.claude/agents` and opencode's `.opencode/agents`, project tier and user

@@ -713,6 +713,34 @@ final class AgentManagerWiringTest extends TestCase
     }
 
     /**
+     * THE TWIN-PATH SKIP, which the byte-for-byte test above proves only for
+     * TWINLESS bodies. Here the preset names a real built-in -- `coder` carries a
+     * prompt in `AgentDefinition` -- AND supplies its own body, so the merge
+     * meets a preset that said something about a definition that also said
+     * something, and must leave the body byte-identical with the attribution
+     * nowhere in sight. Reverting the `initialPrompt === null` guard onto this
+     * path would append the sentence, and this reds.
+     */
+    public function testABodyBearingPresetWithABuiltInTwinKeepsItsOwnPromptByteForByte(): void
+    {
+        // Prove first that `coder` really is a twin: were it ever to stop being a
+        // built-in, the assertion below would pass vacuously as a twinless body
+        // and quietly stop guarding the very path this test exists to cover.
+        $this->assertNotSame('', AgentDefinition::fromType('coder', 'coder')->prompt);
+
+        $root = self::makeRoot('body-twin');
+        self::writePreset($root . '/.sugar-crush/agents', 'coder', 'Supplies its own body');
+
+        $coder = self::named(self::roster($root), 'coder');
+
+        // The body wins whole: 'Body prose.' is exactly what writePreset writes,
+        // with nothing inherited from the built-in and nothing appended.
+        $this->assertSame('Body prose.', $coder->prompt);
+        $this->assertStringNotContainsString(self::ATTRIBUTION_BUILT_IN, $coder->prompt);
+        $this->assertStringNotContainsString(self::ATTRIBUTION_IMPORTED, $coder->prompt);
+    }
+
+    /**
      * IDEMPOTENCE. `agentRoster()` is called more than once per process --
      * `agentManager()` and the roster helpers each resolve it -- so a merge that
      * mutated anything durable would stack a second attribution sentence on the
@@ -912,11 +940,8 @@ final class AgentManagerWiringTest extends TestCase
      */
     private static function roster(string $root): array
     {
-        $method = new \ReflectionMethod(Bootstrap::class, 'agentRoster');
-        $method->setAccessible(true);
-
         /** @var list<Agent> $agents */
-        return $method->invoke(null, $root, 'echo', 'm');
+        return Bootstrap::agentRoster($root, 'echo', 'm');
     }
 
     /**
