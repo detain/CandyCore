@@ -1103,13 +1103,20 @@ final class Runtime
     {
         $messages = $this->buildMessages($app);
 
-        $systemPrompt = $this->buildSystemPrompt($app);
+        // P10.S1: ONE fold of the section list yields both wire forms — the
+        // flat string every provider reads and the structured block list an
+        // Anthropic-shaped one can express — so they are the same bytes cut
+        // at section boundaries and can never disagree about one request,
+        // and no section's render() runs twice per step (P10.S1 brief,
+        // "build the blocks FROM the section list").
+        [$systemPrompt, $systemBlocks] = self::assembleSections($this->systemPromptSections($app));
 
         $request = new CompleteRequest(
             model: $app->model,
             messages: $messages,
             tools: $app->tools ?: null,
             systemPrompt: $systemPrompt,
+            systemBlocks: $systemBlocks,
         );
 
         // foreach-reyield instead of `yield from`: `yield from` preserves
@@ -2495,12 +2502,13 @@ final class Runtime
      * This is the pre-refactor concatenation turned inside out, not rewritten:
      * the seven layers appear in the same order, each carries the same bytes,
      * and the separators are decided in exactly one place
-     * ({@see assemblePrompt()}). The three memoized snapshot accessors are
+     * ({@see assembleSections()}, whose string arm is
+     * {@see assemblePrompt()}). The three memoized snapshot accessors are
      * each called ONCE here, and since P5.S2 their returned blocks ARE the
      * sections — §17.2 invariant 9's per-Runtime identity is therefore the
      * identity the assembled list carries, not just the accessor's. A block's
-     * render() then runs exactly once per build, inside
-     * {@see assemblePrompt()}: for the {@see EnvironmentBlock}, whose render()
+     * render() then runs exactly once per build, inside the fold
+     * ({@see assembleSections()}): for the {@see EnvironmentBlock}, whose render()
      * polls git five times, one call per build is the cost contract that held
      * before the migration and holds after it. An empty map or memory block is
      * no longer guarded away HERE — its render() returning '' IS the
@@ -2735,7 +2743,7 @@ final class Runtime
         // Since P5.S2 the appended value is the memoized block ITSELF — it
         // implements PromptSection — so the per-Runtime identity §17.2
         // invariant 9 pins is the identity the assembled list carries, and
-        // render() runs exactly once per build, inside assemblePrompt().
+        // render() runs exactly once per build, inside assembleSections().
         $sections[] = $this->environmentSnapshot($app);
 
         return $sections;
@@ -2836,6 +2844,9 @@ final class Runtime
     /**
      * Fold an ordered list of sections into a single prompt string.
      *
+     * The string arm of the one fold — {@see assembleSections()} runs it
+     * and discards the block list it collects beside the string.
+     *
      * The one separator rule, stated so no concatenation site can drift: two
      * adjacent rendered sections are joined by exactly one "\n\n", and a body
      * that ALREADY opens with "\n\n" is never given a second. An empty render()
@@ -2852,7 +2863,42 @@ final class Runtime
      */
     private static function assemblePrompt(array $sections): string
     {
+        [$prompt, ] = self::assembleSections($sections);
+
+        return $prompt;
+    }
+
+    /**
+     * Fold an ordered list of sections into BOTH wire forms in one pass:
+     * the flat prompt string and the ordered text-block list that
+     * {@see CompleteRequest::$systemBlocks} carries.
+     *
+     * THE ONE SEPARATOR RULE, stated on the block arm because that is the
+     * arm that has to spell it out: a block holds the EXACT bytes its
+     * section contributes — the render() body, plus the inter-layer "\n\n"
+     * {@see assemblePrompt()}'s stated rule spends on a body that does not
+     * already open with one, held INSIDE the block as its leading bytes. A body that opens with
+     * "\n\n" keeps it verbatim and is never given a second. Empty renders
+     * fold out of both forms. So `implode('', $blocks) === $prompt` is not
+     * a convention the two arms try to honour — it is what one accumulator
+     * writing into a string and the same contributions collecting into a
+     * list produces, byte for byte, by construction.
+     *
+     * THE ONE-SECTION-ONE-RENDER COST CONTRACT IS PRESERVED, NOT DOUBLED:
+     * `run()` consumes this fold directly for both forms, and
+     * {@see buildSystemPrompt()} stays the string-only arm behind the
+     * private-method reflection pins (§17.2 invariant 1). Neither path
+     * renders a section twice per build — EnvironmentBlock::render() still
+     * pays its five git polls exactly once.
+     *
+     * @param list<PromptSection> $sections
+     *
+     * @return array{0: string, 1: list<string>} the flat prompt and the ordered blocks
+     */
+    private static function assembleSections(array $sections): array
+    {
         $prompt = '';
+        $blocks = [];
 
         foreach ($sections as $section) {
             $rendered = $section->render();
@@ -2861,14 +2907,17 @@ final class Runtime
                 continue;
             }
 
-            $prompt .= match (true) {
+            $contribution = match (true) {
                 $prompt === '' => $rendered,
                 str_starts_with($rendered, "\n\n") => $rendered,
                 default => "\n\n" . $rendered,
             };
+
+            $prompt .= $contribution;
+            $blocks[] = $contribution;
         }
 
-        return $prompt;
+        return [$prompt, $blocks];
     }
 
     /**
@@ -3084,7 +3133,9 @@ final class Runtime
      * Resolve the project-memory block folded into every system prompt.
      *
      * Memoized for the same reason {@see environmentSnapshot()} is, and it
-     * matters slightly more here: {@see buildSystemPrompt()} runs once per step
+     * matters slightly more here: the prompt fold
+     * ({@see assembleSections()}, behind {@see buildSystemPrompt()}) runs
+     * once per step
      * of the agentic loop, and capturing per call would re-read and YAML-parse
      * the whole project memory directory up to `maxSteps` times per turn. A
      * snapshot is also the honest contract — a note added mid-turn does not

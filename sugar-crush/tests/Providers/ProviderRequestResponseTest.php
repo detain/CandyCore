@@ -26,6 +26,14 @@ use SugarCraft\Crush\Providers\SglangProvider;
 use SugarCraft\Crush\Providers\VertexProvider;
 use SugarCraft\Crush\Messages\UserMessage;
 use SugarCraft\Crush\Messages\AssistantMessage;
+use SugarCraft\Crush\Messages\SystemMessage;
+use SugarCraft\Crush\App\App;
+use SugarCraft\Crush\Hooks\HookManager;
+use SugarCraft\Crush\Hooks\HookRegistry;
+use SugarCraft\Crush\Runtime;
+use SugarCraft\Crush\Tools\PromptGuidance;
+use SugarCraft\Crush\Tools\Tool;
+use SugarCraft\Crush\Tools\ToolResult;
 
 /**
  * @see CompleteRequest
@@ -747,5 +755,456 @@ final class ProviderRequestResponseTest extends TestCase
         // provider ever starts fabricating or accumulating usage on this path
         // — the E24 failure mode.
         $this->assertSame(self::STREAMED_USAGE_CONTRACT[ClaudeCodeProvider::class], $sum);
+    }
+
+    // =========================================================================
+    // P10.S1 — systemBlocks: the structured form beside the flat string
+    // =========================================================================
+
+    /**
+     * The DTO leg: `systemBlocks` round-trips verbatim as a trailing
+     * parameter, defaults to null so every pre-P10.S1 construction site
+     * compiles untouched, and a well-formed pair folds into the flat string
+     * under the empty-concatenation join rule the field docblock states.
+     */
+    public function testSystemBlocksRoundTripVerbatimAndDefaultToNullBesideTheFlatPrompt(): void
+    {
+        $blocks = ['AAA', "\n\nBBB", "\n\n\n\n## CCC"];
+
+        $defaulted = new CompleteRequest(model: 'gpt-4', messages: []);
+        $this->assertNull(
+            $defaulted->systemBlocks,
+            'a request built without the new trailing parameter must carry null blocks, not [] — '
+            . 'null is "no structured form", [] would claim a well-formed empty structure whose '
+            . 'concatenation contradicts a non-empty flat prompt',
+        );
+
+        $carrying = new CompleteRequest(
+            model: 'gpt-4',
+            messages: [],
+            systemPrompt: implode('', $blocks),
+            systemBlocks: $blocks,
+        );
+        $this->assertSame($blocks, $carrying->systemBlocks, 'the block list must round-trip element-for-element, in order');
+        $this->assertSame('AAA' . "\n\nBBB" . "\n\n\n\n## CCC", $carrying->systemPrompt);
+        $this->assertSame(
+            $carrying->systemPrompt,
+            implode('', $carrying->systemBlocks),
+            'the DTO join rule: concatenating the block texts with no separator reproduces the flat string byte for byte',
+        );
+    }
+
+    /**
+     * Vertex, Anthropic arm, blocks PRESENT: the top-level `system` field is
+     * the per-block text array — each entry exactly `['type' => 'text',
+     * 'text' => <block bytes>]`, in order, separators held inside the blocks
+     * (plan P10.S1 hard constraint 4). Red with a string-vs-array failure if
+     * the block branch of `anthropicBody()` is reverted.
+     */
+    public function testVertexAnthropicArmShapesSystemBlocksIntoItsPerBlockTextArray(): void
+    {
+        $captured = null;
+        $provider = $this->vertexCapturing($captured);
+
+        $provider->complete(new CompleteRequest(
+            model: 'claude-3-sonnet@20240229',
+            messages: [new UserMessage('Hi')],
+            systemPrompt: "AAA\n\nBBB",
+            systemBlocks: ['AAA', "\n\nBBB"],
+        ));
+
+        $this->assertSame(
+            [
+                ['type' => 'text', 'text' => 'AAA'],
+                ['type' => 'text', 'text' => "\n\nBBB"],
+            ],
+            $captured['body']['system'],
+            'with blocks on the request the Anthropic-shaped system field must be the block array, '
+            . 'each block verbatim — not the flat string and not a re-split of it',
+        );
+    }
+
+    /**
+     * Vertex, Anthropic arm, blocks ABSENT — both null and `[]`: `system` is
+     * the joined string, byte-identical to the pre-P10.S1 emission. This is
+     * the polarity half of "a provider change nobody asked for": any variant
+     * of the block shape leaking into a blockless request reds here.
+     */
+    public function testVertexAnthropicArmTransmitsTheJoinedStringWhenSystemBlocksAreAbsentOrEmpty(): void
+    {
+        $captured = null;
+        $provider = $this->vertexCapturing($captured);
+
+        $provider->complete(new CompleteRequest(
+            model: 'claude-3-sonnet@20240229',
+            messages: [new UserMessage('Hi')],
+            systemPrompt: "AAA\n\nBBB",
+        ));
+        $this->assertSame("AAA\n\nBBB", $captured['body']['system'], 'null blocks must keep the string arm byte-identical to today');
+
+        $capturedEmpty = null;
+        $emptyProvider = $this->vertexCapturing($capturedEmpty);
+        $emptyProvider->complete(new CompleteRequest(
+            model: 'claude-3-sonnet@20240229',
+            messages: [new UserMessage('Hi')],
+            systemPrompt: "AAA\n\nBBB",
+            systemBlocks: [],
+        ));
+        $this->assertSame(
+            "AAA\n\nBBB",
+            $capturedEmpty['body']['system'],
+            'an empty block list is not a block array — the flat string must still ride, because [] '
+            . 'folds to the empty string and would contradict the non-empty systemPrompt',
+        );
+    }
+
+    /**
+     * The cross-arm fold pin: for one request carrying hoisted
+     * SystemMessages, the block-array emission and the string emission are
+     * the SAME BYTES — concatenating the block texts equals the string arm
+     * verbatim, and the hoists ride as their own trailing blocks each
+     * carrying the joiner's single "\n\n". Red if the block branch drops,
+     * duplicates, or re-joins the transcript hoists.
+     */
+    public function testVertexAnthropicSystemBlockArrayFoldsToTheExactBytesTheStringArmTransmits(): void
+    {
+        $messages = [new SystemMessage('H1'), new UserMessage('U'), new SystemMessage('H2')];
+
+        $stringCaptured = null;
+        $this->vertexCapturing($stringCaptured)->complete(new CompleteRequest(
+            model: 'claude-3-sonnet@20240229',
+            messages: $messages,
+            systemPrompt: 'P1',
+        ));
+        $this->assertSame(
+            "P1\n\nH1\n\nH2",
+            $stringCaptured['body']['system'],
+            'baseline first: the joined string, assembled prompt first, hoists in message order',
+        );
+
+        $blockCaptured = null;
+        $this->vertexCapturing($blockCaptured)->complete(new CompleteRequest(
+            model: 'claude-3-sonnet@20240229',
+            messages: $messages,
+            systemPrompt: 'P1',
+            systemBlocks: ['P1'],
+        ));
+
+        $this->assertSame(
+            [
+                ['type' => 'text', 'text' => 'P1'],
+                ['type' => 'text', 'text' => "\n\nH1"],
+                ['type' => 'text', 'text' => "\n\nH2"],
+            ],
+            $blockCaptured['body']['system'],
+            'each hoisted SystemMessage rides as one trailing block carrying the joiner\'s single leading separator',
+        );
+        $this->assertSame(
+            $stringCaptured['body']['system'],
+            implode('', array_column($blockCaptured['body']['system'], 'text')),
+            'the two Anthropic-arm shapes must fold to identical wire bytes — blocks cut the string, they do not re-render it',
+        );
+    }
+
+    /**
+     * The Google halves keep the joined string no matter what: with blocks
+     * present, `instances[0].context` and the Gemini
+     * `systemInstruction.parts[0].text` are byte-identical to the blockless
+     * request (plan P10.S1 hard constraint 4). Red the moment anyone routes
+     * the block array into an envelope that cannot spell it.
+     */
+    public function testVertexGoogleArmsKeepTakingTheJoinedStringWhenSystemBlocksArePresent(): void
+    {
+        $googleCaptured = null;
+        $this->vertexCapturing($googleCaptured)->complete(new CompleteRequest(
+            model: 'chat-bison@002',
+            messages: [new UserMessage('Hi')],
+            systemPrompt: "AAA\n\nBBB",
+            systemBlocks: ['AAA', "\n\nBBB"],
+        ));
+        $this->assertSame('predict', $googleCaptured['method']);
+        $this->assertSame(
+            "AAA\n\nBBB",
+            $googleCaptured['body']['instances'][0]['context'],
+            'the instances envelope has no block-array slot — the joined string, unchanged by blocks',
+        );
+
+        $geminiCaptured = null;
+        $this->vertexCapturing($geminiCaptured)->complete(new CompleteRequest(
+            model: 'gemini-1.5-pro-002',
+            messages: [new UserMessage('Hi')],
+            systemPrompt: "AAA\n\nBBB",
+            systemBlocks: ['AAA', "\n\nBBB"],
+        ));
+        $this->assertSame('generateContent', $geminiCaptured['method']);
+        $this->assertSame(
+            ['parts' => [['text' => "AAA\n\nBBB"]]],
+            $geminiCaptured['body']['systemInstruction'],
+            'the Gemini Content keeps its single joined part — blocks are the Anthropic protocol\'s shape, not this one\'s',
+        );
+    }
+
+    /**
+     * REACHABILITY (16.1): the blocks are not a DTO fossil — the live
+     * `Runtime::run()` path populates them on the request it hands the
+     * provider, from the SAME single fold of the section list that produces
+     * the flat string. The value pins:
+     *
+     * - `implode('', $systemBlocks) === $systemPrompt` on the CAPTURED
+     *   request — the join rule (empty concatenation; separators live inside
+     *   the blocks) asserted over the real seven-layer assembly, not a
+     *   fixture invented here;
+     * - block[0] starts the base identity at offset 0 — the first
+     *   contribution carries no leading separator;
+     * - every later block opens with its own "\n\n" — the separator the
+     *   assembler spends is held inside the block, never between blocks;
+     * - the LAST block ends "\n</env>" — the volatile layer is the final
+     *   cut, so a later cache-breakpoint step marks whole layers.
+     *
+     * Red if `run()` stops passing `systemBlocks` (null → TypeError/implode
+     * mismatch) and red if the fold re-separates or strips (concat no longer
+     * equals the flat string).
+     */
+    public function testRuntimeTransmitsSystemBlocksWhoseEmptyJoinRebuildsTheTransmittedPromptByteForByte(): void
+    {
+        $request = $this->capturedRuntimeRequest(App::new($this->turnCapturingProvider(), 'gpt-4'));
+
+        $this->assertIsArray($request->systemBlocks);
+        $this->assertSame(
+            $request->systemPrompt,
+            implode('', $request->systemBlocks),
+            'the ordered concatenation of the blocks must reproduce the transmitted flat prompt EXACTLY',
+        );
+        $this->assertSame(
+            0,
+            strpos($request->systemBlocks[0], 'You are SugarCrush'),
+            'block 0 is the base identity from byte zero — no separator leads the first contribution',
+        );
+
+        foreach (array_slice($request->systemBlocks, 1) as $block) {
+            $this->assertSame(
+                "\n\n",
+                substr($block, 0, 2),
+                'every later block carries its inter-layer separator as its own leading bytes — the '
+                . 'boundary between blocks has no separator of its own to lose or double',
+            );
+        }
+
+        $this->assertStringEndsWith(
+            "\n</env>",
+            $request->systemBlocks[count($request->systemBlocks) - 1],
+            'the volatile <env> layer must end as its own final block, not be merged into its neighbour',
+        );
+    }
+
+    /**
+     * The tool-guidance polarity on the BLOCK form, both ways, through the
+     * live path (the brief: "with tools registered so the tool-guidance
+     * layer exists, and without"). Values asserted on one Runtime, two Apps:
+     *
+     * - unqualified tool set: the fragment appears ZERO times in the flat
+     *   prompt and no block equals it;
+     * - opted-in tool: exactly once, and as its OWN block at the pinned slot
+     *   (base[0], maxims[1], guidance[2]) with the leading separator inside
+     *   it — plus the block count moves by exactly one;
+     * - the empty-join pin holds on the guided request too, so the new layer
+     *   cannot desynchronise the two representations.
+     *
+     * Red if the guidance layer is folded away into a neighbour (no own
+     * block), double-emitted (substr_count 2), or added by any count other
+     * than one.
+     */
+    public function testRuntimeAddsTheToolGuidanceLayerAsExactlyOneOwnBlockWhenAToolOptsIn(): void
+    {
+        $fragment = 'P10S1_TOOL_GUIDANCE_FRAGMENT_UNIQUE_NEEDLE';
+
+        $provider = $this->turnCapturingProvider();
+        $runtime = new Runtime($provider, new HookManager(new HookRegistry()));
+
+        $plain = $runtime->run(App::new($provider, 'gpt-4'));
+        iterator_to_array($plain);
+        $plainRequest = $provider->requests[0];
+
+        $guided = $runtime->run(App::new($provider, 'gpt-4')->withTools([$this->guidanceTool($fragment)]));
+        iterator_to_array($guided);
+        $guidedRequest = $provider->requests[1];
+
+        $this->assertSame(0, substr_count($plainRequest->systemPrompt, $fragment), 'no opted-in tool means no guidance bytes at all');
+        $this->assertSame([], array_values(array_filter(
+            $plainRequest->systemBlocks,
+            static fn(string $b): bool => $b === "\n\n" . $fragment,
+        )), 'and no block of the block form either');
+
+        $this->assertSame(1, substr_count($guidedRequest->systemPrompt, $fragment), 'the opted-in fragment must reach the flat prompt exactly once');
+        $this->assertSame(
+            "\n\n" . $fragment,
+            $guidedRequest->systemBlocks[2],
+            'the guidance layer is its own block at the pinned slot — directly behind base and maxims, '
+            . 'carrying its leading separator inside itself',
+        );
+        $this->assertSame(
+            count($plainRequest->systemBlocks) + 1,
+            count($guidedRequest->systemBlocks),
+            'wiring one opted-in tool adds exactly one block and restructures no other boundary',
+        );
+        $this->assertSame(
+            $guidedRequest->systemPrompt,
+            implode('', $guidedRequest->systemBlocks),
+            'the empty-join identity holds on the guided assembly too',
+        );
+    }
+
+    // ----- P10.S1 harness -----
+
+    /**
+     * VertexProvider with the unary predictor seam capturing the exact body
+     * that would go on the wire — the same injectable-seam shape
+     * testVertexStreamedUsageIsSplitAcrossDisjointBucketEvents uses above.
+     *
+     * @param array<string, mixed>|null $captured
+     */
+    private function vertexCapturing(?array &$captured): VertexProvider
+    {
+        $captured = null;
+
+        return new VertexProvider(
+            'my-project',
+            'us-central1',
+            'claude-3-sonnet@20240229',
+            static function (string $endpoint, string $method, array $body) use (&$captured): array {
+                $captured = ['method' => $method, 'body' => $body];
+
+                return [];
+            },
+        );
+    }
+
+    /**
+     * A non-streaming provider that records every CompleteRequest it is
+     * handed and answers with a plain assistant turn — the capturing shape
+     * `Integration\SystemPromptWiringTest` drives, kept local to this file
+     * (non-streaming on purpose: `run()` picks `runBatch()` exactly once per
+     * step and hands back one deterministic request).
+     *
+     * Deliberately NOT named `recordingProvider()`: `Commands\RulesCommandTest`
+     * already keeps a same-shaped capture stub under that name, and a private
+     * helper copied under two owners is exactly what
+     * `Support\DuplicatedTestHelperDriftTest` reddens - a renamed twin
+     * says out loud that these two captures are maintained separately.
+     */
+    private function turnCapturingProvider(): object
+    {
+        return new class implements ProviderInterface {
+            /** @var list<CompleteRequest> */
+            public array $requests = [];
+
+            public function name(): string
+            {
+                return 'stub-systemblocks';
+            }
+
+            public function supportsStreaming(): bool
+            {
+                return false;
+            }
+
+            public function supportsFunctionCalling(): bool
+            {
+                return false;
+            }
+
+            public function supportsVision(): bool
+            {
+                return false;
+            }
+
+            public function supportsJsonSchema(): bool
+            {
+                return false;
+            }
+
+            public function contextWindow(): int
+            {
+                return 1000;
+            }
+
+            public function costPer1kTokens(string $model, string $direction): float
+            {
+                return 0.0;
+            }
+
+            public function complete(CompleteRequest $request): CompleteResponse
+            {
+                $this->requests[] = $request;
+
+                return new CompleteResponse(content: 'answered');
+            }
+
+            public function completeStream(CompleteRequest $request): \Generator
+            {
+                yield new CompleteResponse(content: '');
+            }
+
+            public function embeddings(EmbeddingsRequest $request): EmbeddingsResponse
+            {
+                return new EmbeddingsResponse([]);
+            }
+        };
+    }
+
+    /**
+     * Drive one live `Runtime::run()` turn and return the single
+     * CompleteRequest the provider was actually handed.
+     */
+    private function capturedRuntimeRequest(App $app): CompleteRequest
+    {
+        /** @var object{requests: list<CompleteRequest>} $provider */
+        $provider = $app->provider;
+        $runtime = new Runtime($provider, new HookManager(new HookRegistry()));
+
+        iterator_to_array($runtime->run($app));
+
+        $this->assertCount(1, $provider->requests, 'one step, one request');
+
+        return $provider->requests[0];
+    }
+
+    /**
+     * A wired tool that opts into the PromptGuidance seam with a distinctive
+     * fragment — the double shape `ToolPromptGuidanceTest` ships, so the
+     * layer under test exists on the live path.
+     */
+    private function guidanceTool(string $fragment): Tool
+    {
+        return new class ($fragment) implements Tool, PromptGuidance {
+            public function __construct(private readonly string $fragment)
+            {
+            }
+
+            public function name(): string
+            {
+                return 'P10S1GuidanceDouble';
+            }
+
+            public function description(): string
+            {
+                return 'A wired double that exists to opt into the prompt-guidance layer.';
+            }
+
+            public function promptGuidance(): string
+            {
+                return $this->fragment;
+            }
+
+            public function inputSchema(): array
+            {
+                return ['type' => 'object', 'properties' => []];
+            }
+
+            public function execute(array $args): ToolResult
+            {
+                return new ToolResult(toolCallId: '', content: '', isError: false);
+            }
+        };
     }
 }
