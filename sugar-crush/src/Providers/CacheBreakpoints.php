@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace SugarCraft\Crush\Providers;
 
+use SugarCraft\Crush\Usage;
+
 /**
  * Anthropic prompt-cache breakpoints, applied wipe-then-reapply on every step.
  *
@@ -70,14 +72,20 @@ namespace SugarCraft\Crush\Providers;
  * contract violation at the seam, so `apply()` throws naming the count instead
  * of shipping the breach to the wire (§1.10 fail-fast, the same posture as the
  * shape throws). This makes "total breakpoints <= self::MAX_BREAKPOINTS" an
- * invariant of every successful return.
+ * invariant of every successful return. One asymmetry ships knowingly
+ * (LOW-38, deferred by adjudication): a non-array `cache_control` value rides
+ * uncounted at block and tool level but is dropped at message level — the
+ * wiring step inherits this knowingly.
  *
  * DETERMINISM. No clock, no randomness, no filesystem, no environment: same
  * inputs produce byte-identical output, which is what makes the prefix
  * cacheable at all (§4.15's invariant — any change anywhere in the prefix
  * invalidates everything after it). Input arrays are never mutated; fresh
  * copies are returned. apply(apply(x)) === apply(x) holds because the wipe
- * re-derives from scratch — pinned by test, not merely relied on.
+ * re-derives from scratch — pinned by test, not merely relied on. The scope
+ * of "no environment" is apply() itself: this class's only `getenv` is the
+ * static {@see CacheBreakpoints::disabledFromEnvironment()}, which consumers
+ * call before constructing — never from inside apply().
  *
  * SHAPES AND THE SKELETON DEVIATION. The plan's skeleton declares
  * `apply(array $messages, array $tools): array` without naming the array
@@ -109,6 +117,29 @@ namespace SugarCraft\Crush\Providers;
  * throws rather than returning a doomed request. Until then nothing in `src/`
  * constructs it; its only callers are its own tests — the record §16.1 asks
  * for.
+ *
+ * THE KILL SWITCH (P10.S3). self::DISABLE_ENV names the presence flag and
+ * {@see CacheBreakpoints::disabledFromEnvironment()} is its only reader,
+ * static by design: consumers consult it when constructing, and apply() itself
+ * stays environment-free (see DETERMINISM above). `new CacheBreakpoints(false)`
+ * — what the switch reduces to — still runs every input-derived duty in
+ * apply(): shape validation throws, the ephemeral wipe lands, and the F-1
+ * over-cap breach on preserved foreign marks still fires, because that story
+ * is input-derived. What a disabled instance refuses to do is ADD marks: it
+ * returns the wiped, audited input with zero ephemeral breakpoints. Preserved
+ * foreign marks are never removed (§1.10 — we do not delete mechanisms we do
+ * not own), so "disabled" honestly means "no NEW breakpoints", not "caching
+ * off for every mechanism in the request".
+ *
+ * LIVE CHANNEL, NOT YET LIVE (P10.S3). {@see CacheBreakpoints::observeCacheHealth()}
+ * has no production feeder at this tree: `CompleteResponse` carries no cache
+ * fields — providers parse {@see Usage} from the wire, but the unary response
+ * path routes only `tokensUsed` and `costUsd`, and Runtime rebuilds from
+ * those. Widening `CompleteResponse` is the wiring/E17 step's job, and live
+ * surfacing of the sub-minimum diagnostic ships with it. Until then the
+ * method's contract is exercised by tests and by any consumer that already
+ * holds a Usage carrying buckets of its own. No channel is invented here; the
+ * ENVIRONMENT.md row for the kill switch says the same thing plainly.
  */
 final class CacheBreakpoints
 {
@@ -140,9 +171,64 @@ final class CacheBreakpoints
     public const INTERMEDIATE_SPACING = 15;
 
     /**
+     * Presence flag that turns this class's breakpoints off (P10.S3). Read only
+     * via {@see CacheBreakpoints::disabledFromEnvironment()} — the repo's
+     * flag semantics: set to any text other than the empty string or the
+     * literal `0` disables; unset, empty and `0` all mean enabled.
+     */
+    public const DISABLE_ENV = 'SUGARCRUSH_DISABLE_PROMPT_CACHE';
+
+    /**
+     * How many consecutive both-buckets-zero Usage reports must pile up before
+     * {@see CacheBreakpoints::observeCacheHealth()} names the silence. Three —
+     * the PermissionGate.php `STRIKE_THRESHOLD = 3` idiom: a single zero report
+     * can be an un-cached first turn of a fresh conversation, two can be a
+     * short preamble, and it is the third in a row that says the prefix never
+     * crosses the model's minimum cacheable length (512-4096 tokens, §4.15) or
+     * the breakpoints are not reaching the wire at all.
+     */
+    public const CONSECUTIVE_ZERO_REPORTS_THRESHOLD = 3;
+
+    /**
      * The breakpoint marker this class writes, in Anthropic's wire spelling.
      */
     private const EPHEMERAL_MARK = ['type' => 'ephemeral'];
+
+    /**
+     * Consecutive responses seen by observeCacheHealth() reporting both cache
+     * buckets at zero; any other observation resets it. State, not a clock —
+     * the same instance fed a scripted sequence sees the same counts.
+     */
+    private int $consecutiveZeroReports = 0;
+
+    /**
+     * @param bool $marksEnabled false — what the DISABLE_ENV kill switch
+     *                           reduces to — keeps every input-derived duty of
+     *                           apply() (shape throws, the ephemeral wipe, the
+     *                           F-1 over-cap breach) and adds zero ephemeral
+     *                           breakpoints. Default true keeps every existing
+     *                           `new CacheBreakpoints()` call site byte-identical
+     *                           to the pre-switch construction.
+     */
+    public function __construct(private readonly bool $marksEnabled = true)
+    {
+    }
+
+    /**
+     * Is the P10.S3 kill switch set? Presence-flag semantics, verbatim from the
+     * repo's other flags ({@see \SugarCraft\Crush\Chat::envFlag()},
+     * {@see \SugarCraft\Crush\Backend\EngineBackend::parallelToolCallsEnabled()}):
+     * unset, empty and the literal `0` read as false; any other text reads as
+     * true. Static and side-effect-free so a consumer can consult it once at
+     * construction — apply() never calls it, keeping the mark plan
+     * environment-independent (see DETERMINISM in the class docblock).
+     */
+    public static function disabledFromEnvironment(): bool
+    {
+        $value = getenv(self::DISABLE_ENV);
+
+        return $value !== false && $value !== '' && $value !== '0';
+    }
 
     /**
      * Wipe every breakpoint this class owns, then re-derive the mark set.
@@ -179,6 +265,14 @@ final class CacheBreakpoints
                 . ' automatic (non-ephemeral) cache marks, over the ' . self::MAX_BREAKPOINTS
                 . '-breakpoint cap that a successful return must respect; the producer of those marks broke the contract.'
             );
+        }
+
+        if (!$this->marksEnabled) {
+            // The kill switch, placed after the audit on purpose: a disabled
+            // instance owes the caller the SAME throws on the SAME bad input,
+            // then adds nothing. Not one ephemeral mark goes in; preserved
+            // foreign marks ride on untouched.
+            return ['tools' => $tools, 'messages' => $messages];
         }
 
         // Defense-in-depth clamp at the automatic == MAX_BREAKPOINTS boundary:
@@ -221,6 +315,47 @@ final class CacheBreakpoints
         }
 
         return ['tools' => $tools, 'messages' => $messages];
+    }
+
+    /**
+     * Consecutive-zero-reports diagnostic (P10.S3): hand me each response's
+     * Usage as it arrives; on the third consecutive report where BOTH cache
+     * buckets came back measured at zero — and on every one after — I return
+     * the sentence something should eventually print. Null otherwise.
+     *
+     * The fire condition is exactly §4.15's: "both cache_creation_input_tokens
+     * and cache_read_input_tokens = 0 means no cache". Zero means REPORTED zero
+     * (Usage.php null-vs-0 doctrine: null is unreported, not a measurement),
+     * so a null Usage or any null bucket resets the count without firing, and
+     * a reported non-zero in either bucket resets it too. Pure state: no I/O,
+     * no clock, no suppression beyond the counter itself — the consumer decides
+     * whether to surface what it gets. There is no production feeder at this
+     * tree yet; see LIVE CHANNEL, NOT YET LIVE in the class docblock.
+     */
+    public function observeCacheHealth(?Usage $usage): ?string
+    {
+        if ($usage === null || $usage->cacheReadTokens === null || $usage->cacheCreationTokens === null) {
+            $this->consecutiveZeroReports = 0;
+
+            return null;
+        }
+
+        if ($usage->cacheReadTokens !== 0 || $usage->cacheCreationTokens !== 0) {
+            $this->consecutiveZeroReports = 0;
+
+            return null;
+        }
+
+        $this->consecutiveZeroReports++;
+
+        if ($this->consecutiveZeroReports < self::CONSECUTIVE_ZERO_REPORTS_THRESHOLD) {
+            return null;
+        }
+
+        return 'CacheBreakpoints: ' . self::CONSECUTIVE_ZERO_REPORTS_THRESHOLD
+            . " consecutive responses reported cache_read_input_tokens = 0 and cache_creation_input_tokens = 0;"
+            . ' no prompt cache entry is being read or written. The minimum cacheable prefix is model-dependent'
+            . ' (512 to 4096 tokens, §4.15) — below it the breakpoints are silently ignored upstream.';
     }
 
     // -------------------------------------------------------------------------

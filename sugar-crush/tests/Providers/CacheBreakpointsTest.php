@@ -6,9 +6,12 @@ namespace SugarCraft\Crush\Tests\Providers;
 
 use PHPUnit\Framework\TestCase;
 use SugarCraft\Crush\Providers\CacheBreakpoints;
+use SugarCraft\Crush\Usage;
 
 /**
- * P10.S2 — CacheBreakpoints wipe-then-reapply.
+ * P10.S2 — CacheBreakpoints wipe-then-reapply. P10.S3 adds the DISABLE_ENV
+ * kill switch and the observeCacheHealth() consecutive-zero diagnostic; their
+ * tests sit at the bottom of this file under the P10.S3 banner.
  *
  * Each of the plan's four load-bearing constraints (§4.15, all four measured
  * upstream failures) owns at least one test here, and every test asserts
@@ -23,6 +26,34 @@ use SugarCraft\Crush\Providers\CacheBreakpoints;
  */
 final class CacheBreakpointsTest extends TestCase
 {
+    /**
+     * The fire message verbatim — written HERE, independently of the source's
+     * concatenation, so the test pins what a consumer will actually read
+     * (§16.8 rule 21: no literal derived from the implementation).
+     */
+    private const ZERO_REPORT_FIRE = 'CacheBreakpoints: 3 consecutive responses reported cache_read_input_tokens = 0 and cache_creation_input_tokens = 0; no prompt cache entry is being read or written. The minimum cacheable prefix is model-dependent (512 to 4096 tokens, §4.15) — below it the breakpoints are silently ignored upstream.';
+
+    /** @var array<string, string|false> */
+    private array $originalEnv = [];
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        foreach ([CacheBreakpoints::DISABLE_ENV] as $name) {
+            $this->originalEnv[$name] = getenv($name);
+            putenv($name);
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        foreach ($this->originalEnv as $name => $value) {
+            $value === false ? putenv($name) : putenv($name . '=' . $value);
+        }
+
+        parent::tearDown();
+    }
     /**
      * Constraint: the default mark plan. crush §5.8's four marks — last tool +
      * last system + last two messages — land on EXACTLY the right blocks, not
@@ -552,6 +583,212 @@ final class CacheBreakpointsTest extends TestCase
         $this->expectExceptionMessageMatches('/every tool must be an array definition/');
 
         $breakpoints->apply([], ['read']);
+    }
+
+    // =========================================================================
+    // P10.S3 — THE KILL SWITCH (DISABLE_ENV / marksEnabled) AND THE
+    // CONSECUTIVE-ZERO REPORTS DIAGNOSTIC (observeCacheHealth).
+    // =========================================================================
+
+    /**
+     * The flag's NAME and the presence-flag TRUTH TABLE: unset, empty and the
+     * literal `0` read enabled; `1` and `true` read disabled. Every row is a
+     * value pin on the shipped reader, and setUp hands the test a known-unset
+     * starting state (Env hygiene per the EngineBackendParallelConfigTest
+     * precedent — the flag can never leak past this file).
+     */
+    public function testDisabledFromEnvironmentFollowsThePresenceFlagTruthTable(): void
+    {
+        self::assertSame('SUGARCRUSH_DISABLE_PROMPT_CACHE', CacheBreakpoints::DISABLE_ENV);
+
+        self::assertFalse(CacheBreakpoints::disabledFromEnvironment());
+
+        putenv(CacheBreakpoints::DISABLE_ENV . '=');
+        self::assertFalse(CacheBreakpoints::disabledFromEnvironment());
+
+        putenv(CacheBreakpoints::DISABLE_ENV . '=0');
+        self::assertFalse(CacheBreakpoints::disabledFromEnvironment());
+
+        putenv(CacheBreakpoints::DISABLE_ENV . '=1');
+        self::assertTrue(CacheBreakpoints::disabledFromEnvironment());
+
+        putenv(CacheBreakpoints::DISABLE_ENV . '=true');
+        self::assertTrue(CacheBreakpoints::disabledFromEnvironment());
+    }
+
+    /**
+     * Shared input for the enabled/disabled pair: the default-mark-plan fixture
+     * PLUS one foreign automatic mark on the last tool PLUS one stale ephemeral
+     * mark on the system block — so every duty apply() owes even when disabled
+     * (the wipe, the preserve, the count) has a witness inside the same input.
+     *
+     * @return array{0: list<array<string, mixed>>, 1: list<array<string, mixed>>}
+     */
+    private function killSwitchFixture(): array
+    {
+        $tools = [
+            ['name' => 'read', 'description' => 'r', 'input_schema' => []],
+            ['name' => 'edit', 'description' => 'e', 'input_schema' => [], 'cache_control' => ['type' => 'default']],
+        ];
+        $messages = [
+            ['role' => 'system', 'content' => [['type' => 'text', 'text' => 'SYS', 'cache_control' => ['type' => 'ephemeral']]]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'first']]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'second']]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'third']]],
+        ];
+
+        return [$messages, $tools];
+    }
+
+    /**
+     * THE TOGGLE, both polarities on ONE input. Disabled: full audit (the stale
+     * ephemeral mark is wiped — its block comes back byte-clean), the foreign
+     * mark rides on byte-intact, and not one ephemeral breakpoint is added.
+     * Enabled: budget 3 under the foreign mark, marks land on system + the last
+     * two messages, the tool mark surrenders per REPAIR PRIORITY. The bare
+     * constructor must equal the enabled twin — default-true keeps every
+     * pre-switch call site byte-identical.
+     */
+    public function testDisabledInstanceAuditsAndWipesButAddsNoEphemeralMarks(): void
+    {
+        [$messages, $tools] = $this->killSwitchFixture();
+
+        $off = (new CacheBreakpoints(false))->apply($messages, $tools);
+
+        self::assertSame(0, $this->census($off)['ephemeral']);
+        self::assertSame([], $this->markedPositions($off['messages']));
+        self::assertSame(['type' => 'text', 'text' => 'SYS'], $off['messages'][0]['content'][0]);
+        self::assertSame(['type' => 'default'], $off['tools'][1]['cache_control']);
+        self::assertSame(1, $this->census($off)['automatic']);
+        self::assertArrayNotHasKey('cache_control', $off['tools'][0]);
+
+        $on = (new CacheBreakpoints(true))->apply($messages, $tools);
+
+        self::assertSame([0, 2, 3], $this->markedPositions($on['messages']));
+        self::assertSame(3, $this->census($on)['ephemeral']);
+        self::assertSame(1, $this->census($on)['automatic']);
+        self::assertSame(4, $this->census($on)['total']);
+        self::assertSame(['type' => 'default'], $on['tools'][1]['cache_control']);
+
+        self::assertSame((new CacheBreakpoints())->apply($messages, $tools), $on);
+    }
+
+    /**
+     * Disabling is NOT deleting: the F-1 over-cap breach on preserved foreign
+     * marks is input-derived, so a disabled instance throws the SAME sentence
+     * naming the SAME count — the audit runs before the switch short-circuits.
+     */
+    public function testDisabledInstanceStillThrowsOnFiveForeignMarksNamingCountAndCap(): void
+    {
+        $breakpoints = new CacheBreakpoints(false);
+        $auto = ['type' => 'default'];
+        $messages = [
+            ['role' => 'system', 'content' => [['type' => 'text', 'text' => 'S', 'cache_control' => $auto]]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'u', 'cache_control' => $auto]]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'a', 'cache_control' => $auto]]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'b', 'cache_control' => $auto]]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'c', 'cache_control' => $auto]]],
+        ];
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/carries 5 automatic \(non-ephemeral\) cache marks, over the 4-breakpoint cap/');
+
+        $breakpoints->apply($messages, []);
+    }
+
+    /**
+     * Disabling is NOT skipping validation: a turn whose content is neither
+     * string nor array still fails loudly on a disabled instance.
+     */
+    public function testDisabledInstanceStillThrowsOnMalformedTurn(): void
+    {
+        $breakpoints = new CacheBreakpoints(false);
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/message content must be a string or an array of blocks; the turn at key 0 carries integer\./');
+
+        $breakpoints->apply([['role' => 'user', 'content' => 42]], []);
+    }
+
+    /**
+     * The consecutive-zero boundary pinned from BOTH sides: reports 1 and 2 of
+     * a row stay null, the 3rd fires the exact sentence, the 4th fires it again
+     * (no internal suppression beyond the counter — the consumer decides).
+     * The threshold VALUE is pinned as a literal, not read off the constant.
+     */
+    public function testTheSubMinimumDiagnosticFiresOnTheThirdConsecutiveZeroReportAndKeepsFiring(): void
+    {
+        self::assertSame(3, CacheBreakpoints::CONSECUTIVE_ZERO_REPORTS_THRESHOLD);
+
+        $breakpoints = new CacheBreakpoints();
+        $zero = Usage::new(100, 0.1, 90, 10, 0, 0);
+
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertSame(self::ZERO_REPORT_FIRE, $breakpoints->observeCacheHealth($zero));
+        self::assertSame(self::ZERO_REPORT_FIRE, $breakpoints->observeCacheHealth($zero));
+    }
+
+    /**
+     * A reported non-zero in EITHER bucket resets the row — and a lone zero
+     * bucket never counts: §4.15's fire condition is both at zero together.
+     * Three consecutive (read 0, creation 5) reports fire nothing, three
+     * (read 5, creation 0) fire nothing; only then does the two-zeros-reset-
+     * then-three-zeros sequence show the reset really zeroed the count.
+     */
+    public function testReportedNonZeroInEitherBucketResetsTheRowWhileSingleBucketZerosNeverCount(): void
+    {
+        $breakpoints = new CacheBreakpoints();
+        $zero = Usage::new(100, 0.1, 90, 10, 0, 0);
+        $creationReported = Usage::new(100, 0.1, 90, 10, 0, 5);
+        $readReported = Usage::new(100, 0.1, 90, 10, 5, 0);
+
+        self::assertNull($breakpoints->observeCacheHealth($creationReported));
+        self::assertNull($breakpoints->observeCacheHealth($creationReported));
+        self::assertNull($breakpoints->observeCacheHealth($creationReported));
+        self::assertNull($breakpoints->observeCacheHealth($readReported));
+        self::assertNull($breakpoints->observeCacheHealth($readReported));
+        self::assertNull($breakpoints->observeCacheHealth($readReported));
+
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($readReported));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertSame(self::ZERO_REPORT_FIRE, $breakpoints->observeCacheHealth($zero));
+    }
+
+    /**
+     * Null means UNREPORTED (Usage.php null-vs-0 doctrine), and unreported data
+     * neither counts nor fires: a null Usage, a half-reported Usage (one bucket
+     * null) and a fully-default Usage each reset the row mid-sequence, and the
+     * fire waits for three REAL both-zero reports after every such reset.
+     */
+    public function testUnreportedUsageResetsTheRowWithoutFiring(): void
+    {
+        $breakpoints = new CacheBreakpoints();
+        $zero = Usage::new(100, 0.1, 90, 10, 0, 0);
+
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth(null));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertSame(self::ZERO_REPORT_FIRE, $breakpoints->observeCacheHealth($zero));
+
+        self::assertNull($breakpoints->observeCacheHealth(Usage::new(100, 0.1, 90, 10, null, 0)));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth(Usage::new(100, 0.1, 90, 10, 0, null)));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertNull($breakpoints->observeCacheHealth($zero));
+        self::assertSame(self::ZERO_REPORT_FIRE, $breakpoints->observeCacheHealth($zero));
+
+        $unreported = Usage::new();
+        self::assertNull($breakpoints->observeCacheHealth($unreported));
+        self::assertNull($breakpoints->observeCacheHealth($unreported));
+        self::assertNull($breakpoints->observeCacheHealth($unreported));
+        self::assertNull($breakpoints->observeCacheHealth($unreported));
     }
 
     // -------------------------------------------------------------------------
