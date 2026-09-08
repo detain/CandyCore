@@ -253,6 +253,72 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P8.S4 — Head/tail split and tool-output truncation   ·   2026-09-08   ·   merge `996ed0556`
+
+**Status** `done`
+**Worktree** /home/sites/prompt-step-P8.S4  (alive with P8.S1..S3 — reap all four after the Phase-8 close review)
+**Base** `1d682ad09` (staffing commit: brief `prompt_kit/briefs/P8.S4-step-brief.md` with post-merge anchors)
+
+**Goal (restated in one sentence)**
+Bound what a re-compaction costs: the summariser's serialized head clips each condensed exchange's assistant half at a new `toolOutputMaxChars = 2000` config knob — skill bodies exempt, transcript untouched — so head cost tracks the retained tail rather than the whole session.
+
+**What changed**
+- `sugar-crush/src/Context/CompactorConfig.php`: `public int $toolOutputMaxChars = 2000` + docblock (incl. the three-2000s disambiguation: input-side head bound vs `Chat::SUMMARY_LINE_MAX_CHARS` output-side vs `INTRA_EXCHANGE_HEADROOM_TOKENS` tier-side) + `withToolOutputMaxChars()` + R-D threading of the named arg into ALL EIGHT existing `with*()` `new self(...)` blocks (verified: 8 x `$this->toolOutputMaxChars` threads).
+- `sugar-crush/src/Context/ContextCompactor.php`: `SKILL_OUTPUT_MARKER` const (`'## Skill: '`, byte-match with SkillTool.php:102 incl. trailing space) + `boundHeadAssistantForSummary()` (offset-0 prefix exempt; else mb_substr clip + deterministic `\n\n[... N characters truncated ...]` marker, byte-pinned 2,038/2,037/538) + ONE line swapped in `exchangesToSummarize` (`'assistant' => bound($assistant)` — the chain's single deletion) + docblock paragraphs R-A/R-B/R-C and (fix commit) THE PREFIX-RESIDUAL paragraphs.
+- `sugar-crush/tests/Context/ContextCompactorTest.php`: 5 tests — bound-bites clip, KEY INTEGRITY (clipped head exchange still carries `exchangeKey(originalUser, originalAssistantUnclipped)` — sha256 literal pinned), skill-whole exemption, 10x-head proportionality (the Done-when), and (fix) offset-0 boundary pin.
+- `sugar-crush/tests/Context/CompactorConfigTest.php`: 2 tests + new key in both hand-enumerated default lists.
+- NOT touched (premise finding): the head/tail split itself — `stagePairs` :568-575 ALREADY shipped pair-count tail exclusion (`recentPreserveCount` CompactorConfig.php:53 default 10) and `messagesFromWire` re-adopts tail Message objects byte-verbatim. The plan's first sentence was largely built; the true delta = bound + skill guard + measurement.
+
+**Rulings** R-A bound assistant half only, user untouched · R-B key from ORIGINAL bytes (clip on the way out only) · R-C `## Skill: ` offset-0 exempt · R-D thread all eight withers · R-E three-2000s note · R-F citation safety · R-G deterministic marker house-idiom. **Ruling-adjacent residuals (documented, accepted):** (1) forged offset-0 `## Skill: ` marker rides unbounded — same untrusted-author equivalence as P8.S3-R1's fence residual, remedy named (stricter marker shape) unscheduled; (2) long USER pastes in head exchanges stay unbounded this step (deferred note); (3) `removeToolResults` named inert-on-production-wire (toWire never emits tool_results; predicate unreachable) — documented, kept (§1.10), its 5 tests kept; (4) `compactSkills`/`filterSkills`/skill budgets zero-production-callers — kept untouched.
+
+**Tests added or changed** (see above). **Deletion experiments (§1.11)** — five, all reproduced by reviewer independently: (a) clip removed → bound+key+proportionality red; (b) exchangeKey fed CLIPPED text → key-integrity test red (+ bonus guardian: pre-existing AutomaticCompactionModelSummaryTest parked-round-trip ALSO reddens — 52,000-char fixtures; builder's "only" claim undercounted, NIT); (c) skill guard dropped → skill-whole red; (d) bound removed from one wither → survival test red; (e) str_starts_with→str_contains → ONLY the offset-0 boundary test red (skill-whole green — genuine prefix matches either way).
+
+**MEASURED**
+```
+$ builder full suite at bcfc83d78: 11,041 / 169,417 / 0F / 0E / 2S / EXIT 0 (prediction-exact)
+$ fix agent full suite at beb8df1b6: 11,042 / 169,428 / 0F / 0E / 2S / EXIT 0 (prediction-exact)
+$ ORCHESTRATOR INDEPENDENT GATE at beb8df1b6 (prediction written before run, derived from the
+  11,035/169,367 P8.S3 floor +5+2 tests / +30+16+15 assertions): EXACT —
+  Tests: 11042, Assertions: 169428, Skipped: 2.  EXIT 0   (box-quiet 0; serial; </dev/null)
+$ cmp.py cycle-2 reviewer junit vs gate junit: SUM OF DELTAS +0 +0, name-sets identical
+$ per-class: ContextCompactorTest 80/287->85/317 · CompactorConfigTest 14/70->16/86 ·
+  GlobFigureDrift 61/22,484->61/22,499 (+13 cycle-1 paragraphs, +2 fix paragraphs — law 4n exact) ·
+  ExchangeSummaryTest 22/54 · CompactModelSummaryTest 38/190 · AutomaticCompaction 27/196 ·
+  TreeWideGuardRoster 17/1127 · seam census 22/134 (census 20 unmoved) — ALL unchanged elsewhere
+$ goldens: a5c5a14ca2e3ad891933ac7aefccc6af / 7,732 + ef0326dd38535aaa2f1d715919bff26e / 1,060 UNMOVED
+$ DONE-WHEN (plan :2796-2798 — the two numbers): fixture A serialised head = 5,833 bytes;
+  fixture B (identical pairs, head assistants 10x = 19,000 chars) bounded = 6,247 bytes -> ratio 1.071;
+  bound lifted (withToolOutputMaxChars(1,000,000)) = 57,133 bytes -> ratio 9.795. Cost bounded AND
+  fixtures discriminate (builder's gate re-measure: 1.071 / 9.783 — agrees within rounding).
+$ belt: git diff beb8df1b6 master -- sugar-crush/ = 0 bytes; merge parents 1d682ad09 + beb8df1b6
+$ hygiene (all 4 commits incl merge): detain@interserver.net 0 · '<' 0 · identity Joe Huss x4 = live git config
+```
+**Suite result**
+```
+New FLOOR: Tests 11,042 / Assertions 169,428 / 0F / 0E / 2 Skipped / EXIT 0 — gated at branch tip
+`beb8df1b6`, describes master `996ed0556` by the belt (0 bytes); this bookkeeping batch is markdown-only.
+```
+
+**Review loop**
+- Cycle 1 (tester, full checklist incl. running the suite — read-only reviewer agent cannot execute): APPROVE + 2 MINOR (forge surface undocumented → FINDING-1; exemption boundary unpinned → FINDING-2) + 1 NIT (builder claim (b) undercount — a second pre-existing guardian exists). Reviewer RE-RAN all four deletion experiments + independently recomputed the key sha256, the marker byte-lengths (2,038/2,037), the three Done-when numbers, and probed input-immutability + Q1 double-clip analysis (post-compaction `[summary] ` rows are standalone/assistant-role → never a head pair half → no interaction; theoretical 2,010-char re-clip cosmetic+unreachable) + Q3 (AutomaticCompaction 52k fixtures reach the clip but assert no head bytes — 27/196 unchanged).
+- Fix `beb8df1b6`: docblock THE-PREFIX-RESIDUAL paragraphs (forgery surface, P8.S3 equivalence citing Chat::priorSummariesFromHistory() by NAME not line, remedy named-not-mandated) + offset-0 boundary test (mutation-proven: str_contains → only new test red).
+- Cycle 2 (fresh tester): ALL 6 items PASS + probe answers, zero new findings, APPROVE, fix list empty. Total cycles: 2.
+
+**Invariants touched** goldens UNMOVED (summaryBackend); seam census + TreeWideGuardRoster UNCHANGED; GlobFigureDrift +15 law-4n paragraphs (predicted twice, exact twice); SymbolCitationDrift green incl. the new cross-file `{@see \SugarCraft\Crush\Chat::priorSummariesFromHistory()}`; §1.10 honored (dormant seams documented-not-deleted).
+
+**Surprises / things the plan got wrong**
+1. Plan premise "Only the head is summarised; the recent window stays verbatim" — ALREADY SHIPPED since Phase 5 (stagePairs tail-exclusion :568-575; tail re-adopted verbatim via messagesFromWire). P8.S4's real content was the bound + skill guard + the measurement proof.
+2. §6.6's 2,000-char bound targets upstream's `[Tool result]:` MESSAGES; our `Message::toWire()` (Message.php:365-381) has no tool_results key and Role has no tool/skill case — tool bytes are ASSISTANT content (Chat.php:2898), so the bound had to be re-shaped as a head-assistant clip and the skill guard as the in-band `## Skill: ` marker.
+3. Orchestrator's own recap contained a fixture-sizing self-contradiction (A=200,B=20,000 with bound 2000 makes "not ~10x" AND "~10x discriminated" mutually impossible) — the BUILDER caught it and sized A=1,900 (never clipped) / B=19,000 (exactly 10x) per the plan wording. Lesson: brief numeric examples get pressure-tested downstream; keep them arithmetically coherent.
+4. Scout transport deaths: two `delegate(explore)` sessions died instantly with empty artifacts (5-second lifetimes); the third attempt produced both full reports. `delegate` channel unreliable for this harness tonight; the `task` channel kept recovering its own work via disk forensics after two more truncations (builder + cycle-2 reviewer) — the resume-same-session pattern worked every time.
+5. Staffing commit ran with `--no-verify` reflexively — inventory shows ZERO active hooks in this checkout, so it was a no-op; recorded because the standing rule is never bypass hooks.
+6. `filterSkills` line anchor drifted +57 purely from this step's own insertion (1049→1106) — a reminder that self-shifted anchors must be re-derived before next-step briefs (law 4j).
+
+**Follow-ups created**
+1. **Fold-forward candidate (small):** `Chat.php:9546` prose says the exchanges message is "fed verbatim by Context\ContextCompactor::exchangesToSummarize()" — true for the user half, now bound-qualified for the assistant half; nothing pins the sentence; fix at Phase-8 close review or fold into P8.S5 if it touches that region.
+2. **Deferred note (recorded in code+merge msg):** user-side pastes in head exchanges unbounded — if ever bounded, mirror knob + pin.
+3. **Unscheduled named remedy:** forged-offset-0-skill-marker — stricter marker-shape check if the residual balance ever shifts (documented alongside P8.S3-R1's fence-residual remedy).
+
 ### P8.S3 — Recursive prior-summary merge into re-compaction requests   ·   2026-09-08   ·   merge `1eef96e9a`
 
 **Status** `done`
