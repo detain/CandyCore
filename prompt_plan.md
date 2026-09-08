@@ -2801,7 +2801,7 @@ sent to the summariser does not grow proportionally. Put both numbers in the wor
 
 ### P8.S5 — The compaction circuit breaker, and E31/E32
 
-**Status 2026-09-08: MERGED — merge `c4c9b3b01`; floor 11,055/169,621/0F/0E/2S gated `f55114842`. E31 bar met (gate-deleted blindness reproduced, new test kills it); E32 done via the PRE-EXISTING Backend token contract; breaker = IdleCompactionPolicy::REFILL_LIMIT 3 + Chat counter with R6 rescue-exemption; E38 skipped-with-reason. Phase 8 close review pending. Full record: worklog P8.S5 entry.**
+**Status 2026-09-08: MERGED — merge `c4c9b3b01`; floor 11,055/169,621/0F/0E/2S gated `f55114842`. E31 bar met (gate-deleted blindness reproduced, new test kills it); E32 done via the PRE-EXISTING Backend token contract; breaker = IdleCompactionPolicy::REFILL_LIMIT 3 + Chat counter with R6 rescue-exemption; E38 skipped-with-reason. Phase 8 CLOSED 2026-09-08 — cycle-1 close review 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 NIT; folds in b417dbbb7; E38 + PromptFence roster-widen scheduled after Phase 10. Full record: worklog P8.S5 entry.**
 
 **Goal** Three related compaction-route defects, one bundle:
 - **Circuit breaker.** Stop after 3 consecutive compactions that immediately refill to the limit,
