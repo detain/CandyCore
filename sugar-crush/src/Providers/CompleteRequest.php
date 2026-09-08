@@ -50,6 +50,7 @@ final readonly class CompleteRequest
      * @param string|array|null     $stop              Stop string, or list of stop strings.
      * @param ?array<string, mixed> $extraTemplateKwargs Passthrough into the server-side Jinja chat template, e.g. `['enable_thinking' => true]`.
      * @param string|float|null    $reasoningEffort   How much thinking the server should budget for this request. See below.
+     * @param ?list<string>        $systemBlocks      The assembled system prompt as ordered text blocks. See below.
      */
     public function __construct(
         public string $model,
@@ -94,5 +95,48 @@ final readonly class CompleteRequest
          * `$minP`/`$topK`.
          */
         public string|float|null $reasoningEffort = null,
+        /**
+         * The assembled system prompt as an ORDERED LIST OF TEXT BLOCKS,
+         * landed alongside the flat {@see $systemPrompt} string rather than
+         * replacing it.
+         *
+         * WHY IT EXISTS (P10.S1 / prompt_plan.md §P10.S1, §10 seam 4): an
+         * Anthropic-shaped provider expresses its system instruction as a
+         * `[{type:text,text:...}]` array and can attach a per-block cache
+         * breakpoint to it, but a single flat `?string` cannot express that
+         * shape at all. `systemBlocks` carries the block STRUCTURE so the
+         * provider that speaks that protocol can build the array; the block
+         * PLACEMENT decision (which block gets `cache_control`) is a later
+         * step's machinery and is deliberately NOT wired here — this field
+         * ships shape only.
+         *
+         * BYTE FIDELITY, and the join rule that keeps it: each entry is the
+         * exact bytes ONE {@see \SugarCraft\Crush\Context\PromptSection} contributes to the
+         * assembled prompt, and the boundary between adjacent blocks is the
+         * separator `Runtime::assemblePrompt()` already spends. A section
+         * whose body does NOT itself open with the inter-layer "\n\n" gets
+         * that separator as the LEADING bytes of its block; a section that
+         * already carries a leading "\n\n" (the skill layers — see
+         * PromptSection::render()) keeps it INSIDE its own block untouched,
+         * so no separator is ever doubled. Therefore the ordered
+         * concatenation of the block texts reproduces
+         * `Runtime::buildSystemPrompt()`'s flat string EXACTLY under the
+         * join rule "concatenate the block texts in order" — which is
+         * literally `implode('', $systemBlocks) === $systemPrompt`. The two
+         * representations are the same bytes cut at block boundaries, never
+         * two different renderings.
+         *
+         * NULL, and only null, means "no structured form was supplied" — the
+         * default every existing construction site relies on so none of them
+         * had to change. It is not an empty block list: `[]` would be a
+         * well-formed-but-empty structure whose concatenation is the empty
+         * string, which contradicts a non-empty {@see $systemPrompt}. A
+         * provider that has no block-array vocabulary keeps reading
+         * {@see $systemPrompt} and transmits exactly as it does today;
+         * providers that DO speak it read these blocks INSTEAD of splitting
+         * the flat string, which is the whole point of carrying the cut
+         * rather than making each provider re-derive it.
+         */
+        public ?array $systemBlocks = null,
     ) {}
 }

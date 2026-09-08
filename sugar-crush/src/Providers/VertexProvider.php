@@ -539,7 +539,13 @@ final readonly class VertexProvider implements ProviderInterface
 
         $system = $this->systemInstruction($request);
         if ($system !== null) {
-            $body['system'] = $system;
+            // P10.S1: with a structured block list on the request, the one
+            // protocol here that speaks a block-array `system` expresses it
+            // that way; without one, the field is the joined string, exactly
+            // as every request this class built before the field existed.
+            $body['system'] = $request->systemBlocks !== null && $request->systemBlocks !== []
+                ? $this->systemBlockArray($request)
+                : $system;
         }
 
         if ($request->topP !== null) {
@@ -579,6 +585,17 @@ final readonly class VertexProvider implements ProviderInterface
      * joined onto the request's own systemPrompt, assembled prompt first, in
      * message order.
      *
+     * P10.S1 ADDED A SHAPING TWIN, not a second joiner:
+     * {@see systemBlockArray()} applies the SAME hoist predicate to the SAME
+     * transcript when the request carries
+     * {@see CompleteRequest::$systemBlocks}, cutting the blocks per block
+     * instead of one joined string. The two are byte-faithful to each other by
+     * construction, and
+     * `ProviderRequestResponseTest::testVertexAnthropicSystemBlockArrayFoldsToTheExactBytesTheStringArmTransmits`
+     * says so on the wire. The Google and Gemini arms still read only this
+     * method, so a block-carrying request and a blockless one of the same
+     * bytes transmit the same `context` / `systemInstruction` text there.
+     *
      * WAS NAMED `anthropicSystem()` until the Google arm was fixed to
      * transmit at all - the prefix described the only caller it then had, not
      * what it computes.
@@ -605,6 +622,42 @@ final readonly class VertexProvider implements ProviderInterface
         }
 
         return $parts === [] ? null : implode("\n\n", $parts);
+    }
+
+    /**
+     * The top-level Anthropic `system` field as a per-block text array.
+     *
+     * One `['type' => 'text', 'text' => ...]` entry per
+     * {@see CompleteRequest::$systemBlocks} element, in order, each text
+     * verbatim: the blocks already carry their own inter-layer separators
+     * as leading bytes (that is the DTO's cut), so nothing is joined here.
+     * The non-empty block list stands in for the flat `systemPrompt` part
+     * of {@see systemInstruction()}; every hoisted SystemMessage still
+     * rides along — as one trailing block each, prefixed by the joiner's
+     * single "\n\n" — so for any request whose blocks fold to its flat
+     * string, concatenating these block texts reproduces exactly the
+     * string the same request transmits with the blocks absent. The
+     * `instances[0].context` and Gemini `systemInstruction` arms keep
+     * taking that joined string unchanged (plan P10.S1: the block array
+     * exists for the one protocol that can spell it).
+     *
+     * @return list<array{type: string, text: string}>
+     */
+    private function systemBlockArray(CompleteRequest $request): array
+    {
+        $blocks = [];
+
+        foreach ($request->systemBlocks as $block) {
+            $blocks[] = ['type' => 'text', 'text' => $block];
+        }
+
+        foreach ($request->messages as $msg) {
+            if ($msg instanceof SystemMessage && $msg->content() !== '') {
+                $blocks[] = ['type' => 'text', 'text' => "\n\n" . $msg->content()];
+            }
+        }
+
+        return $blocks;
     }
 
     /**
