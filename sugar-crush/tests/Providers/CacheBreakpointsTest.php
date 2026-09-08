@@ -114,6 +114,18 @@ final class CacheBreakpointsTest extends TestCase
      * request already carrying a non-ephemeral (Bedrock cachePoint dialect)
      * breakpoint, this class adds AT MOST three explicit marks — and the
      * automatic mark survives byte-for-byte, because it is not ours to wipe.
+     *
+     * F-2 MECHANISM (chosen): the public BUDGET_WITH_AUTOMATIC constant is made
+     * load-bearing here rather than in the src budget line. Two assertions pin
+     * it: first its definition (MAX_BREAKPOINTS - 1), so a rename/retune of the
+     * cap keeps it honest; second the observed ephemeral count for exactly this
+     * one-automatic input, so mutating BUDGET_WITH_AUTOMATIC alone (3 -> 99)
+     * reddens the test that documents it. The src computes the budget
+     * dynamically (MAX_BREAKPOINTS minus the automatic count), which is correct
+     * for the multi-automatic cases too — hardcoding the single constant into
+     * that subtraction would be a step backward — so pinning the constant's
+     * value and its named meaning from the test is the mechanism that fits the
+     * arithmetic.
      */
     public function testAnAutomaticCacheBreakpointConsumesOneOfTheFourSlots(): void
     {
@@ -135,9 +147,17 @@ final class CacheBreakpointsTest extends TestCase
         $out = $breakpoints->apply($messages, $tools);
         $census = $this->census($out);
 
-        self::assertSame(3, $census['ephemeral']);
+        // The constant is MAX minus exactly one automatic slot, by definition.
+        self::assertSame(
+            CacheBreakpoints::MAX_BREAKPOINTS - 1,
+            CacheBreakpoints::BUDGET_WITH_AUTOMATIC,
+            'BUDGET_WITH_AUTOMATIC must be exactly one explicit slot under the cap — that is the case it names.',
+        );
+
+        // ...and that value IS the explicit budget this one-automatic input gets.
+        self::assertSame(CacheBreakpoints::BUDGET_WITH_AUTOMATIC, $census['ephemeral']);
         self::assertSame(1, $census['automatic']);
-        self::assertSame(4, $census['total']);
+        self::assertSame(CacheBreakpoints::MAX_BREAKPOINTS, $census['total']);
 
         // The automatic mark is exactly the block the gateway wrote, untouched:
         // its breakpoint slid to the nearest FREE block (text 'A'), leaving 'B'
@@ -184,9 +204,12 @@ final class CacheBreakpointsTest extends TestCase
     }
 
     /**
-     * Constraint 2, pathological: four automatic marks leave zero explicit
-     * budget — and every automatic mark is still standing. A budget of minus
-     * two (five marks) is the mutation this test kills.
+     * Constraint 2, pathological: four automatic marks — exactly the cap —
+     * leave zero explicit budget, and every automatic mark is still standing:
+     * this class wipes only the dialect it owns, and at a zero budget it adds
+     * nothing. The over-cap polarity (five marks) is no longer a budget
+     * question at all — the producer's contract breach throws first, pinned by
+     * testFiveForeignMarksAloneExceedingTheCapThrowNamingCountAndCap().
      */
     public function testFourAutomaticBreakpointsLeaveNoExplicitMarksAndStayIntact(): void
     {
@@ -213,6 +236,68 @@ final class CacheBreakpointsTest extends TestCase
         foreach ($out['messages'] as $i => $turn) {
             self::assertSame($auto, $turn['content'][0]['cache_control'], "automatic mark $i");
         }
+    }
+
+    /**
+     * F-1 (b) — CONTRACT-VIOLATION FAIL-FAST. Preserved foreign (non-ephemeral)
+     * marks that ALONE exceed MAX_BREAKPOINTS mean the producer handed us a
+     * request that 400s whatever we do; the count 5 over the cap 4 is the broken
+     * party's bug, surfaced at the seam in the same throw-on-garbage posture as
+     * the shape guards. This is why "total <= MAX_BREAKPOINTS" is an invariant of
+     * a successful return. Asserts the exception CLASS and that the message names
+     * BOTH the offending count (5) and the cap (4), matching the fail-fast trio.
+     */
+    public function testFiveForeignMarksAloneExceedingTheCapThrowNamingCountAndCap(): void
+    {
+        $breakpoints = new CacheBreakpoints();
+        $auto = ['type' => 'default'];
+        $messages = [
+            ['role' => 'system', 'content' => [['type' => 'text', 'text' => 'S', 'cache_control' => $auto]]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'u', 'cache_control' => $auto]]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'a', 'cache_control' => $auto]]],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'b', 'cache_control' => $auto]]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'c', 'cache_control' => $auto]]],
+        ];
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessageMatches('/carries 5 automatic \(non-ephemeral\) cache marks, over the 4-breakpoint cap/');
+
+        $breakpoints->apply($messages, []);
+    }
+
+    /**
+     * F-1 (c) — POLARITY GUARD at the other side of the boundary. Exactly
+     * MAX_BREAKPOINTS foreign marks and zero ephemeral is the largest SUCCESSFUL
+     * input: `>` (not `>=`) is the operator, so this must return intact, not
+     * throw. Distinct from the pathological four-automatic test above in shape —
+     * the four foreign marks are DISTRIBUTED across a message-level, a tool-level,
+     * and two block-level positions, pinning that the guard reads the SUMMED
+     * count across wipeTools + wipeMessages, not any one region. A `>= MAX`
+     * off-by-one (mutation F-1c) reddens this test with a spurious throw.
+     */
+    public function testExactlyFourForeignMarksAcrossAllSourcesSucceedsWithoutThrowing(): void
+    {
+        $breakpoints = new CacheBreakpoints();
+        $auto = ['type' => 'default'];
+        $tools = [
+            ['name' => 'read', 'description' => 'r', 'input_schema' => []],
+            ['name' => 'edit', 'description' => 'e', 'input_schema' => [], 'cache_control' => $auto],
+        ];
+        $messages = [
+            ['role' => 'system', 'content' => 'S', 'cache_control' => $auto],
+            ['role' => 'user', 'content' => [['type' => 'text', 'text' => 'u', 'cache_control' => $auto]]],
+            ['role' => 'assistant', 'content' => [['type' => 'text', 'text' => 'a', 'cache_control' => $auto]]],
+            ['role' => 'user', 'content' => 'b'],
+        ];
+
+        $out = $breakpoints->apply($messages, $tools);
+        $census = $this->census($out);
+
+        // Succeeded, and the summed foreign count is exactly at the cap: no
+        // explicit budget left, but nothing thrown.
+        self::assertSame(4, $census['automatic']);
+        self::assertSame(0, $census['ephemeral']);
+        self::assertSame(CacheBreakpoints::MAX_BREAKPOINTS, $census['total']);
     }
 
     /**

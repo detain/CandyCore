@@ -65,6 +65,12 @@ namespace SugarCraft\Crush\Providers;
  * mark slides to the nearest preceding free block. They DO consume slots from
  * the same per-request cap, so the explicit budget is self::MAX_BREAKPOINTS
  * minus the number observed: self::BUDGET_WITH_AUTOMATIC with exactly one.
+ * When the preserved foreign marks ALONE exceed self::MAX_BREAKPOINTS the
+ * producer has handed us a request that 400s no matter what we add — a
+ * contract violation at the seam, so `apply()` throws naming the count instead
+ * of shipping the breach to the wire (§1.10 fail-fast, the same posture as the
+ * shape throws). This makes "total breakpoints <= self::MAX_BREAKPOINTS" an
+ * invariant of every successful return.
  *
  * DETERMINISM. No clock, no randomness, no filesystem, no environment: same
  * inputs produce byte-identical output, which is what makes the prefix
@@ -97,8 +103,12 @@ namespace SugarCraft\Crush\Providers;
  * body builder calls `apply()` on every step, immediately before serialising
  * `tools`/`system`/`messages` into an Anthropic-shaped body, once P10.S3's
  * kill switch (`SUGARCRUSH_DISABLE_PROMPT_CACHE`) and the licensing decision
- * on wiring prompt caching land. Until then nothing in `src/` constructs it;
- * its only callers are its own tests — the record §16.1 asks for.
+ * on wiring prompt caching land. A successful return guarantees total marks
+ * (`tools` + `messages`, ephemeral and preserved-automatic alike) at or below
+ * self::MAX_BREAKPOINTS; an input already breaching the cap on foreign marks
+ * throws rather than returning a doomed request. Until then nothing in `src/`
+ * constructs it; its only callers are its own tests — the record §16.1 asks
+ * for.
  */
 final class CacheBreakpoints
 {
@@ -146,8 +156,11 @@ final class CacheBreakpoints
      * @throws \InvalidArgumentException on a turn that is not an array with a
      *                                   non-empty string role and string or
      *                                   array content, on a content block that
-     *                                   is not an array, or on a tool that is
-     *                                   not an array.
+     *                                   is not an array, on a tool that is not
+     *                                   an array, or when the preserved
+     *                                   automatic (non-ephemeral) marks alone
+     *                                   exceed self::MAX_BREAKPOINTS — a
+     *                                   producer contract violation.
      */
     public function apply(array $messages, array $tools): array
     {
@@ -155,6 +168,23 @@ final class CacheBreakpoints
         [$tools, $automaticTools] = $this->wipeTools($tools);
         $automatic += $automaticTools;
 
+        if ($automatic > self::MAX_BREAKPOINTS) {
+            // Fail-fast at the seam: marks this class must preserve already
+            // breach the cap, so every shape of successful return here is a
+            // guaranteed API 400. The producer that handed them over is the
+            // broken party — surface it now, naming the count, instead of
+            // forwarding the breach to the wire.
+            throw new \InvalidArgumentException(
+                'CacheBreakpoints::apply(): the incoming request already carries ' . $automatic
+                . ' automatic (non-ephemeral) cache marks, over the ' . self::MAX_BREAKPOINTS
+                . '-breakpoint cap that a successful return must respect; the producer of those marks broke the contract.'
+            );
+        }
+
+        // Defense-in-depth clamp at the automatic == MAX_BREAKPOINTS boundary:
+        // the guard above rejects a breach, and keeping max() here means the
+        // mark loops below can never be handed a negative budget even if the
+        // two lines are ever reordered (§1.10).
         $budget = max(0, self::MAX_BREAKPOINTS - $automatic);
         $bounds = $this->messageBlockBounds($messages);
         $systemIndex = $this->lastSystemIndex($messages);
