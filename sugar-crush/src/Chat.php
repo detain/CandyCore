@@ -9486,11 +9486,13 @@ final class Chat implements Model
      * `/rewind` and the palette's New session action needed no change — none of
      * those three is reachable here.
      *
-          * A {@see CancellationToken} IS created here and armed on the summarization
-     * call, so the double-Escape arm in {@see update()} cancels the provider request
-     * as well as abandoning the turn — the one key that stays live in this window
- and can
-     * abandon a parked turn is exactly the key that must stop the spend on it
+     * A {@see CancellationToken} IS created here and armed on the summarization
+     * call, so the double-Escape arm in {@see update()} signals cancellation of the
+     * provider request as well as abandoning the turn — honouring the token is
+     * BEST-EFFORT per the {@see Backend} contract, so a backend that polls it stops,
+     * while one that ignores it is billed to its end — the one key that stays live
+     * in this window and can abandon a parked turn is exactly the key that must stop
+     * the spend on it
      * (backlog §E32). What is NOT done here is a `$generation` bump: generation
      * belongs to a backend TURN and there is no turn yet, so it stays the job of
      * {@see dispatchTurn()} when the compaction lands. Arming a token without a
