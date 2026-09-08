@@ -2851,6 +2851,8 @@ This phase is the plan's best source of five-way concurrency: eleven built-in to
 
 ### P9.S1 — The `promptGuidance()` seam
 
+**Status 2026-09-08: MERGED — merge `731db08e1`; floor 11,062/169,786/0F/0E/2S gated `2c6583561`. PLAN FILES-LIST CORRECTED: `src/ToolRegistry.php` is the slash-command registry (wrong file); the shipped seam is NEW `src/Tools/PromptGuidance.php` capability interface + `src/Runtime.php` section + `BuiltIn/Read.php`/`Write.php` reference implementers, additive-only (description() pinned). Full record: worklog P9.S1 entry.**
+
 **Goal** A per-tool fragment injected **only for tools present in the request**, separate from
 `description()`. Claude Code's Bash *overview* is 19 tokens; its git/PR playbook is 2,469 and
 conditionally attached. That 130× split is the design principle.
