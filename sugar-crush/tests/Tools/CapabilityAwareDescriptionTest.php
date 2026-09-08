@@ -187,6 +187,55 @@ final class CapabilityAwareDescriptionTest extends TestCase
         $this->assertSame($before, Bootstrap::capabilityPresent('rg'));
     }
 
+    public function testASecondHostAskIsAMemoHitEvenAfterTheBinaryVanishes(): void
+    {
+        // Pins the trait's claim that "every later ask reads this array" — mutate
+        // the `??=` on the memo line to a plain `=` (recompute every call) and
+        // the still-true assertion below goes red.
+        //
+        // WHY a path-shaped NAME instead of putenv('PATH') or a reflection peek:
+        // the trait documents a path-shaped argument as a first-class host-form
+        // question ("it is a path, and is answered as one, exactly as the
+        // precedent does"), so it walks no PATH, reads no injected environment,
+        // and lands on the very line whose memoization is claimed. The sandbox
+        // `$pathList` form cannot be used for the pin because it deliberately
+        // bypasses the memo; a ReflectionProperty on `$hostCapabilities` would
+        // pin the array's name and shape instead of its behaviour. The name is
+        // unique per run, so the one memo entry this creates can never be asked
+        // by any sibling test.
+        $dir = $this->sandbox('bootmemo');
+        $binary = 'p9s2-memo-' . getmypid() . '-' . bin2hex(random_bytes(6));
+        $this->makeExecutable($dir . '/' . $binary);
+
+        // Positive control: a fresh walk sees the file (this never touches the memo).
+        $this->assertTrue(Bootstrap::capabilityPresent($binary, $dir));
+
+        // First host ask: no $pathList, so the answer comes from the memo line —
+        // a stat walk, and the entry is stored under this unique key.
+        $this->assertTrue(Bootstrap::capabilityPresent($dir . '/' . $binary));
+
+        if (!@unlink($dir . '/' . $binary)) {
+            $this->fail("could not delete the probe target at {$dir}/{$binary}");
+        }
+
+        // Second host ask: the file is gone, so any answer from a stat says false.
+        // True can only come out of `self::$hostCapabilities` — the hash lookup,
+        // not a second walk.
+        $this->assertTrue(
+            Bootstrap::capabilityPresent($dir . '/' . $binary),
+            'the second host ask must read the boot memo, not re-walk the (now deleted) target'
+        );
+
+        // The sandbox form on the same deleted file says false: proves the true
+        // above came from the memo rather than a stale stat, and that the
+        // documented bypass discipline still holds — a $pathList answer is always
+        // freshly walked, never memo-served.
+        $this->assertFalse(
+            Bootstrap::capabilityPresent($binary, $dir),
+            'the sandbox form must not read the host memo'
+        );
+    }
+
     public function testToolsThreadsEachFlagToItsOwnToolAndDefaultsToNeither(): void
     {
         $root = $this->sandbox('wiring');
