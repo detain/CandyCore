@@ -35,14 +35,14 @@ use SugarCraft\Crush\Skills\SkillSource;
  * (`.sugar-crush/memory/.imported-claude`) written by whoever invokes the
  * import, because only the caller knows whether a re-import was intentional.
  *
- * NOT YET WIRED INTO THE RUNTIME. Nothing in `src/` or `bin/` constructs this
- * class. The spec's trigger points are a `/memory import claude|opencode` chat
- * subcommand (alongside the existing `/memory add|list|clear` handled by
- * `Chat::handleMemoryCommand()`) or a first-run one-shot prompt; both live in
- * `Chat.php`, which a later step owns. Until that lands, importing a foreign
- * memory tree has no runtime effect.
+ * WIRED INTO THE RUNTIME as of P7.S6: `Chat::memoryImport()` constructs this
+ * class for the `/memory import claude|opencode` chat subcommand, surfaces the
+ * refusals {@see refusedDirectories()} collects into the command response, and
+ * writes the one-shot sentinel the paragraph above assigns to the caller. The
+ * spec's other trigger point — a first-run one-shot prompt — is still
+ * unimplemented; it is named as a gap, not as a future tense of this class.
  *
- * DORMANT IS NOT UNGATED. One of the two directories this class reads —
+ * WIRED, AND GATED. One of the two directories this class reads —
  * `{projectRoot}/.opencode/memory` — is a path a CLONED REPOSITORY chooses, and
  * for one round it was read with no containment at all, which is the same shape
  * as the escape the native agent-preset tier already refuses. Both boundaries
@@ -117,11 +117,13 @@ final class ForeignMemoryImporter
      *     HomeDirectory::owned() = NULL   for that same home
      *
      * — an entry a different local user wrote entering the memory store with
-     * this tool's own provenance badge on it. A real launch refuses earlier, at
-     * {@see \SugarCraft\Crush\Cli\Bootstrap::trustedConfigDirPath()}, and this
-     * class is dormant; both were the argument this package already rejected
-     * for {@see \SugarCraft\Crush\Agents\ForeignAgentPresetRegistry::userDir()},
-     * which was gated in the same commit that left this line alone.
+      * this tool's own provenance badge on it. A real launch refuses earlier, at
+      * {@see \SugarCraft\Crush\Cli\Bootstrap::trustedConfigDirPath()}, and this
+      * class no longer leans on dormancy for safety — it gates at its own read;
+      * "someone else refuses earlier" and "nobody constructs this class" were
+      * the arguments this package already rejected for
+      * {@see \SugarCraft\Crush\Agents\ForeignAgentPresetRegistry::userDir()},
+      * which was gated in the same commit that left this line alone.
      *
      * An EXPLICIT `$claudeHome` is not gated — it is the caller naming a
      * directory rather than this class deriving one, which is what the
@@ -211,10 +213,11 @@ final class ForeignMemoryImporter
         // anchor theirs: `{projectRoot}/.opencode/memory` is a path a clone
         // chooses, so a committed `.opencode/memory -> <outside>` would import
         // arbitrary files into this session's memory store under a
-        // `source:opencode` tag that says they came from the project. Dormant
-        // (nothing constructs this class yet) is not a reason to leave it open —
-        // a containment rule added when the consumer lands is one written after
-        // the consumer already trusts the importer.
+         // `source:opencode` tag that says they came from the project. Dormancy
+         // (nothing constructing this class) was never a reason to leave it
+         // open — a containment rule added when the consumer lands is one
+         // written after the consumer already trusts the importer. The consumer
+         // landed in P7.S6; the rule was here first.
         //
         // The refusal NOTICE is narrower than the decision, matching
         // {@see \SugarCraft\Crush\Agents\AgentPresetRegistry::readableSearchPaths()}:

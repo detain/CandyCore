@@ -696,7 +696,9 @@ final class Bootstrap
      * the mismatch is recorded here instead of being left for the next reader to
      * infer from the values.
      *
-      * SIX OTHER HOLDERS of a repository-chosen path do NOT feed this, and each
+      * SEVEN OTHER repository-chosen paths do NOT feed this — six with a holder
+      * of their own and the seventh, the `.sugar-crush/memory` sentinel of the
+      * importer's chat trigger, named inside that entry below — and each
       * is named rather than counted, because "five feeders" quietly becoming
       * "six things nobody drains" is the drift this collector keeps producing. It
       * was FOUR until crush_code.md Phase 1 item 3 wired
@@ -708,10 +710,17 @@ final class Bootstrap
       * list's property and is stated per entry instead. P6.S2 added the sixth:
      *
      *  - {@see \SugarCraft\Crush\Memory\ForeignMemoryImporter}
-     *    (`.opencode/memory`) is DORMANT — nothing in `src/` or `bin/`
-     *    constructs it — and GATED, which dormant does not imply and for one
-     *    round did not mean. It exposes `refusedDirectories()` with nothing
-     *    reading it yet;
+     *    (`.opencode/memory`) is WIRED — P7.S6 gave it `Chat::memoryImport()` —
+     *    and GATED, which wiring no more implies than dormancy did. It exposes
+     *    `refusedDirectories()` with nothing reading it here yet: its chat
+     *    command surfaces refusals to the user, the collector still does not.
+     *    The trigger also writes its re-import sentinel under `.sugar-crush/memory`
+     *    in the project — a repository-chosen path gated at its call site
+     *    (containment judged before the directory is ever created, re-judged
+     *    after, and the file lands by temp-create and rename: no write follows
+     *    a planted symlink, and no mkdir follows one that was there when the
+     *    gate ran) and answered in the
+     *    command response, drained nowhere;
      *  - `.sugar-crush/hooks.yaml` has its own trust gate
      *    ({@see projectHooksAreTrusted()}) and refuses the LAUNCH rather than
      *    degrading, so a collector entry would be unreachable;
@@ -1310,10 +1319,10 @@ final class Bootstrap
      * {@see reportProjectTierRefusals()} putting one bounded line in front of
      * the user at launch.
      *
-     * FOURTEEN repository-chosen DOT-DIRECTORY paths exist in `src/` — and the
+     * FIFTEEN repository-chosen DOT-DIRECTORY paths exist in `src/` — and the
      * qualifier is the number's domain rather than decoration. What the
      * derivation counts is a string literal of the shape `.<dir>/<segment>`:
-     * TWENTY-FIVE distinct ones on this tree, fourteen of them classified
+     * TWENTY-SIX distinct ones on this tree, fifteen of them classified
      * repository-chosen. This list said FOUR, then FIVE, both hand-written; it is
      * now DERIVED from `src/` by
      * {@see \SugarCraft\Crush\Tests\Cli\ProjectTierRefusalInventoryTest}, which
@@ -1322,7 +1331,10 @@ final class Bootstrap
      * IT WENT TEN -> THIRTEEN IN ONE CHANGE-SET, from three different causes, and
      * they are worth separating because only one of them is a new path; P6.S2 then
      * added `.sugar-crush/rules` (the rules tier) as a fourteenth, and it is a new
-     * path and a named gap at once — see the gap column below.
+     * path and a named gap at once — see the gap column below. P7.S6 added
+     * `.sugar-crush/memory` — the sentinel directory of the now-wired
+     * `/memory import` trigger — as a fifteenth, again a new path and a named gap
+     * at once, gated at its call site rather than drained here.
      *
      *  - `.sugar-crush/settings.json` and `.sugar-crush/settings.local.json` are
      *    genuinely new — the project tier of
@@ -1360,12 +1372,12 @@ final class Bootstrap
      * {@see foreignAgentPresets()} and gave that registry's refusal seam its first
      * reader; the split was five and five before it.
      *
-     * The SIX that are gated elsewhere and named as gaps rather than counted
+     * The SEVEN that are gated elsewhere and named as gaps rather than counted
      * here — `.opencode/memory`, `.sugar-crush/hooks.yaml`,
      * `.sugar-crush/config.json`, `.sugar-crush/settings.json`,
-     * `.sugar-crush/settings.local.json`, and the rules tier
-     * `.sugar-crush/rules` — are itemised on
-     * {@see $projectTierRefusals}, all six of them.
+     * `.sugar-crush/settings.local.json`, the rules tier `.sugar-crush/rules`,
+     * and the import sentinel `.sugar-crush/memory` — are itemised on
+     * {@see $projectTierRefusals}, all seven of them.
      *
      * `.sugar-crush/commands` IS NOT ONE OF THEM, and this sentence used to say
      * it was — a gap list that went stale when crush_code.md Phase 2 item 4

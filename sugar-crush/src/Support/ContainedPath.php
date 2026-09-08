@@ -94,7 +94,7 @@ namespace SugarCraft\Crush\Support;
  * way that made the file read as audited while its two PRIMARY read paths had no
  * compare at all (see below). Per-file, executable lines only:
  *
- *   - THIRTY-SEVEN call sites in FIFTEEN files ask this class. THIS SENTENCE
+ *   - THIRTY-EIGHT call sites in SIXTEEN files ask this class. THIS SENTENCE
  *     WAS FIVE SITES AND THREE FILES STALE when a reviewer measured it — it
  *     read "TWENTY-SEVEN in ELEVEN" while
  *     {@see \SugarCraft\Crush\Tests\Support\ContainedPathInventoryTest}'s
@@ -140,7 +140,10 @@ namespace SugarCraft\Crush\Support;
  *     the config DIRECTORY against the tree containing the package, and
  *     `config.json` against that directory) and
  *     {@see \SugarCraft\Crush\Agents\WorktreeManager} (2 — the include FILE
- *     against the repo root, and each copy pattern's source against it too).
+ *     against the repo root, and each copy pattern's source against it too),
+ *     and {@see \SugarCraft\Crush\Chat} (1 — P7.S6: the `/memory import`
+ *     sentinel directory `.sugar-crush/memory` under the project root, gated
+ *     before its WRITE).
  *   - EIGHT spellings remain by hand, in FOUR files, and they are a DIFFERENT
  *     CONTRACT rather than copies waiting to be swept up:
  *

@@ -216,7 +216,7 @@ final class CommandRegistry
                 argumentHint: '[amount|off]',
             ),
             CommandSpec::new('workflow', 'Run, pause, resume, or inspect a workflow', 'Workflow'),
-            CommandSpec::new('memory', 'Add, list, search, edit, or clear memory entries', 'Memory'),
+            CommandSpec::new('memory', 'Add, list, search, edit, import, or clear memory entries', 'Memory'),
             CommandSpec::new('branch', 'Fork the current session into a new branch', 'Session'),
             CommandSpec::new('rename', 'Rename the current session', 'Session', argumentHint: '<name>'),
             CommandSpec::new('rewind', 'Restore chat state from an earlier checkpoint', 'Session'),

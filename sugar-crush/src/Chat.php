@@ -74,6 +74,8 @@ use SugarCraft\Crush\Context\IdleCompactionPolicy;
 use SugarCraft\Crush\Context\RuleLoader;
 use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Memory\MemoryStore;
+use SugarCraft\Crush\Memory\ForeignMemoryImporter;
+use SugarCraft\Crush\Support\ContainedPath;
 use SugarCraft\Crush\Session\EnhancedSessionStore;
 use SugarCraft\Crush\Session\SessionStore;
 use SugarCraft\Crush\Util\TokenTracker;
@@ -10280,6 +10282,7 @@ final class Chat implements Model
             'delete' => $this->memoryDelete($inputText, $args),
             'clear' => $this->memoryClear($inputText, $args),
             'edit' => $this->memoryEdit($inputText, $args),
+            'import' => $this->memoryImport($inputText, $args),
             default => $this->memoryHelpResponse($inputText, "Unknown command '{$command}'."),
         };
     }
@@ -10319,6 +10322,7 @@ final class Chat implements Model
         $lines[] = '`/memory delete <id>` — Delete a memory by ID';
         $lines[] = '`/memory edit <id> <new_content>` — Edit an existing memory';
         $lines[] = '`/memory clear --scope <scope> --confirm` — Clear all memories for a scope';
+        $lines[] = '`/memory import claude|opencode` — Import foreign memory files (one-shot per tool)';
         $lines[] = '`/memory` — Show this help text';
         $lines[] = '';
         $lines[] = 'Scopes: `user` (default), `project`, `agent`';
@@ -10361,6 +10365,201 @@ final class Chat implements Model
         }
 
         return $this->memoryResponse($inputText, $response);
+    }
+
+    /**
+     * Handle `/memory import claude|opencode` — the runtime trigger point of
+     * {@see ForeignMemoryImporter}, wired P7.S6 per the importer's own docblock
+     * contract (the sentinel lives HERE, at the caller, because only the caller
+     * knows whether a re-import was intentional).
+     *
+     * Two guards run before a single foreign byte reaches the store: a
+     * determinable project root (the sentinel must live inside the project),
+     * and an absent `.imported-{target}` sentinel (imports are not idempotent
+     * — `MemoryStore::add()` mints a fresh UUID per entry, so the one-shot
+     * guard IS the de-duplication).
+     *
+     * There is deliberately NO entry cap here. Imports land in the `agent`
+     * scope (`MemoryScope::Local`, which the store persists under the string
+     * 'agent'), and `MemoryBlock` folds ONLY the project scope into the
+     * prompt — its own docblock lists user/agent scope under "WHAT IS
+     * DELIBERATELY NOT HERE" (src/Context/MemoryBlock.php:73-80) and
+     * `capture()` reads exactly `list(MemoryScope::Project)` (:203). No
+     * number of imported entries can therefore crowd the 12-entry prompt
+     * block, and agent scope is the point, not an oversight: the provenance-
+     * badge attack story in {@see ForeignMemoryImporter}'s class docblock
+     * (:106-124) is why another tool's memory bodies do not get direct
+     * prompt access — they stay listable and searchable until the user
+     * promotes what they actually want.
+     *
+     * Refusals the importer records ({@see ForeignMemoryImporter::refusedDirectories()})
+     * surface in the response text — the command answers, it does not warn
+     * through the transcript seams.
+     *
+     * @return array{0:Chat,1:?\Closure}
+     */
+    private function memoryImport(string $inputText, string $args): array
+    {
+        $target = strtolower(trim($args));
+        if ($target === '') {
+            return $this->memoryHelpResponse($inputText, 'Usage: /memory import claude|opencode');
+        }
+        if ($target !== 'claude' && $target !== 'opencode') {
+            return $this->memoryHelpResponse(
+                $inputText,
+                "Unknown import target '{$target}'. Use `claude` or `opencode`."
+            );
+        }
+
+        // Defense-in-depth, not a behaviorally reachable branch: projectRoot()
+        // falls back to getcwd(), so '' is observable only when neither an
+        // explicit root nor a working directory exists. The guard is still
+        // answered rather than letting the sentinel path dangle at a bare
+        // '/.sugar-crush/...'.
+        $projectRoot = $this->projectRoot();
+        if ($projectRoot === '') {
+            return $this->memoryResponse(
+                $inputText,
+                '**Nothing imported:** no project root could be determined, so this command has no'
+                . " project to read `{$target}` memory against or record the"
+                . " `.imported-{$target}` sentinel in."
+            );
+        }
+
+        $sentinel = $projectRoot . '/.sugar-crush/memory/.imported-' . $target;
+        if (file_exists($sentinel)) {
+            return $this->memoryResponse(
+                $inputText,
+                "Already imported (sentinel `{$sentinel}`; delete it to re-import)."
+            );
+        }
+
+        try {
+            $importer = new ForeignMemoryImporter($this->memoryStore);
+            $imported = $target === 'claude'
+                ? $importer->importClaudeCode($projectRoot)
+                : $importer->importOpencode($projectRoot);
+            $refused = $importer->refusedDirectories();
+
+            $lines = [];
+            if ($imported > 0) {
+                $sentinelNote = $this->writeImportSentinel($sentinel, $target, $imported);
+                $lines[] = "**Imported {$imported}** `{$target}` memories into the `agent` scope."
+                    . $sentinelNote;
+            } else {
+                $lines[] = $refused === []
+                    ? 'Nothing imported — no readable `'.$target.'` memory files were found for'
+                        . ' this project.'
+                    : 'Nothing imported — no readable `'.$target.'` memory files were found, and'
+                        . ' every candidate directory was refused.';
+            }
+            if ($refused !== []) {
+                $lines[] = '';
+                $lines[] = '**Directories not read:**';
+                foreach ($refused as $path => $why) {
+                    $lines[] = "- `{$path}`: {$why}";
+                }
+            }
+
+            return $this->memoryResponse($inputText, implode("\n", $lines));
+        } catch (\Throwable $e) {
+            return $this->memoryResponse(
+                $inputText,
+                '**Import failed** — entries the importer had already written stay in the `agent`'
+                . ' scope and no sentinel was written, so re-running may duplicate them. Run'
+                . " `/memory list agent` before re-running. Error: {$e->getMessage()}"
+            );
+        }
+    }
+
+    /**
+     * Write the re-import sentinel, creating its directories defensively; a
+     * foreign tree that imported but could not record its sentinel would be
+     * silently re-importable, so the response says so when that happens
+     * rather than pretending the guard exists.
+     *
+     * The sentinel's DIRECTORY is under project control like everything else
+     * this command reads, so both write hazards of a repository-chosen path
+     * are closed HERE rather than named as a gap to fix later. Containment is
+     * judged BEFORE the recursive create: a committed `.sugar-crush ->
+     * <outside>` symlink would otherwise have its outside target mkdir'd by
+     * this call and only refused afterwards. Then again after the create —
+     * the only way a symlink appears at the checked path between check and
+     * write is a race, and the re-check plus temp-create-and-rename turns
+     * even that into a refusal or a replaced directory entry rather than a
+     * write THROUGH a planted symlink — the same atomic-rename answer this
+     * repo's GIF writer ships for the same CWE-59 shape, and what makes a
+     * pre-planted `.imported-<target>` symlink a refusal the user can see
+     * (via the exists-check in the caller) rather than an arbitrary-file
+     * truncation performed by this launch.
+     */
+    private function writeImportSentinel(string $sentinel, string $target, int $imported): string
+    {
+        $dir = dirname($sentinel);
+        // First of the two containment gates the docblock above describes
+        // (pre-check here, post-mkdir re-check below): this one is reachable
+        // through /memory import whenever a planted out-of-tree `.sugar-crush`
+        // symlink points the sentinel directory outside the project, while it
+        // also re-derives the caller's non-empty-root precondition as defense
+        // in depth; only the re-check below has no reachable path absent a
+        // race.
+        if (!$this->importSentinelDirIsContained($dir)) {
+            return ' **Warning:** the sentinel directory does not resolve inside this project, so no'
+                . ' sentinel was written and re-running the import WILL duplicate these entries.';
+        }
+        if (!is_dir($dir) && !@mkdir($dir, 0700, true) && !is_dir($dir)) {
+            return ' **Warning:** the sentinel directory could not be created, so re-running the import'
+                . ' WILL duplicate these entries.';
+        }
+        // The post-create re-check: defensive against a symlink appearing at
+        // the checked path between the gates above and this moment.
+        if (!$this->importSentinelDirIsContained($dir)) {
+            return ' **Warning:** the sentinel directory resolved outside this project after directory'
+                . ' creation, so no sentinel was written and re-running the import WILL duplicate'
+                . ' these entries.';
+        }
+
+        $tmp = $dir . '/sentinel-tmp-' . bin2hex(random_bytes(6));
+        $written = @file_put_contents(
+            $tmp,
+            "{$imported} {$target} memories imported by /memory import at " . date('c') . "\n"
+        );
+        if ($written === false || !@rename($tmp, $sentinel)) {
+            @unlink($tmp);
+
+            return ' **Warning:** the sentinel could not be written, so re-running the import WILL'
+                . ' duplicate these entries.';
+        }
+
+        return " Sentinel: `{$sentinel}` (delete it to re-import).";
+    }
+
+    /**
+     * Whether the sentinel directory resolves inside this project, judging the
+     * deepest EXISTING ancestor when the directory itself does not exist yet.
+     *
+     * WHY NOT ASK {@see ContainedPath::below()} ABOUT THE LEAF DIRECTLY: its
+     * containment verdict is `realpath()`-based, so a not-yet-existing path —
+     * the normal state of a fresh project's `.sugar-crush/memory` — answers
+     * false, which would refuse every legitimate first sentinel. The climb is
+     * sound because a component that does not exist cannot be a symlink at
+     * check time (a broken one still stops the climb via `is_link()`, and
+     * `below()` then refuses it on the unresolvable realpath), and a probe
+     * that lands exactly on the project root is containment's floor, not a
+     * violation — `below()` is strict-below by design, so that case is
+     * answered by equality rather than handed to a predicate built to say no
+     * to it. The post-write moment is covered by re-calling this method after
+     * the mkdir, not by anything in here.
+     */
+    private function importSentinelDirIsContained(string $dir): bool
+    {
+        $root = $this->projectRoot();
+        $probe = $dir;
+        while ($probe !== '/' && !file_exists($probe) && !is_link($probe)) {
+            $probe = dirname($probe);
+        }
+
+        return $probe === $root || ContainedPath::below($probe, $root);
     }
 
     /**

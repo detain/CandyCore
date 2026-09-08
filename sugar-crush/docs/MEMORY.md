@@ -56,6 +56,7 @@ subdirectory.
 /memory delete <id>
 /memory edit <id> <new_content>
 /memory clear --scope <scope> --confirm
+/memory import claude|opencode            one-shot import of a foreign tree
 ```
 
 `--scope` may come before or after the content. `add` creates the entry with
@@ -130,15 +131,19 @@ tagged `source:<skill-source>` — the same `SkillSource` vocabulary that badges
 imported skills and agent presets. It is **read-only by design**: the foreign
 tree is harness-managed, so there is no export direction.
 
-**Nothing in `src/` or `bin/` constructs it.** The trigger point — a
-`/memory import claude|opencode` subcommand — is not implemented, so importing a
-foreign memory tree has no runtime effect today. Imports are also **not
-idempotent** (`MemoryStore::add()` mints a fresh UUID per call), which is why
-de-duplication is designed to live at the trigger point, in a sentinel file the
-caller writes, rather than in the importer: only the caller knows whether a
-re-import was intentional.
+**`Chat::memoryImport()` constructs it behind `/memory import claude|opencode`**
+(wired in P7.S6). The subcommand writes entries into the `agent` scope —
+reachable through `/memory list agent` and `/memory search`, and, per the
+project-scope-only policy above, deliberately **not** folded into the prompt:
+`MemoryBlock::MAX_ENTRIES` bounds the `project` list, so no import can crowd
+the prompt block either way. Imports are **not idempotent** (`MemoryStore::add()`
+mints a fresh UUID per call), which is why de-duplication lives at the trigger
+point rather than in the importer: the command writes a sentinel at
+`.sugar-crush/memory/.imported-<target>` in the project after a non-empty
+import, and refuses to import again while that file exists — delete it to
+re-import. Only the caller knows whether a re-import was intentional.
 
-Dormant is not ungated: `{projectRoot}/.opencode/memory` is a path a *cloned
+The gate is not the wiring: `{projectRoot}/.opencode/memory` is a path a *cloned
 repository* chooses, so the directory is contained against the checkout and each
 `*.md` against the directory it was listed from.
 
