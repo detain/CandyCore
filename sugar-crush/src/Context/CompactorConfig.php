@@ -45,6 +45,24 @@ final readonly class CompactorConfig
      *                                      for never reaches either bound; see
      *                                      {@see ContextCompactor::withExchangeSummaries()}.
      *                                      Default: 100.
+     * @param int $toolOutputMaxChars      Max characters of a condensed exchange's ASSISTANT
+     *                                      half that {@see ContextCompactor::exchangesToSummarize()}
+     *                                      shows the summariser. Finished tool output enters
+     *                                      history as assistant content, so this is the bound on
+     *                                      what one large tool blob costs the model that is being
+     *                                      asked for summaries. The `user` half of a condensed
+     *                                      exchange is not bounded here, and neither is the
+     *                                      preserved recent window — this speaks to the head a
+     *                                      model reads, never to the transcript. An assistant turn
+     *                                      opening with the skill marker is exempt: skill output
+     *                                      is never pruned. Numerically equal to
+     *                                      Chat::SUMMARY_LINE_MAX_CHARS and to
+     *                                      ContextCompactor::INTRA_EXCHANGE_HEADROOM_TOKENS and
+     *                                      unrelated to both — those are an output-side record
+     *                                      clip and a token reserve on the blocking-tier rescue,
+     *                                      this is an input-side head bound. Three 2,000s that
+     *                                      mean three things.
+     *                                      Default: 2000.
      */
     public function __construct(
         public int $reminderThreshold = 70,
@@ -55,6 +73,7 @@ final readonly class CompactorConfig
         public int $skillBudgetCombined = 25000,
         public int $summaryUserMaxChars = 80,
         public int $summaryAssistantMaxChars = 100,
+        public int $toolOutputMaxChars = 2000,
     ) {}
 
     /**
@@ -79,6 +98,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -96,6 +116,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -113,6 +134,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -130,6 +152,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -147,6 +170,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -164,6 +188,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -178,6 +203,7 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $summaryUserMaxChars,
             summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
         );
     }
 
@@ -192,6 +218,25 @@ final readonly class CompactorConfig
             skillBudgetCombined: $this->skillBudgetCombined,
             summaryUserMaxChars: $this->summaryUserMaxChars,
             summaryAssistantMaxChars: $summaryAssistantMaxChars,
+            toolOutputMaxChars: $this->toolOutputMaxChars,
+        );
+    }
+
+    /**
+     * Create a new config with a different toolOutputMaxChars value.
+     */
+    public function withToolOutputMaxChars(int $toolOutputMaxChars): self
+    {
+        return new self(
+            reminderThreshold: $this->reminderThreshold,
+            backgroundCompactionThreshold: $this->backgroundCompactionThreshold,
+            foregroundBlockingThreshold: $this->foregroundBlockingThreshold,
+            recentPreserveCount: $this->recentPreserveCount,
+            skillBudgetPerSkill: $this->skillBudgetPerSkill,
+            skillBudgetCombined: $this->skillBudgetCombined,
+            summaryUserMaxChars: $this->summaryUserMaxChars,
+            summaryAssistantMaxChars: $this->summaryAssistantMaxChars,
+            toolOutputMaxChars: $toolOutputMaxChars,
         );
     }
 }

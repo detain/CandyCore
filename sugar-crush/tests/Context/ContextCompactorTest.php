@@ -2186,6 +2186,293 @@ final class ContextCompactorTest extends TestCase
 
         return $resolved;
     }
+
+    // ─── P8.S4 — the bound on what the summariser is SHOWN ──────────
+    //
+    // §6.6 / §9.3: only the head goes to the model, and the head's tool output is
+    // bounded. `exchangesToSummarize()` IS that head — `Chat::buildSummarizationRequest()`
+    // hands what it returns straight to `renderExchangesForSummary()` — so these
+    // tests measure the request rather than a re-implementation of it.
+
+    /**
+     * Fixture builder: `$headPairs` exchanges whose assistant half is EXACTLY
+     * `$assistantChars` long, followed by the same preserved tail in every variant.
+     *
+     * Both halves differ per pair (`h1:`, `h2:`, …) so no two exchanges collide on a
+     * key, and neither does any stage 4/5 predicate fire: one line, no path, no
+     * `<?php`, so what `exchangesToSummarize()` returns is the text written here.
+     *
+     * @return array<array{role:string,content:string}>
+     */
+    private function boundableHistory(int $headPairs, int $assistantChars, int $tailPairs = 2): array
+    {
+        $messages = [];
+        for ($i = 1; $i <= $headPairs; $i++) {
+            $messages[] = $this->msg('user', "question {$i}");
+            $messages[] = $this->msg('assistant', "h{$i}:" . str_repeat('y', $assistantChars - 3));
+        }
+        for ($i = 1; $i <= $tailPairs; $i++) {
+            $messages[] = $this->msg('user', "tail question {$i}");
+            $messages[] = $this->msg('assistant', "tail answer {$i}");
+        }
+
+        return $messages;
+    }
+
+    /**
+     * The bytes the summariser would be handed for these exchanges.
+     *
+     * `Chat::renderExchangesForSummary()` is private, and the arithmetic that makes
+     * this a faithful proxy rather than a stand-in is why re-spelling its two-line
+     * format here is honest:
+     *
+     *     bytes(serialize) = sum(assistant) + sum(user) + CONST * pairCount
+     *
+     * CONST is the `### Exchange N\nUser: ` + `\nAssistant: ` wrapper plus the
+     * `## ` join, identical per pair in both fixtures because both carry the same
+     * pair count and the same single-digit ordinals. So any growth in the real
+     * request shows up here byte for byte, and nothing else moves.
+     *
+     * @param list<array{key:string,user:string,assistant:string}> $exchanges
+     */
+    private function serializedHeadBytes(array $exchanges): int
+    {
+        $out = [];
+        foreach ($exchanges as $i => $exchange) {
+            $n = $i + 1;
+            $out[] = "### Exchange {$n}\nUser: {$exchange['user']}\nAssistant: {$exchange['assistant']}";
+        }
+
+        return strlen(implode("\n\n", $out));
+    }
+
+    /**
+     * What a head exchange carrying a tool blob costs the summariser is
+     * `toolOutputMaxChars`, not the size of the blob.
+     *
+     * The marker is byte-asserted rather than matched loosely so a rewording is a
+     * red test and not a silent change to what the model reads, and the bound is
+     * re-set to 500 at the end because a constant nobody reads would pass this test
+     * exactly as well as one that is wired.
+     */
+    public function testAHeadExchangeCarryingALargeToolBlobIsClippedBeforeTheSummariserSeesIt(): void
+    {
+        $blob = 'h1:' . str_repeat('y', 19_000);
+        $this->assertSame(19_003, strlen($blob), 'fixture: the blob is 9.5x the default bound');
+
+        $compactor = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+        $head = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 1'),
+            $this->msg('assistant', $blob),
+            ...$this->boundableHistory(2, 100),
+        ]);
+
+        $clipped = $head[0]['assistant'];
+        $this->assertSame(
+            'h1:' . str_repeat('y', 1_997) . "\n\n[... 17003 characters truncated ...]",
+            $clipped,
+            'the first toolOutputMaxChars characters, then a marker naming the rest',
+        );
+        $this->assertSame(2_038, strlen($clipped), 'the bound is on the retained text; the marker rides outside it');
+        $this->assertSame('question 1', $head[0]['user'], 'the user half is not bounded (§6.6 bounds the tool transcript)');
+
+        $rewired = new ContextCompactor(
+            CompactorConfig::new()->withRecentPreserveCount(2)->withToolOutputMaxChars(500),
+        );
+        $short = $rewired->exchangesToSummarize([
+            $this->msg('user', 'question 1'),
+            $this->msg('assistant', $blob),
+            ...$this->boundableHistory(2, 100),
+        ])[0]['assistant'];
+        $this->assertSame(
+            'h1:' . str_repeat('y', 497) . "\n\n[... 18503 characters truncated ...]",
+            $short,
+            'and the number the config carries is the number that bites',
+        );
+    }
+
+    /**
+     * THE LOAD-BEARING PIN: the key is the ORIGINAL pair's, never the clipped text's.
+     *
+     * A model summary comes back keyed by what the caller was shown, and the caller
+     * joins it to the transcript by recomputing {@see ContextCompactor::exchangeKey()}
+     * from the messages as they were stored. Clip first and hash the clip, and every
+     * summary of a clipped exchange lands on nothing — the round trip would fail
+     * silently, in production, on exactly the exchanges large enough to need one.
+     *
+     * Pinned three ways because each is satisfiable by a different broken fix: a
+     * literal hash computed off the original strings (so the pin does not reuse the
+     * function it tests), the live recomputation from the originals, and a negative
+     * assertion that the key is NOT the hash of the returned halves.
+     */
+    public function testTheKeyOfAClippedHeadExchangeIsStillTheKeyOfTheUnclippedPair(): void
+    {
+        $user = 'question 1';
+        $assistantUnclipped = 'h1:' . str_repeat('y', 4_000);
+
+        $compactor = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+        $head = $compactor->exchangesToSummarize([
+            $this->msg('user', $user),
+            $this->msg('assistant', $assistantUnclipped),
+            ...$this->boundableHistory(2, 100),
+        ]);
+
+        $this->assertSame(
+            'eb3b870eab375596909da4119c7e5a4e7543420a03978167cc6122c6745fc453',
+            $head[0]['key'],
+            'sha256 of "question 1" + NUL + the 4,003-char assistant, computed by hand from the ORIGINALS',
+        );
+        $this->assertSame(
+            ContextCompactor::exchangeKey($user, $assistantUnclipped),
+            $head[0]['key'],
+            'and it is what a caller re-deriving the key from the transcript arrives at',
+        );
+        $this->assertNotSame(
+            ContextCompactor::exchangeKey($head[0]['user'], $head[0]['assistant']),
+            $head[0]['key'],
+            'the exchange WAS clipped, so the shown text keys differently — by design',
+        );
+        $this->assertSame(2_037, strlen($head[0]['assistant']), 'fixture: the clipping really happened');
+    }
+
+    /**
+     * §9.3's "never prune skill outputs", pinned on the one path that can reach the
+     * head: a skill body is assistant content opening with the `## Skill: ` heading
+     * `SkillTool::execute()` writes.
+     *
+     * Byte-identical is the assertion, not "longer than the bound": the exempt
+     * branch has to leave the string ALONE, and a clip that happens to re-add
+     * something similar would satisfy a weaker claim.
+     */
+    public function testASkillBodyInTheHeadIsHandedToTheSummariserWhole(): void
+    {
+        $skill = "## Skill: demo\n\n" . str_repeat('s', 9_000);
+
+        $compactor = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+        $head = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 1'),
+            $this->msg('assistant', $skill),
+            ...$this->boundableHistory(2, 100),
+        ]);
+
+        $this->assertSame(9_016, strlen($skill), 'fixture: four and a half times the default bound');
+        $this->assertSame($skill, $head[0]['assistant'], 'a skill body is emitted whole at any length');
+        $this->assertStringNotContainsString('characters truncated', $head[0]['assistant']);
+    }
+
+    /**
+     * The two boundaries the exemption does NOT cross, pinned because the exemption is
+     * a test of CONTENT AT OFFSET 0 rather than of skill provenance: a heading that
+     * appears anywhere else in the text, and a heading whose colon has no space behind
+     * it, are both body text, and both are clipped.
+     *
+     * WHY BOTH HALVES, since they look interchangeable and are not. The regression this
+     * guards is a widening of the matcher rather than of the bound, and each fixture
+     * catches a different one: `str_starts_with()` becoming `str_contains()` ships the
+     * first fixture whole — 9,023 bytes that merely mention a skill heading at offset
+     * 7 — while leaving
+     * {@see testASkillBodyInTheHeadIsHandedToTheSummariserWhole()} green, because a
+     * genuine prefix is still a prefix under either matcher; matching `## Skill:`
+     * without its trailing space ships the second. So every value here is
+     * byte-asserted, marker arithmetic included, rather than compared to the bound:
+     * the bound is on the RETAINED text alone, which makes the clipped length
+     * 2,000 characters plus a 37-byte marker for a 4-digit dropped count, and 2,000
+     * plus a 38-byte marker for a 5-digit one.
+     */
+    public function testTheSkillExemptionKeysOnTheMarkerAtOffsetZeroAndNowhereElse(): void
+    {
+        $midText = 'prefix ' . "## Skill: demo\n\n" . str_repeat('s', 9_000);
+        $this->assertSame(9_023, strlen($midText), 'fixture: the heading sits at offset 7, not at offset 0');
+
+        $compactor = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+        $clipped = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 1'),
+            $this->msg('assistant', $midText),
+            ...$this->boundableHistory(2, 100),
+        ])[0]['assistant'];
+
+        $this->assertSame(
+            'prefix ' . "## Skill: demo\n\n" . str_repeat('s', 1_977) . "\n\n[... 7023 characters truncated ...]",
+            $clipped,
+            'a heading planted mid-text is text, and text of that size is clipped',
+        );
+        $this->assertSame(2_037, strlen($clipped), '2,000 retained characters + a 37-byte marker naming 7,023 dropped');
+        $this->assertSame('## Skill: ', substr($clipped, 7, 10), 'the marker really is present, at offset 7');
+
+        $noSpace = "## Skill:nosummariser\n\n" . str_repeat('t', 12_000);
+        $this->assertStringNotContainsString('## Skill: ', $noSpace, 'fixture: the near miss carries no marker at all');
+        $this->assertSame(12_023, strlen($noSpace), 'fixture: six times the default bound');
+
+        $noSpaceClipped = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 2'),
+            $this->msg('assistant', $noSpace),
+            ...$this->boundableHistory(2, 100),
+        ])[0]['assistant'];
+
+        $this->assertSame(
+            "## Skill:nosummariser\n\n" . str_repeat('t', 1_977) . "\n\n[... 10023 characters truncated ...]",
+            $noSpaceClipped,
+            'and the heading without its trailing space is body text too',
+        );
+        $this->assertSame(2_038, strlen($noSpaceClipped), '2,000 retained characters + a 38-byte marker naming 10,023 dropped');
+        $this->assertSame('## Skill:', substr($noSpaceClipped, 0, 9), 'nine bytes of near miss is not ten bytes of marker');
+    }
+
+    /**
+     * DONE-WHEN, as a measurement rather than a claim.
+     *
+     * Two fixtures, the SAME three condensed head pairs and the SAME preserved
+     * tail, where B's head assistants are exactly ten times A's (1,900 vs 19,000
+     * characters). The plan's property is that the serialised head does NOT grow
+     * proportionally, and the second half of the test is what stops that from being
+     * an accident of a fixture too small to notice: the same B measured against a
+     * huge bound DOES cost about ten times what A costs.
+     *
+     * Bytes are the {@see serializedHeadBytes()} proxy — see its docblock for why
+     * `bytes(serialize) = sum(assistant) + sum(user) + CONST * pairCount` makes
+     * growth here growth in the real request.
+     */
+    public function testAHeadTenTimesLongerInToolOutputDoesNotCostTheSummariserTenTimes(): void
+    {
+        $historyA = $this->boundableHistory(3, 1_900);
+        $historyB = $this->boundableHistory(3, 19_000);
+        $bounded = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+
+        $headA = $bounded->exchangesToSummarize($historyA);
+        $headB = $bounded->exchangesToSummarize($historyB);
+
+        $this->assertCount(3, $headA, 'fixture: three condensed pairs, two preserved');
+        $this->assertCount(3, $headB, 'and the same in B — only the head got bigger');
+        $this->assertSame(array_column($headA, 'user'), array_column($headB, 'user'), 'same user halves');
+        $this->assertSame(
+            array_map(static fn(array $e): int => strlen($e['assistant']), $headA),
+            [1_900, 1_900, 1_900],
+            'A is under the bound, so it reaches the summariser untouched',
+        );
+
+        $bytesA = $this->serializedHeadBytes($headA);
+        $bytesB = $this->serializedHeadBytes($headB);
+        $this->assertSame(5_833, $bytesA, 'the measured head of fixture A');
+        $this->assertSame(6_247, $bytesB, 'the measured head of fixture B, bounded');
+
+        $this->assertLessThan(
+            1.2,
+            $bytesB / $bytesA,
+            'a head carrying ten times the tool output costs the summariser 1.07x, not 10x',
+        );
+
+        $unbounded = new ContextCompactor(
+            CompactorConfig::new()->withRecentPreserveCount(2)->withToolOutputMaxChars(1_000_000),
+        );
+        $bytesBUnbounded = $this->serializedHeadBytes($unbounded->exchangesToSummarize($historyB));
+        $this->assertSame(57_133, $bytesBUnbounded, 'the same fixture B with the bound lifted out of the way');
+        $this->assertEqualsWithDelta(
+            9.8,
+            $bytesBUnbounded / $bytesA,
+            0.2,
+            'the fixtures discriminate: unbounded, B really is ~10x A, so the bounded result above is the bound biting',
+        );
+    }
 }
 
 /**

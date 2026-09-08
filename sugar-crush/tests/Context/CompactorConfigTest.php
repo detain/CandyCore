@@ -19,6 +19,7 @@ final class CompactorConfigTest extends TestCase
         $this->assertSame(10, $config->recentPreserveCount);
         $this->assertSame(5000, $config->skillBudgetPerSkill);
         $this->assertSame(25000, $config->skillBudgetCombined);
+        $this->assertSame(2000, $config->toolOutputMaxChars);
     }
 
     public function testDefaultValuesViaConstructor(): void
@@ -31,6 +32,7 @@ final class CompactorConfigTest extends TestCase
         $this->assertSame(10, $config->recentPreserveCount);
         $this->assertSame(5000, $config->skillBudgetPerSkill);
         $this->assertSame(25000, $config->skillBudgetCombined);
+        $this->assertSame(2000, $config->toolOutputMaxChars);
     }
 
     public function testAllAccessorsReturnSetValues(): void
@@ -136,6 +138,43 @@ final class CompactorConfigTest extends TestCase
         $this->assertNotSame($original, $modified);
         $this->assertSame(150, $modified->summaryAssistantMaxChars);
         $this->assertSame(100, $original->summaryAssistantMaxChars);
+    }
+
+    public function testWithToolOutputMaxCharsReturnsNewInstance(): void
+    {
+        $original = CompactorConfig::new();
+        $modified = $original->withToolOutputMaxChars(640);
+
+        $this->assertNotSame($original, $modified);
+        $this->assertSame(640, $modified->toolOutputMaxChars);
+        $this->assertSame(2000, $original->toolOutputMaxChars);
+        // Unchanged neighbours: the new arg rides on every other value.
+        $this->assertSame(100, $modified->summaryAssistantMaxChars);
+        $this->assertSame(80, $modified->summaryUserMaxChars);
+    }
+
+    /**
+     * The bound survives a wither that has nothing to do with it.
+     *
+     * Each `with*()` rebuilds the whole object through named arguments, so a new
+     * property MISSING from one of those calls is not a compile error and not a
+     * failed test anywhere else — it is the bound quietly resetting to its default
+     * the first time anyone tunes an unrelated knob. Every existing setter is
+     * called here for exactly that reason.
+     */
+    public function testToolOutputMaxCharsSurvivesEveryUnrelatedWither(): void
+    {
+        $config = CompactorConfig::new()->withToolOutputMaxChars(7);
+        $this->assertSame(7, $config->toolOutputMaxChars, 'fixture: a deliberately absurd bound to spot a reset');
+
+        $this->assertSame(7, $config->withReminderThreshold(61)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withBackgroundCompactionThreshold(81)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withForegroundBlockingThreshold(91)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withRecentPreserveCount(3)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withSkillBudgetPerSkill(1234)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withSkillBudgetCombined(4321)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withSummaryUserMaxChars(77)->toolOutputMaxChars);
+        $this->assertSame(7, $config->withSummaryAssistantMaxChars(88)->toolOutputMaxChars);
     }
 
     public function testChainingWithMethods(): void
