@@ -13,6 +13,7 @@ use SugarCraft\Crush\Messages\SystemMessage;
 use SugarCraft\Crush\Messages\ToolResultMessage;
 use SugarCraft\Crush\Providers\Concerns\HttpClientDefaults;
 use SugarCraft\Crush\Providers\Concerns\ReasoningExtractor;
+use SugarCraft\Crush\Providers\Concerns\SessionAffinity;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolCall;
 use SugarCraft\Crush\Providers\Concerns\ToolSchema;
@@ -26,6 +27,8 @@ final readonly class CustomProvider implements ProviderInterface
 
     use HttpClientDefaults;
 
+    use SessionAffinity;
+
     public function __construct(
         private string $name,
         private string $baseUrl,
@@ -34,6 +37,14 @@ final readonly class CustomProvider implements ProviderInterface
         private Client $httpClient,
         private bool $supportsStreaming,
         private bool $supportsFunctionCalling,
+        /**
+         * Raw session id for cache-affinity routing, hashed per request at
+         * send time - the wire never carries the raw value. `null` (the
+         * default) means no affinity header, byte-identical to the pre-P10.S4
+         * request. Why hashed and the consumer contract live in the
+         * {@see SessionAffinity} trait docblock.
+         */
+        private ?string $sessionAffinityId = null,
     ) {}
 
     public static function openAiCompatible(
@@ -43,6 +54,7 @@ final readonly class CustomProvider implements ProviderInterface
         ?string $apiKey = null,
         bool $supportsStreaming = true,
         bool $supportsFunctionCalling = true,
+        ?string $sessionAffinityId = null,
     ): self {
         $headers = [
             'Content-Type' => 'application/json',
@@ -71,6 +83,7 @@ final readonly class CustomProvider implements ProviderInterface
             httpClient: $client,
             supportsStreaming: $supportsStreaming,
             supportsFunctionCalling: $supportsFunctionCalling,
+            sessionAffinityId: $sessionAffinityId,
         );
     }
 
@@ -161,8 +174,11 @@ final readonly class CustomProvider implements ProviderInterface
         }
 
         try {
+            // 'headers' here (not client defaults) so the affinity header also
+            // rides injected clients - see SessionAffinity::sessionAffinityHeaders().
             $response = $this->httpClient->post('chat/completions', [
                 'json' => $params,
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
@@ -219,6 +235,7 @@ final readonly class CustomProvider implements ProviderInterface
             $response = $this->httpClient->post('chat/completions', [
                 'json' => $params,
                 'stream' => true,
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $stream = $response->getBody();
@@ -281,6 +298,7 @@ final readonly class CustomProvider implements ProviderInterface
                     'model' => $request->model,
                     'input' => $request->input,
                 ],
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
