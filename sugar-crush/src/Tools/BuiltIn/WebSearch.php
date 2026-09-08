@@ -74,7 +74,15 @@ class WebSearch implements Tool, ParallelSafe
 
     public function description(): string
     {
-        return 'Search the web for information via a configurable SearXNG endpoint. Returns answers, top results with snippets, suggestions, and corrections.';
+        return 'Search the web by sending a query to a configurable SearXNG endpoint and '
+            . 'return a formatted text digest of the response. The digest can include direct '
+            . 'answers, the top results with each title, URL and a short snippet, plus '
+            . 'suggestions, corrections, infoboxes, and a note listing any engines that did '
+            . 'not answer. It returns those snippets only, never the full contents of the '
+            . 'pages it lists, and it errors on an empty or over-long query, a failed '
+            . 'connection, or an endpoint that replies with a client or server error status. '
+            . 'Optional parameters narrow the search by safesearch level, which takes 0, 1, '
+            . 'or 2, and by a time_range of day, month, or year.';
     }
 
     public function inputSchema(): array

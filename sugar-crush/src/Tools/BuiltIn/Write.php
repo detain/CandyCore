@@ -62,7 +62,12 @@ final readonly class Write implements Tool, PromptGuidance
 
     public function description(): string
     {
-        return 'Create a new file with the given content. Refuses to clobber an existing file unless overwrite is true; use Edit to change part of a file that already exists.';
+        return 'Create a brand-new file containing exactly the given content, creating any '
+            . 'missing parent directories along the way. It refuses an existing path unless '
+            . 'the overwrite flag is true, because that flag discards the previous contents '
+            . 'with no undo. The result is a one-line confirmation naming the path, not the '
+            . 'file contents echoed back. For changing only part of a file that exists, '
+            . '`Edit` is the right operation.';
     }
 
     /**
