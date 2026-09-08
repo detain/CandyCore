@@ -253,6 +253,44 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P9.S5 — Tell the model about affordances it already has   ·   2026-09-08   ·   merge `d0711b2`
+
+**Status** `done` (Phase 9 batch 3 of 3 first member; golden MOVED by the plan's licensed move; worktree alive for Phase-9 close review).
+**Worktree** /home/sites/prompt-step-P9.S5 (branch `prompt/P9.S5` — alive, reap after the Phase-9 close review; live list at write time: main + S1@2c6583561 + S2@d093e4781 + S3@272d47210 + S4@a7b8ba990 + S5@7ce31f21a + S7@8b6cc6f41).
+**Base** `4d29e7003` (staffing: brief `prompt_kit/briefs/P9.S5-step-brief.md`, 32 lines, md5 `2206a82d72e10c258563e82ddc273dac`, carrying the 4-file ceiling correction + premises from scout rear-gray-bird).
+
+**Goal (one sentence)** base prompt finally NAMES both shipped affordances — file-based-command shell substitution (with BOTH budgets) and skill invocation — the plan's :2931-2946 step, the first golden move since P6.S2/P7.S3-era discipline.
+
+**What changed** (1 commit `7ce31f21a`, 4 files +75/-6): `Runtime.php` basePrompt() heredoc ONLY (two clauses folded into the `# Tool use` paragraph tail, 12-space wrapped, no new blank line, no new H1, no use-import); golden-system-prompt.txt REGENERATED via the documented BaseSystemPromptTest:699-741 procedure (ensureFixtureRepo FIRST → goldenContext → reflected buildSystemPrompt → pinHostLines) by a scratch driver; BaseSystemPromptTest :850 byte-pin 7732→8278 + :835 history-comment sentence append + TWO new D4 tests (pure addition); SessionStartHookWireTest :519/:521/:530 three literal swaps (size + both md5 sites).
+
+**GOLDEN MOVE (the headline)** system golden 7,732 B / a5c5a14ca2e3ad891933ac7aefccc6af → **8,278 B / f5de3858c1bc130d1e97a120d3ead485** (+546 B). CONTAINMENT: difflib (autojunk off) = exactly ONE insert opcode, zero replace/delete, k=2154, block new[2154:2700], old[:2154]==new[:2154] AND old[2154:]==new[2700:] — computed by builder AND independently re-derived by cycle-1 reviewer. Agent golden FROZEN: ef0326dd38535aaa2f1d715919bff26e / 1,060 UNTOUCHED. NEW FROZEN system values for all future briefs: f5de3858c1bc130d1e97a120d3ead485 / 8,278.
+
+**Clauses shipped (exact)** "Before a file-based command reaches you, its !`cmd` and @file forms are already substituted: every shell form in one expansion shares a 10-second wall-clock budget, and no substitution contributes more than 16,384 bytes. A form refused against a spent budget, killed at the timeout, or clipped for length says so in place rather than dropping silently. When the system context lists available skills, each entry is a one-line summary — invoke the `Skill` tool by name to load the full instructions, and use it when a listed skill plainly fits." — every fact clause-checked by reviewer against CommandSpec.php :137/:149/:112-114/:451/:485-487/:633-637/:714-717/:827-835 (budget by-ref SHARED per expansion — TRUE; caps are contribution-caps at BOTH layers — TRUE; all three overrun paths labelled in place — TRUE; stderr-of-successful-command discard is NOT one of the enumerated cases — no overclaim), SkillMatcher.php:66/:70 one-line entries, SkillTool inputSchema required:['name'] :60/:63, PerTurn feed Runtime.php:2726, Chat expansion path :6156→:7003→:7041, $text=$expanded :6171.
+
+**Rulings** R-A fold-in no-blank-line discipline (law-4n ZERO delta — held: Glob 22,648 unchanged); R-B plain-digit budgets (10 / 16,384) consistent clause↔pins; R-C lowercase route, NO PROSE_WORDS row (capitalized tokens introduced: Before/When/Skill — first two already whitelisted, Skill is a wired tool name); R-D regen-protocol + containment + pin-bite discipline (P6.S2/P7.S3 precedents combined); **R-E the <git_commits> cross-reference RULED OUT of this step** (golden context wires ZERO tools → dangling tag reference; the fragment self-delivers in production via toolGuidanceSection; FOLDED FORWARD to Phase-9 close review); R-F agent golden/docs/roster untouched.
+
+**Plan-files correction (4th mover)** plan :2936-2940 lists 3 files; SessionStartHookWireTest's size+md5 pins move with ANY golden byte — ceiling widened at staffing (precedent P9.S1 ToolRegistry correction).
+
+**Experiments** (all red, restored, green): D4 both tests vs OLD fixture = Tests: 2, Failures: 2 (each first-missing-substring :760/:782). Pin-bite: +1 byte → BSP compare + BSP landmark + SSHW size RED (Tests:3 Failures:3); size-neutral 1-byte swap → SSHW md5 assertion RED independently. Compare-before-pins: regenerated fixture GREEN against golden-compare with OLD pins (proves regen == test-computed), landmark size-only RED 8278-vs-7732.
+
+**MEASURED**
+```
+$ golden md5/size at tip: f5de3858c1bc130d1e97a120d3ead485 8278 (system) · ef0326dd38535aaa2f1d715919bff26e 1060 (agent, frozen)
+$ Master-direct gate at merge d0711b2 (prediction BEFORE): Tests: 11121, Assertions: 170281, Skipped: 2 — 0F/0E, EXIT 0, Time 07:09.987, box-quiet 0, /tmp/opencode/P9.S5-merge/master.xml — EXACT MATCH, floor +2t/+7a = BSP 22→24/319→326, ZERO other movers (prediction file derivation pasted in gate report)
+$ Belt: git diff 7ce31f21a master -- sugar-crush/ | wc -c → 0 · unpushed 65 at gate
+$ Solos builder+reviewer both: BSP 24/326 · SSHW 14/107 · PromptStability 16/402 · RuntimeTest 144/547 · ChatTest 229/887 · GlobFigureDrift 61/22648 · DocParas 17/1371 · Corpus 42/109 · DupDoc 4/23 · SymCite 7/3176
+$ Reviewer crown: own regen driver (regen.php NOT read) → 8278 bytes byte-identical to committed fixture, cmp clean; difflib one-insert re-derived
+$ hygiene (all commits incl merge): bracketed-EMAIL-token scan 0 · message angle-bracket scan 0 · identity Joe Huss x4 == live git config
+```
+
+**Review loop** cycle-1 scoped tester 8 categories ALL PASS, 0 BLOCKER / 0 MAJOR / 0 MINOR / 0 NIT — APPROVE, zero fix list (first zero-finding cycle-1 of Phase 9).
+
+**Invariants** seam census 22/134 · TreeWide 17 · BuiltInToolCorpus 42/109 held by the single-paragraph heredoc discipline; law-4n ZERO-delta path confirmed (fold into existing paragraph, no blank lines).
+
+**Surprises** (1) setsid blocking wrappers receive SIGHUP ~50 s in this harness — full-suite gate must run detached (`setsid bash run.sh` + sentinel file); (2) my staffing dispatch pre-check cited b3333d724 as required tip but 4d29e7003 (the staffing commit itself) was correct — gate agent surfaced instead of silently proceeding, and pre-authorized PROCEED; (3) builder near-miss: fuzzy Edit nearly doubled the paragraph blank line — caught via `git diff | cat -A`, reverted, re-anchored; the Glob-unchanged solo corroborates the fix; (4) reviewer notes testGoldenSystemPromptLeaksNoHostPaths doubles as the byte-size landmark (documented at BSP:828-830).
+
+**Follow-ups** FOLD-FORWARD to Phase-9 close review: R-E adjudication item — whether to license the <git_commits> cross-reference as its own move (would re-touch golden + BSP/SSHW pins); none else — all P9.S5 items closed.
+
 ### P9.S7 — HistorySanitizer at the send choke   ·   2026-09-08   ·   merge `ea81c377a`
 
 **Status** `done` (Phase 9 batch 2 of 3; worktree alive for the Phase-9 close review)
