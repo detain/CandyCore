@@ -2455,7 +2455,7 @@ final class Runtime
             }
         }
 
-        return $messages;
+        return \SugarCraft\Crush\Messages\HistorySanitizer::sanitize($messages);
     }
 
     /**
