@@ -291,7 +291,7 @@ $ DONE-WHEN (plan :2796-2798 — the two numbers): fixture A serialised head = 5
   bound lifted (withToolOutputMaxChars(1,000,000)) = 57,133 bytes -> ratio 9.795. Cost bounded AND
   fixtures discriminate (builder's gate re-measure: 1.071 / 9.783 — agrees within rounding).
 $ belt: git diff beb8df1b6 master -- sugar-crush/ = 0 bytes; merge parents 1d682ad09 + beb8df1b6
-$ hygiene (all 4 commits incl merge): detain@interserver.net 0 · '<' 0 · identity Joe Huss x4 = live git config
+$ hygiene (all 4 commits incl merge): bracketed-EMAIL-token scan == 0 per commit · message angle-bracket scan == 0 · identity Joe Huss x4 == live git config
 ```
 **Suite result**
 ```
