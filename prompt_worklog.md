@@ -253,6 +253,36 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P9.S6 + Phase-9 close — record-and-close (premise absent) + MAY-CLOSE review + reap six worktrees   ·   2026-09-08   ·   bookkeeping (no merge; zero code)
+
+**Status** `done` for BOTH halves. **P9.S6** = record-and-close: plan :2958 pre-ruled the second option (record + close, NO todo tool). **Phase-9 close review** = fresh tester `ses_f7df94d34` (resumed-once), VERDICT **PHASE 9 MAY CLOSE**, 0 CRITICAL / 0 HIGH / 0 MEDIUM, 2 INFO. Worktrees reaped post-close (this entry records it).
+
+**P9.S6 — premise absent (TWO independent measurements agreed):** explore delegate `electrical-sapphire-swordtail` + coder `ses_f7dfd3f15` (resumed-once), both full reports, agreed. `Bootstrap.php` `tools()` :5587/:5615-5660 registers exactly **11 built-ins**; `src/Tools/BuiltIn/` = **11 files, no Todo**; `grep -rin todo src/` = 1 hit (`src/Skills/BuiltIn/mcp-authoring/SKILL.md:78` doc placeholder); `activeForm`/`active_form` in `src/`+`tests/` = **0** (EXIT:1). `tests/Tools/BuiltInToolCorpusTest.php:186` `assertCount(11)` + no literal-name list (deliberate glob-sweep design); literal wire-name pin at `tests/Integration/BinSugarcrushWiringTest.php:202` (11 names). Dynamic MCP channel `McpToolBridge` (`Bootstrap.php:5675` spread, `DYNAMIC_TOOL_CLASSES` `BuiltInToolCorpus.php:100-103`, sole entry) = possible-todo-shaped-at-runtime but config-driven, not built-in. Current in-progress affordances = `Renderer.php:3275-3279` `⠴ running: ` + `Message::describeToolCall` required-`description` arg (`src/Message.php:131-146`), `Renderer.php:1119` thinking line, `Tui/AgentStatusBar.php:57-69`; the braille `⠴` is static (no animated frames — zero hits). `MATCHUPS.md` lives `docs/MATCHUPS.md`; its todo hit :93 is an unrelated annotation; no charmbracelet todo port. **ZERO code owed; floor/goldens unchanged; close = plan Status + this worklog record only.**
+
+**Phase-9 close review — aggregate/belt:** `447541d7e..d0711b2` = 23 files +2,549/−25, every file traces to a declared ceiling (`Runtime.php` dual S1+S7; `Write.php` dual S1+S4). Belt `d0711b2..HEAD` `sugar-crush/` = **0 bytes**.
+
+**§1.12 dormancy sweep — PASS:** seam 3 implementers (`Read`:18 / `Bash`:33 / `Write`:40); `toolGuidanceSection` ← `systemPromptSections` :2540 in production; probe 3 boot sites, absent-by-default STRUCTURAL for tests; rg/fd bytes golden-count 0; `<git_commits>` NOT PromptFence-rostered, renders iff Bash wired (BashPGT:55); sanitizer ONE wire :2458, all 137-route provider sends traced incl title one-shot `Chat:7912`; 7 direct `CompleteRequest` sites pass fresh single-user-role arrays — out of scope by construction (INFO, forward-looking note).
+
+**6 seams — PASS:** incl S2×S4 floor-under-ON (+2 sentences append only; Grep 6→8 Glob 5→7 measured) + S2×S5 golden determinism (`goldenContext` no `withTools`, `Runtime` zero `description()` reads) + `usort` strict-total-order (reversed registration byte-identical; Bash=0 Read=1787 Write=2294).
+
+**MEASURED**
+```
+$ Full suite (detached, prediction-first) at tip tree: Tests: 11,121, Assertions: 170,281, 0F/0E, Skipped 2, EXIT 0 — EXACT
+$ Goldens: system f5de3858c1bc130d1e97a120d3ead485 / 8,278  ·  agent ef0326dd38535aaa2f1d715919bff26e / 1,060
+$ Stale sweep: a5c5a14ca2e3 → 0, 7732 → 0 (comma-form history comments only)
+$ In-code 8278|f5de pins = exactly 4 sanctioned (BSP:901, SSHW:519/521/530)
+$ 13 named solos all exact: seam 22/134 · TreeWide 17/1137 · Glob 61/22648 · DocParas 17/1371 · EnvRoster 31/3020 · BSP 24/326 · floor 12/24 · cap 11/63 · BashPGT 7/46 · HST 25/87 · BITT 83/284 · Corpus 42/109 · TPGT 6/59
+$ Hygiene ×6 merges clean (731db08e1, 9dd05ae06, e9a933f4e, f1f622e56, ea81c377a, d0711b2): '<' 0, bracketed-EMAIL-token 0, identity Joe Huss x4 == config
+```
+
+**§1.11 audit:** 7 removed test lines = 6 sanctioned literal VALUE-swaps on surviving asserts (3 golden pins + 2 S4 man-page pins + 1 BSP) + 1 golden-fixture data reflow — PASS.
+
+**Adjudications (close review):** (33)+(36) `<git_commits>` cross-ref → next-licensed-opportunity (base-prompt insertion +~70 B; do NOT re-move the golden for it alone). (34) Sglang hoist leak → schedule a STANDALONE hoist-aware SystemMessage-position step (hoist set Sglang :1566-1581 + Vertex :597-602 + Bedrock systemBlocks :297/326/347; flatten set OpenAI :168 + Custom :312 + ClaudeCode :323; own license + per-provider goldens, exceeds any fold; pins keep it VISIBLE: HST :547-550 + :639). (35) SkillTool args-inert CONFIRMED, leave (schema reserved).
+
+**Reap:** six worktrees + branches (`prompt/P9.S1`@2c6583561, `S2`@d093e4781, `S3`@272d47210, `S4`@a7b8ba990, `S5`@7ce31f21a, `S7`@8b6cc6f41) removed post-close — each porcelain-empty + ancestry-proven (`merge-base --is-ancestor <tip> master` exit 0), then `git worktree remove --force` + plain `git branch -d` (all succeeded, no -D needed). `git worktree list` → main only; `git branch --list 'prompt/*'` → empty.
+
+**Phase 9 status:** 7 of 7 closed (S1-S5 code, S6 record, S7 code). **60 of 65 steps done.** Next: §5 re-check before Phase 10 (cache breakpoints); scheduled pair (24) PromptFence roster-widen + (29) E38 AFTER Phase 10.
+
 ### P9.S5 — Tell the model about affordances it already has   ·   2026-09-08   ·   merge `d0711b2`
 
 **Status** `done` (Phase 9 batch 3 of 3 first member; golden MOVED by the plan's licensed move; worktree alive for Phase-9 close review).
