@@ -26,12 +26,20 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
      * match minified assets or a lockfile, returns tens of thousands of lines
      * that would otherwise be replayed into every following request of the
      * turn. Zero or negative disables the cap.
+     *
+     * $rgAvailable is decided by the caller at boot — see
+     * {@see \SugarCraft\Crush\Tools\Concerns\DetectsCapabilities} for why the
+     * probe is a stat walk reached from outside, and why the default is the
+     * absent one. A tool that read the host `PATH` itself would render a
+     * different prompt on every developer's machine; a tool that defaults to
+     * true would advertise `rg` on the containers that have no `rg`.
      */
     public function __construct(
         private ?string $root = null,
         private int $maxOutputBytes = self::DEFAULT_MAX_OUTPUT_BYTES,
         private ?InstructionFileLoader $instructionLoader = null,
         private ?SkillPathNudge $skillNudge = null,
+        private bool $rgAvailable = false,
     ) {}
 
     /**
@@ -136,16 +144,35 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
      * The no-matches clause names the scoring rule `execute()` actually
      * applies (`isError: exitCode > 1`), which the model cannot otherwise
      * distinguish from a failed search.
+     *
+     * The `rg` clause is claimed only by an instance built with the capability
+     * true, on {@see Read::description()}'s rule that a tool may advertise
+     * nothing it does not hold — and it is worded to survive being read
+     * carefully. It offers `rg` as a SHELL command the model runs itself, and
+     * says in the next breath that this tool still runs `grep`, because that is
+     * the whole truth: {@see execute()} builds its command line from `grep -rn`
+     * whatever the host has installed. A clause that instead read "this tool
+     * uses ripgrep when available" would be a false claim about the code, and
+     * Bash.php's doc-block doctrine is that a false claim costs more than the
+     * terseness it saves.
      */
     public function description(): string
     {
-        return 'Search for a pattern in files, recursively. The pattern is a GNU basic '
+        $description = 'Search for a pattern in files, recursively. The pattern is a GNU basic '
             . 'regular expression — this runs `grep -rn`, not PCRE — so `|`, `+`, `?`, `(`, '
             . '`)`, `{` and `}` match themselves unless backslash-escaped. Use include to '
             . 'scope by filename glob (e.g. "*.php"). Finding nothing is a normal result, '
             . 'not an error; only grep itself failing is reported as one. Skips '
             . implode(', ', IgnoreRules::DEFAULT_EXCLUDED_DIRS)
             . ' and anything the project\'s .gitignore excludes; pass include_ignored: true to search those too.';
+
+        if ($this->rgAvailable) {
+            $description .= ' `rg` is on PATH on this host, so when BRE escaping is the obstacle '
+                . 'you can run `rg` yourself through Bash — a regex engine with sane defaults, '
+                . 'where `|` and `(` mean what they say. This tool still runs `grep`.';
+        }
+
+        return $description;
     }
 
     public function inputSchema(): array

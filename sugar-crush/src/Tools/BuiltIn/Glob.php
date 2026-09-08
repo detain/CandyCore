@@ -56,6 +56,11 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
      * $prunedDirs null means {@see DEFAULT_PRUNED_DIRS}; pass `[]` to walk
      * everything. Note that an explicit prune list is not the only escape
      * hatch — see {@see prunedDirs()} for the per-pattern opt-out.
+     *
+     * $fdAvailable is decided by the caller at boot — see
+     * {@see \SugarCraft\Crush\Tools\Concerns\DetectsCapabilities} for why the
+     * probe is a stat walk reached from outside this class, and why it defaults
+     * to absent rather than to whatever the host happens to have.
      */
     public function __construct(
         private ?string $root = null,
@@ -65,6 +70,7 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         private int $maxOutputBytes = self::DEFAULT_MAX_OUTPUT_BYTES,
         private int $maxMatches = self::DEFAULT_MAX_MATCHES,
         private ?array $prunedDirs = null,
+        private bool $fdAvailable = false,
     ) {}
 
     /**
@@ -122,6 +128,15 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
      * by both branches: a caller that switched pruning off (`prunedDirs: []`)
      * still needs to know what the tool is for and what it returns, it just
      * has no prune list to be warned about.
+     *
+     * The `fd` clause goes beside the sentence that already tells the model to
+     * prefer this tool over a shell `find`/`ls`, because that is the sentence
+     * whose advice it qualifies — and it is claimed only by an instance built
+     * with the capability true, on {@see Read::description()}'s rule that a tool
+     * advertises nothing it does not hold. It offers `fd` as a shell command the
+     * model runs itself and then says this tool walks in PHP, which is the whole
+     * truth: {@see execute()} compiles the pattern and traverses with PHP
+     * iterators and never spawns a process, whatever the host has installed.
      */
     public function description(): string
     {
@@ -134,6 +149,12 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
             . 'named but not where they live: `**` matches across directory levels, and '
             . 'matches come back one path per line, followed by notes naming anything '
             . 'pruned, gitignored, not followed or clipped.';
+
+        if ($this->fdAvailable) {
+            $lead .= ' `fd` is on PATH on this host, so when a glob pattern is the obstacle you '
+                . 'can run `fd` yourself through Bash — it matches a regex against the path. '
+                . 'This tool itself walks the tree with PHP iterators and spawns nothing.';
+        }
 
         // Claimed only by an instance that HAS the loader, because only then
         // does execute() add an instruction section to the path list -- and a
