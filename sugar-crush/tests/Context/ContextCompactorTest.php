@@ -2244,19 +2244,20 @@ final class IntraExchangeTurnBackend implements Backend, ReportsContextWindow
 }
 
 /**
- * A summarisation backend answering with enough numbered lines that every
- * offered exchange gets one, so the parked route lands instead of failing.
+ * A summarisation backend answering with a record for every exchange that could
+ * be offered, so the parked route lands on the model's summaries instead of
+ * falling back and failing to condense anything.
  */
 final class IntraExchangeSummariser implements Backend
 {
     public function complete(array $history, ?callable $onToken = null, ?callable $onEvent = null): Message
     {
-        $lines = [];
+        $records = [];
         for ($i = 1; $i <= 12; $i++) {
-            $lines[] = "{$i}. condensed exchange {$i}";
+            $records[] = "{$i}.\nasked: condensed exchange {$i}";
         }
 
-        return Message::assistant(implode("\n", $lines));
+        return Message::assistant(implode("\n", $records));
     }
 
     public function completeAsync(

@@ -9014,21 +9014,39 @@ final class Chat implements Model
 
     /**
      * The instruction the summarization model is given. Deliberately narrow: one
-     * line per exchange, no prose around them, and a hard ceiling on each line
-     * so a chatty model cannot make a "compaction" larger than what it replaced.
+     * structured record per exchange, no prose around them, and every facet named
+     * even when there is nothing to record for it. Those facets are the things a
+     * resumed session cannot recover from anywhere else — the paths touched, the
+     * decision taken, the user's correction, the error verbatim — so the
+     * instruction asks for them by name instead of hoping a free-form sentence
+     * keeps them. No character count is asked for here: {@see SUMMARY_LINE_MAX_CHARS}
+     * is a transport bound applied after parsing, not part of the instruction.
      */
     private const COMPACT_SUMMARY_PROMPT = <<<'PROMPT'
         You are compacting a coding-assistant conversation so it fits in a smaller context window.
-        You will be given numbered exchanges. For each one, write ONE line recording what was asked
-        and what was actually done or decided — file paths, command names, decisions, and outcomes
-        are what matter; pleasantries are not.
+        You will be given numbered exchanges. For each one, write a RECORD of six facets: what the
+        user asked for, what was actually done, which files were touched, what was decided, what
+        the user corrected, and what error was hit. File paths, command names, decisions and exact
+        error strings are what matter; pleasantries are not.
 
         Rules:
-        - Output exactly one line per exchange, in the same order, prefixed with the exchange number
-          and a period, like "1. ...".
-        - No preamble, no blank lines, no markdown, no commentary. Nothing but the numbered lines.
-        - Keep each line under 200 characters. Losing detail is expected; inventing it is not.
-        - If an exchange contains nothing worth keeping, say so plainly on its line.
+        - One record per exchange, in the same order. Open the record with the exchange number
+          alone on its own line, like "1.", then write one line for each of these six facets, in
+          this order:
+            asked: <what the user asked for>
+            did: <what was actually done>
+            files: <paths touched>
+            decided: <choices made, and why>
+            corrected: <what the user pushed back on or fixed>
+            error: <the exact error text>
+        - Always write all six lines. Where a facet has nothing to record, write "none" as its
+          value; where an exchange holds nothing worth keeping, write "none" for every facet.
+        - Keep each facet short, but keep the detail. When one facet has to run on, continue it on
+          the indented lines directly beneath it.
+        - Preserve file paths, command names and error strings exactly as they appear.
+        - No preamble, no blank lines, no markdown, no commentary. Nothing but the numbered records.
+        - This summary will be the ONLY context available when the conversation resumes. Losing
+          detail is expected; inventing it is not.
         PROMPT;
 
     /**
@@ -9389,7 +9407,7 @@ final class Chat implements Model
     /**
      * The user-role half of the summarization request: the exchanges, numbered,
      * in the order {@see Context\ContextCompactor::exchangesToSummarize()}
-     * returned them, so the model's "1." lines map back by position.
+     * returned them, so the model's numbered records map back by position.
      *
      * @param list<array{key:string,user:string,assistant:string}> $exchanges
      */
@@ -9405,18 +9423,129 @@ final class Chat implements Model
     }
 
     /**
-     * Turn the model's numbered reply into the key => summary map
+     * The facets {@see COMPACT_SUMMARY_PROMPT} asks a record to carry, in the
+     * order the joined line states them. A facet the model leaves out is written
+     * as `none` rather than dropped, so a skipped facet reads as an empty one
+     * instead of silently reshaping the line a later reader parses.
+     */
+    private const SUMMARY_FACETS = ['asked', 'did', 'files', 'decided', 'corrected', 'error'];
+
+    /**
+     * A record opener: the exchange number alone on its line, with or without a
+     * trailing "." or ")". Nothing may follow the number — which is what makes an
+     * older "1. one free-form line" answer fail to parse here rather than
+     * half-parse into a record whose prose is mistaken for a facet value.
+     */
+    private const SUMMARY_OPENER_PATTERN = '/^\s*(\d+)\s*[.)]?$/u';
+
+    /**
+     * One `facet: value` line, spelled lower-case exactly as the instruction
+     * spells it: a model that invents a seventh field is answering a different
+     * question than the one that was asked.
+     */
+    private const SUMMARY_FACET_PATTERN = '/^\s*(asked|did|files|decided|corrected|error)\s*:\s*(.*)$/u';
+
+    /**
+     * The model's reply split into records — an opener carrying the exchange
+     * number, then the facet lines named under it. Text before the first opener is
+     * preamble and goes no further. A line that is neither an opener nor a facet,
+     * once a facet has been opened, continues the facet above it, which is how a
+     * model wrapping a long value keeps its words instead of losing them.
+     *
+     * @return list<array{number:int,facets:array<string,string>}>
+     */
+    private static function splitExchangeRecords(string $reply): array
+    {
+        $records = [];
+        foreach (preg_split('/\R/', $reply) ?: [] as $line) {
+            if (trim($line) === '') {
+                continue;
+            }
+
+            if (preg_match(self::SUMMARY_OPENER_PATTERN, $line, $m) === 1) {
+                $records[] = ['number' => (int) $m[1], 'facets' => []];
+                continue;
+            }
+
+            if ($records === []) {
+                // A facet, or anything else, before the first opener: preamble the
+                // instruction did not ask for, so it belongs to no exchange.
+                continue;
+            }
+
+            $last = array_key_last($records);
+            if (preg_match(self::SUMMARY_FACET_PATTERN, $line, $m) === 1) {
+                $facet = $m[1];
+                $records[$last]['facets'][$facet] = self::mergeSummaryFacet(
+                    $records[$last]['facets'][$facet] ?? '',
+                    $m[2]
+                );
+                continue;
+            }
+
+            $facet = array_key_last($records[$last]['facets']);
+            if ($facet === null) {
+                // Between the opener and the first facet there is no facet to
+                // attach this to; inventing one would be worse than dropping it.
+                continue;
+            }
+            $records[$last]['facets'][$facet] .= ' ' . trim($line);
+        }
+
+        return $records;
+    }
+
+    /**
+     * Fold another `facet: value` line into the facet it repeats, so a model that
+     * answers the same field twice is heard once.
+     */
+    private static function mergeSummaryFacet(string $soFar, string $piece): string
+    {
+        $piece = trim($piece);
+        if ($piece === '') {
+            return $soFar;
+        }
+
+        return $soFar === '' ? $piece : $soFar . '; ' . $piece;
+    }
+
+    /**
+     * One record as the single line the compactor stores: every facet named in
+     * order, joined with " | ". Null is a record that never named a facet — the
+     * heuristic summary for that exchange beats six `none`s. Anything non-null
+     * has at least the facet names in it, so a caller never has to re-check.
+     *
+     * @param array<string, string> $facets
+     */
+    private static function joinExchangeFacets(array $facets): ?string
+    {
+        if ($facets === []) {
+            return null;
+        }
+
+        $parts = [];
+        foreach (self::SUMMARY_FACETS as $facet) {
+            $value = trim($facets[$facet] ?? '');
+            $parts[] = $facet . ': ' . ($value === '' ? 'none' : $value);
+        }
+
+        return implode(' | ', $parts);
+    }
+
+    /**
+     * Turn the model's numbered records into the key => summary map
      * {@see Context\ContextCompactor::withExchangeSummaries()} wants.
      *
-     * Positional: line "3." belongs to $keys[2], because that is the order
-     * {@see renderExchangesForSummary()} presented them in. A number outside the
-     * range, a duplicate, or a missing line is simply not mapped — the exchange
-     * then falls back to the heuristic, which is why a partially-obeyed
-     * instruction degrades instead of mis-attributing a summary.
+     * Positional: the record opened with "3" belongs to $keys[2], because that is
+     * the order {@see renderExchangesForSummary()} presented them in. A number
+     * outside the range, a repeat of one already used, or a record that never
+     * names a facet is simply not mapped — the exchange then falls back to the
+     * heuristic, which is why a partially-obeyed instruction degrades instead of
+     * mis-attributing a summary.
      *
-     * Every line is flattened and bounded before it is kept. This is model-
-     * authored text bound for the transcript AND for the next prompt: a raw ESC
-     * could repaint the chrome around it, embedded newlines would break the
+     * Each record is joined to one line and then flattened and bounded. This is
+     * model-authored text bound for the transcript AND for the next prompt: a raw
+     * ESC could repaint the chrome around it, embedded newlines would break the
      * one-summary-per-message shape stage 3's grouping relies on, and an
      * unbounded line would let a "compaction" be larger than what it replaced.
      *
@@ -9426,32 +9555,33 @@ final class Chat implements Model
     private static function parseExchangeSummaries(string $reply, array $keys): array
     {
         $summaries = [];
-        foreach (preg_split('/\R/', $reply) ?: [] as $line) {
-            if (preg_match('/^\s*(\d+)\s*[.)]\s*(.+)$/u', $line, $m) !== 1) {
+        foreach (self::splitExchangeRecords($reply) as $record) {
+            $line = self::joinExchangeFacets($record['facets']);
+            $index = $record['number'] - 1;
+            if ($line === null || $index < 0 || !isset($keys[$index]) || isset($summaries[$keys[$index]])) {
                 continue;
             }
-            $index = (int) $m[1] - 1;
-            if ($index < 0 || !isset($keys[$index]) || isset($summaries[$keys[$index]])) {
-                continue;
-            }
-            $text = self::sanitizeSummaryLine($m[2]);
-            if ($text === '') {
-                continue;
-            }
-            $summaries[$keys[$index]] = $text;
+
+            $summaries[$keys[$index]] = self::sanitizeSummaryLine($line);
         }
 
         return $summaries;
     }
 
     /**
-     * Longest model-written summary line kept, in characters.
+     * Longest summary line kept, in characters.
      *
-     * Matches the ceiling {@see COMPACT_SUMMARY_PROMPT} asks the model for, so
-     * the bound the instruction states and the bound the code enforces are one
-     * number rather than two that can drift apart.
+     * A transport bound, not part of the instruction: {@see COMPACT_SUMMARY_PROMPT}
+     * states no character count, because a record whose facets are clipped to fit
+     * one short line is the failure this format exists to end. What still has to
+     * hold is that the line a model writes is bounded — it is flattened to a single
+     * physical line by {@see sanitizeSummaryLine()} and stored per exchange, and a
+     * facet free to run to a paragraph would let a "compaction" carry more than the
+     * exchanges it replaced. The bound is therefore set where clipping costs real
+     * detail rather than padding, and deliberately not echoed back into the
+     * instruction, so one number cannot be quietly reinterpreted as the other.
      */
-    private const SUMMARY_LINE_MAX_CHARS = 200;
+    private const SUMMARY_LINE_MAX_CHARS = 2000;
 
     /**
      * One bounded, control-byte-free line — same treatment

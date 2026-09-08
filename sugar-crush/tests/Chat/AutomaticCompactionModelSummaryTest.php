@@ -160,15 +160,15 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         return new CountingSummaryBackend($reply);
     }
 
-    /** Enough numbered lines that every offered exchange gets one. */
+    /** A record for every exchange any test here offers, so every one gets a summary. */
     private function generousSummarizer(): CountingSummaryBackend
     {
-        $lines = [];
+        $records = [];
         for ($i = 1; $i <= 12; $i++) {
-            $lines[] = "{$i}. condensed exchange {$i}";
+            $records[] = "{$i}.\nasked: condensed exchange {$i}";
         }
 
-        return $this->summarizer(implode("\n", $lines));
+        return $this->summarizer(implode("\n", $records));
     }
 
     private function submit(Chat $chat): array
@@ -460,7 +460,7 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         [$dispatched] = $parked->update($this->resolve($cmd));
 
         $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $dispatched->history));
-        $this->assertStringContainsString('[summary] condensed exchange 1', $text);
+        $this->assertStringContainsString('[summary] asked: condensed exchange 1 |', $text);
         $this->assertStringNotContainsString(
             '[exchanged information]',
             $text,

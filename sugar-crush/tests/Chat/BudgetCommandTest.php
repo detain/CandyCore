@@ -704,20 +704,34 @@ final class BudgetCommandTest extends TestCase
      * A `/compact` submitted against a summarizer that reports $usage, returned
      * as `[$chat, $cmd]` straight out of `update()`.
      *
+     * The reply is one record per offered exchange so the budget numbers below
+     * are measured on the route a cooperative model actually takes, not on the
+     * heuristic fallback.
+     *
      * @return array{0:Chat,1:?\Closure}
      */
     private function compactWith(?Usage $usage, ?float $cap = null, float $alreadySpent = 0.0): array
     {
+        $reply = implode("\n", [
+            "1.\nasked: a",
+            "2.\nasked: b",
+            "3.\nasked: c",
+            "4.\nasked: d",
+        ]);
         $this->summaryCalls = 0;
         $calls = &$this->summaryCalls;
-        $summarizer = new class ($usage, $calls) implements \SugarCraft\Crush\Backend {
-            public function __construct(private readonly ?Usage $usage, private mixed &$calls) {}
+        $summarizer = new class ($usage, $calls, $reply) implements \SugarCraft\Crush\Backend {
+            public function __construct(
+                private readonly ?Usage $usage,
+                private mixed &$calls,
+                private readonly string $reply,
+            ) {}
 
             public function complete(array $history, callable $onToken = null, ?callable $onEvent = null): Message
             {
                 $this->calls++;
 
-                return Message::assistant("1. a\n2. b\n3. c\n4. d")->withUsage($this->usage);
+                return Message::assistant($this->reply)->withUsage($this->usage);
             }
 
             public function completeAsync(
@@ -728,9 +742,7 @@ final class BudgetCommandTest extends TestCase
             ): \React\Promise\PromiseInterface {
                 $this->calls++;
 
-                return \React\Promise\resolve(
-                    Message::assistant("1. a\n2. b\n3. c\n4. d")->withUsage($this->usage),
-                );
+                return \React\Promise\resolve(Message::assistant($this->reply)->withUsage($this->usage));
             }
         };
 
