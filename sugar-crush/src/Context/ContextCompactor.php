@@ -680,6 +680,21 @@ final class ContextCompactor
      * A skill body is emitted whole at any length (§9.3, "never prune skill
      * outputs"): the heading is instructions the model still has to obey, whereas a
      * tool blob is a record of something already acted on.
+     *
+     * WHAT THAT EXEMPTION IS AND IS NOT: it is a test of the ten bytes at OFFSET 0 and
+     * of nothing else, so ANY assistant text beginning `## Skill: ` rides the summariser
+     * request unbounded — including text whose opening bytes a user typed or a tool
+     * printed. A forged marker therefore smuggles a body of any length into every later
+     * compaction request, and nothing here can tell it from a skill the app loaded.
+     *
+     * ACCEPTED AS A DOCUMENTED RESIDUAL, not as a new exposure: the exchanges message
+     * has handed this same summariser raw, unlabelled user and tool bytes since the
+     * request existed, so the forgery buys an author a label on input it already
+     * supplied — label-forgery by the SAME untrusted author, not new data exposure —
+     * which is the equivalence ruling P8.S3 reached for the prior-summary block in THE
+     * FENCE RESIDUAL under {@see \SugarCraft\Crush\Chat::priorSummariesFromHistory()}.
+     * Should that balance ever change, the remedy is a stricter shape for the marker
+     * than a bare content prefix, not a second bound laid over skill bodies.
      */
     private function boundHeadAssistantForSummary(string $assistant): string
     {

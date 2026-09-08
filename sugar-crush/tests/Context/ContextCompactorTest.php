@@ -2361,6 +2361,64 @@ final class ContextCompactorTest extends TestCase
     }
 
     /**
+     * The two boundaries the exemption does NOT cross, pinned because the exemption is
+     * a test of CONTENT AT OFFSET 0 rather than of skill provenance: a heading that
+     * appears anywhere else in the text, and a heading whose colon has no space behind
+     * it, are both body text, and both are clipped.
+     *
+     * WHY BOTH HALVES, since they look interchangeable and are not. The regression this
+     * guards is a widening of the matcher rather than of the bound, and each fixture
+     * catches a different one: `str_starts_with()` becoming `str_contains()` ships the
+     * first fixture whole — 9,023 bytes that merely mention a skill heading at offset
+     * 7 — while leaving
+     * {@see testASkillBodyInTheHeadIsHandedToTheSummariserWhole()} green, because a
+     * genuine prefix is still a prefix under either matcher; matching `## Skill:`
+     * without its trailing space ships the second. So every value here is
+     * byte-asserted, marker arithmetic included, rather than compared to the bound:
+     * the bound is on the RETAINED text alone, which makes the clipped length
+     * 2,000 characters plus a 37-byte marker for a 4-digit dropped count, and 2,000
+     * plus a 38-byte marker for a 5-digit one.
+     */
+    public function testTheSkillExemptionKeysOnTheMarkerAtOffsetZeroAndNowhereElse(): void
+    {
+        $midText = 'prefix ' . "## Skill: demo\n\n" . str_repeat('s', 9_000);
+        $this->assertSame(9_023, strlen($midText), 'fixture: the heading sits at offset 7, not at offset 0');
+
+        $compactor = new ContextCompactor(CompactorConfig::new()->withRecentPreserveCount(2));
+        $clipped = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 1'),
+            $this->msg('assistant', $midText),
+            ...$this->boundableHistory(2, 100),
+        ])[0]['assistant'];
+
+        $this->assertSame(
+            'prefix ' . "## Skill: demo\n\n" . str_repeat('s', 1_977) . "\n\n[... 7023 characters truncated ...]",
+            $clipped,
+            'a heading planted mid-text is text, and text of that size is clipped',
+        );
+        $this->assertSame(2_037, strlen($clipped), '2,000 retained characters + a 37-byte marker naming 7,023 dropped');
+        $this->assertSame('## Skill: ', substr($clipped, 7, 10), 'the marker really is present, at offset 7');
+
+        $noSpace = "## Skill:nosummariser\n\n" . str_repeat('t', 12_000);
+        $this->assertStringNotContainsString('## Skill: ', $noSpace, 'fixture: the near miss carries no marker at all');
+        $this->assertSame(12_023, strlen($noSpace), 'fixture: six times the default bound');
+
+        $noSpaceClipped = $compactor->exchangesToSummarize([
+            $this->msg('user', 'question 2'),
+            $this->msg('assistant', $noSpace),
+            ...$this->boundableHistory(2, 100),
+        ])[0]['assistant'];
+
+        $this->assertSame(
+            "## Skill:nosummariser\n\n" . str_repeat('t', 1_977) . "\n\n[... 10023 characters truncated ...]",
+            $noSpaceClipped,
+            'and the heading without its trailing space is body text too',
+        );
+        $this->assertSame(2_038, strlen($noSpaceClipped), '2,000 retained characters + a 38-byte marker naming 10,023 dropped');
+        $this->assertSame('## Skill:', substr($noSpaceClipped, 0, 9), 'nine bytes of near miss is not ten bytes of marker');
+    }
+
+    /**
      * DONE-WHEN, as a measurement rather than a claim.
      *
      * Two fixtures, the SAME three condensed head pairs and the SAME preserved
