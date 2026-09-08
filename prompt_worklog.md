@@ -253,6 +253,74 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P8.S5 — The compaction circuit breaker, and E31/E32   ·   2026-09-08   ·   merge `c4c9b3b01`   ·   CLOSES PHASE 8's FIVE STEPS
+
+**Status** `done` (phase close review still pending — worktrees P8.S1..S5 alive for it)
+**Worktree** /home/sites/prompt-step-P8.S5 (branch prompt/P8.S5 @ f55114842)
+**Base** `df9d51241` (staffing commit: brief `prompt_kit/briefs/P8.S5-step-brief.md`, md5 fa0f5f07abbd210fbea3bdb0724e6925, 57 lines, rulings R-A..R-F + D1..D5 + required experiments verbatim)
+
+**Goal (restated in one sentence)**
+Stop the thrash loop before it burns API calls: the automatic 85% tier counts consecutive compactions whose rewrite stays at/over the tier, refuses with a short actionable notice at 3, the parked spend-cap gate finally gets the test the plan said was impossible-to-skip, and a parked summarization becomes cancellable through the already-contracted CancellationToken seam.
+
+**What changed**
+- `sugar-crush/src/Chat.php` (+534): D1 promoted readonly `int $consecutiveRefillCompactions = 0` + mutate() carry (ONE entry, law verified: mutate builds the full ctor list) + shared apply-site helper for the two landing transitions + D2 trip gate ahead of the 85% block returning the short Role::System actionable notice (draft kept; NO %-word per ContextWindowWiringTest:263 predicate read FIRST; exits named /rewind //largest tool outputs //model; deliberately NOT /compact — manual is exempt R-C); D4 E31: gate KEPT, silent null replaced by shared `spendCapCompactionNotice()` first sentence (byte-identical in the /compact composition — sibling tests green + 282B md5 probe equal) surfaced through the parked route's existing $compactionNotice/$newTurnMessages continuation; D5 E32: `new CancellationToken()` armed at park (:9638), threaded via new 3rd param of buildSummarizationRequest into `completeAsync($prompt, null, $cancellation)` (:9413 — Backend.php:93 contract PRE-EXISTING, no interface change), double-Escape arm's `?->cancel()` (:1535) becomes real with ZERO logic change there, cancelled-rejected landing carries no usage (never billed), late landings superseded (:1373), NO timeout mechanism anywhere (§9.12 :3650-3651 standing policy), /compact route passes null (one seam, two cancel triggers).
+- `sugar-crush/src/Context/IdleCompactionPolicy.php` (+54): D3 `REFILL_LIMIT = 3` + pure `thrashTripped()`; class charter docblock widened truthfully (idle-tier prose kept intact, now says the file carries the breaker's number too); shouldPrompt/IDLE_SECONDS byte-unchanged; Runtime.php NOT touched (diff 0 — belt).
+- `sugar-crush/tests/Chat/AutomaticCompactionModelSummaryTest.php` (+615): +10 tests (27→37) — E31 direct-drive pair (ReflectionMethod past submit()'s refusal — the ONLY way to reach :9357, proven by blindness reproduction), breaker real-turn walk 1→2→trip (R5), trip notice assertions, resets (under-tier + /clear), E32 park/cancel/reject/bill/no-dispatch set, R6 rescue-exemption pin (E18-shaped session >3 attempts: counter unmoved, every turn dispatches); + the R1 amendment (see rulings).
+- `sugar-crush/tests/Context/IdleCompactionPolicyTest.php` (+50): +3 tests (9→12 — builder report said +2, gate corrected; the +3 is what lands the floor exactly): REFILL_LIMIT==3, thrashTripped boundary 2->false/3->true, shouldPrompt/IDLE_SECONDS surface pin.
+- ZERO new files; ContextCompactor.php / CompactorConfig.php untouched (E38 ruling).
+
+**Rulings** Brief-set: R-A refill measured AT COMPACTION COMPLETION (post-estimate >= 85% tier via CompactorConfig backgroundThreshold, mirroring submit()'s exact comparison — if the rewrite is still at/over the tier the NEXT prompt re-enters with no work between: that IS 'refills immediately') · R-B parked-landing + sync-heuristic outcomes counted, under-tier + /clear reset · R-C automatic 85% tier ONLY (manual /compact never blocked; 95% refusal untouched) · R-D sustained-while-over, real shrink restores service · R-E /compact pinned bytes untouchable · R-F no env var, no doc roster. ORCHESTRATOR AMENDMENTS (post-stop-reports): **P8.S5-R1** scoped §1.11 waiver — the ONE assertion `assertNull(cancellationOf($parked))` at :268 was the TEST-SIDE ENCODING OF THE E32 DEFECT ITSELF; replaced with instanceOf+isCancelled-false strengthening + truthful docblock (3 removed test lines = exactly the sanctioned set, chain-wide audited); **P8.S5-R2** E31 shape (b) notice-via-continuation — backlog's compactNow-shape advice MEASURED UNSOUND for the parked route (it owes a turn; (a)/(c) would silently drop the user's prompt via the :6192-6194 short-circuit); **P8.S5-R5** no-tautology rule (increments/trip through REAL turns; reflection only for reset); **P8.S5-R6** rescued dispatches carry the counter UNCHANGED (rescue = monotone progress; E18's pinned truncation UX is not the futile loop §4.23 names; Candidate 2 rejected as re-opening shipped UX via out-of-ceiling waiver). **E38: deliberately NOT touched** — rider source is ContextCompactor.php (out of ceiling, P8.S4 just closed); plan's '171-byte' figure is stale (riders truncate ~120).
+
+**Tests added or changed** as above; **Deletion/mutation experiments (§1.11 bars, all independently REPRODUCED by cycle-1 reviewer)**: M0 old-code blindness (gate deleted at the TESTS commit => entire suite green — the plan's claim verified empirically); M1 new-code kill (gate deleted => ONLY testTheParkedTierTellsTheUserWhenTheCapStoppedTheModelAsk red at :1583); breaker mutations (trip-gate removed / reset inverted — exact single-test reds per builder record); R6 mutations M-R6a/M-R6b (each red-set = exactly one R6 pin; M-R6c additionally reddens ContextCompactorTest's E18 pin — corroboration, not collateral); E32 no-blanket-timeout grep across diff (1 prose hit only).
+
+**MEASURED**
+```
+$ src commit ac04cd729; tests commit 489c170a0; R6 fix 57cf4e63c; NIT-1 prose fix f55114842
+$ builder full at 57cf4e63c: 11,055 / 169,617 / 0F/0E/2S/EXIT 0 (+4-assertion delta vs my
+  dispatched figure traced to 4 new {@see} citations — prose-census arithmetic, law 4n)
+$ f55114842 (prose-only): suite byte-identical 11,055 / 169,621 EXACT (fixer prediction-first)
+$ ORCHESTRATOR INDEPENDENT GATE at f55114842: prediction written before measurement, EXACT —
+  Tests: 11055, Assertions: 169621, Skipped: 2, 0F/0E, EXIT 0 (Time 423.6s; box-quiet 0)
+  (gate artifact /tmp/opencode/P8.S5-gate/tip.xml line 3 carries the totals — orchestrator
+   verified the file directly after one replay-suspicion)
+$ cmp.py cycle-2 junit vs gate junit: SUM OF DELTAS +0 +0, name-sets identical
+$ movers: ACMS 27/196->37/336 · IdlePolicy 9/11->12/23 · GlobFigureDrift 61/22,499->61/22,540
+  (+41 paragraphs — reviewer reconciled via DocumentParagraphs::of(): Chat.php +32, Policy +9 —
+  law 4n EXACT) · ContextCompactor 85/317 · CompactorConfig 16/86 · CompactModelSummary 38/190 ·
+  seam census 22/134 (20 unmoved) · TreeWideGuardRoster 17/1127 · goldens UNMOVED
+  a5c5a14ca2e3ad891933ac7aefccc6af/7,732 + ef0326dd38535aaa2f1d715919bff26e/1,060
+$ belt: df9d51241..f55114842 = exactly 4 declared files; git diff f55114842 master -- sugar-crush/
+  = 0 bytes; merge parents df9d51241 + f55114842 (true --no-ff)
+$ hygiene all 6 commits + merge: '<' 0, bracketed-EMAIL-token 0, identity Joe Huss x4 == config
+```
+**Suite result**
+```
+New FLOOR: Tests 11,055 / Assertions 169,621 / 0F / 0E / 2 Skipped / EXIT 0 — gated at f55114842,
+describes master c4c9b3b01 by the belt (0 bytes); this bookkeeping batch is markdown-only.
+```
+
+**Review loop**
+- Cycle 1 (tester, full executing checklist): APPROVE; 4 NITs — NIT-1 E32 docblock 'cancels the provider request' over-claimed vs best-effort contract + orphaned leaderless docblock line (FIXED: f55114842 'signals cancellation … BEST-EFFORT … polls it stops / ignores it is billed to its end', mirroring :1608/:9370; census+floor byte-identical after); NIT-2 orchestrator-dispatch tip SHA `445999395` never existed (real tip 57cf4e63c — transcript loss from the session's 4 transport deaths; reviewers/gates all re-derived from disk, law honored); NIT-3 my dispatched floor math (+8t/+129a) stale (missing R6's +2t); NIT-4 PRE-EXISTING gap: no test pins the /compact cap-notice TAIL bytes (first sentence pinned by E31 work; tail verified only by reviewer probe) → follow-up.
+- Cycle 2 (fresh tester, fix-scoped): ALL 7 PASS, APPROVE, zero findings — incl. whole-chain belt re-derivation (4 files, 1186/67, removed test lines == exactly R1's 3) and full floor re-run EXACT + cmp +0/+0.
+Total cycles: 2.
+
+**Invariants touched** goldens UNMOVED; seam census 20 UNMOVED; TreeWideGuardRoster unchanged (no new file); GlobFigureDrift +41 law-4n paragraphs (predicted/reconciled); SymbolCitationDrift green for new {@see}s; §1.11 zero weakening (R1 = strengthening, audited chain-wide); §1.10: removeToolResults etc. untouched; Backend interface UNTOUCHED (contract already carried the token param — the E32 'shared seam' fear was wiring, not surgery); Runtime.php untouched.
+
+**Surprises / things the plan got wrong**
+1. E32's 'touches the shared buildSummarizationRequest() seam' understated the GOOD news: Backend::completeAsync ALREADY accepts ?CancellationToken (Backend.php:93) — zero interface change; pure Chat-side wiring.
+2. Backlog E31's prescription (compactNow-shape) is UNSOUND for the parked route — it drops the user's prompt through submit()'s short-circuit; measured before adopting (R2).
+3. The plan's Files line puts the spend-cap gate in IdleCompactionPolicy.php — drift (flagged in P8.S1's ledger, re-verified): the gate is Chat.php :9357; the policy file only received the breaker's NUMBER.
+4. E38's '171-byte' figure stale (~120-char rider truncation) — skipped-with-reason anyway (out of ceiling).
+5. A test can pin a defect: :268 assertNull(cancellationOf) was E32's encoded shape — handled via scoped R1 waiver + truthful docblock instead of the false-dilemma 'sacred test vs blocked step'.
+6. delegate(explore) died twice with COMPLETELY EMPTY artifacts (~6min/~2.5min) — orchestrator did full premise research via direct reads this step (viable when the scout channel fails; slower but zero-fabrication).
+7. Four task-channel transport deaths mid-builder — every single one recovered by resume-same-session + disk forensics, including catching a replay-suspicion by reading the junit artifact off disk directly (tip.xml totals verified by orchestrator read).
+
+**Follow-ups created**
+1. **NIT-4 (pre-existing):** no test pins the /compact cap-notice tail sentence bytes; first sentence now pinned by the E31 shared-helper test. Fold into the Phase-8 close review or the next step touching scheduleModelCompaction.
+2. **E38 still open by design:** reminder-survives-as-`[summary]`-rider; honest fix lives at rider source (ContextCompactor.php). Needs its own scoped step or a phase-review decision.
+3. **Backlog correction:** crush_code_hardening_backlog.md E31's 'compactNow-with-notice shape' guidance is measured-wrong for parked routes — annotate at next touch of that file (docs lane, not this lane).
+4. **Cancel-aware summary backend check:** which real summary backends (ShellOut/CMD-class) actually POLL the token is unmeasured (docblock states best-effort honestly); candidate small research item for Phase 9+ staffing notes.
+
 ### P8.S4 — Head/tail split and tool-output truncation   ·   2026-09-08   ·   merge `996ed0556`
 
 **Status** `done`
