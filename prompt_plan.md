@@ -2721,6 +2721,8 @@ most. `Chat.php` is the busiest file in the app; every step here is serial.
 
 ### P8.S1 — Structured summary sections
 
+**Status 2026-09-08: MERGED — merge `e7de127d5`; floor 11,026/169,287/0F/0E/2S gated `42dbe8624`. Full record: worklog P8.S1 entry.**
+
 **Goal** Replace the one-line-per-exchange format with a structured template. Take the shape from
 opencode's (sections with `(none)` placeholders kept even when empty, terse bullets, exact paths and
 error strings preserved) and the discipline from crush's (*"this summary will be the ONLY context
@@ -2819,6 +2821,9 @@ you touch it here, fix it at the source of the rider.
 
 **Concurrency (Phase 8)** — **fully serial**: S1 → S2 → S3 → S4 → S5. Every step touches `Chat.php`
 or `ContextCompactor.php`, and each depends on the previous one's format decisions.
+**P8.S1 build-time plan-drift ledger** (const moved to Chat.php ~:9025; E21 closed; E31 gate is in
+Chat.php, not IdleCompactionPolicy; recentPreserveCount is a CompactorConfig property; the 2000-char
+tool bound does not exist yet — P8.S4 creates it): re-verify these anchors at each S2-S5 staffing.
 
 ---
 
