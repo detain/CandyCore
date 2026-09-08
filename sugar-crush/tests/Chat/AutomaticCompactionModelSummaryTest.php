@@ -136,6 +136,31 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         return $history;
     }
 
+    /**
+     * THE E18 SHAPE: twelve exchanges a summariser can condense, plus ONE exchange
+     * larger than the window itself, newest so whole-exchange compaction preserves
+     * it verbatim. The blocking tier therefore cannot be cleared by the
+     * between-exchanges rewrite at all — only by the intra-exchange rescue — and
+     * what that rescue leaves behind is a transcript that stays over the 85% tier
+     * for the remainder of the session while every prompt still reaches the model.
+     * That is precisely the state the breaker must not read as thrash
+     * (ruling P8.S5-R6), and the shape `ContextCompactorTest` pins the E18 fix on.
+     *
+     * @return list<Message>
+     */
+    private static function oversizedExchangePairs(): array
+    {
+        $history = [];
+        for ($i = 0; $i < 12; $i++) {
+            $history[] = Message::user("question {$i} about the deployment");
+            $history[] = Message::assistant("answer {$i} with the details of the run");
+        }
+        $history[] = Message::user(str_repeat('x', 800_000));
+        $history[] = Message::assistant(str_repeat('y', 2_000));
+
+        return $history;
+    }
+
     private function chat(
         array $history,
         ?Backend $summaryBackend,
@@ -211,6 +236,21 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         return count(array_filter(
             $history,
             static fn(Message $m): bool => $m->role === Role::User && $m->content === $text,
+        ));
+    }
+
+    /**
+     * How many transcript lines of ANY role contain `$says` — the check the rescue
+     * tests need, because the sentence they are looking for is a refusal that must
+     * never have been written anywhere, not one line in a particular place.
+     *
+     * @param list<Message> $history
+     */
+    private function countSayingAnything(array $history, string $says): int
+    {
+        return count(array_filter(
+            $history,
+            static fn(Message $m): bool => str_contains((string) $m->content, $says),
         ));
     }
 
@@ -1339,6 +1379,84 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         $this->assertSame(0, $this->refillCountOf($dispatched), 'and the same reset applies to its rewrite');
         $cmd();
         $this->assertSame(1, $fitted->calls(), 'the prompt went out on the rewritten history');
+    }
+
+    /**
+     * A DISPATCHED ATTEMPT IS NOT A REFILL (ruling P8.S5-R6).
+     *
+     * `tests/Context/ContextCompactorTest::testAnOversizedExchangeStopsBeingRefusedAndTheWireReallyGetsShorter`
+     * pins the E18 guarantee: an exchange larger than the window is truncated on
+     * every attempt so the prompt keeps reaching the model rather than being
+     * re-refused. The transcript that guarantee leaves behind is PERMANENTLY over the
+     * 85% tier — the truncated giant sits in the preserved recent window for the rest
+     * of the session — so measuring the run off the rewrite alone counts it as
+     * thrash, and the breaker then refuses the one session the rescue exists to keep
+     * running. That is backwards: §4.23 describes a loop that burns calls getting
+     * nowhere, and an attempt whose prompt reached the model got somewhere. So the
+     * run is a count of futility — extended only by an attempt that left the context
+     * over its tier AND ended with the turn unsent, broken by an under-tier rewrite,
+     * and left ALONE by everything in between.
+     *
+     * Driven here rather than in that file because this step's ceiling does not
+     * include it; a pin belongs beside the behaviour it protects regardless.
+     */
+    public function testCompactionsThatRescueAnOversizedExchangeNeverBuildAThrashRun(): void
+    {
+        $summarizer = $this->generousSummarizer();
+        $chat = $this->chat(self::oversizedExchangePairs(), $summarizer, $main);
+
+        for ($attempt = 1; $attempt <= IdleCompactionPolicy::REFILL_LIMIT + 1; $attempt++) {
+            [$parked, $cmd] = $this->submit($this->withDraft($chat, 'and now?'));
+            $this->assertNotNull($cmd, "attempt {$attempt}: the tier still parks and asks the model");
+
+            [$landed, $turn] = $parked->update($this->resolve($cmd));
+            $this->assertNotNull(
+                $turn,
+                "attempt {$attempt}: the oversized exchange is truncated and the prompt goes out - E18, unchanged",
+            );
+            $this->assertSame(
+                0,
+                $this->refillCountOf($landed),
+                "attempt {$attempt}: an attempt that got the user's prompt out is not a futile one",
+            );
+            $this->assertSame(
+                0,
+                $this->countSayingAnything($landed->history, 'Context compaction has run'),
+                "attempt {$attempt}: and no thrash refusal has ever been written into this transcript",
+            );
+
+            [$chat] = $landed->update($this->resolve($turn));
+            $this->assertSame($attempt, $main->calls(), 'the conversation backend was reached on every attempt');
+        }
+
+        $this->assertSame(
+            IdleCompactionPolicy::REFILL_LIMIT + 1,
+            $summarizer->calls,
+            'the model was asked on every one of them: the tier kept working, which is the point',
+        );
+    }
+
+    /**
+     * The same exemption on the route with no model to ask: the synchronous tier
+     * truncates and dispatches, so its run stays flat however many turns it takes.
+     */
+    public function testTheSynchronousRescueOfAnOversizedExchangeKeepsTheRunFlat(): void
+    {
+        $chat = $this->chat(self::oversizedExchangePairs(), null, $main);
+
+        for ($attempt = 1; $attempt <= IdleCompactionPolicy::REFILL_LIMIT + 1; $attempt++) {
+            [$after, $cmd] = $this->submit($this->withDraft($chat, 'and now?'));
+            $this->assertNotNull($cmd, "attempt {$attempt}: the offline tier truncates and sends the turn itself");
+            $this->assertSame(0, $this->refillCountOf($after), "attempt {$attempt}: dispatched, so uncounted");
+            $this->assertSame(
+                0,
+                $this->countSayingAnything($after->history, 'Context compaction has run'),
+                "attempt {$attempt}: and no refusal was written",
+            );
+
+            [$chat] = $after->update($this->resolve($cmd));
+            $this->assertSame($attempt, $main->calls(), 'the prompt reached the conversation backend');
+        }
     }
 
     /**
