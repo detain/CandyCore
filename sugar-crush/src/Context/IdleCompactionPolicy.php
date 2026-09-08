@@ -19,6 +19,18 @@ namespace SugarCraft\Crush\Context;
  * Both callers keep their own public method: each supplies the token limit
  * from whatever it can see (Chat from its {@see \SugarCraft\Crush\Backend},
  * Runtime from its {@see \SugarCraft\Crush\Providers\ProviderInterface}).
+ *
+ * THE FILE NOW CARRIES A SECOND TIER'S NUMBER TOO, and that is said plainly
+ * rather than left to be discovered by a reader who assumed otherwise.
+ * {@see REFILL_LIMIT} and {@see thrashTripped()} belong to the AUTOMATIC 85%
+ * tier, not to the idle one: they are the circuit breaker that stops that tier
+ * from compacting a context that refills the moment it is compacted
+ * (prompt_expand.md §4.23). They live here because a threshold and the
+ * predicate that reads it belong in one place — the same reason this file
+ * exists at all, which was two copies of one number disagreeing. Everything
+ * above about the idle tier is still exactly true: `IDLE_SECONDS` and
+ * {@see shouldPrompt()} are unmoved, and this remains the one place the idle
+ * tier's two numbers live.
  */
 final class IdleCompactionPolicy
 {
@@ -29,6 +41,28 @@ final class IdleCompactionPolicy
      * not.
      */
     public const IDLE_SECONDS = 3600;
+
+    /**
+     * How many consecutive automatic-tier compactions may leave the context back
+     * at or over its tier before that tier stops trying — the circuit breaker's
+     * number (prompt_expand.md §4.23).
+     *
+     * The value is the one the upstream fix names, quoted in that section from
+     * Claude Code's own changelog: "now detects when context refills to the limit
+     * immediately after compacting three times in a row and stops with an
+     * actionable error instead of burning API calls". Three is therefore not a
+     * tuned constant but a reproduced one, and it is generous rather than tight:
+     * a compaction is routinely the largest single prompt this app sends, so
+     * three of them in a row with nothing gained has already cost the user real
+     * money.
+     *
+     * What counts as "refills to the limit immediately" is measured at compaction
+     * COMPLETION, against the same estimate-and-window pair the tier itself used
+     * — see {@see \SugarCraft\Crush\Chat}'s `consecutiveRefillCompactions`
+     * property, which owns the measurement, and the comment on it for why the
+     * rewrite's own post-state is the only honest reading of the phrase.
+     */
+    public const REFILL_LIMIT = 3;
 
     /**
      * Whether to interrupt this turn and offer `/compact` instead of sending it.
@@ -75,5 +109,25 @@ final class IdleCompactionPolicy
         }
 
         return (($now ?? time()) - $lastActivityAt->getTimestamp()) > self::IDLE_SECONDS;
+    }
+
+    /**
+     * Whether the automatic compaction tier has thrashed: this many compactions
+     * in a row each left the context back at or over the tier that asked for
+     * them, so the next one would buy nothing and cost a provider call.
+     *
+     * `>=` and not `===`, deliberately: the count is a threshold being crossed,
+     * not an event being matched, and a caller that incremented past the limit
+     * (a reset wired wrong, a future second increment site) must still be
+     * stopped rather than served. The boundary is asserted on both sides.
+     *
+     * The predicate is pure and holds nothing — the counter it reads lives on
+     * {@see \SugarCraft\Crush\Chat}, because it counts that object's compactions
+     * and resets with its thread. This file answers "is that many enough to
+     * stop", which is the part two callers must not disagree about.
+     */
+    public static function thrashTripped(int $consecutiveRefills): bool
+    {
+        return $consecutiveRefills >= self::REFILL_LIMIT;
     }
 }

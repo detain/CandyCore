@@ -964,6 +964,42 @@ final class Chat implements Model
          */
         private readonly ?string $pendingCompactionId = null,
         /**
+         * How many AUTOMATIC-tier compactions in a row have left the context back
+         * at or over the tier that asked for them — the circuit breaker's counter
+         * (prompt_expand.md §4.23, which records that Claude Code shipped the
+         * thrash loop and had to fix it: "now detects when context refills to the
+         * limit immediately after compacting three times in a row and stops with
+         * an actionable error instead of burning API calls").
+         *
+         * "Refills to the limit immediately" is MEASURED AT COMPACTION COMPLETION
+         * and it means exactly one thing here: once the rewrite is in, the same
+         * estimate the tier itself read — {@see ContextCompactor::shouldCompact()}
+         * over the compacted wire against {@see contextTokenLimit()} — still says
+         * over the tier. That is the pair the 85% block in {@see submit()} judged
+         * to compact in the first place, so nothing new is measured and no second
+         * definition of "full" is introduced. The justification for judging the
+         * rewrite rather than the next prompt: if the history this compaction
+         * produced is still at or over the tier, then the very next prompt
+         * re-enters the tier with no work done in between, which IS the refill the
+         * changelog phrase describes.
+         *
+         * TWO ROUTES WRITE IT, because they are the automatic tier's two outputs:
+         * {@see applyModelCompaction()} when a parked summarization lands, and
+         * the synchronous heuristic pass in {@see submit()} when there was no
+         * model to ask. Both extend the run when the rewrite left the context over
+         * its tier AND the prompt did not go out, and both break it back to zero on
+         * an under-tier rewrite, so a compaction that genuinely shrinks the history
+         * restores the tier without anything being latched by hand. The middle case
+         * is written by NEITHER: an attempt whose prompt reached the model — rescued
+         * by the intra-exchange truncation or simply never blocked — is progress
+         * rather than futility, and holds the run exactly as it stands
+         * (ruling P8.S5-R6).
+         * {@see handleClearCommand()} resets it beside the transcript, and a
+         * manual `/compact` never reads or writes it at all: the user chose that
+         * one, so the breaker guards only the tier that acts on its own.
+         */
+        private readonly int $consecutiveRefillCompactions = 0,
+        /**
          * Prompts the user pressed Enter on WHILE a turn was in flight, oldest
          * first — the queue the user asked for ("new messages should be typable
          * and sendable (well really queued for processing if its mid processing
@@ -1566,8 +1602,15 @@ final class Chat implements Model
                 // simply re-run is strictly cheaper than sending a cancelled
                 // prompt to the provider. The prompt or the `/compact` line is
                 // still in the transcript either way - both routes echo before
-                // the request leaves - and the call is still billed, because
-                // update() accounts usage ahead of the latch check.
+                // the request leaves. Whether the CALL is still paid for depends
+                // on the backend: the parked summarization carries its own token
+                // ({@see scheduleParkedCompaction()}, backlog §E32), so a provider
+                // that honours the best-effort {@see Backend} contract stops
+                // spending here, while one that ignores it is billed as before,
+                // because update() accounts usage ahead of the latch check. A
+                // `/compact` summarization is always in the second group - it is
+                // scheduled with no token, on purpose, and that method's own
+                // docblock says why the two triggers differ.
                 'pendingCompactionId' => null,
                 // `queuedPrompts` is deliberately ABSENT, which is a decision and
                 // not an omission. This arm clears `inFlight`, so it is the one
@@ -5836,6 +5879,11 @@ final class Chat implements Model
             'maxCostUsd' => $this->maxCostUsd,
             'summaryBackend' => $this->summaryBackend,
             'pendingCompactionId' => $this->pendingCompactionId,
+            // Carried, not recomputed: this is a run of results across turns, and
+            // a clone that reset it to zero on the next keystroke would make the
+            // breaker un-trippable — every keystroke would hand the tier a clean
+            // slate. Same reason 'tokenTracker' above is carried by identity.
+            'consecutiveRefillCompactions' => $this->consecutiveRefillCompactions,
             'queuedPrompts' => $this->queuedPrompts,
             'commandLoader' => $this->commandLoader,
             // Carried, so the disk walk happens once per process rather than
@@ -6169,7 +6217,19 @@ final class Chat implements Model
         );
 
         $baseHistory = $this->history;
+        // `$this`, until the automatic tier has something to report about the
+        // breaker's counter — the state the turn is dispatched from is a separate
+        // decision from the history it is dispatched with, and conflating them is
+        // how a counter written on one branch and read on another goes missing.
+        $turnCarrier = $this;
         $compactionNotice = null;
+        // Written only by {@see scheduleParkedCompaction()}'s spend-cap arm
+        // (§E31), and a different kind of report from the two beside it rather
+        // than a fourth thing to track: it says why the model was NOT asked,
+        // where $compactionNotice says what the heuristic did instead. Both may
+        // stay null; when both are set they ride the same turn, this one first,
+        // because it is the reason for the other.
+        $capNotice = null;
         // Distinct from $compactionNotice because BOTH can ride the same rescued
         // dispatch: the compaction notice reports the between-exchanges rewrite
         // that was just adopted, the truncation notice reports the intra-exchange
@@ -6180,15 +6240,35 @@ final class Chat implements Model
         $truncationNotice = null;
 
         if ($this->compactor->shouldCompact($wireHistory, $tokenLimit)) {
+            // THE CIRCUIT BREAKER FIRST, ahead of both routes it can stop, because
+            // spending nothing is the entire point (prompt_expand.md §4.23): a test
+            // after the parked call would still have paid for the summarization,
+            // and one after the heuristic would still have rewritten the
+            // transcript. It belongs to THIS block and nowhere else — not beside
+            // {@see spendCapRefusal()} above, which would also stop a manual
+            // `/compact`, a command, or the prompt of a session whose tier has not
+            // fired — so tripping the breaker leaves every route the user chose
+            // themselves exactly as available as it was. A session that is both
+            // tripped and past the blocking tier now hears this notice rather than
+            // "Blocked until": the blocking refusal tells them to free space they
+            // have just been shown cannot be freed by the automatic route, which is
+            // the older and less actionable of the two facts.
+            if (IdleCompactionPolicy::thrashTripped($this->consecutiveRefillCompactions)) {
+                return $this->thrashBreakerRefusal();
+            }
+
             // Ask the model to write the summaries first, when there is one to
             // ask (crush_code.md Phase 5 item 6). Returns null - and the
             // synchronous heuristic below then runs unchanged - whenever there is
-            // no summary backend, the spend cap is reached, or the history holds
-            // no exchange a model could usefully summarise. That "null falls back
-            // to exactly what this tier did before" is what makes the model route
-            // safe to add here: the offline path is not merely similar, it is the
-            // same code.
-            $parked = $this->scheduleParkedCompaction($text, $tokenCount, $tokenLimit);
+            // no summary backend, the history holds no exchange a model could
+            // usefully summarise, or the spend cap is reached, in which last case
+            // it also fills $capNotice so the downgrade below says so (see that
+            // variable's comment; the cap arm is dormant from here today, and the
+            // shape of its answer is argued in the method's own docblock). That
+            // "null falls back to exactly what this tier did before" is what makes
+            // the model route safe to add here: the offline path is not merely
+            // similar, it is the same code.
+            $parked = $this->scheduleParkedCompaction($text, $tokenCount, $tokenLimit, $capNotice);
             if ($parked !== null) {
                 return $parked;
             }
@@ -6221,6 +6301,17 @@ final class Chat implements Model
                     $tokenLimit,
                 );
             }
+
+            // THE BREAKER'S MEASUREMENT on this route, taken BEFORE the outcome is
+            // known and WRITTEN AFTER it is (see the three exits below): the pair is
+            // the tier's own — the same estimate function over the compaction's
+            // output against the same window — which is what makes "refilled to the
+            // limit" a fact about this rewrite rather than an opinion about the next
+            // prompt. Read off $compactedWire whether or not the rewrite was adopted,
+            // because a compaction that freed nothing has by definition left the
+            // context where it found it, and the run counts results and not
+            // announcements.
+            $refilled = $this->compactor->shouldCompact($compactedWire, $tokenLimit);
 
             // Still tested against the COMPACTED wire even when the result was
             // not adopted: "blocked until space is freed" only means anything
@@ -6260,15 +6351,26 @@ final class Chat implements Model
                     $baseHistory = $rescued['history'];
                     $tokenCount = $this->estimateTokenCount($baseHistory);
                     $truncationNotice = $rescued['notice'];
+                    // THE RESCUE EXEMPTION (ruling P8.S5-R6): $turnCarrier stays
+                    // `$this`, so the run is neither extended nor broken by this
+                    // attempt — the reason is argued once, on
+                    // {@see withCompactionOutcome()}.
                 } else {
-                    return $this->foregroundBlockedResponse(
-                        $text,
-                        $baseHistory,
-                        $tokenCount,
-                        $tokenLimit,
-                        $compactionNotice,
-                    );
+                    return $this->withCompactionOutcome($refilled, turnSent: false)
+                        ->foregroundBlockedResponse(
+                            $text,
+                            $baseHistory,
+                            $tokenCount,
+                            $tokenLimit,
+                            $compactionNotice,
+                        );
                 }
+            } else {
+                // The rewrite went out WITH the turn. Under the tier that breaks the
+                // run; over it the run holds, because the prompt reached the model —
+                // the no-path-forward case is the blocking refusal above, and only
+                // that case (ruling P8.S5-R6).
+                $turnCarrier = $this->withCompactionOutcome($refilled, turnSent: true);
             }
         }
 
@@ -6285,6 +6387,15 @@ final class Chat implements Model
         // its own notice only, so a rescue announced here goes unreported when a hook
         // blocks the prompt. The rewrite is dropped with it, not persisted: the
         // refusal commits pre-compaction history, so the tier re-runs next submit.
+        if ($capNotice !== null) {
+            // First of the three because it is the reason the next one exists: the
+            // model was withheld, and what follows is what was done instead. This is
+            // the third slot of the same kind {@see submit()} already had to separate
+            // for the two rewrites — one report per fact, because a message that
+            // carries two facts reports neither of them once one of them is
+            // truncated.
+            $newTurnMessages[] = Message::system($capNotice);
+        }
         if ($compactionNotice !== null) {
             $newTurnMessages[] = $compactionNotice;
         }
@@ -6312,7 +6423,7 @@ final class Chat implements Model
 
         $newTurnMessages[] = Message::user($text);
 
-        return $this->dispatchTurn($baseHistory, $newTurnMessages, $tokenLimit);
+        return $turnCarrier->dispatchTurn($baseHistory, $newTurnMessages, $tokenLimit);
     }
 
     /**
@@ -7677,6 +7788,11 @@ final class Chat implements Model
      *   exchanges it summarised are the ones this command just deleted -
      *   applying it would resurrect them as summaries above an emptied
      *   transcript.
+     * - THE COMPACTION CIRCUIT BREAKER: reset to zero, beside the transcript whose
+     *   rewrites it counted. The run prompt_expand.md §4.23 counts is a run of ONE
+     *   context refilling, and this command is the user declaring that context
+     *   finished; leaving the count standing would refuse the first ordinary prompt
+     *   of a brand-new session because of a transcript that is no longer there.
      * - SPEND TOTAL AND CAP: untouched, and deliberately so. Both belong to the
      *   LAUNCH rather than to the transcript ({@see $tokenTracker} is carried by
      *   object identity through every clone), and money already spent does not
@@ -7694,6 +7810,10 @@ final class Chat implements Model
             'scrollOffset' => 0,
             'expanded' => [],
             'pendingCompactionId' => null,
+            // Unarm the breaker with the transcript that tripped it - see the
+            // docblock bullet above for why this is the only reset that is not
+            // derived from a compaction's own result.
+            'consecutiveRefillCompactions' => 0,
         ]), null];
     }
 
@@ -9070,6 +9190,43 @@ final class Chat implements Model
         PROMPT;
 
     /**
+     * The sentence both spend-cap compaction arms open with, kept in ONE copy
+     * because it is one fact said twice.
+     *
+     * Two routes discover that the cap stopped the model from being asked to
+     * summarise: {@see scheduleModelCompaction()} for a typed `/compact`, which
+     * the user reached past {@see spendCapRefusal()} because the cap is evaluated
+     * after {@see dispatchCommand()}, and {@see scheduleParkedCompaction()} for
+     * the automatic 85% tier, which the refusal upstream makes unreachable today
+     * and which keeps its gate anyway rather than relying on a caller's ordering.
+     * Before this existed only the first of the two said anything at all, and the
+     * second answered `null` — so the same provider call, blocked by the same
+     * ceiling, was TOLD in one route and swallowed in the other.
+     *
+     * The FIRST SENTENCE IS SHARED BYTE FOR BYTE, including the space that closes
+     * it: it is a prefix in both routes, `/compact`'s own suite pins its opening
+     * words, and the parked route's test asserts the two routes produce the same
+     * sentence — so a rewording here has to be a rewording there. What differs is only the tail, because the two
+     * routes leave the user in different places, and the caller therefore passes the
+     * tail ready-made: `/compact` was asked for a summary and did not get one, so it
+     * can genuinely be told to raise the cap and run the command again; the parked
+     * route is about to send the user's prompt on the heuristic REGARDLESS, so
+     * telling it to run `/compact` would advertise a second way to arrive where the
+     * user already is. $tail is a plain string rather than a format plus arguments
+     * for that reason: the two tails need different figures and this method should
+     * not grow a parameter for each of them.
+     */
+    private function spendCapCompactionNotice(string $tail): string
+    {
+        return sprintf(
+            'Spend cap reached ($%.4f of $%.4f), so the model was not asked to summarise — '
+            . 'compacted with the local heuristic instead. ',
+            $this->spentUsd(),
+            (float) $this->maxCostUsd,
+        ) . $tail;
+    }
+
+    /**
      * Ask the model to summarise the exchanges `/compact` is about to condense,
      * off the render loop, or null when there is nothing to ask or nobody to ask
      * (crush_code.md Phase 5 item 6).
@@ -9130,14 +9287,10 @@ final class Chat implements Model
                 $inputText,
                 $this->history,
                 [],
-                sprintf(
-                    'Spend cap reached ($%.4f of $%.4f), so the model was not asked to summarise — '
-                    . 'compacted with the local heuristic instead. Raise the cap with /budget %.2f '
-                    . 'and run /compact again for model-written summaries. ',
-                    $this->spentUsd(),
-                    (float) $this->maxCostUsd,
+                $this->spendCapCompactionNotice(sprintf(
+                    'Raise the cap with /budget %.2f and run /compact again for model-written summaries. ',
                     $this->spentUsd() * 2,
-                ),
+                )),
             );
         }
 
@@ -9202,9 +9355,26 @@ final class Chat implements Model
      * @param list<Message> $probeHistory
      * @param ?string $parkedSubmission Rides onto the {@see HistoryCompactedMsg};
      *                                  see that parameter's docblock.
+     * @param ?CancellationToken $cancellation The token the caller armed for THIS
+     *                                  request, forwarded to the backend so a
+     *                                  cooperative provider can stop the call
+     *                                  instead of only stopping the TUI from
+     *                                  waiting for it. Null is a legitimate answer
+     *                                  and it is what `/compact` passes: the seam
+     *                                  is one, the two triggers are not the same
+     *                                  object — the typed command has no parked
+     *                                  turn to rescue and its Escape arm already
+     *                                  clears the latch, while the automatic tier's
+     *                                  prompt is real user work whose summarization
+     *                                  call Escape must be able to abort. Whether a
+     *                                  backend honours the token is BEST-EFFORT per
+     *                                  the {@see Backend} contract; nothing here
+     *                                  waits on it, and nothing here sets a timeout
+     *                                  instead (see the §9.12 note on
+     *                                  {@see scheduleParkedCompaction()}).
      * @return array{id:string,count:int,cmd:\Closure}|null
      */
-    private function buildSummarizationRequest(array $probeHistory, ?string $parkedSubmission): ?array
+    private function buildSummarizationRequest(array $probeHistory, ?string $parkedSubmission, ?CancellationToken $cancellation = null): ?array
     {
         $backend = $this->summaryBackend;
         if ($backend === null) {
@@ -9239,8 +9409,8 @@ final class Chat implements Model
         $keys = array_map(static fn(array $e): string => $e['key'], $exchanges);
 
         $cmd = Cmd::promise(
-            static function () use ($backend, $prompt, $compactionId, $keys, $parkedSubmission): PromiseInterface {
-                return $backend->completeAsync($prompt)->then(
+            static function () use ($backend, $prompt, $compactionId, $keys, $parkedSubmission, $cancellation): PromiseInterface {
+                return $backend->completeAsync($prompt, null, $cancellation)->then(
                     // The usage rides along so update() can bill it. A compaction
                     // asks a model to read the WHOLE earlier conversation, so it is
                     // routinely the largest single prompt this app sends; a readout
@@ -9316,45 +9486,100 @@ final class Chat implements Model
      * `/rewind` and the palette's New session action needed no change — none of
      * those three is reachable here.
      *
-     * `$generation` is NOT bumped and no {@see CancellationToken} is created:
-     * both belong to a backend turn, and there is not one yet. They are created
-     * by {@see dispatchTurn()} when the compaction lands.
+     * A {@see CancellationToken} IS created here and armed on the summarization
+     * call, so the double-Escape arm in {@see update()} signals cancellation of the
+     * provider request as well as abandoning the turn — honouring the token is
+     * BEST-EFFORT per the {@see Backend} contract, so a backend that polls it stops,
+     * while one that ignores it is billed to its end — the one key that stays live
+     * in this window and can abandon a parked turn is exactly the key that must stop
+     * the spend on it
+     * (backlog §E32). What is NOT done here is a `$generation` bump: generation
+     * belongs to a backend TURN and there is no turn yet, so it stays the job of
+     * {@see dispatchTurn()} when the compaction lands. Arming a token without a
+     * generation bump is deliberate, and it holds because the two guards do
+     * different jobs — generation makes a landing's TURN stale, the latch makes a
+     * landing's SUMMARY stale, and the latch is released by the same arm that
+     * cancels this token, so a cancelled round-trip can publish nothing either
+     * way.
      *
      * $tokenCount is ESTIMATED tokens (chars/4 + 10 per message) of the
      * PRE-compaction history and $tokenLimit is the PROVIDER-COUNTED window, the
      * same two figures {@see submit()} read for the heuristic notice; the notice
      * below names the unit of each because they are not the same kind of number.
      *
-     * THE SPEND CAP is checked here and the check is UNASSERTED DEFENCE — said
-     * plainly rather than left to look covered, because no test drives it and a
-     * mutation deleting it survives the suite. Measured, {@see submit()} runs
+     * THE SPEND CAP is checked here, and the check is DORMANT RATHER THAN DEAD —
+     * said plainly rather than left to look covered, because {@see submit()} runs
      * {@see spendCapRefusal()} before this tier, so a capped session's ordinary
      * prompt is refused outright and never reaches the 85% block at all. It is
      * kept because the gate belongs to the provider call rather than to the
-     * caller's ordering, and null (the heuristic) is the same answer the offline
-     * path gives — unlike {@see scheduleModelCompaction()}, which says so out
-     * loud because `/compact` genuinely does reach its own check past the
-     * refusal. That asymmetry is itself a risk if the ordering upstream ever
-     * changes (a capped session would take the lossier path in silence); backlog
-     * §E31 records the safer dormant shape.
+     * caller's ordering, and it is ASSERTED by driving this method directly past
+     * that ordering — see {@see \SugarCraft\Crush\Tests\Chat\AutomaticCompactionModelSummaryTest}'s
+     * `testTheParkedTierTellsTheUserWhenTheCapStoppedTheModelAsk`. What changed
+     * (backlog §E31) is the ANSWER it gives: the tier used to fall through to the
+     * heuristic in silence, which made the same blocked provider call TOLD on the
+     * `/compact` route and invisible here, and which left a real ordering risk —
+     * if {@see spendCapRefusal()} ever moves, a capped session would take the
+     * lossier path with no word. It now hands its caller the notice the sibling
+     * route composes from the same helper, so the facts agree; the tail differs
+     * because `/compact` can honestly tell the user to run the command again after
+     * raising the cap, and this route is about to send their prompt on the
+     * heuristic regardless, so that advice would advertise a second way to arrive
+     * where the user already is.
      *
-     * The cap that CAN fire on this route fires at the other end of it, in
-     * {@see applyModelCompaction()}: the summarization is billed, so it can be
-     * the call that crosses the cap, and the parked turn must not be dispatched
-     * once it has.
+     * The cap that CAN fire on this route from a live caller fires at the other
+     * end of it, in {@see applyModelCompaction()}: the summarization is billed, so
+     * it can be the call that crosses the cap, and the parked turn must not be
+     * dispatched once it has.
+     *
+     * Returning null on that path, with the notice out through `$capNotice`, is
+     * the shape this method keeps. The alternatives were measured against what
+     * they cost rather than picked for tidiness: returning a non-null
+     * `[$next, $cmd]` pair would have to be a COMPLETED parked turn, and the only
+     * way to complete one without a round-trip is {@see compactNow()} — which sets
+     * `inFlight` false and starts NO backend turn, so the caller's `return
+     * $parked` would silently drop the prompt the user pressed Enter for and skip
+     * the 95% re-check and the oversized-exchange rescue that
+     * {@see applyModelCompaction()} runs before dispatching. That is the shape
+     * backlog §E31 suggests, and it is wrong for this route precisely because the
+     * route OWES a turn; `/compact` does not, which is why the sibling is free to
+     * answer with a finished compaction. Handing the notice to the caller's own
+     * continuation instead keeps every one of those behaviours and costs one
+     * by-reference out parameter — the same two-notice slot problem
+     * {@see submit()} already solves for the compaction and reminder notices.
      *
      * @param string $inputText The submitted prompt, echoed now and dispatched
      *                          when the {@see HistoryCompactedMsg} lands.
      * @param int $tokenCount ESTIMATED tokens in the pre-compaction history.
      * @param int $tokenLimit PROVIDER-COUNTED window from {@see contextTokenLimit()}.
+     * @param ?string &$capNotice Set to the shared spend-cap sentence when the cap
+     *                          is what stopped the model ask, left untouched
+     *                          otherwise. Out-parameter rather than return value
+     *                          for the reason the paragraph above gives: null must
+     *                          keep meaning "no model route, take the heuristic",
+     *                          which is exactly what the capped caller must still
+     *                          do — now with something to say about it.
      * @return array{0:Chat,1:?\Closure}|null
      */
-    private function scheduleParkedCompaction(string $inputText, int $tokenCount, int $tokenLimit): ?array
+    private function scheduleParkedCompaction(string $inputText, int $tokenCount, int $tokenLimit, ?string &$capNotice = null): ?array
     {
-        // Unreachable from submit() today - see the docblock. Null, not a notice:
-        // with the turn itself already refused upstream there is no compaction to
-        // announce a downgrade of.
+        // OFFLINE BEATS CAPPED, in that order and for the reason
+        // {@see scheduleModelCompaction()} states: with no provider at all there
+        // is nothing the cap can have prevented, so an offline session must get
+        // the plain heuristic path rather than be told a model ask was withheld.
+        if ($this->summaryBackend === null) {
+            return null;
+        }
+
         if ($this->spendCapReached()) {
+            // Dormant from submit() today - see the docblock. The turn is not
+            // refused here: only the model was withheld, and the heuristic rewrite
+            // the caller goes on to do is still owed the prompt.
+            $capNotice = $this->spendCapCompactionNotice(
+                'Your prompt goes out against that rewrite; raise the cap with /budget '
+                . sprintf('%.2f', $this->spentUsd() * 2)
+                . ' for model-written summaries. '
+            );
+
             return null;
         }
 
@@ -9399,9 +9624,22 @@ final class Chat implements Model
         // instant Enter is pressed. The probe below mirrors this exact shape,
         // empty notice and all, because the grouping counts roles and positions
         // and not content.
+        //
+        // The token is armed on the SUMMARIZATION call itself (§E32): before this,
+        // the double-Escape below abandoned the parked turn and released the latch
+        // while the provider request went on running to its end and being billed for
+        // the whole transcript, because this route created no token at all and the
+        // seam below took none. It is stored in `inFlightCancellation` rather than a
+        // second field of its own: that property is read by exactly one place — the
+        // `?->cancel()` in {@see update()}'s Escape arm, which is the only thing that
+        // could want it — and {@see dispatchTurn()} overwrites it with the turn's own
+        // token the moment the compaction lands, which is the same hand-off the field
+        // already models for `inFlight`.
+        $cancellation = new CancellationToken();
         $request = $this->buildSummarizationRequest(
             [...$this->history, Message::system(''), Message::user($inputText)],
             $inputText,
+            $cancellation,
         );
         if ($request === null) {
             return null;
@@ -9424,6 +9662,7 @@ final class Chat implements Model
             )), Message::user($inputText)],
             'inputBuf' => '',
             'inFlight' => true,
+            'inFlightCancellation' => $cancellation,
             'pendingCompactionId' => $request['id'],
             'lastActivityAt' => new \DateTimeImmutable(),
             // Belt-and-braces, same rule dispatchTurn() follows: whatever is
@@ -9895,6 +10134,37 @@ final class Chat implements Model
 
         $compacted = $this->mutate($this->compactionChanges('', $this->history, $msg->summaries, $prefix, true));
 
+        // Hoisted above every judgement below because the breaker's measurement and
+        // the 95% tier must read the SAME post-compaction state, or the two would
+        // disagree about whether this rewrite was worth anything. Pure functions of
+        // $compacted, so moving them changes nothing about the ordering of the checks
+        // that consume them. Where the counter itself is written is the next block.
+        $tokenLimit = $this->contextTokenLimit();
+        $compactedWire = array_map(
+            static fn(Message $m): array => $m->toWire(),
+            $compacted->history
+        );
+
+        // THE BREAKER'S MEASUREMENT on this route — the same pair the tier used to
+        // decide to park in the first place, applied to what the model's summaries
+        // actually produced. This is the count §4.23's changelog describes: the
+        // context refilled to the limit immediately after compacting, three times in
+        // a row — and three is the point at which the next one is refused instead of
+        // paid for. A `/compact` landing never reaches this line (it returns above),
+        // so the number stays a record of what the AUTOMATIC tier achieved.
+        //
+        // Measured here and APPLIED at the exits, because the transition depends on
+        // what the attempt then decides to do with the rewrite: both refusals below
+        // settle the run with `turnSent: false`, the ordinary dispatch with
+        // `turnSent: true` (which BREAKS under tier and HOLDS over it), and the
+        // rescued dispatch takes none of this method at all — it returns
+        // `$compacted` as it stands, since a tier that got the prompt out is not the
+        // futility the run counts (ruling P8.S5-R6, argued once on
+        // {@see withCompactionOutcome()}).
+        // `$compacted` is therefore deliberately never reassigned: it is the
+        // un-counted state the exemption needs.
+        $refilled = $compacted->compactor->shouldCompact($compactedWire, $tokenLimit);
+
         // From here on this is the 85% tier's continuation, not `/compact`:
         // {@see scheduleParkedCompaction()} echoed a prompt and held `inFlight`
         // true for a turn that has not been sent yet, and this is where it is
@@ -9926,10 +10196,11 @@ final class Chat implements Model
         // double-Escape live there), so a queue can absolutely have accumulated
         // across it.
         if ($compacted->spendCapReached()) {
-            return self::releaseQueuedPrompts($compacted->spendCapTurnRefusal(
-                'The summarization this turn was parked behind is what reached the cap; that call went out '
-                . 'before the cap was met and is billed. Your prompt is in the transcript above, unsent.'
-            ));
+            return self::releaseQueuedPrompts($compacted->withCompactionOutcome($refilled, turnSent: false)
+                ->spendCapTurnRefusal(
+                    'The summarization this turn was parked behind is what reached the cap; that call went out '
+                    . 'before the cap was met and is billed. Your prompt is in the transcript above, unsent.'
+                ));
         }
         //
         // The 95% blocking tier is re-tested HERE rather than in {@see submit()}
@@ -9942,12 +10213,7 @@ final class Chat implements Model
         // history INCLUDING the echoed prompt and the notices - which is what is
         // actually about to go to the provider, and so is the honest thing to
         // measure, even though submit()'s synchronous route judges its
-        // pre-echo equivalent.
-        $tokenLimit = $this->contextTokenLimit();
-        $compactedWire = array_map(
-            static fn(Message $m): array => $m->toWire(),
-            $compacted->history
-        );
+        // pre-echo equivalent. Both figures are the hoisted pair above.
         if ($compacted->compactor->shouldCompactForeground($compactedWire, $tokenLimit)) {
             // The same intra-exchange rescue submit()'s synchronous tier runs
             // (prompt_plan.md P4.S4, backlog §12.2 E18), and this route NEEDS it:
@@ -9966,6 +10232,11 @@ final class Chat implements Model
                 // No new user message: the echo went in at park time. The
                 // truncation notice rides last, Role::System like every other
                 // post-prompt message on this route.
+                //
+                // Dispatched from `$compacted` — the state the measurement was taken
+                // ON but not written INTO: this attempt got its turn out by
+                // truncating the exchange that overflowed, so it is not the futile
+                // refill the run counts (ruling P8.S5-R6).
                 return $compacted->dispatchTurn($rescued['history'], [$rescued['notice']], $tokenLimit);
             }
 
@@ -9974,18 +10245,30 @@ final class Chat implements Model
             // is left null for the same reason - the rewrite this refusal has to
             // report is ALREADY reported, by the contextCompactedMessage() line
             // compactionChanges() wrote into $compacted->history above.
-            return self::releaseQueuedPrompts($compacted->foregroundBlockedResponse(
-                '',
-                $compacted->history,
-                $compacted->estimateTokenCount($compacted->history),
-                $tokenLimit,
-            ));
+            // `$compacted->withCompactionOutcome(..., turnSent: false)`: the rewrite
+            // landed over the tier and the prompt is going out NEITHER way — the
+            // exact no-path-forward case the run extends for.
+            return self::releaseQueuedPrompts(
+                $compacted->withCompactionOutcome($refilled, turnSent: false)
+                    ->foregroundBlockedResponse(
+                        '',
+                        $compacted->history,
+                        $compacted->estimateTokenCount($compacted->history),
+                        $tokenLimit,
+                    )
+            );
         }
 
         // No new user message: the echo went in at park time. Everything else a
         // turn needs - generation, cancellation token, checkpoint, titler - is
         // dispatchTurn()'s, which is the same code submit() runs.
-        return $compacted->dispatchTurn($compacted->history, [], $tokenLimit);
+        //
+        // The run BREAKS when the rewrite got the context under its tier and HOLDS
+        // when it did not: the prompt goes out either way, so this exit never
+        // extends (ruling P8.S5-R6, and submit()'s unrescued dispatch above takes
+        // the same pair of answers).
+        return $compacted->withCompactionOutcome($refilled, turnSent: true)
+            ->dispatchTurn($compacted->history, [], $tokenLimit);
     }
 
     /**
@@ -12797,6 +13080,129 @@ final class Chat implements Model
             // the box would lose it to a refusal they may well answer by
             // raising the cap.
             'history' => [...$this->history, Message::assistant($notice)],
+            'inFlight' => false,
+        ]), null];
+    }
+
+    /**
+     * Settle the run of automatic-tier compactions after one attempt — the circuit
+     * breaker's arithmetic in one place, because TWO ROUTES do it and a second copy
+     * is how the two would drift into counting different things.
+     *
+     * Both arguments come from the attempt itself. `$stillOverTier` is the
+     * measurement, not the counter: did this rewrite leave us at or over the number
+     * that asked for it, judged with the estimate-and-window pair the tier itself
+     * used. `$turnSent` is the outcome: did the prompt this tier was protecting
+     * actually reach the model. Three transitions, and the third is the whole point
+     * of separating them:
+     *
+     * - under tier → BREAK to zero. The compaction worked, which is what makes the
+     *   breaker self-restoring: nothing is latched by hand and no second key needs
+     *   releasing beside it.
+     * - over tier, turn NOT sent → EXTEND. This is the loop §4.23 shipped: the
+     *   rewrite bought nothing, the user's prompt sat unsent, and the next prompt
+     *   will ask for the same rewrite again and get the same nothing.
+     * - over tier, turn sent → HOLD, unchanged. The tier is expensive and unglamorous
+     *   here, but it DID get the prompt out, and the run exists to count futility.
+     *
+     * The third line is ruling P8.S5-R6, verbatim: "§4.23's breaker stops a FUTILE
+     * refill loop; a rescued dispatch (truncateOversizedExchange path, E18) is NOT
+     * futile — each rescue truncates further and the turn goes out, which is the
+     * shipped, pinned P4.S4 UX (ContextCompactorTest:1339 'an exchange that cannot
+     * fit must be truncated, not re-refused'). Therefore: a compaction attempt whose
+     * outcome is a rescued dispatch carries the counter UNCHANGED on BOTH routes
+     * (parked-landing rescue + sync rescue branches). The breaker keeps authority
+     * exactly where refill means 'no path forward' (the 95% blocking cascade).
+     * Candidate 2 rejected: overriding a pinned in-repo guarantee via §1.11 waiver on
+     * an out-of-ceiling file, re-opening shipped UX, to police a route that makes
+     * monotone progress, is the wrong trade."
+     *
+     * The ruling's wording names the RESCUE branches, and the rescue exits do carry
+     * the run unchanged by returning the state that never took the write at all
+     * (`$turnCarrier` left at `$this` in {@see submit()}, `$compacted` before any
+     * write in {@see applyModelCompaction()}, which applies this method at its other
+     * three exits instead). Measured on this branch, exempting the rescue
+     * alone moved the pinned E18 drive's refusal from attempt 4 to attempt 5 and left
+     * it red: after the first rescue the oversized exchange sits in the recent window
+     * permanently, so attempts 2-4 re-enter the 85% tier, get no rescue (nothing is
+     * individually oversized any more — the truncation already happened), and go out
+     * over the tier at 93,126 → 93,149 → 93,172. Those are the same three facts the
+     * rescue case is, so they take the same answer, and HOLD is what makes the
+     * ruling's own criterion — "refill means no path forward" — true of the code
+     * rather than only of its example.
+     *
+     * What the probe measured, so the quotation is not read as a growth claim: on a
+     * 100,000-token window with one 800,000-character exchange the wire the rescued
+     * turns went out on read 93,115 then 93,138 then 93,161 — under the 95,000
+     * blocking tier every time, creeping up only by the ~12 tokens each new turn
+     * adds. The rescue re-applies to the same exchange rather than shrinking it
+     * further; what makes it non-futile is that the prompt reaches the model.
+     */
+    private function withCompactionOutcome(bool $stillOverTier, bool $turnSent): self
+    {
+        return $this->mutate([
+            'consecutiveRefillCompactions' => match (true) {
+                !$stillOverTier => 0,
+                !$turnSent => $this->consecutiveRefillCompactions + 1,
+                default => $this->consecutiveRefillCompactions,
+            },
+        ]);
+    }
+
+    /**
+     * Refuse the automatic compaction tier because it has thrashed: this many
+     * compactions in a row each put the context straight back over the tier AND
+     * each ended with the turn unsent — a rescued dispatch does not count, and so
+     * can never reach this method (ruling P8.S5-R6).
+     * (prompt_expand.md §4.23 — upstream shipped exactly this loop and fixed it
+     * with "detects when context refills to the limit immediately after compacting
+     * three times in a row and stops with an actionable error instead of burning
+     * API calls").
+     *
+     * The shape is {@see spendCapTurnRefusal()}'s on purpose — a refusal that stops
+     * spending money keeps the draft and appends one report, and the two differ in
+     * KIND and not in mechanics: the cap is a ceiling the user set and can lift with
+     * a command, this is a property of the transcript, which no command lifts.
+     *
+     * ROLE DIFFERS from that sibling, and deliberately: it appends `Role::System`
+     * where the cap refusal appends `Role::assistant`. Every other message this tier
+     * writes is Role::System ({@see scheduleParkedCompaction()}'s notice,
+     * {@see contextCompactedMessage()}, {@see contextReminderMessage()}) for the
+     * reason those docblocks give — nothing after the user's echoed prompt renders
+     * as an assistant turn, and a Role::Assistant message there is a PREFILL the
+     * provider continues. This refusal sits on the same route as those, beside the
+     * same transcript, so it takes the same role; the cap refusal answers a typed
+     * prompt on a route that has appended no echo at all, where an assistant turn is
+     * what the user sees an answer as.
+     *
+     * The notice names no percentage: the tier's numbers are config the user did not
+     * set and cannot read off a transcript line, while what they CAN act on is the
+     * size of the recent window the compaction preserves. Nor does it name
+     * `/compact`: the breaker does not stop that command, and telling a user whose
+     * context will not shrink to run the command that will not shrink it again would
+     * be the least useful sentence available. `inFlight` is written false for the
+     * same defensive reason the cap refusal gives — on this route it already is
+     * false, and a refusal that leaves the flag set is a wedged session.
+     *
+     * @return array{0:self,1:?\Closure}
+     */
+    private function thrashBreakerRefusal(): array
+    {
+        $notice = sprintf(
+            'Context compaction has run %d times in a row and the transcript came straight back over the '
+            . 'limit each time, so this prompt was not sent and no further compaction was attempted. '
+            . 'The recent exchanges the rewrite keeps in full are what will not fit — trim the largest of '
+            . 'them (tool output is usually the bulk), or start over with /rewind or /clear. '
+            . '/model with a larger context window also resolves this.',
+            IdleCompactionPolicy::REFILL_LIMIT,
+        );
+
+        return [$this->mutate([
+            // The draft is KEPT by NOT writing the input box, exactly as the cap
+            // refusal keeps it: nothing was sent, and the fix for this refusal is a
+            // decision about the transcript the user has to make while looking at the
+            // prompt they wanted sent.
+            'history' => [...$this->history, Message::system($notice)],
             'inFlight' => false,
         ]), null];
     }
