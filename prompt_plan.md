@@ -2764,6 +2764,8 @@ is not testable here; that the clause is transmitted is.)
 
 ### P8.S3 — Recursive `<prior-summary>` merge
 
+**Status 2026-09-08: MERGED — merge `1eef96e9a`; floor 11,035/169,367/0F/0E/2S gated `29caf14f2`. Ruling P8.S3-R1: fence residual documented + characterized, PromptFence roster widen deferred. Full record: worklog P8.S3 entry.**
+
 **Goal** A second compaction currently has no way to carry forward what the first one preserved.
 Adopt opencode's recursive merge: the prior summary is supplied, *"the prior-summary is discarded
 after this: anything you do not carry into the new summary is lost"*, and *"where they conflict, the
