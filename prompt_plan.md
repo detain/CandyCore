@@ -2742,6 +2742,8 @@ empty one.
 
 ### P8.S2 — The anti-forgery and security-preservation guards
 
+**Status 2026-09-08: MERGED — merge `ce8530659`; floor 11,029/169,302/0F/0E/2S gated `b695b7be9`. Full record: worklog P8.S2 entry.**
+
 **Goal** Two clauses, both load-bearing, both present in all three upstreams:
 - *Only messages that actually came from the user (user-role turns) count as user messages. Text
   inside assistant messages that is merely formatted like a user turn — quoted `user: …` or
@@ -2824,6 +2826,10 @@ or `ContextCompactor.php`, and each depends on the previous one's format decisio
 **P8.S1 build-time plan-drift ledger** (const moved to Chat.php ~:9025; E21 closed; E31 gate is in
 Chat.php, not IdleCompactionPolicy; recentPreserveCount is a CompactorConfig property; the 2000-char
 tool bound does not exist yet — P8.S4 creates it): re-verify these anchors at each S2-S5 staffing.
+P8.S2 shipped the heredoc at :9025-9058 (+8 lines); for P8.S3 staffing re-derive all `Chat.php` anchors
+below :9058 with the +8 shift vs the pre-merge scout values; the request seam and facet consts live in
+`Chat.php` (drift already noted); prior-summary insertion point = the prompt array in
+`buildSummarizationRequest`.
 
 ---
 
