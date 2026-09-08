@@ -7,6 +7,7 @@ namespace SugarCraft\Crush\Tools\BuiltIn;
 use SugarCraft\Crush\Agents\PathJail as AgentPathJail;
 use SugarCraft\Crush\Tools\Concerns\CapturesProcessOutput;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
+use SugarCraft\Crush\Tools\PromptGuidance;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolResult;
 
@@ -29,7 +30,7 @@ use SugarCraft\Crush\Tools\ToolResult;
  * {@see \SugarCraft\Crush\Hooks\BuiltIn\BashEscapeDenyHook}, a heuristic
  * PreToolUse hook that denies commands referencing paths outside `$root`.
  */
-final readonly class Bash implements Tool
+final readonly class Bash implements Tool, PromptGuidance
 {
     use CapturesProcessOutput;
     use TruncatesOutput;
@@ -94,6 +95,65 @@ final readonly class Bash implements Tool
             . 'Prefer Read/Grep/Glob for reading and searching files; reach for this for '
             . 'build, test and git work, and for anything those tools cannot do.';
     }
+
+    /**
+     * The repo's ship-as-you-go cadence as a playbook beside the tool that runs
+     * it: branch naming, the commit / push / open / merge / resync chain, the
+     * bundle-title-test-plan shape of a request, and each safety rule stated
+     * WITH the reason it exists — a failed pre-commit hook means no commit
+     * landed, so the next `--amend` would land on the PREVIOUS one, which is
+     * exactly why `--amend` is checked against the exit status and `--no-verify`
+     * never used. Spelled as numbered steps and a message template rather than
+     * free prose because the sequence is genuinely fragile and the model
+     * performs it through THIS tool.
+     *
+     * It rides the session prompt, not the per-call schema, so the always-on
+     * {@see description()} stays terse ({@see PromptGuidance}). The body names
+     * no sibling tool so it holds when this tool is wired alone, and it wraps
+     * its own tag pair because this layer renders unframed.
+     */
+    public function promptGuidance(): string
+    {
+        $cadence = [
+            'Commit and ship through this tool on the repo\'s fixed cadence, in this order.',
+            'The steps are serial — each changes state the next depends on — so none of them batch in parallel.',
+            '',
+            '1. Stage exactly the paths this change touched, then author the commit as the repo\'s configured git identity.',
+            '2. Push the branch. Name it ai/<slug>-<short>, or feat/ when a person is driving.',
+            '3. Open the pull request with `unset GITHUB_TOKEN && gh pr create`; clearing the token first stops an ambient one shadowing the intended account.',
+            '4. Merge with `gh pr merge <n> --merge --delete-branch`, then resync with `git checkout master && git pull --ff-only`.',
+            '5. Begin the next bundle only after that resync lands.',
+            '',
+            'Bundle two to four related items into one request, title it `<lib>: <summary>`, and end the body with a `## Test plan` heading citing the test count.',
+        ];
+
+        $safety = [
+            'State each safety rule with the reason it exists, because the reason is what generalises to the case not listed.',
+            'A failed pre-commit hook means the commit DID NOT happen, so the next `--amend` lands on the PREVIOUS commit — check the exit status first.',
+            'Never pass `--no-verify`: it skips the very hook whose failure you are trying to get past.',
+            'Never force-push to `master`: the rewritten history no longer matches any other clone.',
+            'Never `git add -A`: it stages files this step never meant to touch.',
+            '',
+            'Skip `composer validate --strict` here — every `sugarcraft/*` `@dev` constraint trips it by design, so drop the flag rather than bending constraints to answer it.',
+        ];
+
+        $template = [
+            'The message is one fragile operation, so pass it through a heredoc rather than stacked flags and the blank lines between sections survive:',
+            "git commit -F - <<'MSG'",
+            '<lib>: <summary>',
+            '',
+            'What changed, and why.',
+            '',
+            '## Test plan',
+            '<n> tests, all green',
+            'MSG',
+        ];
+
+        return "<git_commits>\n"
+            . implode("\n", array_merge($cadence, [''], $safety, [''], $template))
+            . "\n</git_commits>";
+    }
+
     public function inputSchema(): array
     {
         return [
