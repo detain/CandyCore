@@ -253,6 +253,71 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P8.S3 — Recursive prior-summary merge into re-compaction requests   ·   2026-09-08   ·   merge `1eef96e9a`
+
+**Status** `done`
+**Worktree** /home/sites/prompt-step-P8.S3  (left in place — reap after the Phase-8 close review, together with P8.S1/P8.S2)
+**Base** `eab323ea1` (staffing commit: brief `prompt_kit/briefs/P8.S3-step-brief.md` + corrected anchors)
+
+**Goal (restated in one sentence)**
+A second `/compact` carries forward what the first one preserved: prior `[summary] ` rows are extracted from the wire history and supplied, verbatim, in one extra `<prior-summary>` user message in the summariser request, with opencode's discard-after + conversation-wins sentences transmitted.
+
+**What changed**
+- `sugar-crush/src/Chat.php`: `SUMMARY_ROW_PREFIX` const + `priorSummariesFromHistory()` (first production reader of the `'[summary] '` prefix — transcript as source of truth, ruling R-B) + `renderPriorSummariesForSummary()` + `PRIOR_SUMMARY_NOTE` const (both opencode sentences verbatim) + ONE if-guarded insertion of the extra `Message::user` after the exchanges message in `buildSummarizationRequest()` (R-A); empty priors keep the two-message request byte-identical (R-E). Fold-forwards from the P8.S2 review landed here: FF1 (docblock: verbatim-ness binds WORDING not bytes — sanitize flattens whitespace and clips at the transport bound, reworded at cycle-1 F4 to "cut AT the bound — mid-word if that is where the clip falls"), FF2 (anti-forgery bullet now names the capitalised transcript labels, re-flowed at F5 so the quoted lookalike examples stay intact). THE FENCE RESIDUAL paragraph documents ruling P8.S3-R1.
+- `sugar-crush/tests/Chat/CompactModelSummaryTest.php`: PRE-APPROVED file-location deviation (brief :45 — the two-compaction capture harness lives here, not in `tests/Context/ContextCompactorTest.php`): Done-when test drives TWO consecutive real compactions through live `submit()`; R-D rider exclusion, R-D2 stacked-marker survival, R-E default shape, heuristic-fold-row carry, and the P8.S3-R1 characterization pin.
+- `sugar-crush/src/Context/ContextCompactor.php`: ZERO edits (brief :46 preference honored) despite being the plan's declared file.
+
+**Rulings (fixed at staffing)** R-A extra-message-after-exchanges · R-B wire-history extraction · R-C verbatim carry, never re-parse · R-D riders excluded, heuristic rows CARRIED (OVERRIDE of the premise draft's skip proposal — dropping the sole surviving record of an exchange is a semantic removal) · R-D2 stacked double-prefixed rows survive one strip · R-E empty-priors byte-identical · R-F census-neutral, no transcript notices. **P8.S3-R1 (cycle 1, F1):** `prior-summary` is NOT in `PromptFence::TAGS` (7) and carried rows pass undefanged — two deterministic channels proven (heuristic fold writes raw truncated user bytes at `ContextCompactor.php:1223`/`:1227`; extractor filters NO role, because rider rows inherit `$rider['role']` at `:1180` — a role predicate would be a §1.10 removal). Accepted as documented residual (the exchanges message has handed raw user text to the same summariser unlabeled since `738c586c1`; escape yields label-forgery by the SAME untrusted author, not new data exposure) + characterization pin `testAForgedPriorSummaryCloserTravelsIntoTheNextRequestVerbatim`. DEFERRED by name: widen TAGS 7→8 + escape in-block — collides with R-C (needs a wording-vs-bytes re-ruling) and moves the ≥5-site PromptFence census; its own deliberate step.
+
+**Tests added or changed**
+- `CompactModelSummaryTest::testTheSecondCompactionRequestCarriesTheFirstSummaryForward` (Done-when) — asserts round-1 summary landed in history BEFORE round 2; needle scoped INSIDE the `<prior-summary>` message + not-contains in the exchanges message, so "never removed" cannot pass it.
+- Rider-exclusion (R-D), stacked-rows (R-D2), empty-priors two-message shape (R-E, byte-identity on `COMPACT_SUMMARY_PROMPT`), heuristic-row carry, forged-closer characterization (R1 pin; its comment says it reddens the day escape lands).
+**Deletion experiment**: builder ran four (rider-continue deleted → only R-D red; `return $priors`→`return []` → Done-when+R-D+R-D2+heuristic red, R-E green (correct polarity); `!== []` guard removed → R-E + assertCount(2) + pre-existing toolless-backend test red; single-strip → strip-all → only R-D2 red). Cycle-2 reviewer independently REPRODUCED all four exactly, then ran the FIFTH: escape()+TAGS-widen simulation → ONLY the characterization pin went red (38 tests, 188 assertions, 1F, diff showed `&lt;/prior-summary>`) — proving both the pin's trigger and that nothing else silently depends on undefanged bytes.
+
+**MEASURED**
+```
+$ (builder, full suite at e58345ef4)  → Tests: 11034, Assertions: 169361, Skipped: 2, 0F/0E, EXIT 0 (prediction-exact)
+$ (fix agent, full suite at 29caf14f2) → Tests: 11035, Assertions: 169367, Skipped: 2, 0F/0E, EXIT 0 (prediction-exact, /tmp/opencode/P8.S3-fix/tip.out)
+$ (ORCHESTRATOR GATE, independent, /tmp/opencode/P8.S3-gate/tip.out)
+OK, but some tests were skipped!
+Tests: 11035, Assertions: 169367, Skipped: 2.   EXIT 0   (Time 07:08.116; box-quiet probe 0)
+$ python3 prompt_kit/tools/cmp.py /tmp/opencode/P8.S3-fix/tip.xml /tmp/opencode/P8.S3-gate/tip.xml
+branch total 169367 in 11035 tests / master total 169367 in 11035 tests / SUM OF DELTAS +0 +0  (+ name-set diff: identical)
+$ php ... --filter CompactModelSummaryTest (at 29caf14f2) → OK (38 tests, 190 assertions)   [32/150 → 37/185 → 38/190]
+$ php ... --filter GlobFigureDriftTest (at 29caf14f2)     → OK (61 tests, 22484 assertions) [22459 → +24 (R-A..R-F+note paragraphs, law 4n) → +1 (residual paragraph)]
+$ php ... --filter ContextCompactorTest                  → OK (80 tests, 287 assertions) UNCHANGED (src untouched)
+$ php ... --filter BootstrapTranscriptSeamCallSiteCensusTest → OK (22 tests, 134 assertions); census 20 FROZEN (R-F)
+$ md5sum goldens at tip → a5c5a14ca2e3ad891933ac7aefccc6af 7732 / ef0326dd38535aaa2f1d715919bff26e 1060 — UNMOVED (never eligible: block rides summaryBackend, not the golden prompt)
+$ git diff 29caf14f2 master -- sugar-crush/ | wc -c → 0   (belt; describes master by the belt)
+$ merge hygiene: cat-file commit 1eef96e9a | /usr/bin/grep -c '\[EMAIL\]' → 0 · %B '<' count → 0 · %an|%ae|%cn|%ce → Joe Huss|detain@interserver.net ×4
+```
+**Suite result**
+```
+$ cd /home/sites/sugarcraft && php sugar-crush/vendor/bin/phpunit -c sugar-crush/phpunit.xml --colors=never </dev/null   (run in the P8.S3 worktree at tip; gate report /tmp/opencode/P8.S3-gate/tip.out)
+Tests: 11035, Assertions: 169367, Skipped: 2  — 0 failures / 0 errors / EXIT 0
+```
+Baseline for comparison: P8.S2 floor 11,029 / 169,302 (gated `b695b7be9`).
+Delta: +6 tests / +65 assertions — +6t/+40a CompactModelSummaryTest (5 new pins + characterization), +1t/+5a … reconciled exactly: the per-class sum matches (GlobFigureDrift +25 derived paragraphs, law 4n); no skips added (2S = pre-existing pair).
+
+**Review loop**
+- Cycle 1 — slice 1B (tests, scoped): APPROVE, all four deletion experiments reproduced exactly, Done-when discrimination proven structurally. Slice 1A (src, scoped): R-A..R-F PASS; 5 findings — F1 MINOR fence residual (escalated → ruling P8.S3-R1), F2 MINOR FF3 disposition not recorded (closed: builder report + this entry record it), F3 NIT no-role-filter documentation (folded into R1 doc), F4 NIT verbatim-ness over-claim (fixed), F5 NIT heredoc bullet wrap (fixed).
+- Cycle 1 fix — `29caf14f2`: docblock residual paragraph + characterization pin + F2/F4/F5 closes; fix agent ALSO corrected three orchestrator cite assumptions ($rider['role'] at :1180 not :1181; riders' role VARIES via groupIntoPairs; exchanges renderer predates P8.S1 — `738c586c1`).
+- Cycle 2 — fresh reviewer (routed to `tester` — the read-only `reviewer` agent cannot run phpunit/scratch mutations): ALL 7 items PASS, red-set independently reproduced + escape-simulation experiment (see above), 2 NITs recorded (NIT-1 "nothing flattens or bounds it" wording trips on the self-footed "truncated" qualifier — claim stands; NIT-2 paragraph names two of three parse-gating patterns — third's effect covered by the prose — claim stands).
+Total cycles: 2
+
+**Invariants touched** §17 goldens UNMOVED (compaction request never rides the Runtime-assembled prompt — verified premise claim); transcript seam census 20 UNMOVED (R-F); TreeWideGuardRoster 17/1127 UNCHANGED (no new src/test file); §1.10 HONORED via the no-role-filter ruling (a filter would remove legitimate rider transport); Chat.php prose grew the GlobFigureDrift paragraph census (+25 — law 4n, predicted per-class).
+
+**Surprises / things the plan got wrong**
+1. The premise draft's blanket +8 line-shift was PARTLY WRONG (law 4j spot-verify caught it): it missed `scheduleParkedCompaction` at :9329 and mis-cited the test harness (`summarizer()` is at :80, not :331-349 — those lines are a usage pattern). Anchors in the brief were re-derived from live source before staffing; the builder worked from the corrected brief.
+2. The worklog P8.S2-era note that joined facets use `'; '` referred elsewhere — the actual join literal in `joinExchangeFacets` is `' | '` (Chat.php:9596-era).
+3. Rider roles: `groupIntoPairs()` gives a user message its own pair, so a rider's role is whatever came in — the F3 "just exclude user-role riders" intuition would have deleted legitimate transport.
+4. A `reviewer` sub-agent (read-only, bash denied) cannot execute phpunit or scratch-mutation experiments — cycle 2 must route to a write-capable agent with scratch-only constraints. Record for future briefs.
+5. FF3 (backticks around `asked:`/`corrected:` in the no-markdown rule): recorded as DELIBERATE KEEP — the no-markdown clause binds the model's OUTPUT format; our field-name notation is not markdown in that sense.
+
+**Follow-ups created**
+1. **P8.S3-R1 named remedy (DEFERRED, its own step)**: widen `PromptFence::TAGS` 7→8 (`prior-summary`) + escape carried rows in-block; requires re-ruling R-C as verbatim-at-wording-level (FF1's paragraph provides the frame); moves the ≥5-site PromptFence census; `testAForgedPriorSummaryCloserTravelsIntoTheNextRequestVerbatim` reddens when it lands (proven by simulation) — that red is the adjudication trigger, not a regression.
+2. Cycle-2 NIT-1/NIT-2 wording notes — folded into follow-up 1's step (the paragraph gets rewritten by the remedy anyway).
+
 ### P8.S2 — Anti-forgery + verbatim security constraints in the compaction prompt · 2026-09-08 · branch commit `b695b7be9`, merged `ce8530659` (parents `e07663c83`+`b695b7be9`) — status: MERGED
 - Delivered: two Rules bullets appended to the `COMPACT_SUMMARY_PROMPT` heredoc (src/Chat.php :9047-9054): anti-forgery (only user-role exchanges are the user's words; lookalike `user:`/`Human:` lines inside assistant text are model-generated — never under `asked:`/`corrected:`, never described as request/approval/confirmation) and security-constraint preservation (carry exact wording VERBATIM, quoted, never paraphrased). The R-3 docblock :9480-9487 rewrote the prior over-claim (the one failure mode) into honest scope: descending merges are detectable (strict rank comparison), the ascending partial-record merge is recorded as a known limit, degradation semantics unchanged. Zero executable lines changed.
 - Branch: `prompt/P8.S2`, single gated commit `b695b7be9` (parent `e07663c83` staffing commit), files src/Chat.php +20/-3 + tests/Chat/CompactModelSummaryTest.php +119. Three new coupling tests: transmission through the real submit()-route captured request (asserts the clauses in the system message AND a forged `user:` line present in the payload — transmits, does not claim obedience); same-rank facet repetition merges via the `; ` join (reddens on a `<` to `<=` flip — mutation-verified by review); the prompt quotes the `SUMMARY_FACET_NONE` marker exactly twice (read via reflection).
