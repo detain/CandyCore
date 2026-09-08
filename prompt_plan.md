@@ -2870,6 +2870,8 @@ the assembled prompt, and that no other fragment references it by name.
 
 ### P9.S2 — Capability-aware descriptions
 
+**Status 2026-09-08: MERGED — merge `9dd05ae06` (branch `8e4a0b884` + fix `d093e4781`); floor 11,074/169,958/0F/0E/2S gated master-direct at the merge. Plan Files-list deviation: the trait lives in `Tools/Concerns/` as planned but the host memo sits on `Cli/Bootstrap` (PHP-8.3 fatal — a static-prop trait cannot attach to a readonly class). Absent-capability render is BYTE-IDENTICAL base↔tip; `gh` out of scope. Full record: worklog P9.S2 entry.**
+
 **Goal** Detect `rg`, `gh`, `fd` on `PATH` **once at boot** and render descriptions with those
 booleans, so the prompt says "prefer `rg`" only when `rg` exists. Upstream `crush` calls this its
 highest-value portable mechanism. sugar-crush's descriptions are already instance-conditional
@@ -2890,6 +2892,8 @@ pattern rather than inventing one.
 parameterised assertion) covers all-on.
 
 ### P9.S3 — `Bash`: the git/PR playbook fragment
+
+**Status 2026-09-08: MERGED — merge `e9a933f4e` (branch `272d47210`, ONE squashed commit; the brief preferred two, NIT accepted); floor 11,081/170,033/0F/0E/2S gated master-direct at the merge. `description()` BYTE-FROZEN (md5 `e514b532bdb742caf7b0c2ab651742fc`); the fragment self-wraps `<git_commits>` (1+1 tags, NOT in `PromptFence::TAGS` — stays 7). LIVE `src/Tools/BuiltIn/Bash.php` collision row: §5 DISCHARGED at staffing (last pre-step `bf3495f51` 2026-08-18, pre-R60; staffing diff 0). Full record: worklog P9.S3 entry.**
 
 **Goal** Move SugarCraft's ship-as-you-go cadence out of always-on prose and into `Bash`'s
 `promptGuidance()`, adjacent to the action it governs — branch naming `ai/<slug>-<short>`,
@@ -2912,6 +2916,8 @@ genuinely fragile.
 (never `--no-verify`, never force-push to master, never `git add -A`) is in it.
 
 ### P9.S4 — `SkillTool` and `WebFetch`: fix the one-liners
+
+**Status 2026-09-08: MERGED — merge `f1f622e56` (branch `a7b8ba990`, single commit); floor 11,093/170,079/0F/0E/2S gated master-direct at the merge. FIVE-file man-page expansion under ruling A (Doctor/SkillTool/WebFetch/WebSearch/Write) — every clause verified against shipped code; `BuiltInToolTest` exactly TWO `assertSame` literal swaps (:179/:187); NEW `ToolDescriptionSentenceFloorTest` floors all 11 built-ins at ≥3 sentences (E-FLOOR revert → red for exactly that tool 5/5). Builder died after staging — a completion agent committed the 7 staged files as-found (staged-content completion pattern). Full record: worklog P9.S4 entry.**
 
 **Goal** `SkillTool::description()` is *"Invoke a named skill by loading its full instructions
 on-demand"*. `WebFetch` is *"Fetch content from a URL"*. Both are one-liners **without** the
@@ -2962,6 +2968,8 @@ WebSearch, Doctor, SkillTool, LspTool` — **no todo tool**. This step is theref
 **Take the second.** Record the measurement, close the step, and do not let it grow into a feature.
 
 ### P9.S7 — History sanitisation before every send
+
+**Status 2026-09-08: MERGED — merge `ea81c377a` (branch src `71b93359f` + tests `8b6cc6f41`); floor 11,119/170,274/0F/0E/2S gated master-direct at the merge (artifact `/tmp/opencode/P9.S7-merge/master.xml` totals verified; cmp vs master-S4.xml +26t/+195a). NEW `src/Messages/HistorySanitizer.php` (164 lines, ONE public static `sanitize()`), wired at the single send choke `Runtime.php:2458`; op (4) bare-empty-assistant is the live-value repair, ops (2)/(3) defense-in-depth (dormant-not-dead — the engine loop always pairs internally). R-C deferral recorded as follow-up (34) (`SglangProvider::formatMessages` hoists history SystemMessage rows into the leading system row); (35) `SkillTool::execute` args, out-of-ceiling. Full record: worklog P9.S7 entry.**
 
 **Goal** Orphan repair over the whole history each turn: collect all tool-call ids from assistant
 messages and all tool-result ids; drop results whose call is missing; **synthesise** results for
