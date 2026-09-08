@@ -2938,6 +2938,8 @@ the next one-liner is caught.
 
 ### P9.S5 — Tell the model about affordances it already has
 
+**Status 2026-09-08: MERGED — merge `d0711b2`; branch `7ce31f21a`; FLOOR 11,121/170,281/0F/0E/2S master-direct at `d0711b2`. Golden MOVED by the licensed plan move: system 7,732/a5c5a14c… → 8,278/f5de3858…, pure single insert k=2154 (+546 B, difflib-proven twice); agent golden FROZEN. SessionStartHookWireTest 4th-mover correction (size+md5 pins). R-E: <git_commits> cross-ref ruled out here, folded to Phase-9 close review. Full record: worklog P9.S5 entry.**
+
 **Goal** sugar-crush supports `` !`cmd` `` inside file-based commands and has a `SkillTool`, and
 mentions **neither** in any prompt. Two lines, high value.
 **Source** §4.24 (the two harness affordances), §9.15, §2.13.
