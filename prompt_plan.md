@@ -2783,6 +2783,8 @@ recursive case.
 
 ### P8.S4 — Head/tail split and tool-output truncation
 
+**Status 2026-09-08: MERGED — merge `996ed0556`; floor 11,042/169,428/0F/0E/2S gated `beb8df1b6`. Head/tail split found ALREADY SHIPPED (stagePairs pair-count window); step's real delta = toolOutputMaxChars bound + skill guard + measured proportionality (5,833 vs 6,247 bounded vs 57,133 unbounded). Full record: worklog P8.S4 entry.**
+
 **Goal** Only the head is summarised; the recent window stays verbatim. Bound tool output in the
 serialised head (upstream uses 2,000 chars). Never prune skill outputs.
 **Source** §6.6, §9.3, §2.10 (`recentPreserveCount = 10`).
