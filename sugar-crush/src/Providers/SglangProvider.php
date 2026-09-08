@@ -19,6 +19,7 @@ use SugarCraft\Crush\Providers\ToolCallParser\OpenAiArrayToolCallParser;
 use SugarCraft\Crush\Providers\ToolCallParser\ToolCallParserInterface;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolCall;
+use SugarCraft\Crush\Providers\Concerns\SessionAffinity;
 use SugarCraft\Crush\Providers\Concerns\ToolSchema;
 use SugarCraft\Crush\Usage;
 
@@ -29,6 +30,8 @@ final readonly class SglangProvider implements ProviderInterface
     use ReasoningExtractor;
 
     use HttpClientDefaults;
+
+    use SessionAffinity;
 
     /**
      * The literal substring at the heart of the MiniMax-M2.x tool-call
@@ -438,6 +441,15 @@ final readonly class SglangProvider implements ProviderInterface
          * @param array<string, mixed> $extraTemplateKwargs
          */
         private array $extraTemplateKwargs = [],
+        /**
+         * Raw session id for cache-affinity routing, held on this readonly
+         * instance and hashed per request at send time — the wire never
+         * carries the raw value. `null` (the default) means no affinity
+         * header at all, byte-identical to the pre-P10.S4 request. Why
+         * hashed, why the full digest, and the consumer contract for keeping
+         * the id current live in the {@see SessionAffinity} trait docblock.
+         */
+        private ?string $sessionAffinityId = null,
     ) {
         if ($this->reasoningEffort !== null) {
             self::validatedReasoningEffort($this->reasoningEffort, 'provider config');
@@ -451,6 +463,7 @@ final readonly class SglangProvider implements ProviderInterface
         ?ToolCallParserInterface $toolCallParser = null,
         string|float|null $reasoningEffort = null,
         array $extraTemplateKwargs = [],
+        ?string $sessionAffinityId = null,
     ): self {
         $headers = [
             'Content-Type' => 'application/json',
@@ -473,7 +486,7 @@ final readonly class SglangProvider implements ProviderInterface
             'headers' => $headers,
         ]);
 
-        return new self($baseUrl, $model, $apiKey, $client, $toolCallParser, $reasoningEffort, $extraTemplateKwargs);
+        return new self($baseUrl, $model, $apiKey, $client, $toolCallParser, $reasoningEffort, $extraTemplateKwargs, $sessionAffinityId);
     }
 
     /**
@@ -628,8 +641,11 @@ final readonly class SglangProvider implements ProviderInterface
         $params = $this->buildParams($request);
 
         try {
+            // 'headers' here (not client defaults) so the affinity header also
+            // rides injected clients - see SessionAffinity::sessionAffinityHeaders().
             $response = $this->httpClient->post('chat/completions', [
                 'json' => $params,
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
@@ -668,6 +684,7 @@ final readonly class SglangProvider implements ProviderInterface
             $response = $this->httpClient->post('chat/completions', [
                 'json' => $params,
                 'stream' => true,
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $stream = $response->getBody();
@@ -923,6 +940,7 @@ final readonly class SglangProvider implements ProviderInterface
                     'model' => $request->model,
                     'input' => $request->input,
                 ],
+                'headers' => $this->sessionAffinityHeaders(),
             ]);
 
             $data = json_decode($response->getBody()->getContents(), true);
