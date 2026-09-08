@@ -10,11 +10,12 @@ use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\CarriesSessionState;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
 use SugarCraft\Crush\Tools\ParallelSafe;
+use SugarCraft\Crush\Tools\PromptGuidance;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolResult;
 use SugarCraft\Crush\Tools\PathJail;
 
-final readonly class Read implements Tool, ParallelSafe, CarriesSessionState
+final readonly class Read implements Tool, ParallelSafe, CarriesSessionState, PromptGuidance
 {
     use TruncatesOutput;
 
@@ -122,6 +123,25 @@ final readonly class Read implements Tool, ParallelSafe, CarriesSessionState
             . 'be the head of a longer file. Prefer this over `cat`/`head` through Bash: '
             . implode('; ', $advantages) . '.';
     }
+
+    /**
+     * The three facts a model needs at session scale rather than per call: a
+     * short result may be a truncated view, a rejected path is an error it can
+     * correct, and directory-level project rules arrive with the first read
+     * there. Kept free of sibling-tool names so the fragment stays true when
+     * this tool is wired alone ({@see PromptGuidance}).
+     */
+    public function promptGuidance(): string
+    {
+        return 'The Read tool returns file contents up to its configured byte cap, and a file '
+            . 'larger than that cap comes back as the head of the file followed by an explicit '
+            . 'truncation marker, so a short result may be a partial view rather than the whole '
+            . 'file. A path that resolves outside the allowed workspace root, or that cannot be '
+            . 'opened, comes back as a readable tool error rather than a crash. When a directory '
+            . 'carries project instruction files, the first read inside it surfaces those rules '
+            . 'alongside the content.';
+    }
+
     public function inputSchema(): array
     {
         return [

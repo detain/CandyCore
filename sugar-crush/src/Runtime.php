@@ -30,6 +30,7 @@ use SugarCraft\Crush\Support\ToolIpcFiles;
 use SugarCraft\Crush\Tools\CarriesSessionState;
 use SugarCraft\Crush\Tools\McpToolBridge;
 use SugarCraft\Crush\Tools\ParallelSafe;
+use SugarCraft\Crush\Tools\PromptGuidance;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolCall;
 use SugarCraft\Crush\Tools\ToolResult;
@@ -2523,6 +2524,25 @@ final class Runtime
         // {@see MaximsSection} and its test's placement record.
         $sections[] = new MaximsSection();
 
+        // P9.S1 (prompt_expand.md §4.17, §9.9): the tool-guidance layer. Every
+        // wired tool that opts into {@see PromptGuidance} contributes one prose
+        // fragment here, ordered by name() rather than registration order so
+        // the bytes belong to the Static prefix region like the two layers
+        // above it. Slot: directly behind the maxims voice — that section's own
+        // placement record claims "directly behind the base identity and ahead
+        // of every derived layer", and this layer is derived (it reads the App)
+        // — and ahead of repo-map, rules, memory and <env>, because tool voice
+        // is about the harness, not about this repository's state. The guard is
+        // the doctrine, not tidiness: with no qualifying tool the layer must
+        // not appear in the section list AT ALL, so every App that never calls
+        // withTools() — the whole golden corpus — assembles byte-identically to
+        // the tree before this seam existed.
+        $toolGuidance = $this->toolGuidanceSection($app);
+
+        if ($toolGuidance !== '') {
+            $sections[] = $this->section('', Stability::Static, $toolGuidance);
+        }
+
         // Behind the base heredoc and the maxims voice layer, and BEFORE the
         // instruction documents: it is the same KIND of thing the base is -
         // fact derived
@@ -2719,6 +2739,44 @@ final class Runtime
         $sections[] = $this->environmentSnapshot($app);
 
         return $sections;
+    }
+
+    /**
+     * Render the {@see PromptGuidance} layer out of `$app->tools`.
+     *
+     * Three decisions, each load-bearing for the layer being Static. A tool
+     * that does not implement the interface never enters the loop, and a
+     * fragment that is `''` is dropped rather than skipped at print time — the
+     * join is over speakers only, so an empty fragment cannot spend a separator
+     * beside the sibling that does speak. What remains is ordered by `name()`,
+     * with the fragment itself as tie-break so the result cannot depend on the
+     * order the tool list was assembled in.
+     *
+     * @return string the joined layer body, or '' when nothing qualifies —
+     *                which the caller renders as absence, not as an empty
+     *                section
+     */
+    private function toolGuidanceSection(App $app): string
+    {
+        $entries = [];
+
+        foreach ($app->tools as $tool) {
+            if (!$tool instanceof PromptGuidance) {
+                continue;
+            }
+
+            $fragment = $tool->promptGuidance();
+
+            if ($fragment === '') {
+                continue;
+            }
+
+            $entries[] = [$tool->name(), $fragment];
+        }
+
+        usort($entries, static fn(array $a, array $b): int => strcmp($a[0], $b[0]) ?: strcmp($a[1], $b[1]));
+
+        return implode("\n\n", array_column($entries, 1));
     }
 
     /**
