@@ -10,6 +10,7 @@ use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\Concerns\BuildsUnifiedDiff;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
 use SugarCraft\Crush\Tools\PathJail;
+use SugarCraft\Crush\Tools\PromptGuidance;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolResult;
 
@@ -36,7 +37,7 @@ use SugarCraft\Crush\Tools\ToolResult;
  * Omitting the interface makes this tool a barrier, executed alone in provider
  * order, which is the correct and safe default.
  */
-final readonly class Write implements Tool
+final readonly class Write implements Tool, PromptGuidance
 {
     use BuildsUnifiedDiff;
     use TruncatesOutput;
@@ -62,6 +63,23 @@ final readonly class Write implements Tool
     public function description(): string
     {
         return 'Create a new file with the given content. Refuses to clobber an existing file unless overwrite is true; use Edit to change part of a file that already exists.';
+    }
+
+    /**
+     * The session-scale statement of what the overwrite flag actually costs,
+     * phrased without the sibling's name so the fragment holds when this tool
+     * is wired alone ({@see PromptGuidance}) — "a different operation" is the
+     * most this prose may say about partial changes, because naming it would
+     * assert the existence of a tool the session may not have.
+     */
+    public function promptGuidance(): string
+    {
+        return 'The Write tool creates a file with the exact content it is given and refuses to '
+            . 'touch an existing file unless the overwrite flag is set, because that flag '
+            . 'discards the previous contents with no undo. Missing parent directories are '
+            . 'created as part of the write. Reach for it with whole new files: changing part of '
+            . 'a file that already exists is a different operation, and overwriting the file to '
+            . 'do it destroys everything the partial change did not need to touch.';
     }
 
     public function inputSchema(): array
