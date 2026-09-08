@@ -3010,6 +3010,8 @@ is never a hit — every request writes fresh and the lookback finds nothing.
 
 ### P10.S1 — `systemBlocks` on `CompleteRequest`
 
+**Status 2026-09-08: MERGED — merge `77881b9cb`; step `df3d6c984`; gate: builder suite at branch tip prediction-first EXACT (Tests 11,128 / Assertions 170,339 / 0F / 0E / Skipped 2 / EXIT 0) and merge belt `git diff df3d6c984 master -- sugar-crush/` = 0 bytes, so the figure describes master. `systemBlocks` is live, additive trailing `?array $systemBlocks = null` (null-vs-empty-array semantics pinned); `Runtime::assembleSections()` is ONE fold returning [flatPrompt, blocks[]] shared by all three entry points so `render()` still runs exactly once per build and implode of blocks equals `systemPrompt` byte-for-byte (blocks own the inter-layer separators); the Vertex Anthropic arm shapes the per-block text array ONLY when blocks are non-null non-empty, the string arm stays byte-identical otherwise, both Google arms provably unaffected; NO cache_control wiring (P10.S2+ territory, docblock names it). Cycle-1 dual-slice APPROVE/APPROVE; ALL FIVE findings DEFERRED as adjudications (follow-up (39)); goldens UNMOVED; matrix unmodified, passes 20/111. Premise correction (law 4j): the plan text cites `VertexProvider::anthropicSystem()` — FALSE as a name; live symbol `private function systemInstruction(CompleteRequest): ?string` at VertexProvider.php:593 (rename documented :582-584). In-step DuplicatedTestHelperDriftTest byte-twin incident resolved by rename; shared support-fixture noted as follow-up (40). Full record: worklog P10 batch-1 entry.**
+
 **Goal** A structured `systemBlocks` array alongside the flat `systemPrompt` string, so a provider
 that can express block arrays (Anthropic-shaped) can place `cache_control` per block.
 `VertexProvider::anthropicSystem()` currently returns `?string`, so even the one Anthropic-shaped
@@ -3027,6 +3029,8 @@ working unchanged; `systemBlocks` is additive. A provider that ignores it must s
 **Done when** the P1.S7 transmission matrix still passes unmodified.
 
 ### P10.S2 — `CacheBreakpoints` with wipe-then-reapply
+
+**Status 2026-09-08: MERGED — merge `341d71876`; step `a0d09d7c8` + cycle-1 fix `8e374fc05`; gate MASTER-DIRECT prediction-first EXACT: Tests 11,148 / Assertions 170,600 / 0F / 0E / Skipped 2 / EXIT 0 — THE NEW FLOOR. `src/Providers/CacheBreakpoints.php` live UNWIRED by design (P6.S1 Triggers precedent; consumers are P10.S3 kill switch and P10.S4-era wiring; "removal is not an outcome"); wipe-then-reapply idempotent; foreign/automatic marks preserved and CHARGED to the 4-slot budget, foreign marks alone exceeding 4 now THROW naming count AND cap (F-1 closure); prefix stability via deepest-free selection; lookback repair places intermediates every 15 blocks on long turns with the tool mark yielding to the tail chain. ALL FOUR constraint bullets implemented and value-pinned — the preamble's "all three ... all three" miscounts (FOUR bullets follow; FOUR is authoritative; corrected here as annotation, the bullet text stands untouched). Done-when MEASURED: max content blocks in ONE real multi-tool wire turn = 18 (live session 5a2fac958bdc7416, checkpoint #22) vs LOOKBACK_LIMIT 20 — headroom 2. Cycle-1 slice A APPROVE_WITH_FIXES (F-1/F-2 fixed at `8e374fc05`; F-3 SYSTEM-MARK-WIRE-COMPAT ESCALATED — carried verbatim into the P10.S3 brief as follow-up (41); F-4 nit) + slice B PASS; cycle-2 fresh APPROVE, ONE LOW deferred (follow-up (38)); goldens UNMOVED; solo 17/76. Full record: worklog P10 batch-1 entry.**
 
 **Goal**
 ```php
