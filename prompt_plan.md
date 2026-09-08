@@ -2841,6 +2841,8 @@ below :9058 with the +8 shift vs the pre-merge scout values; the request seam an
 
 ## Phase 9 — Tool descriptions as prompt
 
+**Status 2026-09-08: PHASE 9 CLOSED — 7 of 7 (S1 731db08e1, S2 9dd05ae06, S3 e9a933f4e, S4 f1f622e56, S7 ea81c377a, S5 d0711b2, S6 record-only). Fresh close review: PHASE 9 MAY CLOSE, 0 CRITICAL / 0 HIGH / 0 MEDIUM, 2 INFO. Floor 11,121/170,281 master-direct; goldens system f5de3858c1bc130d1e97a120d3ead485/8,278 (moved by S5, licensed) + agent ef0326dd38535aaa2f1d715919bff26e/1,060 FROZEN.**
+
 Tool descriptions are the one prompt channel that has always reached the model — they ride the
 separate `tools[]` field, not `systemPrompt`. Anthropic's own rubric is explicit that the common
 failure here is **under**-description, and that brevity is the wrong instinct for tool descriptions
@@ -2956,6 +2958,8 @@ being true (`Runtime.php:1675-1712`'s standing bar).
 **Done when** the golden diff shows exactly the two clauses and the limits, and nothing else.
 
 ### P9.S6 — `activeForm` on todo items
+
+**Status 2026-09-08: CLOSED as record — premise absent (no todo built-in; 11 tools Bootstrap.php:5615-5660, activeForm 0 hits); full record: worklog P9.S6 entry. Zero code owed.**
 
 **Goal** The model supplies both the noun phrase and the present participle, so the TUI renders
 "Creating dark mode toggle…" for free.
