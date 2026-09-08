@@ -1298,4 +1298,249 @@ final class CompactModelSummaryTest extends TestCase
     {
         return (new \ReflectionProperty(Chat::class, 'generation'))->getValue($chat);
     }
+
+    // =====================================================================
+    // The recursive merge (crush_code.md Phase 8): a re-compaction carries
+    // the earlier summary instead of silently losing what it preserved.
+    //
+    // The distinction the whole section defends: one compaction proves only
+    // that the model was asked about the LIVE exchanges. The recursion is the
+    // SECOND round's ability to see the FIRST round's record — which no live
+    // pair still contains, because that round's exchanges were condensed into
+    // `SUMMARY_ROW_PREFIX` rows that exchangesToSummarize() deliberately skips.
+    // =====================================================================
+
+    /**
+     * A transcript already carrying prior-summary rows, plus five live pairs so
+     * that a `/compact` on it has exchanges to ask about AND a prior to carry.
+     *
+     * Each `$priorRow` is the full landed line, `'[summary] '` marker included,
+     * exactly as {@see \SugarCraft\Crush\Context\ContextCompactor} writes it. They
+     * are appended as standalone assistant messages — the shape a landed summary
+     * has when its exchange is long gone — so the compactor's pair grouping leaves
+     * them out of the exchange set and only the carry path can surface them.
+     *
+     * @param list<string> $priorRows
+     */
+    private function chatWithPriors(array $priorRows, ?array &$seen, string $reply): Chat
+    {
+        $history = $this->history();
+        foreach ($priorRows as $row) {
+            $history[] = Message::assistant($row);
+        }
+
+        return new Chat(
+            history: $history,
+            inputBuf: '/compact',
+            backend: new EchoBackend(),
+            compactorConfig: $this->compactorConfig(),
+            summaryBackend: $this->summarizer($reply, $seen),
+        );
+    }
+
+    /**
+     * THE DONE-WHEN. TWO consecutive REAL compactions, driven through the live
+     * `submit()` route, and the fact from before round one shows up in round two's
+     * request ONLY through the carried prior summary.
+     *
+     * A single compaction — every other test in this file — proves nothing about
+     * the recursive case, so this is not a variation on them: round one is allowed
+     * to run for real, its landed `[summary] ` row is what feeds round two, and the
+     * assertion is that round two's THIRD message (not its exchanges block) is
+     * where the surviving fact lives.
+     */
+    public function testASecondRealCompactionCarriesTheFirstSummaryIntoTheNextRequest(): void
+    {
+        // A distinctive fact put in the transcript BEFORE the first compaction, so
+        // it is genuinely older than round one and can only survive by being kept.
+        $cobalt = 'the cobalt-9917 failsafe is armed';
+        $roundOne = $this->history();
+        $roundOne[0] = Message::user($cobalt . ' — note it (question 1)');
+
+        // ── Round 1: a first compaction is still the two-message shape. ──
+        $seen1 = null;
+        $chat1 = new Chat(
+            history: $roundOne,
+            inputBuf: '/compact',
+            backend: new EchoBackend(),
+            compactorConfig: $this->compactorConfig(),
+            summaryBackend: $this->summarizer(
+                $this->records([1 => $cobalt, 2 => 'two', 3 => 'three', 4 => 'four']),
+                $seen1,
+            ),
+        );
+        [$pending1, $cmd1] = $this->submit($chat1);
+        $msg1 = $this->resolve($cmd1);
+        $this->assertInstanceOf(
+            HistoryCompactedMsg::class,
+            $msg1,
+            'fixture: round 1 really ran the summariser route',
+        );
+        $this->assertCount(2, $seen1, 'the FIRST compaction carries no prior block (nothing prior exists yet)');
+        [$done1] = $pending1->update($msg1);
+
+        $landed = implode("\n", array_map(static fn (Message $m): string => $m->content, $done1->history));
+        $this->assertStringContainsString(
+            '[summary] asked: ' . $cobalt,
+            $landed,
+            'fixture: round 1 preserved the fact as a landed summary row',
+        );
+
+        // ── Round 2: one fresh pair, then a REAL /compact again. ──
+        $seen2 = null;
+        $chat2 = new Chat(
+            history: [
+                ...$done1->history,
+                Message::user('please confirm the deploy window'),
+                Message::assistant('the deploy runs at 03:00 UTC'),
+            ],
+            inputBuf: '/compact',
+            backend: new EchoBackend(),
+            compactorConfig: $this->compactorConfig(),
+            summaryBackend: $this->summarizer($this->records([1 => 'round two']), $seen2),
+        );
+        [$pending2, $cmd2] = $this->submit($chat2);
+        $this->assertNotNull($cmd2, 'round 2 must also reach the summariser, not compact silently');
+        $this->resolve($cmd2);
+
+        $this->assertIsArray($seen2, 'the summary backend was called for the second compaction');
+        $this->assertCount(3, $seen2, 'the SECOND compaction appends the prior-summary block');
+        $this->assertSame(Role::System, $seen2[0]->role, 'the instruction is still message 0');
+        $this->assertStringContainsString('### Exchange', $seen2[1]->content, 'message 1 is the live exchanges');
+        $this->assertStringNotContainsString(
+            $cobalt,
+            $seen2[1]->content,
+            'the fact is NOT in the exchanges block — its exchange was condensed away in round 1, so the '
+            . 'only route it has into round 2 is the prior-summary carry',
+        );
+        $this->assertSame(Role::User, $seen2[2]->role, 'the prior summary rides as an extra user message');
+        $this->assertStringContainsString('<prior-summary>', $seen2[2]->content);
+        $this->assertStringContainsString(
+            $cobalt,
+            $seen2[2]->content,
+            'THE RECURSIVE MERGE: a fact introduced before round 1 reaches round 2 through the carried summary',
+        );
+        $flat2 = str_replace("\n", ' ', $seen2[2]->content);
+        $this->assertStringContainsString(
+            'The <prior-summary> is discarded after this: anything you do not carry into the new summary is lost.',
+            $flat2,
+            'opencode discard rule, verbatim',
+        );
+        $this->assertStringContainsString(
+            'Where they conflict, the conversation wins: state the corrected fact and drop the old claim.',
+            $flat2,
+            'opencode conversation-wins rule, verbatim',
+        );
+    }
+
+    /**
+     * R-E, pinned at the other polarity from the done-when: with no prior rows the
+     * request is EXACTLY the two messages it has always been — byte-equal to the
+     * two producers that built it, with no empty third block and no dangling header.
+     */
+    public function testAFirstCompactionRequestKeepsTheTwoMessageShapeWithNoPriorBlock(): void
+    {
+        $seen = null;
+        $chat = $this->chat($this->summarizer($this->records([1 => 'one', 2 => 'two', 3 => 'three', 4 => 'four']), $seen));
+        [$pending, $cmd] = $this->submit($chat);
+        $this->resolve($cmd);
+
+        $this->assertIsArray($seen, 'fixture: the summariser was reached');
+        $this->assertCount(2, $seen, 'no prior summary rows means there is no third message');
+        $this->assertSame(Role::System, $seen[0]->role);
+        $this->assertSame(Role::User, $seen[1]->role);
+
+        $prompt = (string) (new \ReflectionClass(Chat::class))->getConstant('COMPACT_SUMMARY_PROMPT');
+        $this->assertSame($prompt, $seen[0]->content, 'message 0 is exactly the unchanged instruction');
+        $this->assertStringContainsString('### Exchange 1', $seen[1]->content, 'message 1 is the exchanges block');
+        $this->assertStringNotContainsString(
+            '<prior-summary>',
+            $seen[0]->content . "\n" . $seen[1]->content,
+            'and neither message carries a prior-summary header on a first compaction',
+        );
+    }
+
+    /**
+     * R-D: the token-count rider is regenerated on every turn, so carrying the copy
+     * a previous compaction left behind would hand the model two numbers for one
+     * fact. It is declined at carry time — while a real summary row beside it still
+     * walks through, which is what makes this a value assertion rather than a
+     * "the block is empty" tautology.
+     */
+    public function testARegeneratedContextReminderRiderIsNotCarriedIntoTheNextRequest(): void
+    {
+        $real = 'asked: keep the postgres sslmode string | files: db.php';
+        $seen = null;
+        $chat = $this->chatWithPriors(
+            ['[summary] ' . $real, '[summary] Heads up: this conversation has grown to ~85% of the window'],
+            $seen,
+            $this->records([1 => 'x']),
+        );
+        [$pending, $cmd] = $this->submit($chat);
+        $this->resolve($cmd);
+
+        $this->assertCount(3, $seen, 'a real prior row still builds the block');
+        $this->assertStringContainsString($real, $seen[2]->content, 'the real summary row is carried');
+        $this->assertStringNotContainsString(
+            'this conversation has grown to',
+            $seen[2]->content,
+            'the regenerated context-reminder rider is NOT carried (R-D)',
+        );
+    }
+
+    /**
+     * R-D2: a legacy row that got the marker written twice (an older defect) must
+     * still survive the carry, with EXACTLY one marker stripped. Dropping it would
+     * be a removal; stripping both, or re-parsing, would rewrite what round one
+     * chose to keep.
+     */
+    public function testALegacyStackedSummaryRowSurvivesTheCarryVerbatim(): void
+    {
+        $seen = null;
+        $chat = $this->chatWithPriors(
+            ['[summary] [summary] legacy double-marked row from an older release'],
+            $seen,
+            $this->records([1 => 'x']),
+        );
+        [$pending, $cmd] = $this->submit($chat);
+        $this->resolve($cmd);
+
+        $this->assertCount(3, $seen, 'the stacked row still yields a prior block');
+        $this->assertStringContainsString(
+            '[summary] legacy double-marked row from an older release',
+            $seen[2]->content,
+            'one marker is removed and the stacked body survives verbatim (R-D2)',
+        );
+        $this->assertStringNotContainsString(
+            '[summary] [summary] legacy',
+            $seen[2]->content,
+            'exactly one marker is stripped — the carry is a single prefix removal, not a repeated re-parse',
+        );
+    }
+
+    /**
+     * R-D override: a heuristically folded prior row (`question -> [exchanged
+     * information]`) is the ONLY record of an exchange no model was ever asked
+     * about, so it is carried, not dropped. Cutting it here would be a silent
+     * removal of transcript content — the discard instruction belongs to the
+     * summariser, not the extractor.
+     */
+    public function testAHeuristicallyFoldedPriorRowIsCarriedAndNotDropped(): void
+    {
+        $seen = null;
+        $chat = $this->chatWithPriors(
+            ['[summary] question 7 → [exchanged information]'],
+            $seen,
+            $this->records([1 => 'x']),
+        );
+        [$pending, $cmd] = $this->submit($chat);
+        $this->resolve($cmd);
+
+        $this->assertCount(3, $seen, 'a heuristic prior row still builds the block');
+        $this->assertStringContainsString(
+            'question 7 → [exchanged information]',
+            $seen[2]->content,
+            'the heuristic placeholder row is carried, not dropped (R-D override)',
+        );
+    }
 }
