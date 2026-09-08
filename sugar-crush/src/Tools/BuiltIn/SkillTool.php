@@ -41,7 +41,15 @@ final readonly class SkillTool implements Tool
 
     public function description(): string
     {
-        return 'Invoke a named skill by loading its full instructions on-demand';
+        return 'Load the full SKILL.md instructions for one skill whose name you already '
+            . 'have. Skill names and their one-line descriptions are the entries in the '
+            . '"Available skills" section of the system prompt; this tool looks up exactly '
+            . 'one of them by name and does not itself list, search, or run skills, so do '
+            . 'not call it to discover what exists or for a task no listed skill covers. '
+            . 'The result is the instruction body of that skill prefixed with a '
+            . '"## Skill: name" marker, or an error when the name is empty, is not '
+            . 'model-invocable, or its file cannot be read. Do not call this tool again for '
+            . 'a skill whose body is already in the conversation.';
     }
 
     public function inputSchema(): array

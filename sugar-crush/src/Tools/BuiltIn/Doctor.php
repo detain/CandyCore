@@ -48,7 +48,16 @@ final class Doctor implements Tool
 
     public function description(): string
     {
-        return "Report the terminal's detected image-rendering capability (candy-mosaic protocol) and attach a tiny capability-swatch PNG.";
+        return 'Detect the image-rendering protocol of the current terminal using the '
+            . 'candy-mosaic probe, which runs at most once per process and is cached for '
+            . 'every later call. It takes no parameters, and its answer is a line of text '
+            . 'naming the pixel-graphics protocol that was found (Kitty, Sixel, or iTerm2) '
+            . 'or reporting that only a text-cell fallback is available, alongside a '
+            . '16-by-16 PNG capability swatch rendered green on a real pixel protocol and '
+            . 'amber on the fallback. Reach for it when a decision depends on which image '
+            . 'protocol this terminal speaks, such as before attaching an image to a '
+            . 'response. It only reports and samples the capability: it does not render or '
+            . 'overlay pixels in the terminal itself.';
     }
 
     public function inputSchema(): array
