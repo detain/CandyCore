@@ -116,6 +116,41 @@ final class CompactModelSummaryTest extends TestCase
         };
     }
 
+    /**
+     * One record in the shape {@see Chat}'s `COMPACT_SUMMARY_PROMPT` asks for: the
+     * exchange number alone on its line, then one line per facet. A facet left out
+     * of the list stays out of the record, which is how a test exercises the parse
+     * writing `none` in its place.
+     *
+     * @param array<string, string> $facets
+     */
+    private function record(int $number, array $facets): string
+    {
+        $lines = ["{$number}."];
+        foreach ($facets as $facet => $value) {
+            $lines[] = "{$facet}: {$value}";
+        }
+
+        return implode("\n", $lines);
+    }
+
+    /**
+     * The four records a 5-pair fixture earns — one per offered exchange, each
+     * with only the `asked` facet filled. For the tests below whose subject is
+     * routing and timing rather than the shape of a record.
+     *
+     * @param array<int, string> $askedByNumber
+     */
+    private function records(array $askedByNumber): string
+    {
+        $blocks = [];
+        foreach ($askedByNumber as $number => $asked) {
+            $blocks[] = $this->record((int) $number, ['asked' => $asked]);
+        }
+
+        return implode("\n", $blocks);
+    }
+
     private function submit(Chat $chat): array
     {
         return $chat->update(new KeyMsg(KeyType::Enter, ''));
@@ -162,7 +197,12 @@ final class CompactModelSummaryTest extends TestCase
      */
     public function testWithASummarizerCompactReturnsACmdAndRewritesNothingYet(): void
     {
-        $chat = $this->chat($this->summarizer("1. first\n2. second\n3. third\n4. fourth"));
+        $chat = $this->chat($this->summarizer($this->records([
+            1 => 'first',
+            2 => 'second',
+            3 => 'third',
+            4 => 'fourth',
+        ])));
         $before = count($chat->history);
 
         [$next, $cmd] = $this->submit($chat);
@@ -183,18 +223,48 @@ final class CompactModelSummaryTest extends TestCase
     }
 
     /**
-     * The compaction happens when the Msg lands, and it uses the model's lines.
-     * The `[exchanged information]` placeholder — the thing item 6 exists to
-     * remove — must be absent, and the model's own words present.
+     * The compaction happens when the summaries land, and it uses the model's
+     * records. The `[exchanged information]` placeholder — the thing item 6 exists
+     * to remove — must be absent, and every facet the model recorded present, which
+     * is the whole reason a record replaced the free-form line: the paths and the
+     * decision are what a resumed session needs back.
      */
     public function testTheCompactionHappensWhenTheSummariesLandAndUsesThem(): void
     {
-        $chat = $this->chat($this->summarizer(
-            "1. Asked about routing; chose config/routes.php.\n"
-            . "2. Asked about caching; picked Redis.\n"
-            . "3. Asked about tests; added a regression case.\n"
-            . "4. Asked about deploys; settled on the CI job."
-        ));
+        $chat = $this->chat($this->summarizer(implode("\n", [
+            $this->record(1, [
+                'asked' => 'about routing',
+                'did' => 'read the router',
+                'files' => 'config/routes.php',
+                'decided' => 'chose config/routes.php',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+            $this->record(2, [
+                'asked' => 'about caching',
+                'did' => 'wired the cache adapter',
+                'files' => 'src/Cache.php',
+                'decided' => 'picked Redis',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+            $this->record(3, [
+                'asked' => 'about tests',
+                'did' => 'added a regression case',
+                'files' => 'tests/RoutingTest.php',
+                'decided' => 'none',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+            $this->record(4, [
+                'asked' => 'about deploys',
+                'did' => 'edited the workflow',
+                'files' => '.github/workflows/deploy.yml',
+                'decided' => 'settled on the CI job',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+        ])));
 
         [$pending, $cmd] = $this->submit($chat);
         $msg = $this->resolve($cmd);
@@ -203,8 +273,17 @@ final class CompactModelSummaryTest extends TestCase
         [$done] = $pending->update($msg);
         $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
 
-        $this->assertStringContainsString('[summary] Asked about routing; chose config/routes.php.', $text);
-        $this->assertStringContainsString('[summary] Asked about caching; picked Redis.', $text);
+        $this->assertStringContainsString(
+            '[summary] asked: about routing | did: read the router | files: config/routes.php'
+            . ' | decided: chose config/routes.php | corrected: none | error: none',
+            $text,
+            'one record arrives as one joined transport line, facets in the order the prompt lists them',
+        );
+        $this->assertStringContainsString(
+            '[summary] asked: about caching | did: wired the cache adapter | files: src/Cache.php'
+            . ' | decided: picked Redis | corrected: none | error: none',
+            $text,
+        );
         $this->assertStringNotContainsString(
             '[exchanged information]',
             $text,
@@ -228,7 +307,7 @@ final class CompactModelSummaryTest extends TestCase
      */
     public function testOneCommandLeavesExactlyOneCompactLineInTheTranscript(): void
     {
-        $chat = $this->chat($this->summarizer('1. a'));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => 'a'])));
         [$pending, $cmd] = $this->submit($chat);
         [$done] = $pending->update($this->resolve($cmd));
 
@@ -252,7 +331,7 @@ final class CompactModelSummaryTest extends TestCase
     public function testTheRequestGoesToTheToollessSummaryBackendAndNotTheConversationBackend(): void
     {
         $seen = null;
-        $chat = $this->chat($this->summarizer('1. THE SUMMARIZER ANSWERED', $seen));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => 'THE SUMMARIZER ANSWERED']), $seen));
 
         [$pending, $cmd] = $this->submit($chat);
         [$done] = $pending->update($this->resolve($cmd));
@@ -278,7 +357,7 @@ final class CompactModelSummaryTest extends TestCase
     public function testThePromptNumbersTheExchangesInTheOrderTheReplyIsMappedBackIn(): void
     {
         $seen = null;
-        $chat = $this->chat($this->summarizer('1. one', $seen));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => 'one']), $seen));
         [$pending, $cmd] = $this->submit($chat);
         $pending->update($this->resolve($cmd));
 
@@ -348,7 +427,7 @@ final class CompactModelSummaryTest extends TestCase
      */
     public function testASummarizationForASupersededCompactIsDropped(): void
     {
-        $chat = $this->chat($this->summarizer('1. first attempt'));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => 'first attempt'])));
         [$first, $firstCmd] = $this->submit($chat);
         $staleMsg = $this->resolve($firstCmd);
 
@@ -364,7 +443,7 @@ final class CompactModelSummaryTest extends TestCase
     /** And `/clear` abandons one, for the same reason. */
     public function testClearAbandonsAnOutstandingSummarization(): void
     {
-        $chat = $this->chat($this->summarizer('1. first'));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => 'first'])));
         [$pending, $cmd] = $this->submit($chat);
         $msg = $this->resolve($cmd);
 
@@ -383,22 +462,26 @@ final class CompactModelSummaryTest extends TestCase
      * A summary line is model-authored text bound for the transcript AND for the
      * next prompt. An ESC could repaint the chrome around it and an embedded
      * newline would break the one-summary-per-message shape stage 3's grouping
-     * relies on, so both are flattened out.
+     * relies on, so both are flattened out — and because a wrapped facet line IS
+     * the model continuing that facet, flattening keeps its words instead of
+     * discarding everything after the first newline.
      */
     public function testControlBytesAndNewlinesAreStrippedFromASummaryLine(): void
     {
-        $chat = $this->chat($this->summarizer("1. clean\x1b[31mred\x1b[0m and\nsplit"));
+        $chat = $this->chat($this->summarizer(
+            "1.\nasked: clean\x1b[31mred\x1b[0m\ndid: a facet whose value the model\nwrapped onto a second line"
+        ));
         [$pending, $cmd] = $this->submit($chat);
         [$done] = $pending->update($this->resolve($cmd));
 
         $summary = null;
         foreach ($done->history as $message) {
-            if (str_starts_with($message->content, '[summary] clean')) {
+            if (str_starts_with($message->content, '[summary] asked: clean')) {
                 $summary = $message->content;
             }
         }
 
-        $this->assertNotNull($summary, 'fixture: the model line must have been applied');
+        $this->assertNotNull($summary, 'fixture: the model record must have been applied');
         $this->assertStringNotContainsString("\x1b", $summary);
         $this->assertStringNotContainsString("\n", $summary);
         $this->assertStringContainsString('clean', $summary, 'the visible text survives');
@@ -408,64 +491,362 @@ final class CompactModelSummaryTest extends TestCase
             'only the ESC byte goes - the rest of the sequence is inert literal text once its introducer is gone, '
             . 'and stripping it would be silently editing the model',
         );
-        $this->assertStringNotContainsString(
-            'split',
+        $this->assertStringContainsString(
+            'wrapped onto a second line',
             $summary,
-            'a newline ENDS the line at the parse step, so the tail after it is an unnumbered line and is not a '
-            . 'summary at all - the sanitiser never sees it',
+            'the tail under a facet belongs to that facet, so it lands in the same transport line',
         );
     }
 
     /**
      * An unbounded summary would let a "compaction" be larger than what it
-     * replaced. The ceiling is the same 200 characters
-     * `COMPACT_SUMMARY_PROMPT` asks the model for, read off the constant so the
-     * instruction and the enforcement cannot drift apart.
+     * replaced, so the joined line is clipped at {@see Chat}'s
+     * `SUMMARY_LINE_MAX_CHARS`. That ceiling is a transport bound and deliberately
+     * NOT something the prompt states: an instruction to fit a record inside a
+     * short line is what crushed the format this one replaced, so this test pins
+     * both halves - the bound the code enforces, and the absence of any character
+     * count the model is asked to satisfy.
      */
-    public function testAnOverlongSummaryLineIsBoundedToTheCeilingThePromptAsksFor(): void
+    public function testAnOverlongSummaryLineIsBoundedByTheTransportCeilingNotThePrompt(): void
     {
         $max = (new \ReflectionClass(Chat::class))->getConstant('SUMMARY_LINE_MAX_CHARS');
         $this->assertIsInt($max);
-        $this->assertStringContainsString(
-            "under {$max} characters",
+        $this->assertStringNotContainsString(
+            'characters',
             (string) (new \ReflectionClass(Chat::class))->getConstant('COMPACT_SUMMARY_PROMPT'),
-            'the prompt must ask for the bound the code enforces',
+            'the instruction must not state a character count the code enforces separately',
         );
 
-        $chat = $this->chat($this->summarizer('1. ' . str_repeat('z', $max * 3)));
+        $chat = $this->chat($this->summarizer($this->record(1, ['asked' => str_repeat('z', $max * 3)])));
         [$pending, $cmd] = $this->submit($chat);
         [$done] = $pending->update($this->resolve($cmd));
 
         $summary = null;
         foreach ($done->history as $message) {
-            if (str_starts_with($message->content, '[summary] zzz')) {
+            if (str_starts_with($message->content, '[summary] asked: zzz')) {
                 $summary = $message->content;
             }
         }
         $this->assertNotNull($summary);
         $this->assertSame($max, mb_strlen(substr($summary, strlen('[summary] '))));
+        $this->assertStringNotContainsString(
+            'error: none',
+            $summary,
+            'a facet long enough to reach the ceiling pushes the rest of its own record out - the honest cost of a '
+            . 'bound that is not part of the instruction, and why the number has to stay generous',
+        );
     }
 
     /**
-     * A number outside the range, and a duplicate, are both ignored rather than
-     * mapped onto whatever is nearest — which is how a partially-obeyed
-     * instruction degrades to the heuristic instead of mis-attributing.
+     * A number outside the range, and a repeat of one already used, are both
+     * ignored rather than mapped onto whatever is nearest — which is how a
+     * partially-obeyed instruction degrades to the heuristic instead of
+     * mis-attributing.
      */
     public function testOutOfRangeAndDuplicateNumbersAreIgnored(): void
     {
+        $chat = $this->chat($this->summarizer(implode("\n", [
+            $this->record(0, ['asked' => 'numbered from zero']),
+            $this->record(1, ['asked' => 'FIRST']),
+            $this->record(1, ['asked' => 'A SECOND RECORD FOR ONE']),
+            $this->record(99, ['asked' => 'way out of range']),
+        ])));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertSame(
+            ['asked: FIRST | did: none | files: none | decided: none | corrected: none | error: none'],
+            array_values($msg->summaries),
+        );
+
+        [$done] = $pending->update($msg);
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringNotContainsString('A SECOND RECORD FOR ONE', $text);
+        $this->assertStringNotContainsString('way out of range', $text);
+        $this->assertStringNotContainsString('numbered from zero', $text);
+    }
+
+    // =====================================================================
+    // THE SHAPE OF A RECORD
+    // =====================================================================
+
+    /**
+     * The point of the format: the paths, the decision and the error string reach
+     * the transcript exactly as the model wrote them, instead of being the first
+     * things a short free-form line dropped.
+     */
+    public function testEveryFacetKeepsTheModelWordsVerbatimIncludingAnErrorString(): void
+    {
+        $error = "SQLSTATE[42S02]: Base table or view not found: 1146 Table 'craft'.'sessions' doesn't exist";
+        $chat = $this->chat($this->summarizer($this->record(1, [
+            'asked' => 'why sessions vanish after deploy',
+            'did' => 'ran `bin/migrate --seed` twice',
+            'files' => 'src/Session/SessionStore.php, migrations/2026_09_01_sessions.sql',
+            'decided' => 'add the missing table before the seed, not after',
+            'corrected' => 'user said the rollback theory was wrong',
+            'error' => $error,
+        ])));
+        [$pending, $cmd] = $this->submit($chat);
+        [$done] = $pending->update($this->resolve($cmd));
+
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringContainsString($error, $text, 'the error text survives byte for byte');
+        $this->assertStringContainsString('migrations/2026_09_01_sessions.sql', $text, 'and so does the path');
+        $this->assertStringContainsString('add the missing table before the seed', $text, 'and the decision');
+        $this->assertStringContainsString('user said the rollback theory was wrong', $text, 'and the correction');
+    }
+
+    /**
+     * A facet the model never wrote is filled with `none` rather than dropped: a
+     * resumed reader must be able to tell "nothing happened" from "the summarizer
+     * skipped the field".
+     */
+    public function testAFacetTheModelSkipsIsRecordedAsNoneRatherThanDropped(): void
+    {
+        $chat = $this->chat($this->summarizer($this->record(1, ['error' => 'TypeError: x() is undefined'])));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertSame(
+            ['asked: none | did: none | files: none | decided: none | corrected: none'
+                . ' | error: TypeError: x() is undefined'],
+            array_values($msg->summaries),
+            'every facet is present, in the order the prompt lists them',
+        );
+
+        [$done] = $pending->update($msg);
+        $this->assertStringContainsString(
+            '[summary] asked: none',
+            implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history)),
+        );
+    }
+
+    /**
+     * A record opened and never given a facet maps to nothing. Six `none`s say
+     * less about the exchange than the heuristic does, so the exchange keeps its
+     * local summary instead of trading it for an empty form.
+     */
+    public function testARecordWithNoFacetLinesAtAllFallsBackToTheHeuristic(): void
+    {
         $chat = $this->chat($this->summarizer(
-            "0. numbered from zero\n1. FIRST\n1. A SECOND LINE FOR ONE\n99. way out of range"
+            "1.\n2.\ndid: only the second record has a facet\n3.\n4."
         ));
         [$pending, $cmd] = $this->submit($chat);
         $msg = $this->resolve($cmd);
 
-        $this->assertSame(['FIRST'], array_values($msg->summaries));
+        $this->assertSame(
+            ['asked: none | did: only the second record has a facet | files: none | decided: none'
+                . ' | corrected: none | error: none'],
+            array_values($msg->summaries),
+            'exactly the one record that named a facet, and it is the second exchange that got it',
+        );
 
         [$done] = $pending->update($msg);
         $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
-        $this->assertStringNotContainsString('A SECOND LINE FOR ONE', $text);
-        $this->assertStringNotContainsString('way out of range', $text);
-        $this->assertStringNotContainsString('numbered from zero', $text);
+        $this->assertStringContainsString('[summary] asked: none | did: only the second record has a facet', $text);
+        $this->assertStringContainsString(
+            '[exchanged information]',
+            $text,
+            'the three facet-less records fell back to the heuristic rather than becoming empty lines',
+        );
+    }
+
+    /**
+     * The older transport - one free-form line per exchange, `1. ...` - must not
+     * parse into records. Half-reading it would attach the whole line to the last
+     * facet it happened to mention, or to none at all; the honest answer is that
+     * nothing usable arrived, which sends every exchange to the heuristic.
+     */
+    public function testALinePerExchangeReplyIsNotMistakenForRecords(): void
+    {
+        $chat = $this->chat($this->summarizer(
+            "1. asked about files: src/a.php and decided: rewrite it\n2. asked about did: nothing"
+        ));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertSame([], $msg->summaries, 'a number with text after it opens no record');
+
+        [$done] = $pending->update($msg);
+        $this->assertStringContainsString(
+            'The model returned no usable summaries',
+            $done->history[count($done->history) - 1]->content,
+            'and the user is told, rather than quietly given the fallback',
+        );
+    }
+
+    /**
+     * THE NON-MIS-ATTRIBUTION PIN. A model that bolds its record numbers writes
+     * `**2.**`, which the opener pattern correctly refuses - and under a parser
+     * that attaches every facet to whatever record is open, exchange 2's facets
+     * would then be filed under exchange 1's key. That is the one failure this
+     * parse must never ship: a dropped summary degrades to the heuristic, a merged
+     * one states something false about the transcript. So an out-of-order facet
+     * discards the record collected so far and parks what follows under no number
+     * at all, while a later line that opens cleanly still maps where it belongs.
+     */
+    public function testASwallowedRecordBoundaryNeverMergesBackwards(): void
+    {
+        $chat = $this->chat($this->summarizer(
+            "1.\nasked: what the FIRST exchange asked\nfiles: first.php\ndecided: keep first.php\n"
+            . "**2.**\nasked: what the SECOND exchange asked\nfiles: second.php\ndecided: keep second.php\n"
+            . "3.\nasked: what the THIRD exchange asked\n"
+        ));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertCount(
+            1,
+            $msg->summaries,
+            'the bolded opener cost two records their summaries - both exchanges fall back - and gained none',
+        );
+        $survivor = array_values($msg->summaries);
+        $this->assertStringStartsWith(
+            'asked: what the THIRD exchange asked',
+            $survivor[0],
+            'the only record that survived is the one that opened cleanly',
+        );
+
+        [$done] = $pending->update($msg);
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringNotContainsString('what the FIRST exchange asked', $text);
+        $this->assertStringNotContainsString(
+            'what the SECOND exchange asked',
+            $text,
+            'and above all: exchange 2 never appears under exchange 1, or under any other exchange',
+        );
+
+        // Positional proof - the one model summary must sit THIRD, behind the two
+        // heuristic placeholders its exchanges fell back to, not first.
+        $lines = array_map(static fn(Message $m): string => $m->content, $done->history);
+        $summaryAt = null;
+        foreach ($lines as $i => $line) {
+            if (str_starts_with($line, '[summary] asked: what the THIRD')) {
+                $summaryAt = $i;
+            }
+        }
+        $this->assertNotNull($summaryAt, 'fixture: the surviving summary is in the transcript');
+        $fallbacksAhead = 0;
+        foreach (array_slice($lines, 0, $summaryAt) as $line) {
+            if (str_contains($line, '[exchanged information]')) {
+                $fallbacksAhead++;
+            }
+        }
+        $this->assertSame(
+            2,
+            $fallbacksAhead,
+            'exchanges one and two both landed on the heuristic, ahead of the summary that stayed in its place',
+        );
+    }
+
+    /**
+     * A record that filled every facet with `none` is the instruction's own answer
+     * for an exchange holding nothing worth keeping - and six `none`s still say
+     * less than the heuristic does. This is the case the format invites the model
+     * to write, so deferring is load-bearing: a six-`none` line mapped over a real
+     * local summary would make the compaction strictly worse than no model at all.
+     */
+    public function testARecordOfSixNonesDefersToTheHeuristicRatherThanMapping(): void
+    {
+        $chat = $this->chat($this->summarizer(implode("\n", [
+            $this->record(1, ['asked' => 'a real question', 'files' => 'real.php']),
+            $this->record(2, [
+                'asked' => 'none',
+                'did' => 'none',
+                'files' => 'none',
+                'decided' => 'none',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+        ])));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertCount(1, $msg->summaries, 'only the record with content in it mapped');
+
+        [$done] = $pending->update($msg);
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringContainsString(
+            '[summary] asked: a real question | did: none | files: real.php',
+            $text,
+        );
+        $this->assertStringNotContainsString(
+            'asked: none | did: none | files: none | decided: none | corrected: none | error: none',
+            $text,
+            'the six-none line is never stored, in any exchange, under any prefix',
+        );
+        $this->assertStringContainsString(
+            '[exchanged information]',
+            $text,
+            'and the all-none exchange kept its heuristic summary',
+        );
+    }
+
+    /**
+     * A `label:` line naming none of the six facets is a field the instruction
+     * never asked for. It must not be appended to the facet above it as wrapped
+     * prose, or an invented `note:` silently rewrites what the model said the
+     * error was. The line is dropped; the record stands.
+     */
+    public function testAFacetTheInstructionNeverAskedForIsDroppedNotFoldedIntoTheOneAbove(): void
+    {
+        $chat = $this->chat($this->summarizer($this->record(1, [
+            'asked' => 'why the build broke',
+            'error' => 'exit status 2',
+        ]) . "\nnote: the model volunteered this field unprompted"));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $kept = array_values($msg->summaries);
+        $this->assertCount(1, $kept, 'the record itself is still usable');
+        $this->assertStringNotContainsString(
+            'volunteered',
+            $kept[0],
+            'the invented field never reaches the summary it would have been appended to',
+        );
+        $this->assertStringContainsString('error: exit status 2', $kept[0]);
+    }
+
+    /**
+     * The prompt, the facet list and the facet pattern are one contract in three
+     * places. If a seventh facet is added to the instruction but not the parser -
+     * or the other way round - the model's answer silently loses a field, so the
+     * three are pinned against each other here. The prompt side is BIDIRECTIONAL:
+     * the facet lines are read out of the instruction and compared as a whole list,
+     * so adding a facet to either half alone goes red.
+     */
+    public function testTheFacetListThePatternAcceptsAndThePromptAsksForCannotDriftApart(): void
+    {
+        $reflect = new \ReflectionClass(Chat::class);
+        $facets = $reflect->getConstant('SUMMARY_FACETS');
+        $this->assertIsArray($facets);
+        $this->assertSame(
+            ['asked', 'did', 'files', 'decided', 'corrected', 'error'],
+            $facets,
+            'the six facets the format is named for',
+        );
+
+        $pattern = (string) $reflect->getConstant('SUMMARY_FACET_PATTERN');
+        $this->assertSame(1, preg_match('/\(([^)]*)\)/u', $pattern, $m), 'fixture: the pattern has a label group');
+        $this->assertSame(
+            implode('|', $facets),
+            $m[1],
+            'the pattern accepts exactly the facets, in the same order, no more and no fewer',
+        );
+
+        $prompt = (string) $reflect->getConstant('COMPACT_SUMMARY_PROMPT');
+        $found = preg_match_all('/^\s*([a-z]+): </m', $prompt, $asked);
+        $this->assertSame(
+            count($facets),
+            $found,
+            'fixture: the instruction templates exactly one facet line per facet, and no stray "word: <" line',
+        );
+        $this->assertSame(
+            $facets,
+            $asked[1],
+            'the instruction templates exactly the facets the parser accepts, in that order - a seventh line here'
+            . ' with no matching entry in SUMMARY_FACETS would be a field the model is asked for and the code drops',
+        );
     }
 
     // =====================================================================
@@ -499,7 +880,11 @@ final class CompactModelSummaryTest extends TestCase
         $seen = null;
         // ONE pair, which with the `/compact` pair makes two - exactly
         // recentPreserveCount, so nothing is condensed and nothing is worth asking.
-        $chat = $this->chat($this->summarizer('1. never asked', $seen), '/compact', pairs: 1);
+        $chat = $this->chat(
+            $this->summarizer($this->record(1, ['asked' => 'never asked']), $seen),
+            '/compact',
+            pairs: 1,
+        );
 
         [$next, $cmd] = $this->submit($chat);
 
@@ -559,7 +944,7 @@ final class CompactModelSummaryTest extends TestCase
             compactorConfig: $this->compactorConfig(),
             tokenTracker: $tracker,
             maxCostUsd: 1.0,
-            summaryBackend: $this->summarizer('1. never asked', $seen),
+            summaryBackend: $this->summarizer($this->record(1, ['asked' => 'never asked']), $seen),
         );
         [$cappedNext, $cappedCmd] = $this->submit($capped);
 
@@ -580,7 +965,7 @@ final class CompactModelSummaryTest extends TestCase
             inputBuf: '/compact',
             backend: new EchoBackend(),
             compactorConfig: $this->compactorConfig(),
-            summaryBackend: $this->summarizer('1. never asked', $seen),
+            summaryBackend: $this->summarizer($this->record(1, ['asked' => 'never asked']), $seen),
         );
 
         [$next, $cmd] = $this->submit($chat);
@@ -609,7 +994,7 @@ final class CompactModelSummaryTest extends TestCase
      */
     public function testALandingCompactionLeavesAnInProgressDraftAlone(): void
     {
-        $chat = $this->chat($this->summarizer("1. a\n2. b\n3. c\n4. d"));
+        $chat = $this->chat($this->summarizer($this->records([1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd'])));
         [$pending, $cmd] = $this->submit($chat);
 
         // Keep typing, exactly as the Msg's docblock says a user may.
@@ -633,7 +1018,7 @@ final class CompactModelSummaryTest extends TestCase
      */
     public function testALandingCompactionLeavesARunningTurnInFlightAndItsReplyStillLands(): void
     {
-        $chat = $this->chat($this->summarizer("1. a\n2. b\n3. c\n4. d"));
+        $chat = $this->chat($this->summarizer($this->records([1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd'])));
         [$pending, $summaryCmd] = $this->submit($chat);
 
         [$turned] = $this->type($pending, 'a real prompt');
@@ -690,7 +1075,7 @@ final class CompactModelSummaryTest extends TestCase
                 history: $this->history(),
                 backend: new EchoBackend(),
                 compactorConfig: $this->compactorConfig(),
-                summaryBackend: $this->summarizer("1. a\n2. b\n3. c\n4. d"),
+                summaryBackend: $this->summarizer($this->records([1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd'])),
                 sessionStore: $store,
                 currentSessionId: 'sess',
             );
@@ -737,7 +1122,7 @@ final class CompactModelSummaryTest extends TestCase
                 history: $this->history(),
                 backend: new EchoBackend(),
                 compactorConfig: $this->compactorConfig(),
-                summaryBackend: $this->summarizer("1. a\n2. b\n3. c\n4. d"),
+                summaryBackend: $this->summarizer($this->records([1 => 'a', 2 => 'b', 3 => 'c', 4 => 'd'])),
                 sessionStore: $store,
                 currentSessionId: 'sess',
             );

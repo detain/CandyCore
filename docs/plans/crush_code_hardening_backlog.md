@@ -1450,6 +1450,16 @@ fixture. What is left after the correction is a narrower but real dead end.
   cannot exceed 210: `Chat::sanitizeSummaryLine()` flattens all control bytes and
   whitespace and `mb_substr`s to 200 characters. So B2 widens the worst case by 17
   columns in a place that was already 16 columns over at 90 characters.
+  **CORRECTED 2026-09-08 (prompt-architecture P8.S1):** every number in the two
+  sentences above is stale. The six-facet record replaced the one free-form line,
+  `SUMMARY_LINE_MAX_CHARS` went 200 → **2000**, and the bound is now a transport
+  ceiling the prompt deliberately does not state. The worst `[summary]` row is
+  therefore **2010** characters — `mb_substr` at 2000 plus the same 10-char prefix —
+  and the heuristic row is unchanged at 193. The analysis that the wrapping hole is
+  pre-existing and not B2's doing still stands, and stands harder: the worst case is
+  now 25 times wider than the 80-column terminal rather than 2.6. The original
+  figures are kept above because the reasoning that produced them is what makes the
+  hole findable.
 - **Step** Wrap (not truncate) each transcript line to `cols()` before it enters
   the frame, following the widest-first-form pattern `Renderer::contextIndicator()`
   uses and measuring with `Width::of(self::stripZoneMarkers(...))`. Never cut a
