@@ -1073,6 +1073,19 @@ final class CompactModelSummaryTest extends TestCase
             'Spend cap reached',
             $cappedNext->history[count($cappedNext->history) - 1]->content,
         );
+        // The WHOLE notice byte-exact, tail included. The substring pin above only
+        // proves the sentence starts somewhere; this one fixes every byte the user
+        // reads at this fixture's figures - $5.00 spent against a $1.00 cap, and the
+        // doubled ceiling the advice names ($10.00). Written out as a literal rather
+        // than rebuilt from the production format strings, because a test that
+        // reuses the pieces it is checking cannot tell one notice from two.
+        $this->assertStringStartsWith(
+            'Spend cap reached ($5.0000 of $1.0000), so the model was not asked to summarise '
+            . '— compacted with the local heuristic instead. Raise the cap with /budget 10.00 '
+            . 'and run /compact again for model-written summaries. ',
+            $cappedNext->history[count($cappedNext->history) - 1]->content,
+            'the /compact cap notice is pinned end to end, advice tail included',
+        );
     }
 
     /** An empty transcript answers as it always did, with no provider call. */

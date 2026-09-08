@@ -9782,7 +9782,9 @@ final class Chat implements Model
      * is never an available outcome. Accepted now on grounds that are measured, not a
      * shrug: the exchanges message has handed this same summariser raw user text with
      * no fence around it since the request existed ({@see renderExchangesForSummary()},
-     * fed verbatim by {@see Context\ContextCompactor::exchangesToSummarize()}), so what
+     * fed raw and unfenced by {@see Context\ContextCompactor::exchangesToSummarize()} —
+     * the user half whole, and since P8.S4 the assistant half only character-clipped,
+     * never escaped), so what
      * escaping this block adds is a label for an author who already supplies unlabelled
      * input to forge — label-forgery by the SAME untrusted author, not new data
      * exposure — and the reply is gated structurally on its own terms by
