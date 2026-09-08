@@ -61,6 +61,7 @@ use SugarCraft\Crush\Tools\BuiltIn\SkillTool;
 use SugarCraft\Crush\Tools\BuiltIn\WebFetch;
 use SugarCraft\Crush\Tools\BuiltIn\WebSearch;
 use SugarCraft\Crush\Tools\BuiltIn\Write;
+use SugarCraft\Crush\Tools\Concerns\DetectsCapabilities;
 use SugarCraft\Crush\Tools\McpToolBridge;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Workflows\WorkflowEngine;
@@ -84,6 +85,8 @@ use SugarCraft\Crush\Workflows\WorkflowRegistry;
  */
 final class Bootstrap
 {
+    use DetectsCapabilities;
+
     /**
      * The per-invocation override and the persisted key for the launch's
      * permission mode, plus the mode used when neither says anything. See
@@ -2142,7 +2145,19 @@ final class Bootstrap
         // HOISTED out of the `withTools()` argument below rather than inlined:
         // tools() reaches filterToolSet(), which is itself a transcript source,
         // so its notices have to be in hand before the delta is taken.
-        $tools = self::tools($root, null, $skills);
+        //
+        // The two capability booleans are this class's only reads of the host
+        // PATH, and DetectsCapabilities memoizes each answer for the process, so
+        // a launch that reaches all three `tools()` sites still pays for one stat
+        // walk per binary — and no subprocess, which is the failure that would
+        // trip phpunit's failOnWarning gate on a container without `rg`.
+        $tools = self::tools(
+            $root,
+            null,
+            $skills,
+            rgAvailable: self::capabilityPresent('rg'),
+            fdAvailable: self::capabilityPresent('fd'),
+        );
 
         // THE DELTA, never the whole list. {@see Chat::withLaunchNotices()}
         // APPENDS, and $chat already carries everything chat() had recorded —
@@ -2375,7 +2390,14 @@ final class Bootstrap
         $skills ??= self::skillRegistry($root);
 
         $engine = (new EngineBackend(new EchoProvider(), 'echo'))
-            ->withTools(self::tools($root, $loader, $skills))
+            // Boot-once capabilities — see the note at app()'s `tools()` call.
+            ->withTools(self::tools(
+                $root,
+                $loader,
+                $skills,
+                rgAvailable: self::capabilityPresent('rg'),
+                fdAvailable: self::capabilityPresent('fd'),
+            ))
             ->withHooks(self::hooks(null, $root))
             // `??=`, not `??`, and INSIDE the chain rather than hoisted above
             // it: the approver below needs the gate that was actually
@@ -2449,7 +2471,14 @@ final class Bootstrap
         $skills ??= self::skillRegistry($root);
 
         $engine = (new EngineBackend($provider, (string) $model))
-            ->withTools(self::tools($root, $loader, $skills))
+            // Boot-once capabilities — see the note at app()'s `tools()` call.
+            ->withTools(self::tools(
+                $root,
+                $loader,
+                $skills,
+                rgAvailable: self::capabilityPresent('rg'),
+                fdAvailable: self::capabilityPresent('fd'),
+            ))
             ->withHooks(self::hooks(null, $root))
             // See backend(): `??=` in place, so the approver below can read the
             // mode off the gate that was installed without re-reading the
@@ -5546,11 +5575,23 @@ final class Bootstrap
      * @param LspClient|null $lsp Language servers for {@see LspTool}, threaded
      *        through to {@see lspTool()}. Null — the shipped state, since nothing
      *        in `src/` builds one — leaves the tool reachable but refusing.
+     * @param bool $rgAvailable Host has `rg`; threaded to {@see Grep} only.
+     *        {@see \SugarCraft\Crush\Tools\Concerns\DetectsCapabilities} is the
+     *        probe and the boot call sites below are the only readers of it, so
+     *        this factory stays a pure function of its arguments and every test
+     *        that calls it without the flag renders the absent description.
+     * @param bool $fdAvailable Host has `fd`; same rule, threaded to {@see Glob}.
      *
      * @return list<Tool>
      */
-    public static function tools(?string $root = null, ?InstructionFileLoader $loader = null, ?SkillRegistry $skills = null, ?LspClient $lsp = null): array
-    {
+    public static function tools(
+        ?string $root = null,
+        ?InstructionFileLoader $loader = null,
+        ?SkillRegistry $skills = null,
+        ?LspClient $lsp = null,
+        bool $rgAvailable = false,
+        bool $fdAvailable = false,
+    ): array {
         $root = self::requireRoot($root);
         $loader ??= self::instructionLoader($root);
         $skills ??= self::skillRegistry($root);
@@ -5575,7 +5616,7 @@ final class Bootstrap
             new Bash($root),
             new Read($root, instructionLoader: $loader, skillNudge: $nudge),
             new Edit($root, instructionLoader: $loader, skillNudge: $nudge),
-            new Glob($root, instructionLoader: $loader, skillNudge: $nudge),
+            new Glob($root, instructionLoader: $loader, skillNudge: $nudge, fdAvailable: $fdAvailable),
             // Same pair as Read/Edit/Glob/Write, and it was the one
             // path-resolving tool without them: a `CLAUDE.md` governing a
             // directory stayed unannounced when Grep was what surfaced the
@@ -5587,7 +5628,7 @@ final class Bootstrap
             // {@see \SugarCraft\Crush\Tools\BuiltIn\Grep::isParallelSafe()}
             // for why its concurrency verdict is unchanged but its
             // justification is not.
-            new Grep($root, instructionLoader: $loader, skillNudge: $nudge),
+            new Grep($root, instructionLoader: $loader, skillNudge: $nudge, rgAvailable: $rgAvailable),
             // Write, and it was missing: {@see Edit} refuses a path that does
             // not exist yet (it requires `file_exists()` AND a non-empty
             // `old_string`), so with the set at nine the model's ONLY route to
