@@ -13,6 +13,7 @@ use SugarCraft\Crush\Backend;
 use SugarCraft\Crush\Backend\CancellationToken;
 use SugarCraft\Crush\Backend\ReportsContextWindow;
 use SugarCraft\Crush\Chat;
+use SugarCraft\Crush\Context\IdleCompactionPolicy;
 use SugarCraft\Crush\HistoryCompactedMsg;
 use SugarCraft\Crush\Message;
 use SugarCraft\Crush\Role;
@@ -252,8 +253,16 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
      * one about to go out — and the reason the double-Escape cancel arm had to
      * learn to release the summarization latch.
      *
-     * `generation` and the cancellation token belong to a backend turn, so
-     * neither is armed yet.
+     * `generation` belongs to a backend turn, so it is NOT consumed here. The
+     * cancellation token is the other half of that sentence and it no longer holds:
+     * the token belongs to the SUMMARIZATION call rather than to a turn, so it is
+     * armed here, and this line used to assert the opposite. That assertion pinned
+     * the §E32 defect — Escape abandoned the parked turn while the provider request
+     * it had already paid for ran on — so P8.S5 replaces the pin with the property
+     * it contradicted, and the two cancel tests below are what the armed token now
+     * has to satisfy. Widening the pair of armed keys is a strengthening, not a
+     * loosening: the token must EXIST and be uncancelled at park time, which is the
+     * precondition the cancel arm depends on.
      */
     public function testTheParkedWindowHoldsInFlightWithoutArmingATurn(): void
     {
@@ -265,7 +274,9 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         $this->assertTrue($parked->inFlight, 'a turn IS going to happen, so Enter must be swallowed meanwhile');
         $this->assertNotNull($this->latchOf($parked), 'the summarization latch is armed');
         $this->assertSame($before, $this->generationOf($parked), 'no turn has started, so no generation was consumed');
-        $this->assertNull($this->cancellationOf($parked), 'and there is nothing to cancel yet');
+        $parkedToken = $this->cancellationOf($parked);
+        $this->assertInstanceOf(CancellationToken::class, $parkedToken, 'the parked summarization has a token to cancel');
+        $this->assertFalse($parkedToken->isCancelled(), 'and nothing has cancelled it yet');
         $this->assertSame('', $parked->inputBuf, 'the draft was consumed by pressing Enter');
     }
 
@@ -1163,6 +1174,446 @@ final class AutomaticCompactionModelSummaryTest extends TestCase
         $this->assertTrue($scrolled->inFlight);
     }
 
+    // =====================================================================
+    // 9. The compaction circuit breaker (prompt_expand.md §4.23)
+    // =====================================================================
+
+    /**
+     * The thrash loop upstream shipped and then had to fix: when the recent window
+     * the compaction preserves is itself over the tier, every rewrite comes straight
+     * back over it, so the tier fires again on the next prompt, asks the model again,
+     * and buys nothing again — §4.23's "context refills to the limit immediately
+     * after compacting three times in a row".
+     *
+     * `unshrinkablePairs()` is exactly that shape, and the three refills are WALKED
+     * rather than declared: three complete park/land cycles through the live
+     * `submit()`, the counter asserted after each one, because the increment site is
+     * the part most easily got wrong. A counter written on the object the landing
+     * returns and read off an earlier clone sits at zero forever, and every other
+     * behaviour in this file looks identical while it does.
+     *
+     * What the first three attempts do is UNCHANGED from before the breaker — model
+     * asked, rewrite landed, turn refused at the 95% tier — which is the point of
+     * asserting the count at each step instead of only at the end: the breaker must
+     * not touch a tier that is still making progress, and it must not need a fourth
+     * payment to say so.
+     *
+     * The prompt is 40,000 characters, and {@see thrashingDraft()} says why it has to
+     * be that big rather than the two words every other test here types.
+     */
+    public function testThreeCompactionsThatRefillTheContextTripTheBreakerAndRefuseTheNextTurn(): void
+    {
+        $draft = self::thrashingDraft();
+        $summarizer = $this->generousSummarizer();
+        $chat = $this->chat(self::unshrinkablePairs(), $summarizer, $main);
+        $this->assertSame(0, $this->refillCountOf($chat), 'a fresh session has thrashed zero times');
+
+        for ($attempt = 1; $attempt <= IdleCompactionPolicy::REFILL_LIMIT; $attempt++) {
+            [$parked, $cmd] = $this->submit($this->withDraft($chat, $draft));
+            $this->assertNotNull($cmd, "attempt {$attempt}: the tier must still park the turn and ask the model");
+            $this->assertSame(
+                $attempt - 1,
+                $this->refillCountOf($parked),
+                "attempt {$attempt}: parking itself changes nothing about the run",
+            );
+
+            [$landed, $landedCmd] = $parked->update($this->resolve($cmd));
+
+            $this->assertSame(
+                $attempt,
+                $this->refillCountOf($landed),
+                "attempt {$attempt}: the rewrite left the context back over the tier, so the run is {$attempt} long",
+            );
+            $this->assertSame($attempt, $summarizer->calls, 'and the model was asked exactly once per attempt');
+            $this->assertNull($landedCmd, 'the landing still ends at the 95% tier, exactly as it did before the breaker');
+            $this->assertNull($this->latchOf($landed), 'the landing released the latch as it always did');
+            $this->assertFalse($landed->inFlight, 'and no window is left open behind it');
+            $chat = $landed;
+        }
+
+        $refusalDraft = $this->withDraft($chat, $draft);
+        $historyBefore = count($refusalDraft->history);
+        $turnCallsBefore = $main->calls();
+        [$refused, $cmd] = $this->submit($refusalDraft);
+
+        $this->assertNull($cmd, 'the fourth compaction is refused before anything is asked or rewritten');
+        $this->assertSame(IdleCompactionPolicy::REFILL_LIMIT, $summarizer->calls, 'the summarizer is not called again');
+        $this->assertSame($turnCallsBefore, $main->calls(), 'nor is the conversation backend');
+        $this->assertNull($this->latchOf($refused), 'nothing is parked, so no latch is armed');
+        $this->assertFalse($refused->inFlight, 'and the session is not left holding a window nobody will land');
+
+        $notice = $refused->history[count($refused->history) - 1];
+        $this->assertSame(Role::System, $notice->role, 'the tier reports about itself, it does not answer as the model');
+        $this->assertStringContainsString(
+            'Context compaction has run ' . IdleCompactionPolicy::REFILL_LIMIT . ' times in a row',
+            $notice->content,
+        );
+        $this->assertStringContainsString('/rewind', $notice->content, 'and it names the exits that work from here');
+        $this->assertStringContainsString('/clear', $notice->content);
+        $this->assertStringContainsString('/model', $notice->content);
+        $this->assertStringNotContainsString('/compact', $notice->content, 'which does not include the command that refills again');
+        $this->assertStringNotContainsString('%', $notice->content, 'and no tier percentage the user never set');
+        $this->assertSame(
+            $draft,
+            $refused->inputBuf,
+            'the prompt is kept - nothing was sent, and the fix is a decision about the transcript',
+        );
+        $this->assertSame(
+            $historyBefore + 1,
+            count($refused->history),
+            'the refusal appends its notice and rewrites nothing',
+        );
+        $this->assertSame(
+            IdleCompactionPolicy::REFILL_LIMIT,
+            $this->refillCountOf($refused),
+            'a refusal does not clear the run it is refusing for',
+        );
+    }
+
+    /**
+     * The prompt the thrash test drives its three refills with: 40,000 characters,
+     * about 10,000 estimated tokens.
+     *
+     * It has to be a big prompt, and the reason is the same arithmetic that makes
+     * `unshrinkablePairs()` unshrinkable. Every round the compaction replaces one more
+     * of the seed's 30,000-character exchanges with a `[summary]` line, so the
+     * rewritten history shrinks by roughly 15,000 estimated tokens per attempt; typed
+     * with the two-word draft every other test here uses, the third attempt lands UNDER
+     * the 85% tier and the counter resets — correctly, because that compaction
+     * genuinely made progress. What refills a compacted context and keeps refilling it
+     * is the newest exchange, and on this route the newest exchange is whatever the
+     * user just pressed Enter on. A pasted log is what §4.23 is describing, and it is
+     * the only shape here that reaches three in a row.
+     *
+     * 40,000 is enough and not much more: measured, the three landings come in at
+     * 130,600 / 110,900 / 91,200 estimated tokens, all clear of the 95% blocking tier
+     * at 83,600. That clearance is load-bearing rather than tidy — a landing that got
+     * under the blocking tier would DISPATCH the parked turn, and the next Enter would
+     * queue behind that turn instead of reaching the tier, which is a different path
+     * from the one under test.
+     */
+    private static function thrashingDraft(): string
+    {
+        return str_repeat('p', 40_000);
+    }
+
+    /**
+     * One short of the limit, the tier still fires — and a compaction that actually
+     * got under it breaks the run back to zero, restoring the tier with nothing
+     * un-latched by hand. The counter starts at two because that is a fixture STATE
+     * on an immutable object, not behaviour to fake: what is under test is precisely
+     * that a measured, under-tier landing resets it, so arriving there by walking two
+     * real refills first would only re-test the increment above.
+     */
+    public function testACompactionThatShrinksTheContextBreaksTheRunAndTheTierGoesOnWorking(): void
+    {
+        $chat = $this->chatWithRefills(self::compactablePairs(), $this->generousSummarizer(), 2, $main);
+
+        [$parked, $cmd] = $this->submit($chat);
+        $this->assertNotNull($cmd, 'two is under the limit, so the tier is not stopped yet');
+
+        [$landed, $landedCmd] = $parked->update($this->resolve($cmd));
+
+        $this->assertSame(0, $this->refillCountOf($landed), 'a rewrite that got under the tier breaks the run');
+        $this->assertNotNull($landedCmd, 'and the parked turn goes out - the breaker never held it');
+        $landedCmd();
+        $this->assertSame(1, $main->calls(), 'the conversation backend saw it');
+        $this->assertTrue($landed->inFlight);
+    }
+
+    /**
+     * The OFFLINE half of the same rule: with no model to ask, the tier compacts
+     * synchronously in `submit()`, and that rewrite is measured too. What counts is
+     * the refill, not which backend produced the shrink — a definition that lived
+     * only in the parked route would leave an offline session thrashing forever, and
+     * that is the route which does it with no provider call to notice.
+     */
+    public function testTheSynchronousHeuristicRouteCountsRefillsToo(): void
+    {
+        [$refused] = $this->submit($this->chat(self::unshrinkablePairs(), null, $main));
+        $this->assertSame(1, $this->refillCountOf($refused), 'the heuristic rewrite is measured like any other');
+        $this->assertSame(0, $main->calls(), 'and the turn still ends at the blocking tier, exactly as before');
+
+        [$dispatched, $cmd] = $this->submit($this->chatWithRefills(self::compactablePairs(), null, 2, $fitted));
+        $this->assertNotNull($cmd, 'offline the tier dispatches the turn itself, with no round-trip to park behind');
+        $this->assertSame(0, $this->refillCountOf($dispatched), 'and the same reset applies to its rewrite');
+        $cmd();
+        $this->assertSame(1, $fitted->calls(), 'the prompt went out on the rewritten history');
+    }
+
+    /**
+     * The breaker guards the tier that acts on its own and NOTHING else. A tripped
+     * session must still be able to type `/compact` — the user may know something the
+     * estimate does not, and a guard that also refused the manual escape hatch would
+     * be the app refusing to obey the one command whose whole purpose is to be
+     * obeyed. A `/compact` landing is equally untouched in the other direction: it
+     * neither charges the run nor clears it, because the number records what the
+     * automatic tier achieved.
+     */
+    public function testATrippedBreakerStopsTheAutomaticTierAndNotTheCommandTheUserTyped(): void
+    {
+        $summarizer = $this->generousSummarizer();
+        $chat = $this->chatWithRefills(
+            self::compactablePairs(),
+            $summarizer,
+            IdleCompactionPolicy::REFILL_LIMIT,
+            $main,
+        );
+
+        [$scheduled, $cmd] = $this->submit($this->withDraft($chat, '/compact'));
+
+        $this->assertNotNull($cmd, '/compact still schedules a model summary while the breaker is tripped');
+        $this->assertSame(
+            IdleCompactionPolicy::REFILL_LIMIT,
+            $this->refillCountOf($scheduled),
+            'and scheduling it charged the run nothing',
+        );
+
+        [$landed] = $scheduled->update($this->resolve($cmd));
+        $this->assertSame(
+            1,
+            $summarizer->calls,
+            'the model really was asked - once, by the command the user typed and not by the tier',
+        );
+        $this->assertSame(
+            IdleCompactionPolicy::REFILL_LIMIT,
+            $this->refillCountOf($landed),
+            'nor does its landing clear the run: a manual compaction is not evidence about the automatic one',
+        );
+    }
+
+    /**
+     * `/clear` unarms the breaker beside the transcript it counted. This is the reset
+     * the refusal above promises — a notice that named `/clear` as an exit while
+     * `/clear` left the count standing would send the user to a command that does not
+     * do the one thing it was named for.
+     */
+    public function testClearingTheTranscriptUnarmsTheBreaker(): void
+    {
+        $chat = $this->chatWithRefills(
+            self::compactablePairs(),
+            $this->generousSummarizer(),
+            IdleCompactionPolicy::REFILL_LIMIT,
+            $main,
+        );
+
+        [$cleared, $cmd] = $this->submit($this->withDraft($chat, '/clear'));
+
+        $this->assertNull($cmd, '/clear starts no turn');
+        $this->assertSame([], $cleared->history, 'the transcript is gone');
+        $this->assertSame(0, $this->refillCountOf($cleared), 'and so is the run that was counted against it');
+
+        [$next, $turnCmd] = $this->submit($this->withDraft($cleared, 'what changed in the router?'));
+        $this->assertNotNull($turnCmd, 'the next prompt is a fresh session and not a tripped one');
+        $this->assertCount(1, $next->history, 'the only line it appends is the echoed prompt - no refusal beside it');
+        $this->assertSame(0, $this->refillCountOf($next), 'and the run stays broken');
+    }
+
+    // =====================================================================
+    // 10. E31/E32 - what the parked tier says when it withholds, and what
+    //     cancelling it actually stops
+    // =====================================================================
+
+    /**
+     * The sentence both spend-cap compaction arms open with, at the figures this
+     * fixture sets: $5.00 spent against a $1.00 cap. Written out here rather than
+     * assembled from parts, because the whole point of the shared helper is that one
+     * string exists, and a test that rebuilt it from the same pieces could not tell a
+     * shared sentence from two similar ones.
+     */
+    private const CAP_SENTENCE = 'Spend cap reached ($5.0000 of $1.0000), so the model was not asked to '
+        . 'summarise — compacted with the local heuristic instead. ';
+
+    /**
+     * Backlog §E31: the parked tier's spend-cap gate answered `null` in silence, so
+     * the same blocked provider call was TOLD on the `/compact` route and invisible
+     * here. The gate itself is dormant from `submit()` — the refusal upstream makes
+     * the 85% block unreachable for a capped session — so it is driven DIRECTLY,
+     * past that ordering, which is the only way to pin a gate that belongs to the
+     * provider call rather than to the caller.
+     *
+     * Two things about the ANSWER are load-bearing and both are asserted. The return
+     * stays null: "no model route" must keep meaning "take the synchronous
+     * heuristic", which is what the capped caller still has to do, and returning a
+     * finished turn instead would drop the prompt the user pressed Enter for
+     * (`compactNow()` starts no turn — see the method docblock for that
+     * reasoning). And the notice out of the by-reference parameter is the SHARED
+     * sentence: `$capNotice` and the `/compact` route's own line are driven on the
+     * SAME session, so their figures cannot differ by fixture accident, and the first
+     * sentence must be byte-identical while only the advice after it diverges.
+     *
+     * What is NOT driven here, and cannot be honestly, is the ride through
+     * `submit()`: the same spend that fills `$capNotice` is the spend
+     * `spendCapRefusal()` refuses the turn on some forty lines earlier, so no session
+     * can be both capped and inside this tier from a keyboard. The prepend beside the
+     * compaction notice is continuation-for-when-the-ordering-moves — which is the
+     * whole reason the gate belongs to the provider call rather than to the caller,
+     * and why asserting it at the seam is the only test this fact can have until a
+     * route exists that reaches it.
+     */
+    public function testTheParkedTierTellsTheUserWhenTheCapStoppedTheModelAsk(): void
+    {
+        $tracker = new TokenTracker();
+        $tracker->addTotalUsage(1_000, 5.0);
+        $summarizer = $this->generousSummarizer();
+        $chat = $this->chat(self::compactablePairs(), $summarizer, $main, $tracker, 1.0);
+
+        $capNotice = null;
+        $parked = (new \ReflectionMethod(Chat::class, 'scheduleParkedCompaction'))
+            ->invokeArgs($chat, ['what changed in the router?', 80_000, 88_000, &$capNotice]);
+
+        $this->assertNull($parked, 'the tier still declines the model route, so the caller falls through to the heuristic');
+        $this->assertSame(0, $summarizer->calls, 'and no summarization is asked for');
+        $this->assertNull($this->latchOf($chat), 'nothing is armed on the session');
+        $this->assertNotNull($capNotice, 'but the cap is named out loud');
+        $this->assertStringStartsWith(self::CAP_SENTENCE, (string) $capNotice);
+        $this->assertStringNotContainsString(
+            'run /compact again',
+            (string) $capNotice,
+            'the parked route sends the prompt on the heuristic REGARDLESS, so that advice would advertise '
+            . 'a second way to arrive exactly where the user already is',
+        );
+
+        // The sibling, from the same session at the same figures, by the route a user
+        // actually takes: typing /compact past the refusal.
+        [$answered, $cmd] = $this->submit($this->withDraft($chat, '/compact'));
+        $this->assertNull($cmd, '/compact answered on the spot, on the heuristic');
+        $sibling = null;
+        foreach ($answered->history as $message) {
+            if (str_starts_with($message->content, 'Spend cap reached')) {
+                $sibling = $message->content;
+            }
+        }
+        $this->assertNotNull($sibling, 'fixture: /compact says it out loud, as it always did');
+        $this->assertStringStartsWith(
+            self::CAP_SENTENCE,
+            $sibling,
+            'both routes open with the identical sentence, figures included',
+        );
+        $this->assertStringContainsString('run /compact again', $sibling, 'and only /compact can honestly advise it');
+        $this->assertSame(0, $summarizer->calls, 'neither route asked the model');
+    }
+
+    /**
+     * Backlog §E32, first polarity: the token armed at park time is the one the
+     * double-Escape arm flips. The existing cancel tests assert what the CANCELLED
+     * SESSION looks like — latch released, turn never dispatched — which a session
+     * could achieve while leaving the provider request running. This asserts the
+     * flag the provider holds, before and after, so the wiring cannot be dropped
+     * without something here going red.
+     */
+    public function testDoubleEscapeInTheParkedWindowFlipsTheSummarizationToken(): void
+    {
+        $chat = $this->chat(self::compactablePairs(), $this->generousSummarizer(), $main);
+        [$parked] = $this->submit($chat);
+        $token = $this->cancellationOf($parked);
+        $this->assertInstanceOf(CancellationToken::class, $token, 'fixture: the parked call carries a token');
+        $this->assertFalse($token->isCancelled(), 'and it is not cancelled yet');
+
+        [$first] = $parked->update(new KeyMsg(KeyType::Escape, ''));
+        $this->assertFalse($token->isCancelled(), 'a single Escape only arms the double-press');
+        [$cancelled] = $first->update(new KeyMsg(KeyType::Escape, ''));
+
+        $this->assertTrue($token->isCancelled(), 'the second Escape cancels the request the backend is holding');
+        $this->assertNull($this->cancellationOf($cancelled), 'and the session drops the token with the turn');
+        $this->assertNull($this->latchOf($cancelled), 'exactly as it drops the latch');
+    }
+
+    /**
+     * Backlog §E32, second polarity: a provider that DOES honour the token — the
+     * best-effort half of the {@see Backend} contract, which every other fake in this
+     * file declines on purpose — costs the session nothing.
+     *
+     * The fake answers WITH a cost, which is what makes this non-vacuous. Drop the
+     * token forwarding at the seam and the call resolves, `update()` accounts its
+     * usage ahead of the latch check, and $0.20 is billed for a round-trip the user
+     * cancelled: the assertion below is the one that goes red, and it is exactly the
+     * money §E32 was filed about. That the ABANDONED-but-completed call stays billed
+     * is still pinned by testAnAbandonedSummarizationIsStillBilled() beside this —
+     * with a token-blind fake, which is now the honest way to spell that fixture.
+     */
+    public function testASummarizationStoppedByItsTokenCostsTheSessionNothing(): void
+    {
+        $tracker = new TokenTracker();
+        $summarizer = new TokenPollingSummaryBackend($this->generousSummarizer()->reply(), 0.2);
+        $chat = $this->chat(self::compactablePairs(), $summarizer, $main, $tracker);
+
+        [$parked, $cmd] = $this->submit($chat);
+        $token = $this->cancellationOf($parked);
+        $this->assertInstanceOf(CancellationToken::class, $token, 'fixture: the parked call carries a token');
+
+        [$first] = $parked->update(new KeyMsg(KeyType::Escape, ''));
+        [$cancelled] = $first->update(new KeyMsg(KeyType::Escape, ''));
+        $this->assertTrue($token->isCancelled(), 'fixture: Escape reached the request');
+
+        $msg = $this->resolve($cmd);
+        $this->assertInstanceOf(HistoryCompactedMsg::class, $msg);
+        $this->assertNull($msg->usage, 'a call the provider stopped reports no figure at all');
+        $this->assertNotNull($msg->error, 'and it reports why, rather than arriving as an empty success');
+
+        [$after, $afterCmd] = $cancelled->update($msg);
+
+        $this->assertSame(0.0, $after->spentUsd(), 'the session pays nothing for a call it cancelled');
+        $this->assertNull($afterCmd, 'the cancelled turn still does not go out');
+        $this->assertSame(0, $main->calls(), 'nor reaches the conversation backend');
+        $this->assertSame(
+            count($cancelled->history),
+            count($after->history),
+            'and the dropped landing rewrites nothing - the latch was released with the request',
+        );
+        $cancelledNotices = array_values(array_filter(
+            $after->history,
+            static fn(Message $m): bool => $m->content === '_Request cancelled._',
+        ));
+        $this->assertCount(1, $cancelledNotices, 'the cancellation is reported once, not twice');
+    }
+
+    /**
+     * The breaker's counter read directly, since it is state and not behaviour. The
+     * observable consequence — the fourth submit refusing — is asserted as a
+     * consequence elsewhere; reading the number is what turns "it stopped" into "it
+     * stopped after exactly this many", which is the claim §4.23 makes.
+     */
+    private function refillCountOf(Chat $chat): int
+    {
+        return (new \ReflectionProperty(Chat::class, 'consecutiveRefillCompactions'))->getValue($chat);
+    }
+
+    /**
+     * A session with a draft in the box, through the same `mutate()` every other
+     * route here uses. Needed by any test that drives MORE THAN ONE submit: parking
+     * consumes the draft, and the second Enter would otherwise submit an empty line.
+     */
+    private function withDraft(Chat $chat, string $draft): Chat
+    {
+        return (new \ReflectionMethod(Chat::class, 'mutate'))->invoke($chat, ['inputBuf' => $draft]);
+    }
+
+    /**
+     * The same session as {@see chat()}, partway through a run of refills. The
+     * counter is a constructor argument because that is what it is on Chat —
+     * promoted, immutable, carried by `mutate()` — and setting a fixture state
+     * through the constructor is the honest version of setting it at all.
+     *
+     * @param list<Message> $history
+     */
+    private function chatWithRefills(
+        array $history,
+        ?Backend $summaryBackend,
+        int $refills,
+        ?RecordingTurnBackend &$main = null,
+    ): Chat {
+        $main = new RecordingTurnBackend(88_000);
+
+        return new Chat(
+            history: $history,
+            inputBuf: 'what changed in the router?',
+            backend: $main,
+            summaryBackend: $summaryBackend,
+            consecutiveRefillCompactions: $refills,
+        );
+    }
+
     /**
      * A figure read out of a message BY the label beside it. Returns -1 when the
      * label is absent, so a missing figure fails the comparison rather than
@@ -1299,5 +1750,45 @@ final class FailingSummaryBackend implements Backend
         ?callable $onEvent = null,
     ): PromiseInterface {
         return \React\Promise\reject(new \RuntimeException($this->why));
+    }
+}
+
+/**
+ * A summarization backend that ACTS on the cancellation token — the best-effort half
+ * of the {@see Backend} contract, which every other fake in this file declines on
+ * purpose so that the latch, the billing order and the notice shapes can be tested
+ * without a provider that stops mid-call.
+ *
+ * It answers WITH a usage figure on the path it does not cancel, so that a regression
+ * which stops forwarding the token fails on the money rather than on a shape nobody
+ * reads: the call would resolve, `update()` would account it ahead of the latch check,
+ * and a cancelled round-trip would cost the session real dollars again — which is the
+ * exact defect backlog §E32 was filed about.
+ */
+final class TokenPollingSummaryBackend implements Backend
+{
+    public int $calls = 0;
+
+    public function __construct(private readonly string $reply, private readonly float $costUsd) {}
+
+    public function complete(array $history, callable $onToken = null, ?callable $onEvent = null): Message
+    {
+        $this->calls++;
+
+        return Message::assistant($this->reply)->withUsage(Usage::new(1_000, $this->costUsd));
+    }
+
+    public function completeAsync(
+        array $history,
+        callable $onToken = null,
+        ?CancellationToken $cancellation = null,
+        ?callable $onEvent = null,
+    ): PromiseInterface {
+        $this->calls++;
+        if ($cancellation !== null && $cancellation->isCancelled()) {
+            return \React\Promise\reject(new \RuntimeException('summarisation stopped by its cancellation token'));
+        }
+
+        return \React\Promise\resolve(Message::assistant($this->reply)->withUsage(Usage::new(1_000, $this->costUsd)));
     }
 }

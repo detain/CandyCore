@@ -12,6 +12,11 @@ use SugarCraft\Crush\Context\IdleCompactionPolicy;
  * The predicate Chat and Runtime both delegate to, so the copy of the logic
  * each of them keeps cannot disagree about either number.
  *
+ * The file carries a second tier's number now too — the compaction circuit
+ * breaker's `REFILL_LIMIT` — and it is tested here for the same reason the idle
+ * pair is: the caller holds a count and this decides whether that many is enough
+ * to stop, which is not a question two callers should answer separately.
+ *
  * @see IdleCompactionPolicy
  */
 final class IdleCompactionPolicyTest extends TestCase
@@ -119,5 +124,50 @@ final class IdleCompactionPolicyTest extends TestCase
         $idle = new DateTimeImmutable('2 hours ago');
         $this->assertFalse(IdleCompactionPolicy::shouldPrompt(150_000, $idle, 0));
         $this->assertFalse(IdleCompactionPolicy::shouldPrompt(150_000, $idle, -1));
+    }
+
+    // =====================================================================
+    // The second number this file carries: the compaction circuit breaker.
+    // Nothing above moves — the seven tests over there are the idle tier's
+    // boundary and they read exactly as they did before this file grew.
+    // =====================================================================
+
+    /**
+     * Three, because that is the number the upstream fix names, and this port
+     * reproduces it rather than tuning its own: prompt_expand.md §4.23 quotes Claude
+     * Code's changelog — "compacting three times in a row" — and a port that quietly
+     * picked a different constant would be a different feature with the same name.
+     */
+    public function testTheRefillLimitIsTheOneUpstreamShipped(): void
+    {
+        $this->assertSame(3, IdleCompactionPolicy::REFILL_LIMIT);
+    }
+
+    /**
+     * Both sides of the boundary. The count is "compactions that already refilled",
+     * so two is still evidence of something working and three is the trip — one short
+     * of the limit must never stop the tier, or the breaker would fire on its first
+     * useful retry rather than on its third useless one.
+     */
+    public function testTheBreakerTripsAtTheLimitAndNotOneBefore(): void
+    {
+        $this->assertFalse(IdleCompactionPolicy::thrashTripped(IdleCompactionPolicy::REFILL_LIMIT - 1));
+        $this->assertTrue(IdleCompactionPolicy::thrashTripped(IdleCompactionPolicy::REFILL_LIMIT));
+    }
+
+    /**
+     * Tripping is a threshold being crossed and not an event being matched, so
+     * everything above the limit stays tripped — including the absurd ends, which is
+     * what `>=` costs nothing on and `===` fails at. A counter that overshot (a second
+     * increment site added later, a reset wired to the wrong branch) must still stop
+     * the spend; that is the whole job of this predicate.
+     */
+    public function testTheBreakerStaysTrippedAboveTheLimit(): void
+    {
+        $this->assertTrue(IdleCompactionPolicy::thrashTripped(IdleCompactionPolicy::REFILL_LIMIT + 1));
+        $this->assertTrue(IdleCompactionPolicy::thrashTripped(40));
+        $this->assertTrue(IdleCompactionPolicy::thrashTripped(\PHP_INT_MAX));
+        $this->assertFalse(IdleCompactionPolicy::thrashTripped(0));
+        $this->assertFalse(IdleCompactionPolicy::thrashTripped(-1), 'a negative run is no run at all');
     }
 }
