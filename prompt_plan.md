@@ -2665,6 +2665,12 @@ were deliberately written. Every `WorkflowEngine` agent is additionally construc
 
 ### P7.S6 — Wire `ForeignMemoryImporter` behind `/memory import`
 
+**Status 2026-09-08: MERGED — merge `e67069706` (branch `45d8d1572` + `829e210d5` + `f043e2d29` + `183f54abb`
++ `da178befb`; floor 11,018/169,219 gated `da178befb`). Shipped on this plan's cap premise, which direct reads
+disproved — `capture()` folds `MemoryScope::Project` only, while the importer writes agent scope by design; user
+RULING P7.S6-R1 (Option A) removed the clamp and refusal and substitutes an assert-no-crowding test. Full record:
+worklog P7.S6 entry.**
+
 **Goal** Its docblock says outright *"NOT YET WIRED INTO THE RUNTIME. Nothing in `src/` or `bin/`
 constructs this class."* A fifth dormant seam.
 **Source** §2.8, §9.15.
@@ -2677,12 +2683,16 @@ constructs this class."* A fifth dormant seam.
 
 **Hard constraint** `MemoryBlock` is capped at **12 entries / 4096 bytes total / 512 bytes per
 entry**. An import that can add unbounded entries must respect that cap at the *store* level too, or
-the cap silently starts discarding the user's oldest memories. Test the over-cap import.
+the cap silently starts discarding the user's oldest memories. Test the over-cap import. (FALSE PREMISE,
+disproved at execution — `capture()` folds `MemoryScope::Project` only, while `ForeignMemoryImporter` writes agent
+scope by design, so agent-scope imports never crowd a project note out of the prompt and this store-level cap
+constraint is not what a `/memory import` headroom should be bounded by; see RULING P7.S6-R1 in `prompt_worklog.md`.)
 **Also:** `MemoryBlock::capture()` deliberately uses `MemoryStore::list(MemoryScope::Project)` and
 **not** `search()` — search is substring-based and would be permanently empty with no query. Do not
 "improve" it into `search()`.
 **Done when** `/memory import` runs, the containment test still refuses out-of-root sources, and the
-over-cap behaviour is asserted rather than assumed.
+over-cap behaviour is asserted rather than assumed. (SUPERSEDED by Option A — assert NOT-crowding instead: importing
+agent-scope entries leaves the project-scope prompt capture unchanged, so there is no over-cap refusal to test here.)
 
 **Concurrency (Phase 7)**
 - **Batch 1 (four concurrent):** P7.S1 (`Hooks/`), P7.S4 (`Skills/`), P7.S5 (`Agents/` + preset
