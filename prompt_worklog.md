@@ -253,6 +253,109 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P9.S7 — HistorySanitizer at the send choke   ·   2026-09-08   ·   merge `ea81c377a`
+
+**Status** `done` (Phase 9 batch 2 of 3; worktree alive for the Phase-9 close review)
+**Worktree** /home/sites/prompt-step-P9.S7 (branch src `71b93359f` + tests `8b6cc6f41` — alive, reap at Phase-9 close)
+**Base** staffing `91405448c`
+
+**Premise governance (the headline process finding)** the FIRST scout report was FABRICATED — it invented `HistorySanitizer::clean` etc, refuted by a direct grep. An evidence-first re-scout rebuilt the true map. LESSON → scouts now carry a paste-or-die preamble and must do one cheap direct read before staffing.
+
+**TRUE MAP** the send choke is `Runtime::buildMessages` (`src/Runtime.php` ~:2448-2459, ONE production caller :1104). Chat-path structure is lost at `EngineBackend::toTypedMessages` (`src/Backend/EngineBackend.php` :1588-1600, single caller :611) — structured orphans cannot originate on the Chat path (pinned by `testTypedMappingOfToolCarryingChatRowLosesTheCalls`). The LIVE defect is `AssistantMessage('')` → a bare `{"role":"assistant"}` row via the provider `array_filter` (SglangProviderTest :404/:427-430); the ONLY live producer is the refusal commit `Chat.php` :2494-2510. The engine loop always pairs internally (settle :2048-2054, failure :2402, denied :1566-1574, SIGKILL :1823-1838), so ops (2)/(3) are defense-in-depth (disclosed, dormant-not-dead) and op (4) carries the live value.
+
+**What changed**
+- `src/Messages/HistorySanitizer.php` (NEW, 164 lines): `final class`, ONE public static `sanitize(array): array`. Pass 1 collects `callIds` over the whole list (`Tools\ToolCall` objects + array-shaped non-empty-string `id`, mirroring `ToolSchema::formatToolCalls` pass-through) and `answeredIds`. Pass 2 drops orphan results, synthesizes a per-unanswered-call `ToolResultMessage` (`isError`; a `private const` value-equal to `Chat::INTERRUPTED_TOOL_CALL` :5621 — reflection-pinned AND privacy-pinned), and drops bare empty assistants. Pure, order-preserving, passthrough; idempotent (the reviewer script incl. a forward-reference survives).
+- `src/Runtime.php`: ONE line at :2458 — an inline-FQCN call into `sanitize()` (pre-ruled compliant; NIT: four sibling `Messages\` imports already exist).
+
+**Done-when** the four ops mandated verbatim at prompt_plan.md :2966-2968 all shipped and pinned (law-4j: the clause actually lands at :2968, not :2966-67).
+
+**Tests added** `tests/Messages/HistorySanitizationTest.php` (NEW, 826 lines, 25 tests / 87 assertions): 12 units (incl. fan-out, no-mutation, passthrough, array-id), 2 real-choke reflection tests, a 6-provider converter matrix (Sglang + OpenAI/Vertex/Bedrock/ClaudeCode/Echo, each fed raw-vs-sanitized), a real ESC-ESC integration through the real mapper, and the refusal live-producer test.
+
+**Experiments** (builder + reviewer-B, independent): X-CHOKE = 1E+5F while ALL pure-sanitize units + the R-E identity pins stay GREEN (the wire is load-bearing — the crown of the step). X-EMPTY 7F; X-SYNTH 8F; X-DROP 6F. Positive-identity (nothing moved): RuntimeTest 144/547, ChatTest 229/887, all provider suites, BSP 22/319, SSHW 14/107 — zero behavioral movement; §1.11 zero removals.
+
+**MEASURED** floor **11,119 / 170,274** master-direct (gated at master `ea81c377a` itself; artifact /tmp/opencode/P9.S7-merge/master.xml totals-line verified). cmp vs master-S4.xml: **+26t / +195a** — HistorySanitizationTest +25t/+87a, BinSugarcrushWiringTest +1t/+6a (new-src-file enrollment), Glob +37 (35 DocumentParagraphs + 2 file-reads), SymCite +6, TreeWide +2, EnvRoster +9, DocParas +4, StderrCensus +16, plus a walk-wave across 10 classes +28. Every behavioral suite delta 0; goldens frozen.
+
+**Review** slice A 8/8 PASS (NIT-1 only); slice B reproduced all red-sets and verified the builder's base Glob 22570 live. Corrections carried: the builder's Glob-miss explanation "more per-file read sites" was WRONG → actually 35 paragraphs + 2 `readOrFail`; and my own brief's R-F formula omitted the paragraph term (law 8 already knew it).
+
+**Deviations** the wire uses inline-FQCN rather than an added import (pre-ruled; NIT recorded).
+
+**Follow-ups created** (34) `SglangProvider::formatMessages` :1542-1585 merges ALL history `SystemMessage` rows into the leading system row :1565-1582 → the cancel/refusal notices (`Chat` :1571-1578, :2498-2504) get hoisted into EVERY subsequent request's system prompt for the session. Own step owed (non-hoisted role vs the filtered merge; cross-provider norm: OpenAI/Vertex ordinary rows, Bedrock→user, ClaudeCode inline `System:`); currently pinned leak-VISIBLE. (35) `SkillTool::execute` :62-66 never reads its declared `args` param — §1.10 keep, recorded out-of-ceiling (an S4 finding).
+
+### P9.S4 — Five tool man-pages rewritten + a description sentence floor   ·   2026-09-08   ·   merge `f1f622e56`
+
+**Status** `done` (Phase 9 batch 2 of 3)
+**Worktree** /home/sites/prompt-step-P9.S4 (branch `a7b8ba990` — a single commit)
+**Base** `0f8b2b9aa`
+
+**What changed** (FIVE-file expansion under ruling A)
+- `Doctor` / `SkillTool` / `WebFetch` / `WebSearch` / `Write` `description()` rewritten to ≥3-sentence man-pages — EVERY clause verified against shipped code: WebFetch `MAX_REDIRECTS=3`, `2*1024*1024` + `'... [truncated]'`, timeout 30, `ignore_errors` body-as-normal, http/https-only, NO HTML-conversion claim; Skill header fed at `Runtime.php` :2726, a `## Skill:` result, 3 error branches; Doctor `$mosaic ??=` cache `0x2ea04a`/`0xd98a1f` 16×16 no-padding; Write `@mkdir` / overwrite-refusal / `File created: <path>`.
+- Pin migration: `BuiltInToolTest.php` exactly TWO `assertSame` literal swaps (:179 WebFetch, :187 WebSearch), types/counts intact; a provider-fixture sweep for the old literals → 0 remaining.
+- NEW `ToolDescriptionSentenceFloorTest.php` (126 lines): walks `BuiltInToolCorpus::instances()` MINUS `dynamicToolClasses()` by CLASS-KIND (`McpToolBridge` excluded by rule, not name); floor ≥3 sentences on all 11: Bash 7 · doctor 4 · Edit 5 · Glob 5 · Grep 6 · Lsp 4 · Read 4 · Skill 4 · WebFetch 4 · WebSearch 4 · Write 4.
+
+**Done-when** every one of the 11 built-ins clears the ≥3-sentence floor and each is individually mutation-proved.
+
+**Experiments** E-SIBLING proximity 0 (the Write→Edit redirect is phrased "is the right operation"). E-FLOOR: reverting each description individually → red for EXACTLY that tool, 5/5.
+
+**MEASURED** floor **11,093 / 170,079**. 19 solos incl. BSP 22/319 with goldens UNMOVED; the floor test itself 12/24.
+
+**Governance** the builder DIED at the context limit AFTER staging — a completion agent (fresh session) reviewed the 7 staged files, verified 19 solo suites, and COMMITTED AS FOUND with zero corrections. The staged-content completion pattern WORKS.
+
+**Review** the completion-agent audit served as cycle 1 (fresh session, adversarial): 0 findings on shipped code.
+
+**Deviations** (none)
+
+**Follow-ups created** surfaces (35) (`SkillTool::execute` args), which S7 records as an out-of-ceiling follow-up.
+
+### P9.S3 — `Bash`: the git/PR playbook fragment   ·   2026-09-08   ·   merge `e9a933f4e`
+
+**Status** `done` (Phase 9 batch 2 of 3)
+**Worktree** /home/sites/prompt-step-P9.S3 (branch `272d47210` — ONE squashed commit; the brief preferred two, NIT accepted)
+**Base** `ac18c974e`
+
+**What changed**
+- `src/Tools/BuiltIn/Bash.php` +61/−1, THREE hunks ONLY: `use PromptGuidance;` / `implements Tool, PromptGuidance` / a new `promptGuidance()`. `description()` is BYTE-FROZEN md5 `e514b532bdb742caf7b0c2ab651742fc` (verified by isolated byte-slice); `execute()` untouched (§1.10 live row inspected clean).
+- The fragment: 1,785 B / 272 words / 28 lines; self-wraps `<git_commits>` (1+1 tags, NOT in `PromptFence::TAGS` — stays 7); no trailing newline; serial cadence with "none batch in parallel"; title / `## Test plan` / bundle-2-4; a configured-identity author with NO email literal; the `composer validate --strict` gotcha; a safety-rule-WITH-REASON (failed hook ⇒ no commit ⇒ `--amend` hits PREVIOUS); a heredoc template; a NEVER-DO trio (`--no-verify`, force-push master, `git add -A`).
+- NEW `tests/BashPromptGuidanceTest.php` (238 lines, 7 tests / 46 assertions): presence-iff-wired, a LIVE `Bootstrap::tools()` name sweep + explicit bans on Read/Write/Edit/Grep, tag-balance, and a cadence-precedes-neverdo order check.
+
+**Done-when** the Bash fragment renders only for Bash and is guarded by the live sweep.
+
+**Experiments** E1 drop-`implements` → 2 red; E2 inject-`Read` → 2 red (sweep + ban); E3 delete-never-do → 2 red; E4 swap order → exactly 1 red (1217 < 281).
+
+**Erratum** (found by the completion agent, confirmed twice): my brief claimed the fragments "automatically join the `ToolPromptGuidanceTest` sweep" — FALSE; that test HARD-CODES `[Read, Write]` at :105-108 and stayed GREEN 6/59 even with Read injected into Bash's fragment. Resolution: an in-ceiling LIVE sweep. LESSON → briefs must read a sweep's inputs before claiming inherited coverage.
+
+**MEASURED** floor **11,081 / 170,033**. §5 DISCHARGED (Bash.php last pre-step `bf3495f51` 2026-08-18, pre-R60; staffing diff 0). One fragment line is 26w vs a ~25 soft cap — churn rejected.
+
+**Review** completion-agent audit, 0 findings.
+
+**Deviations** (none)
+
+**Follow-ups created** honors (33) — Bash's guidance references the `<git_commits>` TAG, not sibling tool names.
+
+### P9.S2 — Capability-aware Grep/Glob descriptions (boot-once rg/fd probe)   ·   2026-09-08   ·   merge `9dd05ae06`
+
+**Status** `done` (Phase 9 batch 2 of 3; first merged of the batch)
+**Worktree** /home/sites/prompt-step-P9.S2 (branch `8e4a0b884` + fix `d093e4781`)
+**Base** `d1a7c5673`
+
+**What changed**
+- NEW `src/Tools/Concerns/DetectsCapabilities.php` (113 lines): a stat-walk `is_file`+`is_executable` over `PATH` (empty entries refused, never CWD; a symlink-follow means the link IS installed); ZERO subprocess (`proc_open` would warn under `failOnWarning`; the precedent is `ClaudeCodeMcpClient.php`:945-968, NOT `src/Backend/`). A host memo `self::$hostCapabilities` + a sandbox seam `capabilityPresent(name, ?pathList)` that bypasses the memo.
+- PHP-8.3 measured constraint: static-prop traits cannot attach to `readonly` classes → the memo lives on `Cli/Bootstrap`.
+- `Bootstrap.php` +55: `tools()` gains `bool $rgAvailable=false`, `$fdAvailable=false`; 3 PROD sites (app :2158 / backend :2398 / backendFor :2479) thread the real probe; test callers are untouched = absent-by-default.
+- `Grep` +29 / `Glob` +21: the clause is appended only-when-true; when absent the render is BYTE-IDENTICAL base↔tip (sha256 pins; the `BuiltInToolTest` real pin sites are :107-112 / :131-136 — NOT the brief's :77-94).
+- NEW `CapabilityAwareDescriptionTest` 10/59 → 11/63 (memo fix `d093e4781`: `testASecondHostAskIsAMemoHitEvenAfterTheBinaryVanishes` uses a unique pid-named binary via a path-shaped host name; first true → unlink → still true = memo; sandbox false on a deleted binary = bypass discipline; mutating `??=`→`=` reddens EXACTLY 1).
+
+**Done-when** rg/fd are probed once at boot and the "prefer rg"/"prefer fd" clause appears only when the binary is present.
+
+**Experiments** the `??=`→`=` mutation → exactly 1 red. Live-vs-dormant: production reachers `bin/sugarcrush`:423, `NonInteractive`:848, `BackgroundSessionRunner`:515/535, `Chat`:12259; forcing both caps true keeps BSP/TDG/BITT/SSHW/EnvRoster green ⇒ zero host-leak.
+
+**MEASURED** floor **11,074 / 169,958**. Gates: S2's prediction +11t/+118a vs actual +12t/+172a (+1t/+6a BinSugarcrush enrollment; residual walk-wave across 12 classes, all attributed via cmp); goldens frozen ×3 merges.
+
+**Review** cycle 1 APPROVE, 1 MINOR (memo unpinned → fixed in `d093e4781`), 2 NIT (the brief's "Bootstrap live row" was WRONG — the true last touch was `da178befb` in the PROMPT lane; zero crush-lane touches in the window).
+
+**Deviations** `gh` is OUT of scope (no non-Bash consumer; `Bash.php` = the S3 row). The prefer-clause in the golden heredoc base :12 is NOT capability-ified (a golden move is licensed only at P9.S5).
+
+**Follow-ups created** (none) — plan Files-list deviation: the trait lives in `Tools/Concerns/` as planned, but the memo moved to `Bootstrap` for the readonly-trait fatal.
+
 ### P9.S1 — The promptGuidance() seam   ·   2026-09-08   ·   merge `731db08e1`
 
 **Status** `done` (Phase 9 batch 1 of 3; worktree alive for the Phase-9 close review)
