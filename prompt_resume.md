@@ -474,7 +474,7 @@ a834207d4  10582 / 164483 / 1   + P4.S3-fix8   (164486 at 201 arm; test-only Sta
  731db08e1  11062 / 169786 / 2   + P9.S1   (promptGuidance capability-interface seam; ToolRegistry.php plan error corrected pre-build; additive-only - description() pins untouched; golden unmoved via tools==[] empty-skip; seam proven LIVE to CompleteRequest; +7t/+164a fully census-reconciled across 18 movers; 1 review cycle dual-slice both APPROVE; 54 of 65)
 ```
 
-### SEVEN METHOD CHANGES THAT ARE NOW PART OF THE PLAN — use them
+### EIGHT METHOD CHANGES THAT ARE NOW PART OF THE PLAN — use them
 
 1. **Reconcile a moved total with a per-class JUnit diff, FIRST — not last.** PHPUnit's JUnit
    `<testcase>` carries an `assertions` attribute. Run both sides with `--log-junit` and diff per

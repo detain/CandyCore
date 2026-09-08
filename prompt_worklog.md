@@ -256,7 +256,7 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 ### P9.S1 — The promptGuidance() seam   ·   2026-09-08   ·   merge `731db08e1`
 
 **Status** `done` (Phase 9 batch 1 of 3; worktree alive for the Phase-9 close review)
-**Worktree** /home/sites/prompt-step-P9.S3 - P9.S4 - P9.S7 ... NO — `/home/sites/prompt-step-P9.S1` @ `2c6583561` (reap after the Phase-9 close review)
+**Worktree** /home/sites/prompt-step-P9.S1 @ `2c6583561` (branch `prompt/P9.S1` — alive, reap after the Phase-9 close review; the live worktree list at write time: main + this one)
 **Base** `5c1f38572` (staffing commit: brief `prompt_kit/briefs/P9.S1-step-brief.md`, 46 lines, md5 `19d99e882e57487a946b942b399cbe73`, WITH the plan-Files-correction carried in the brief; worktree cp-al vendor + PSR-4 self-locate printed the worktree Runtime.php path)
 
 **Goal (one sentence)**
