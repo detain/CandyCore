@@ -611,6 +611,18 @@ final class ContextCompactor
      * Empty means there is nothing a model could usefully be asked — either
      * nothing to compact at all, or nothing but standalone/unanswered turns.
      *
+     * WHAT THE MODEL IS SHOWN IS BOUNDED; WHAT THE KEY IS MADE FROM IS NOT. Each
+     * returned `assistant` half passes through {@see boundHeadAssistantForSummary()},
+     * because finished tool output enters history as assistant content and a
+     * condensed exchange carrying a large tool blob would otherwise reach the
+     * summariser whole. The `user` half rides out untouched — §6.6 bounds the tool
+     * transcript, not the question — and the `key` is ALWAYS computed from the
+     * original unclipped pair, because {@see withExchangeSummaries()} and the
+     * apply-on-landing step in Chat recompute that key from the transcript: a key
+     * derived from clipped text would summarise the exchange and then fail to find
+     * it. So the clip is a copy made on the way out and nothing here rewrites the
+     * history it was handed.
+     *
      * @param array<array{role:string,content:string}> $messages Wire-format messages.
      * @return list<array{key:string,user:string,assistant:string}>
      */
@@ -634,11 +646,56 @@ final class ContextCompactor
             $out[] = [
                 'key' => self::exchangeKey($user, $assistant),
                 'user' => $user,
-                'assistant' => $assistant,
+                'assistant' => $this->boundHeadAssistantForSummary($assistant),
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * The heading a loaded skill's body arrives under, written by
+     * `SkillTool::execute()` onto the tool result that becomes the assistant turn.
+     *
+     * Spelled here rather than looked for in a role because there is no `skill`
+     * role on the wire: the dormant {@see compactSkills()}/{@see filterSkills()}
+     * budget machinery has no production caller and never sees the head, so this
+     * heading is the only thing that identifies skill output among the condensed
+     * exchanges.
+     */
+    private const SKILL_OUTPUT_MARKER = '## Skill: ';
+
+    /**
+     * The head's assistant half as the summariser is shown it: at most
+     * {@see CompactorConfig::$toolOutputMaxChars} characters of it, plus a marker
+     * naming how many fell off.
+     *
+     * Pure and deterministic — same text in, same text out, no state read beyond
+     * the config — because what it returns is a view handed to one model call and
+     * nothing else. The bound is on the RETAINED text alone: the marker is appended
+     * after it, so a clipped value runs past the bound by the marker's length, which
+     * is the price of a truncation that says how much it removed instead of
+     * pretending nothing happened.
+     *
+     * A skill body is emitted whole at any length (§9.3, "never prune skill
+     * outputs"): the heading is instructions the model still has to obey, whereas a
+     * tool blob is a record of something already acted on.
+     */
+    private function boundHeadAssistantForSummary(string $assistant): string
+    {
+        if (str_starts_with($assistant, self::SKILL_OUTPUT_MARKER)) {
+            return $assistant;
+        }
+
+        $max = $this->config->toolOutputMaxChars;
+        if (mb_strlen($assistant) <= $max) {
+            return $assistant;
+        }
+
+        $dropped = mb_strlen($assistant) - $max;
+
+        return mb_substr($assistant, 0, $max)
+            . "\n\n[... {$dropped} characters truncated ...]";
     }
 
     /**
