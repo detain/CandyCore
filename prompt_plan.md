@@ -2519,6 +2519,8 @@ repo's standing rule: **dead code gets wired, not deleted.**
 
 ### P7.S1 — `HookResult::additionalContext` and the discarded-message bug
 
+**Status 2026-09-06: MERGED — merge `f77cc7747`; floor 10,957/168,640 gated `9c423afb7`. Full record: worklog P7.S1 entry.**
+
 **Goal** Two things, and the first is useless without the second. (a) Add an `additionalContext`
 field to `HookResult`. (b) Stop `HookRegistry::executeHooks()` discarding it: the method ends
 `return $modified ?? $inertRewrite ?? HookResult::allow();` at `:428` — a permitting verdict rebuilt
@@ -2560,6 +2562,8 @@ moves** (`additionalContext` is a tool-result payload, never system-prompt text;
 
 ### P7.S2 — Dispatch sites for `SessionStart` and `UserPromptSubmit`
 
+**Status 2026-09-06: MERGED — merge `8e6ab1a5f`; floor 10,980/168,841 gated `090b73db`. Full record: worklog P7.S2 entry.**
+
 **Goal** Only two of eleven hook events fire (`PreToolUse`, `PostToolUse`). `HookManager` has no
 `sessionStart()`/`userPromptSubmit()`/`stop()`/`preCompact()` method at all. `HookDispatcher`
 (586 lines, all eleven `dispatchX()` methods) is constructed by nothing in `src/` except
@@ -2590,6 +2594,8 @@ hook's text is in the request the provider receives — not in a DTO, in the pay
 
 ### P7.S3 — Skills step 6: decide the two-path question, then wire
 
+**Status 2026-09-06: MERGED — merge `b289eaf44`; floor 10,990/168,977 gated `129587a97`. Full record: worklog P7.S3 entry.**
+
 **Goal** `EngineBackend::withSkills()` (`:221`) has **zero callers**; `Bootstrap` wires only
 `withSkillRegistry()` (`:2160`, `:2224`). Skill bodies enter the main prompt only via the interactive
 Ctrl+S picker, and `App::$enabledSkills` is populated only by that picker — no `Bootstrap` path calls
@@ -2610,6 +2616,8 @@ assertions at `RuntimeTest.php:1591/1610`. A test that only asserts "appears" wo
 double-emit.
 
 ### P7.S4 — `SkillRegistry::findForPrompt()` — measure before wiring
+
+**Status 2026-09-06: MERGED — merge `5deb98fe8`; floor 10,997/168,995 gated `a906e9c72`. Full record: worklog P7.S4 entry.**
 
 **Goal** It is defined but unreachable from the chat loop; its only callers are
 `SkillManager::getSkillsForTask():143` and `App::findSkillsForTask()` (`src/App/App.php:384`),
