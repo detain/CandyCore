@@ -742,6 +742,52 @@ final class BaseSystemPromptTest extends TestCase
     }
 
     /**
+     * The shell-substitution affordance clause, pinned in the golden with its
+     * load-bearing figures. P9.S5 shipped it because both limits are real and
+     * both overruns announce themselves, and the sentence is only true while
+     * they stay that way: `CommandSpec::SHELL_BUDGET_SECONDS` (10, one
+     * wall-clock budget shared per EXPANSION), `CommandSpec::MAX_SUBSTITUTION_BYTES`
+     * (16,384, per substitution, covering `` !`cmd` `` output and `@file`
+     * contents alike), and the in-place notices in `shellBudgetSpentNotice()`,
+     * the timeout label and the bytes-dropped label in
+     * `runShellSubstitution()`. Whitespace is flattened first so the pin
+     * holds the clause's content rather than its line-wrapping.
+     */
+    public function testGoldenShellSubstitutionClauseNamesBothExpansionBudgets(): void
+    {
+        $flat = (string) preg_replace('/\s+/', ' ', self::readSystemPromptGolden());
+
+        self::assertStringContainsString(
+            'Before a file-based command reaches you, its !`cmd` and @file forms are already substituted',
+            $flat,
+        );
+        self::assertStringContainsString('shares a 10-second wall-clock budget', $flat);
+        self::assertStringContainsString('more than 16,384 bytes', $flat);
+        self::assertStringContainsString('says so in place rather than dropping silently', $flat);
+    }
+
+    /**
+     * The skills affordance clause, pinned in the golden with its invocation
+     * verb. True while `SkillMatcher::listForPrompt()` renders one
+     * `- name: description` line per discovered skill (the one-line summary)
+     * and `SkillTool` answers a call by that name with the full body under a
+     * `## Skill: {name}` prefix - and phrased "When the system context lists"
+     * so it stays true of a render with no listing at all, which is exactly
+     * what the golden context produces since P7.S3.
+     */
+    public function testGoldenSkillsClauseSaysToInvokeTheSkillToolByName(): void
+    {
+        $flat = (string) preg_replace('/\s+/', ' ', self::readSystemPromptGolden());
+
+        self::assertStringContainsString(
+            'When the system context lists available skills, each entry is a one-line summary',
+            $flat,
+        );
+        self::assertStringContainsString('invoke the `Skill` tool by name to load the full instructions', $flat);
+        self::assertStringContainsString('use it when a listed skill plainly fits', $flat);
+    }
+
+    /**
      * Host-path leak scan over the committed golden.
      *
      * THE ROO BUG CLASS: a production agent shipped a hardcoded '/test/path'
@@ -846,8 +892,13 @@ final class BaseSystemPromptTest extends TestCase
         // frozen double presentation was the defect the exclusion is licensed
         // to close; the default-empty launch path is byte-identically pinned
         // untouched in tests/Integration/FeatWiringReachabilityTest.php.
+        // MEASURED 2026-09-08 at P9.S5: 7,732 -> 8,278, exactly ONE pure
+        // insertion of 546 B at offset 2,154 - proven by difflib: single
+        // insert op, zero delete/replace ops, old bytes [0:2154] identical,
+        // old tail identical from new offset 2,700 - the two affordance
+        // clauses folded into the tail of the # Tool use paragraph.
         self::assertSame(
-            7732,
+            8278,
             strlen($golden),
             'the system-prompt golden is not its committed length - it has been truncated or padded '
             . 'somewhere the absence assertions below would scan straight past',
