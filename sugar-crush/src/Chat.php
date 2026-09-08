@@ -9153,9 +9153,9 @@ final class Chat implements Model
      * semantics are genuinely different — `/compact` consumes the draft and
      * starts no turn, the 85% tier parks a turn it is about to start — while
      * "which exchanges would a compaction of this history condense, and what do
-     * we send to get lines for them" is one question with one answer. Returning
-     * the id and the count rather than a finished `Chat` is what lets each
-     * caller write its own notice and its own `inFlight`.
+     * we send to get a record for each of them" is one question with one answer.
+     * Returning the id and the count rather than a finished `Chat` is what lets
+     * each caller write its own notice and its own `inFlight`.
      *
      * $probeHistory is the history the compaction will eventually run against —
      * the caller's current history PLUS every message it is about to append,
@@ -9446,17 +9446,43 @@ final class Chat implements Model
     private const SUMMARY_FACET_PATTERN = '/^\s*(asked|did|files|decided|corrected|error)\s*:\s*(.*)$/u';
 
     /**
+     * A `label:` line whose label is NOT one of the six. Such a line is dropped
+     * rather than treated as prose wrapping the facet above it — otherwise an
+     * invented `note: whatever` ends up inside `error:` and the summary states
+     * something about the exchange that the instruction never asked for.
+     */
+    private const SUMMARY_INVENTED_FACET_PATTERN = '/^\s*[a-z]+\s*:/u';
+
+    /** What the instruction asks a model to write where a facet has nothing to record. */
+    private const SUMMARY_FACET_NONE = 'none';
+
+    /**
      * The model's reply split into records — an opener carrying the exchange
      * number, then the facet lines named under it. Text before the first opener is
      * preamble and goes no further. A line that is neither an opener nor a facet,
      * once a facet has been opened, continues the facet above it, which is how a
-     * model wrapping a long value keeps its words instead of losing them.
+     * model wrapping a long value keeps its words instead of losing them. A line
+     * that looks like a facet but names none of the six is dropped, not wrapped.
      *
-     * @return list<array{number:int,facets:array<string,string>}>
+     * Facets must arrive in {@see SUMMARY_FACETS} order. A facet that sorts BEFORE
+     * the last one accepted means the record boundary went missing — the model
+     * wrote `**2.**`, or `Exchange 2:`, or no number at all, and the opener pattern
+     * correctly refused the line, so every facet of the NEXT exchange would
+     * otherwise be merged into this one and the text of exchange 2 would be filed
+     * under exchange 1's key. That is the one failure mode this parse must not
+     * ship: a dropped summary degrades to the heuristic, a merged one lies. So the
+     * current record is discarded whole, and the facets that follow are collected
+     * into a record with NO number — which {@see parseExchangeSummaries()} cannot
+     * map, because guessing the next ordinal is how a summary would land on an
+     * exchange that never said it. A later line that does open cleanly starts a
+     * properly numbered record again.
+     *
+     * @return list<array{number:int|null,facets:array<string,string>}>
      */
     private static function splitExchangeRecords(string $reply): array
     {
         $records = [];
+        $rank = null;
         foreach (preg_split('/\R/', $reply) ?: [] as $line) {
             if (trim($line) === '') {
                 continue;
@@ -9464,6 +9490,7 @@ final class Chat implements Model
 
             if (preg_match(self::SUMMARY_OPENER_PATTERN, $line, $m) === 1) {
                 $records[] = ['number' => (int) $m[1], 'facets' => []];
+                $rank = null;
                 continue;
             }
 
@@ -9476,10 +9503,25 @@ final class Chat implements Model
             $last = array_key_last($records);
             if (preg_match(self::SUMMARY_FACET_PATTERN, $line, $m) === 1) {
                 $facet = $m[1];
+                $position = array_search($facet, self::SUMMARY_FACETS, true);
+                if ($rank !== null && $position < $rank) {
+                    // Out of order: the boundary vanished. Throw away the record
+                    // collected so far rather than extend it with another
+                    // exchange's facets, and keep what follows in a record nobody
+                    // can mis-file.
+                    $records[$last]['facets'] = [];
+                    $records[] = ['number' => null, 'facets' => []];
+                    $last = array_key_last($records);
+                }
+                $rank = $position;
                 $records[$last]['facets'][$facet] = self::mergeSummaryFacet(
                     $records[$last]['facets'][$facet] ?? '',
                     $m[2]
                 );
+                continue;
+            }
+
+            if (preg_match(self::SUMMARY_INVENTED_FACET_PATTERN, $line) === 1) {
                 continue;
             }
 
@@ -9511,9 +9553,12 @@ final class Chat implements Model
 
     /**
      * One record as the single line the compactor stores: every facet named in
-     * order, joined with " | ". Null is a record that never named a facet — the
-     * heuristic summary for that exchange beats six `none`s. Anything non-null
-     * has at least the facet names in it, so a caller never has to re-check.
+     * order, joined with " | ". Null means this record says nothing the heuristic
+     * does not say better — either it never named a facet, or it filled all six
+     * with the `none` the instruction offers for an exchange holding nothing worth
+     * keeping. Both defer to the local summary, which at least records that the
+     * exchange happened. Anything non-null has at least one facet with a value in
+     * it, so a caller never has to re-check.
      *
      * @param array<string, string> $facets
      */
@@ -9524,12 +9569,17 @@ final class Chat implements Model
         }
 
         $parts = [];
+        $anything = false;
         foreach (self::SUMMARY_FACETS as $facet) {
             $value = trim($facets[$facet] ?? '');
-            $parts[] = $facet . ': ' . ($value === '' ? 'none' : $value);
+            if ($value === '') {
+                $value = self::SUMMARY_FACET_NONE;
+            }
+            $anything = $anything || $value !== self::SUMMARY_FACET_NONE;
+            $parts[] = $facet . ': ' . $value;
         }
 
-        return implode(' | ', $parts);
+        return $anything ? implode(' | ', $parts) : null;
     }
 
     /**
@@ -9538,10 +9588,11 @@ final class Chat implements Model
      *
      * Positional: the record opened with "3" belongs to $keys[2], because that is
      * the order {@see renderExchangesForSummary()} presented them in. A number
-     * outside the range, a repeat of one already used, or a record that never
-     * names a facet is simply not mapped — the exchange then falls back to the
-     * heuristic, which is why a partially-obeyed instruction degrades instead of
-     * mis-attributing a summary.
+     * outside the range, a repeat of one already used, a record that never named a
+     * facet, a record whose six facets are all `none`, or a record the parser
+     * could not number at all is simply not mapped — the exchange then falls back
+     * to the heuristic, which is why a partially-obeyed instruction degrades instead
+     * of mis-attributing a summary.
      *
      * Each record is joined to one line and then flattened and bounded. This is
      * model-authored text bound for the transcript AND for the next prompt: a raw
@@ -9557,8 +9608,11 @@ final class Chat implements Model
         $summaries = [];
         foreach (self::splitExchangeRecords($reply) as $record) {
             $line = self::joinExchangeFacets($record['facets']);
+            if ($record['number'] === null || $line === null) {
+                continue;
+            }
             $index = $record['number'] - 1;
-            if ($line === null || $index < 0 || !isset($keys[$index]) || isset($summaries[$keys[$index]])) {
+            if ($index < 0 || !isset($keys[$index]) || isset($summaries[$keys[$index]])) {
                 continue;
             }
 

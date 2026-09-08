@@ -676,10 +676,144 @@ final class CompactModelSummaryTest extends TestCase
     }
 
     /**
+     * THE NON-MIS-ATTRIBUTION PIN. A model that bolds its record numbers writes
+     * `**2.**`, which the opener pattern correctly refuses - and under a parser
+     * that attaches every facet to whatever record is open, exchange 2's facets
+     * would then be filed under exchange 1's key. That is the one failure this
+     * parse must never ship: a dropped summary degrades to the heuristic, a merged
+     * one states something false about the transcript. So an out-of-order facet
+     * discards the record collected so far and parks what follows under no number
+     * at all, while a later line that opens cleanly still maps where it belongs.
+     */
+    public function testASwallowedRecordBoundaryNeverMergesBackwards(): void
+    {
+        $chat = $this->chat($this->summarizer(
+            "1.\nasked: what the FIRST exchange asked\nfiles: first.php\ndecided: keep first.php\n"
+            . "**2.**\nasked: what the SECOND exchange asked\nfiles: second.php\ndecided: keep second.php\n"
+            . "3.\nasked: what the THIRD exchange asked\n"
+        ));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertCount(
+            1,
+            $msg->summaries,
+            'the bolded opener cost two records their summaries - both exchanges fall back - and gained none',
+        );
+        $survivor = array_values($msg->summaries);
+        $this->assertStringStartsWith(
+            'asked: what the THIRD exchange asked',
+            $survivor[0],
+            'the only record that survived is the one that opened cleanly',
+        );
+
+        [$done] = $pending->update($msg);
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringNotContainsString('what the FIRST exchange asked', $text);
+        $this->assertStringNotContainsString(
+            'what the SECOND exchange asked',
+            $text,
+            'and above all: exchange 2 never appears under exchange 1, or under any other exchange',
+        );
+
+        // Positional proof - the one model summary must sit THIRD, behind the two
+        // heuristic placeholders its exchanges fell back to, not first.
+        $lines = array_map(static fn(Message $m): string => $m->content, $done->history);
+        $summaryAt = null;
+        foreach ($lines as $i => $line) {
+            if (str_starts_with($line, '[summary] asked: what the THIRD')) {
+                $summaryAt = $i;
+            }
+        }
+        $this->assertNotNull($summaryAt, 'fixture: the surviving summary is in the transcript');
+        $fallbacksAhead = 0;
+        foreach (array_slice($lines, 0, $summaryAt) as $line) {
+            if (str_contains($line, '[exchanged information]')) {
+                $fallbacksAhead++;
+            }
+        }
+        $this->assertSame(
+            2,
+            $fallbacksAhead,
+            'exchanges one and two both landed on the heuristic, ahead of the summary that stayed in its place',
+        );
+    }
+
+    /**
+     * A record that filled every facet with `none` is the instruction's own answer
+     * for an exchange holding nothing worth keeping - and six `none`s still say
+     * less than the heuristic does. This is the case the format invites the model
+     * to write, so deferring is load-bearing: a six-`none` line mapped over a real
+     * local summary would make the compaction strictly worse than no model at all.
+     */
+    public function testARecordOfSixNonesDefersToTheHeuristicRatherThanMapping(): void
+    {
+        $chat = $this->chat($this->summarizer(implode("\n", [
+            $this->record(1, ['asked' => 'a real question', 'files' => 'real.php']),
+            $this->record(2, [
+                'asked' => 'none',
+                'did' => 'none',
+                'files' => 'none',
+                'decided' => 'none',
+                'corrected' => 'none',
+                'error' => 'none',
+            ]),
+        ])));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $this->assertCount(1, $msg->summaries, 'only the record with content in it mapped');
+
+        [$done] = $pending->update($msg);
+        $text = implode("\n", array_map(static fn(Message $m): string => $m->content, $done->history));
+        $this->assertStringContainsString(
+            '[summary] asked: a real question | did: none | files: real.php',
+            $text,
+        );
+        $this->assertStringNotContainsString(
+            'asked: none | did: none | files: none | decided: none | corrected: none | error: none',
+            $text,
+            'the six-none line is never stored, in any exchange, under any prefix',
+        );
+        $this->assertStringContainsString(
+            '[exchanged information]',
+            $text,
+            'and the all-none exchange kept its heuristic summary',
+        );
+    }
+
+    /**
+     * A `label:` line naming none of the six facets is a field the instruction
+     * never asked for. It must not be appended to the facet above it as wrapped
+     * prose, or an invented `note:` silently rewrites what the model said the
+     * error was. The line is dropped; the record stands.
+     */
+    public function testAFacetTheInstructionNeverAskedForIsDroppedNotFoldedIntoTheOneAbove(): void
+    {
+        $chat = $this->chat($this->summarizer($this->record(1, [
+            'asked' => 'why the build broke',
+            'error' => 'exit status 2',
+        ]) . "\nnote: the model volunteered this field unprompted"));
+        [$pending, $cmd] = $this->submit($chat);
+        $msg = $this->resolve($cmd);
+
+        $kept = array_values($msg->summaries);
+        $this->assertCount(1, $kept, 'the record itself is still usable');
+        $this->assertStringNotContainsString(
+            'volunteered',
+            $kept[0],
+            'the invented field never reaches the summary it would have been appended to',
+        );
+        $this->assertStringContainsString('error: exit status 2', $kept[0]);
+    }
+
+    /**
      * The prompt, the facet list and the facet pattern are one contract in three
      * places. If a seventh facet is added to the instruction but not the parser -
      * or the other way round - the model's answer silently loses a field, so the
-     * three are pinned against each other here.
+     * three are pinned against each other here. The prompt side is BIDIRECTIONAL:
+     * the facet lines are read out of the instruction and compared as a whole list,
+     * so adding a facet to either half alone goes red.
      */
     public function testTheFacetListThePatternAcceptsAndThePromptAsksForCannotDriftApart(): void
     {
@@ -701,13 +835,18 @@ final class CompactModelSummaryTest extends TestCase
         );
 
         $prompt = (string) $reflect->getConstant('COMPACT_SUMMARY_PROMPT');
-        foreach ($facets as $facet) {
-            $this->assertStringContainsString(
-                $facet . ': <',
-                $prompt,
-                "the instruction must show the model a {$facet} line, since the parser is what reads it back",
-            );
-        }
+        $found = preg_match_all('/^\s*([a-z]+): </m', $prompt, $asked);
+        $this->assertSame(
+            count($facets),
+            $found,
+            'fixture: the instruction templates exactly one facet line per facet, and no stray "word: <" line',
+        );
+        $this->assertSame(
+            $facets,
+            $asked[1],
+            'the instruction templates exactly the facets the parser accepts, in that order - a seventh line here'
+            . ' with no matching entry in SUMMARY_FACETS would be a field the model is asked for and the code drops',
+        );
     }
 
     // =====================================================================
