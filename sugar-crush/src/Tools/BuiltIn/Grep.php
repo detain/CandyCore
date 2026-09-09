@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SugarCraft\Crush\Tools\BuiltIn;
 
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\CarriesSessionState;
 use SugarCraft\Crush\Tools\Concerns\CapturesProcessOutput;
@@ -40,6 +41,10 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
         private ?InstructionFileLoader $instructionLoader = null,
         private ?SkillPathNudge $skillNudge = null,
         private bool $rgAvailable = false,
+        // P6.S5b: LAST, not beside the skill tracker it pairs with, because existing
+        // cap tests construct these tools with positional arguments and a
+        // mid-signature insert silently re-types them.
+        private ?RulePathNudge $ruleNudge = null,
     ) {}
 
     /**
@@ -95,6 +100,7 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
         return [
             'emittedInstructionPaths' => $this->instructionLoader?->emittedPaths() ?? [],
             'announcedSkills' => $this->skillNudge?->announced() ?? [],
+            'announcedRules' => $this->ruleNudge?->announcedPaths() ?? [],
         ];
     }
 
@@ -111,6 +117,11 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
         $skills = $state['announcedSkills'] ?? null;
         if (is_array($skills)) {
             $this->skillNudge?->markAnnounced(array_values($skills));
+        }
+
+        $rules = $state['announcedRules'] ?? null;
+        if (is_array($rules)) {
+            $this->ruleNudge?->markAnnouncedPaths(array_values($rules));
         }
     }
 
@@ -321,10 +332,23 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
                 : null,
         );
 
+        // P6.S5b: the rule channel, over the same hit-file list, on the same
+        // eighth, computed before the body is clipped for the same E66 reason.
+        $ruleNudge = $this->ruleNudge?->forPaths(
+            self::hitFiles($filtered['run']['stdout'], $path),
+            $this->maxOutputBytes > 0
+                ? intdiv($this->maxOutputBytes, RulePathNudge::CALLER_BUDGET_DIVISOR)
+                : null,
+        );
+
         // +1 for the newline separated() adds. Charged against the cap even
         // where the body already ends on one, because over-reserving by a byte
         // keeps the total inside the cap and under-reserving does not.
-        $nudgeCost = $nudge === null ? 0 : strlen($nudge) + 1;
+        // Both transient channels now reserve inside the cap, one newline each.
+        // A launch carrying no path-scoped rule pays the second term as zero, so
+        // the budget arithmetic every existing Grep cap test pins is unchanged.
+        $nudgeCost = ($nudge === null ? 0 : strlen($nudge) + 1)
+            + ($ruleNudge === null ? 0 : strlen($ruleNudge) + 1);
 
         // The cap the BODY may spend, which is the whole cap on every call
         // that produces no nudge — announce-once means that is every call
@@ -524,6 +548,11 @@ final readonly class Grep implements Tool, ParallelSafe, CarriesSessionState
             // clipped, so this append cannot push the result past the cap.
             $content = self::separated($content);
             $content .= $nudge;
+        }
+
+        if ($ruleNudge !== null) {
+            $content = self::separated($content);
+            $content .= $ruleNudge;
         }
         return new ToolResult(
             toolCallId: $args['id'] ?? '',

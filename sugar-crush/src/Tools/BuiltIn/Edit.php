@@ -6,6 +6,7 @@ namespace SugarCraft\Crush\Tools\BuiltIn;
 
 use SugarCraft\Crush\Agents\PathJail as AgentPathJail;
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\Concerns\BuildsUnifiedDiff;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
@@ -35,6 +36,7 @@ final readonly class Edit implements Tool
         private ?InstructionFileLoader $instructionLoader = null,
         private array $sessionCache = [],
         private ?SkillPathNudge $skillNudge = null,
+        private ?RulePathNudge $ruleNudge = null,
     ) {}
 
     public function name(): string
@@ -241,6 +243,19 @@ final readonly class Edit implements Tool
         $nudge = $this->skillNudge?->forPath($path);
         if ($nudge !== null) {
             $message .= "\n\n" . $nudge;
+        }
+
+        // P6.S5b: the rule channel, appended on the same terms as the skill nudge
+        // directly above and for the same reason -- a write that was rejected or
+        // failed never touched the path, so it must not burn a rule's one-shot
+        // mark. No budget is passed, exactly as Edit/Write pass none to the skills
+        // tracker: this result has no output cap to spend a share OF, so the
+        // tracker's own ceiling is the flat bound, and the shipped-budget guard in
+        // RulePathScopingWiringTest is what keeps that ceiling inside what a capped
+        // caller can also hold.
+        $ruleNudge = $this->ruleNudge?->forPath($path);
+        if ($ruleNudge !== null) {
+            $message .= "\n\n" . $ruleNudge;
         }
 
         return new ToolResult(

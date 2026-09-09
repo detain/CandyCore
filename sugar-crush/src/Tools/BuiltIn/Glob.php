@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SugarCraft\Crush\Tools\BuiltIn;
 
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\CarriesSessionState;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
@@ -71,6 +72,10 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         private int $maxMatches = self::DEFAULT_MAX_MATCHES,
         private ?array $prunedDirs = null,
         private bool $fdAvailable = false,
+        // P6.S5b: LAST, not beside the skill tracker it pairs with, because existing
+        // cap tests construct these tools with positional arguments and a
+        // mid-signature insert silently re-types them.
+        private ?RulePathNudge $ruleNudge = null,
     ) {}
 
     /**
@@ -95,6 +100,7 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         return [
             'emittedInstructionPaths' => $this->instructionLoader?->emittedPaths() ?? [],
             'announcedSkills' => $this->skillNudge?->announced() ?? [],
+            'announcedRules' => $this->ruleNudge?->announcedPaths() ?? [],
         ];
     }
 
@@ -111,6 +117,11 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         $skills = $state['announcedSkills'] ?? null;
         if (is_array($skills)) {
             $this->skillNudge?->markAnnounced(array_values($skills));
+        }
+
+        $rules = $state['announcedRules'] ?? null;
+        if (is_array($rules)) {
+            $this->ruleNudge?->markAnnouncedPaths(array_values($rules));
         }
     }
 
@@ -424,6 +435,20 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
                 : null,
         );
 
+        // P6.S5b: the rule channel, over the SAME matched-path list and on the
+        // same eighth-of-the-cap terms, computed before the list is clipped for
+        // the same reason E66 computes the skill nudge there — its length has to
+        // be a reservation the path list pays for, not an appendage beside the
+        // cap. Scoped to every MATCHED path rather than to what survived the
+        // clip, because "does a rule claim this area" is a question the clip
+        // cannot answer differently.
+        $ruleNudge = $this->ruleNudge?->forPaths(
+            $files,
+            $this->maxOutputBytes > 0
+                ? intdiv($this->maxOutputBytes, RulePathNudge::CALLER_BUDGET_DIVISOR)
+                : null,
+        );
+
         // +1 for the newline the nudge is appended behind at the foot of
         // execute().
         //
@@ -480,7 +505,13 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         // testGlobSpendsExactlyAnEighthOfMaxOutputBytesOnTheSkillNudge(),
         // which is what turns "nobody has changed it" into "changing it fails
         // something".
-        $nudgeCost = $nudge === null ? 0 : strlen($nudge) + 1;
+        // Two transient channels now spend inside this cap, each with its own
+        // newline, and both terms are zero whenever the corresponding tracker
+        // said nothing — which for the rule channel is every launch carrying no
+        // path-scoped rule, so the reservation arithmetic a capped Grep/Glob did
+        // before P6.S5b is unchanged on those launches.
+        $nudgeCost = ($nudge === null ? 0 : strlen($nudge) + 1)
+            + ($ruleNudge === null ? 0 : strlen($ruleNudge) + 1);
         $bodyCap = $this->maxOutputBytes > 0
             ? max(1, $this->maxOutputBytes - $nudgeCost)
             : 0;
@@ -622,6 +653,10 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         // append cannot push the result past the cap.
         if ($nudge !== null) {
             $output .= "\n" . $nudge;
+        }
+
+        if ($ruleNudge !== null) {
+            $output .= "\n" . $ruleNudge;
         }
 
         return new ToolResult(
