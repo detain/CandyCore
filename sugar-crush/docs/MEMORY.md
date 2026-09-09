@@ -147,9 +147,10 @@ authority owning the prompt's fence-tag roster — `env`, `project-memory`,
 `repo-map`, `project-instructions`, `system-reminder`, `user-rules`,
 `prior-summary`, `harness-injected` — and its `escape()` rewrites only the leading
 `<` of a recognised open/close tag to `&lt;`, touches nothing else, and is
-idempotent. A clean note therefore renders byte-for-byte identical to its raw
-text; a note forging a fence arrives as `&lt;/project-memory>` and cannot close
-the block it lives in (`MemoryBlockTest::testANoteForgingItsOwnClosingFenceRendersOneBalancedFence`,
+idempotent, and the promise it makes is body-level: a clean note body passes
+through byte-for-byte unchanged before the line prefix is applied, while a note
+forging a fence arrives as `&lt;/project-memory>` and cannot close the block it
+lives in (`MemoryBlockTest::testANoteForgingItsOwnClosingFenceRendersOneBalancedFence`,
 `MemoryBlockTest::testACleanNoteIsRenderedByteIdenticalToTheEscapeAuthorityTransparencyPromise`).
 
 The escape runs *before* the clip on purpose, so `MAX_ENTRY_BYTES` bounds the
