@@ -45,18 +45,22 @@ use SugarCraft\Crush\Memory\MemoryStore;
  *     YAML-parses each file, per call. `buildSystemPrompt()` runs once per step
  *     of the agentic loop (up to `maxSteps`, default 8), so a per-term search
  *     would be terms x 8 full-store scans per turn.
- *   - Prompt caching, stated carefully because the obvious version of this
- *     argument is wrong here. Turn-varying content in the system prompt voids
- *     the cacheable prefix — but this prefix is ALREADY unstable in any session
- *     where the agent writes files: {@see EnvironmentBlock::render()} shells out
- *     to `git status --porcelain` on every call and sits AHEAD of this block, so
- *     the first edit of a session voids everything downstream of it anyway. That
- *     hazard is pinned, deliberately, by
+ *   - Prompt caching, stated carefully because P3.S1 inverted this argument
+ *     when it moved the volatile env block to the very END of the system prompt
+ *     (the ordering invariant recorded in
+ *     {@see \SugarCraft\Crush\Runtime::buildSystemPrompt()}). Turn-varying
+ *     content voids the cacheable prefix of every layer AFTER it — and
+ *     {@see EnvironmentBlock::render()} still shells out to
+ *     `git status --porcelain` on every call but now sits BEHIND this block, so
+ *     its churn no longer reaches this prefix at all: this block stays stable
+ *     across the first edit of a session and every edit after it. The live-poll
+ *     behaviour itself is pinned, deliberately, by
  *     `tests/Providers/PromptStabilityTest::testEnvironmentBlockGitSnapshotIsLivePolledNotFrozenAtCapture()`.
- *     So the accurate claim is narrower: a query-dependent memory block would
- *     newly void the prefix in the read-only sessions where it is currently
- *     stable, and would add nothing further in the write-heavy ones. That makes
- *     caching a real but SECONDARY reason, not the decisive one.
+ *     With env last there is no earlier churn left to mask the cost, so the
+ *     accurate claim is broader than it used to be: a query-dependent memory
+ *     block would newly void the prefix in EVERY session, read-only and
+ *     write-heavy alike. That makes caching a real and now UNMASKED reason,
+ *     still SECONDARY — not the decisive one.
  *   - Placement. This is the decisive one. The system prompt is where STANDING
  *     instructions live: it is what already carries root `AGENTS.md`/`CLAUDE.md`.
  *     Turn-dependent retrieval belongs in the turn, not in the preamble.

@@ -228,40 +228,62 @@ only so no dependency cycle is created.
 
 ### The system prompt, in assembly order
 
-`Runtime::buildSystemPrompt()` appends, in this order:
+`Runtime::systemPromptSections()` returns the prompt as an ordered list of
+sections — eleven slots, though a session that qualifies none of the optional
+ones assembles fewer — and `buildSystemPrompt()` folds that list into the
+string the model receives. The order of record, each layer named as the code
+names it:
 
 1. the base instructions (a heredoc, each clause naming the code that makes it
    true *and* the limit past which it stops being true);
-2. `EnvironmentBlock` — cwd, model, git state, date; memoized per `Runtime`
-   because `render()` shells out to git and the prompt is rebuilt once per step;
-3. `RepoMapBlock` — a `<repo-map>` of the workspace's Composer sub-packages and
-   its PSR-4 source directories, memoized per `Runtime` for the same reason;
-4. `<project-instructions>` documents — `CLAUDE.md` / `AGENTS.md`, with
-   `@import`s expanded, via `InstructionFileLoader`;
-5. `MemoryBlock` — `project`-scope memory entries only;
-6. explicitly enabled skills' full bodies;
-7. `SkillMatcher::listForPrompt()` — name + description for every discovered
-   auto-invocable skill.
+2. `MaximsSection` — the `core.maxims` voice layer, unfenced like the base
+   because its bytes are a class constant with no untrusted input in them;
+3. the tool-guidance layer — one fragment per wired tool that implements
+   `PromptGuidance`, ordered by `name()`; the slot appears only when at least
+   one fragment is non-empty;
+4. `RepoMapBlock` — a `<repo-map>` of the workspace's Composer sub-packages and
+   its PSR-4 source directories, memoized per `Runtime`;
+5. `<user-rules>` — the user-tier rule files `RuleLoader` returns, each in its
+   own fence behind the authority preamble;
+6. `<project-instructions>` documents — `CLAUDE.md` / `AGENTS.md`, with
+   `@import`s expanded, via `InstructionFileLoader`, escaped by `PromptFence`;
+7. the repository's own project-tier rules from `RuleLoader`, same
+   `<project-instructions>` fence as the documents immediately above them;
+8. `MemoryBlock` — `project`-scope memory entries only, fenced
+   `<project-memory>`;
+9. explicitly enabled skills' full bodies;
+10. `SkillMatcher::listForPrompt()` — name + description for every discovered
+    auto-invocable skill;
+11. `EnvironmentBlock` LAST — cwd, model, git status and diff, date; memoized
+    per `Runtime` because `render()` shells out to git once per build.
 
-Item 7 is what makes the `Skill` tool worth having: without the listing, the
+Item 10 is what makes the `Skill` tool worth having: without the listing, the
 model has no reason to call it, and a populated registry would still be
 un-triggerable.
 
-Items 2 and 3 are the derived-fact half and 4 and 5 the authored-convention
-half, which is why the map sits where it does: every line in it is a path
-relative to the cwd item 2 names, and the conventions in item 4 talk about both.
-`RepoMapBlock` is deliberately generic — it reads `composer.json` files, not
-this repository's `docs/MATCHUPS.md`. It maps a flat Composer workspace (this
-repository's shape), a single library, and a `packages/*` monorepo whose root
-manifest declares those packages as path repositories. Its floor is that it
-never *searches* for manifests: it opens the root's immediate children and the
-directories the root manifest names, so a nested layout that does not declare
-itself is not found. Its own docblock records that decision and what it costs.
+Items 3 and 4 are the derived-fact half and items 5 through 8 the
+authored-convention half, which is why the map sits where it does: it is the
+same kind of thing the base is — fact derived from the repository, not
+convention an author wrote down — every line in it is a path the model resolves
+against the working directory the env block names, and the conventions after it
+talk about both. `RepoMapBlock` is deliberately generic — it reads
+`composer.json` files, not this repository's `docs/MATCHUPS.md`. It maps a flat
+Composer workspace (this repository's shape), a single library, and a
+`packages/*` monorepo whose root manifest declares those packages as path
+repositories. Its floor is that it never *searches* for manifests: it opens the
+root's immediate children and the directories the root manifest names, so a
+nested layout that does not declare itself is not found. Its own docblock
+records that decision and what it costs.
 
-Note the prompt-caching consequence stated in `MemoryBlock`'s own source:
-`EnvironmentBlock::render()` polls `git status --porcelain` and sits **ahead** of
-everything else, so the first edit of a session voids the cacheable prefix for
-everything downstream of it anyway.
+The ordering is a caching decision, not a stylistic one, and it is the P3.S1
+invariant recorded in `Runtime::buildSystemPrompt()` and restated in
+`MemoryBlock`'s own source: sections run stable-first, by mutation frequency,
+and the volatile env block sits **last**. `EnvironmentBlock::render()` polls
+`git status --porcelain` on every call, so any earlier position would void the
+cacheable prefix of every layer behind it from the first edit of a session; at
+the very end there is nothing downstream left to void. The rationale behind
+these placement decisions is written up in
+[`PROMPT_ENGINEERING.md`](PROMPT_ENGINEERING.md).
 
 ### Parallel tool dispatch
 
