@@ -253,6 +253,80 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P6.S5b — path-scoped rules reach the model at tool time (final plan step) · 2026-09-09 · merge aba6b9278
+
+**Status** `done`. **Worktree** /home/sites/prompt-step-P6.S5b (branch prompt/P6.S5b, base `941bdcd45`) — removed in this FINAL bookkeeping batch after ancestry proof (`git merge-base --is-ancestor db31bc15f master`) and porcelain-clean, branch deleted with plain `-d`. **Base** `941bdcd45`. **This merge closed the plan: 65 of 65 step headings landed.**
+
+**The user ruling that unblocked it** — answer to §1.10 escalation item (4) (the rule-body transport question), ruling date 2026-09-09, verbatim: "byte-bounded whole bodies with deferral + a pointer tail — each deferred rule emits a pointer line (Rule 'x' deferred: budget. Read <path>) so nothing silently vanishes; the pointer serves the long tail while the budget protects the common case. This is literally the HookContextFiles shape transplanted, so it inherits that design's tests-to-write and its guard story."
+
+**Staffing** — premise `70e650a57` (`prompt_kit/findings/P6.S5b-premise.md`, ruling (2)+(3) design feasibility, risks 1-10) + brief `941bdcd45` (`prompt_kit/briefs/P6.S5b-step-brief.md`). §5 re-check at staffing: CLEAR — belt `git diff 768427809..bc9953c11 -- sugar-crush/` empty, lanes quiescent per the round-60 hold.
+
+**Goal (one sentence)** — rules whose trigger set contains a `paths:` (PathTrigger) branch no longer render globally into the splice: they defer to a transient tool-time channel and are delivered beside the file the model actually touches, with a pointer tail for whatever the budget defers.
+
+**What changed** — 13 step commits `0f50c9cdc..db31bc15f`, one file each; the merge is exactly 10 files:
+- NEW `sugar-crush/src/Context/RulePathNudge.php` — the transient rule-path channel (HookContextFiles shape transplanted): byte-bounded whole bodies, deferred rules each emit a pointer line, per-delivery bound `maxBytes()` = 4291; `MAX_ENTRY_BYTES = 2048` is a PRICING unit, not a delivery gate.
+- NEW `sugar-crush/tests/Context/RulePathNudgeTest.php` (19 tests / 64 assertions) + NEW `sugar-crush/tests/Integration/RulePathScopingWiringTest.php` (10 tests / 58 assertions).
+- MODIFIED `sugar-crush/src/Runtime.php` — the splice defers paths-scoped rules via `instanceof PathTrigger` ONLY, plus the honesty-comment rewrite (the old "TRIGGERS ARE NOT YET APPLIED" note retired truthfully).
+- MODIFIED `sugar-crush/src/Cli/Bootstrap.php` — construct + inject the nudge at the five tool sites; and `src/Tools/BuiltIn/{Read,Edit,Write,Glob,Grep}.php` — append the nudge beside the tool result.
+
+**Deletion experiment / red-on-revert** — reviewer slice B reproduced R1-R4 red-on-revert EXACTLY and PROVED the D1 `instanceof`-trap load-bearing: a "has triggers" key instead of the instanceof check reddens the frozen golden via the fixture IntentTrigger rule. All 29 new methods are value-pinned.
+
+**MEASURED** (orchestrator disk re-verification at this bookkeeping preflight — every figure in this entry is re-verifiable on disk):
+```
+$ git -C /home/sites/sugarcraft log --oneline -1
+aba6b9278 P6.S5b: path-scoped rules reach the model at tool time (final plan step)
+
+$ git rev-list --count 0f50c9cdc^..db31bc15f
+13
+
+$ git show --format='%H %P' --no-patch aba6b9278
+aba6b927877a43b6b35f5ee3cf1688833fd8be4c 941bdcd45e003dbede5fcffc8d2df64dc1d4c379 db31bc15ff4a79146b14341944cd2afaea637feb
+
+$ git diff --name-only 941bdcd45..aba6b9278 | /usr/bin/grep -c .
+10
+
+$ git diff 768427809..bc9953c11 -- sugar-crush/ | wc -c
+0
+
+$ git rev-list --count origin/master..master        # at this bookkeeping preflight = 23 at the merge
+23
+```
+Gate artifact (authoritative — the builder's own full-suite junit was later WIPED; this merge-gate junit is the record, NOT re-run by this batch per standing order):
+```
+$ ls -l /tmp/opencode/P6.S5b-merge/master.xml
+-rw-rw-r-- 1 my my 3884533 Sep  9 19:41 /tmp/opencode/P6.S5b-merge/master.xml
+
+$ /usr/bin/grep -m1 '<testsuite ' /tmp/opencode/P6.S5b-merge/master.xml
+  <testsuite name="/home/sites/sugarcraft/sugar-crush/phpunit.xml" tests="11215" assertions="171659" errors="0" failures="0" skipped="2" time="429.708912">
+
+$ /usr/bin/grep -a 'Tests:\|EXIT\|Time:' /tmp/opencode/P6.S5b-merge/run.log
+Tests: 11215, Assertions: 171659, Skipped: 2.
+Time: 07:11.395, Memory: 372.23 MB
+EXIT=0
+
+$ cat /tmp/opencode/P6.S5b-merge/PREDICTION.txt
+Tests 11215 Assertions 171659 Failures 0 Errors 0 Skipped 2 EXIT 0
+
+$ cmp /tmp/opencode/P6.S5b-merge/golden.md5.pre /tmp/opencode/P6.S5b-merge/golden.md5.post   # identical
+f5de3858c1bc130d1e97a120d3ead485  golden-system-prompt.txt 8278 · ef0326dd38535aaa2f1d715919bff26e  golden-agent-prompt.txt 1060
+```
+
+**Suite result** — GATE ran MASTER-DIRECT at `aba6b9278`, prediction-first (PREDICTION.txt above written BEFORE the run) and HIT EXACT: Tests 11,215 / Assertions 171,659 / 0F / 0E / Skipped 2 / EXIT 0 (root attrs pasted in MEASURED above). Builder's own full-suite claim was the same 11,215/171,659; its junit was later wiped — a wiped junit voids its figure, and the master-direct merge gate re-established it. Baseline for comparison: 11,185 / 171,308 / 2S at `768427809`. Delta +30 tests / +351 assertions, skips unchanged: 29 of the +30 are the two new suites (gate junit, re-read from disk: RulePathNudgeTest `tests="19" assertions="64"`, RulePathScopingWiringTest `tests="10" assertions="58"`); the remaining +1t/+6a is `BinSugarcrushWiringTest` (350/2013 at the gate) auto-enrolling the one new `src/` file per law 4e; the assertion remainder is the derived source-walking census wave (law 4n) — per-class attribution authority is the preserved gate junit, not re-walked by this markdown-only batch.
+
+**Review loop** — cycle-1 slice A (src) APPROVE_WITH_FIXES: MINOR-1 docblock overclaim (`MAX_ENTRY_BYTES = 2048` presented as a delivery gate; it is a PRICING unit — the delivery gate is remaining room, and the pointer branch fires on room exhaustion) fixed COMMENT-ONLY at `db31bc15f`; NIT-1 Edit/Write marks die across the provider fork — pre-existing channel parity, recorded not fixed. Cycle-1 slice B (tests) APPROVE, 0 blocking — the 29/29 value pins, R1-R4 red-on-revert, D1 instanceof-trap proof above. Cycle-2 fresh reviewer APPROVE, ZERO findings (checks: GFD 61/23,159 unchanged, RulePathNudgeTest 19/64, wiring 10/58, BSP 24/331, goldens+fixtures byte-clean, base-to-tip transfer argument). Total cycles: 2.
+
+**Merge hygiene** — law-4g four scans (bracketed-token object scan + `%B` scan + REDACTED object scan + `%B` scan) all ZERO on every one of the 13 incoming commits AND on the merge commit; identity Joe Huss on all objects; belt `git diff db31bc15f aba6b9278 -- sugar-crush/` = 0 bytes (merge parents above); `git show --name-only` vs base = exactly the 10 declared files.
+
+**Invariants touched** — goldens UNMOVED (pre==post md5 pins in MEASURED; system `f5de3858c1bc130d1e97a120d3ead485`/8,278 + agent `ef0326dd38535aaa2f1d715919bff26e`/1,060 — the nudge renders into TOOL output, never into the system prompt); `GlobFigureDriftTest` held 61/23,159; fixtures byte-clean; one new `src/` file (census guards grew per the derived-census design, no literals pinned).
+
+**Surprises / things the plan got wrong** — (1) PROCESS INCIDENT: reviewer sandboxes must be SIBLING-ISOLATED — slice A's `rm -rf` swept slice B's tree mid-run; B recovered, the pattern (own subdirectory per slice, ORCHESTRATION-RULE-3 applied to review sandboxes) is now the lesson. (2) A PREDICTION.txt can be INTERNALLY SELF-INCONSISTENT — a headline under-counted its own mover table by 126; LAW: recompute headlines from the tables before trusting either. (3) A wiped junit voids its figure — the builder suite number was unrecoverable until the merge gate re-derived it master-direct. (4) The plan's original P6.S5 file list (`RuleLoader.php`, `SkillPathNudge.php` + their tests) had already been withdrawn at the premise split; the shipped 10-file list is the S5b ruling-(2)+(3) shape, confirmed.
+
+**Follow-ups created** — (a) `disabledRules` does NOT reach the transient nudge channel: `Bootstrap::tools()` has no `RulesState`, threading it needs THREE public boot-signature changes, outside this step's ceiling — documented in-code at construction and in commit `f9411c04c`. (b) The AGGREGATE splice bound (measured worst case 20,313,188 B post-escape; open follow-up (1)) is NOT discharged here — this step bounds PER-DELIVERY only (`maxBytes()` = 4291); the aggregate bound stays a separate owed follow-up. (c) Read output overhead is now 1.5x when a scoped rule matches — `ToolOutputBudgetTest:1026` pins 1.375x and stays green only because its Read carries no ruleNudge; retune caution for any future budget work. (d) NIT-1: Edit/Write marks die across the provider fork (pre-existing channel parity).
+
+**FLOOR after this step** — **11,215 / 171,659 / 0F / 0E / Skipped 2 / EXIT 0** at master `aba6b9278`, MASTER-DIRECT gated (artifact `/tmp/opencode/P6.S5b-merge/master.xml`, 3,884,533 B — the new authoritative anchor for every future prediction). Unpushed at the merge: **23** (`git rev-list --count origin/master..master`; re-derive on every read). **PLAN COMPLETE: this was the last blocked heading — 65 of 65 step headings and all 12 phases have now landed.**
+
+**NOTE** — this entry is bookkeeping-only: it writes `prompt_worklog.md` and touches nothing under `sugar-crush/`; the suite was NOT re-run (standing order — the gate artifact above is the record).
+
 ### P11.S5 — whole-plan final audit · 2026-09-09
 
 **Status** `done`.
