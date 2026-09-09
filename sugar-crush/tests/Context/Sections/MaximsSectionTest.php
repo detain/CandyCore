@@ -42,7 +42,10 @@ use SugarCraft\Crush\Tools\Tool;
  *    there is no provenance to fence and no forgery surface to close. That
  *    is also why the roster (PromptFence::tags()) was never widened FOR IT:
  *    the sixth tag it carries since the P6.S2 fix (`user-rules`) wraps the
- *    rules tier, not inert prose, and a seventh tag around these constants
+ *    rules tier, not inert prose, and the two since each answer for bytes this
+ *    file does not control — `prior-summary` for carried summary rows,
+ *    `harness-injected` pre-registered against forged harness bytes — so a
+ *    further tag around these constants
  *    would buy nothing and move an escape-authority pin (§5.3 of the step
  *    brief). The §9.13 provenance-fence idea for THIS layer is not built and
  *    not implied here.
