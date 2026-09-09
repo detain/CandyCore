@@ -152,8 +152,9 @@ description line where you did not. There is no double-presentation.
 Two widenings are deliberately **not** shipped, and are named here so that
 nobody infers them from the shape of the code:
 
-- **`rules paths:` scoping is not applied at the splice.** `Rule::parse` builds a
-  `PathTrigger` from a rule's `paths:`, and `PathTrigger` matches — but nothing
+- **`rules paths:` scoping is not applied at the splice.** `Rule::buildTriggers()`
+  (reached from `Rule::new()`) builds a `PathTrigger` from a rule's `paths:`, and
+  `PathTrigger` matches — but nothing
   in `Runtime::buildSystemPrompt()` consults any path predicate when it splices.
   Path-conditional splicing is a deferred step (P6.S5b). Until it lands, a skill
   named in `enabledSkills` is in every prompt turn, whichever files the session
@@ -177,7 +178,9 @@ interface shows, not a delivery of instructions.
 ### Auto-matching a skill into the prompt is deliberately dormant
 
 `Skill::matchesPrompt()` and `SkillRegistry::findForPrompt()` exist, are tested,
-and **nothing in `src/` or `bin/` calls them.** They are the second skill→prompt
+and **reach no production path.** Their only callers are the wrappers
+`SkillManager::getSkillsForTask()` and `App::findSkillsForTask()`, and those have
+zero production call sites, so the chain is unreachable end-to-end. They are the second skill→prompt
 seam: naively wiring them would emit every enabled skill's body twice, once from
 the canonical path above and once from an automatic match, so which path is
 canonical was decided before any of it shipped.
