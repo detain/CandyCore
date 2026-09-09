@@ -118,7 +118,7 @@ final class PromptFence
      * caught instead by the two whole-roster sites above, by the escape-level guard
      * {@see \SugarCraft\Crush\Tests\Context\PromptSectionTest::testEscapeNeutralisesTheHarnessInjectedTagThatNothingEmits()}
      * — which reads the roster through escape() alone and never touches a splice —
-     * and by the assembler guard below, which is the fifth and the one that proves
+     * and by the assembler guard below, which is the seventh and the one that proves
      * `harness-injected` is load-bearing on the roster plus guard evidence only:
      * {@see \SugarCraft\Crush\Tests\BaseSystemPromptTest::testAForgedHarnessInjectedCloserInsideAnInstructionDocumentCannotRender()}.
      * No fixture byte moves for it, and that is what made that widening cost zero

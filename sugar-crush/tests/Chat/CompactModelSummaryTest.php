@@ -1587,7 +1587,8 @@ final class CompactModelSummaryTest extends TestCase
      *
      * RED-ON-REVERT, executed at this tip and quoted in the step report: deleting the
      * `PromptFence::escape()` call in `Chat::renderPriorSummariesForSummary()` reddens (3)
-     * first — the closer count goes 1 → 2 — and nothing else in the suite.
+     * first — the inside-carry closer count goes 0 → 1 — and nothing else in the suite; the
+     * "1 → 2" figure belongs to (4), the whole-block closer count, which then never runs.
      */
     public function testAForgedPriorSummaryCloserTravelsIntoTheNextRequestDefanged(): void
     {
