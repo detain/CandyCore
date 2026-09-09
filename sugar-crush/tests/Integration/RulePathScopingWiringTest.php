@@ -73,7 +73,11 @@ final class RulePathScopingWiringTest extends TestCase
     protected function tearDown(): void
     {
         $this->restoreHomeSandbox();
-        exec('rm -rf ' . escapeshellarg($this->sandbox));
+        // `2>&1` into the array exec() already reads: a bare `exec()` inherits
+        // fd 2 onto the suite's stderr, which tests/Integration is censused
+        // against (ChildStderrCaptureTest), and `rm -rf` on a sandbox is exactly
+        // the case where the diagnostic is the whole point of the cleanup.
+        exec('rm -rf ' . escapeshellarg($this->sandbox) . ' 2>&1', $cleanup);
 
         parent::tearDown();
     }
