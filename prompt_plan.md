@@ -2421,7 +2421,9 @@ move is a defect); `PromptStabilityTest` untouched.
 
 ### P6.S5b — Glob-scoped rules reach the model (BLOCKED — user decision)
 
-**Status 2026-09-05: BLOCKED on one §1.10 escalation. Do not brief or build until the user answers.**
+**Status 2026-09-09: MERGED — merge `aba6b9278` (13 step commits `0f50c9cdc..db31bc15f`, exactly 10 files; gate MASTER-DIRECT prediction-first EXACT Tests 11,215 / Assertions 171,659 / 0F / 0E / Skipped 2 / EXIT 0, artifact /tmp/opencode/P6.S5b-merge/master.xml 3,884,533 B). The §1.10 escalation was ANSWERED by the user ruling 2026-09-09 (item (4) — byte-bounded whole bodies with deferral + a pointer tail, quoted VERBATIM in the worklog P6.S5b entry): the ruled shape shipped — transient `RulePathNudge` channel, the splice defers paths-scoped rules via `instanceof PathTrigger` ONLY, per-delivery bound `maxBytes()` = 4291, each deferred rule emits a pointer line. THE PLAN'S LAST OPEN HEADING — 65 of 65 step headings have now landed.**
+
+**Status 2026-09-05: BLOCKED on one §1.10 escalation. Do not brief or build until the user answers.** *(history, kept — superseded by the stamp above.)*
 
 **Shape (ruled)** transient `SkillPathNudge`-shaped channel, NOT in-splice filtering (Q1). Per premise
 check Q7 the build wants a **new** `src/Context/RulePathNudge.php` sibling (keep `SkillPathNudge`
