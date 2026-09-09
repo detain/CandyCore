@@ -32,8 +32,12 @@ use SugarCraft\Crush\Context\Stability;
  * at any point, so there is no provenance to mark and no forgery surface to
  * close, and the roster is deliberately NOT widened for it either — the
  * sixth tag the roster carries since the P6.S2 fix (`user-rules`) wraps the
- * rules tier the §9.13 provenance-fence sketch names, never this constant,
- * and a seventh tag around bytes no model can influence would move
+ * rules tier the §9.13 provenance-fence sketch names, never this constant, and
+ * the two that joined since each joined over bytes somebody outside this file
+ * controls (`prior-summary` wraps carried summary rows, whose user half the
+ * heuristic fold writes raw; `harness-injected` is pre-registered against
+ * repository bytes forging the harness's own voice), so a further tag around
+ * these constants would move
  * escape-authority pins to wrap bytes that were never at risk. The contrast
  * is exactly the base layer's: fence '',
  * author bytes, pinned by the production-list pins in

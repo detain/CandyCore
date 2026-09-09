@@ -302,6 +302,7 @@ final class PromptSectionTest extends TestCase
         self::assertSame([
             'env',
             'harness-injected',
+            'prior-summary',
             'project-instructions',
             'project-memory',
             'repo-map',

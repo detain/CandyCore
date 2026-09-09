@@ -71,6 +71,7 @@ use SugarCraft\Crush\Context\ContextCompactor;
 use SugarCraft\Crush\Context\CompactorConfig;
 use SugarCraft\Crush\Context\ContextWindow;
 use SugarCraft\Crush\Context\IdleCompactionPolicy;
+use SugarCraft\Crush\Context\PromptFence;
 use SugarCraft\Crush\Context\RuleLoader;
 use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Memory\MemoryStore;
@@ -9740,10 +9741,19 @@ final class Chat implements Model
      * the wire history the request is already built from, not a parallel store.
      *
      * WHAT IS CARRIED AND WHAT IS NOT:
-     *  - Any row whose content starts with the marker, marker stripped, VERBATIM —
-     *    never re-parsed, never re-faceted, never rewritten (R-C). The model folds
-     *    it under the conversation-wins rule; re-faceting here would be a second
-     *    lossy pass over text that has already been through one.
+     *  - Any row whose content starts with the marker, marker stripped, VERBATIM AT
+     *    WORDING LEVEL — never re-parsed, never re-faceted, never rewritten (R-C,
+     *    re-ruled when `prior-summary` joined the escape roster). The distinction is
+     *    the FF1 one spelled out on {@see COMPACT_SUMMARY_PROMPT}: the promise binds
+     *    the words the earlier round chose, not the bytes that transport them. So no
+     *    re-faceting happens here, and the one transformation a row does get is
+     *    {@see PromptFence::escape()} at the splice in
+     *    {@see renderPriorSummariesForSummary()}, which rewrites a roster tag's leading
+     *    `<` and nothing else — every word a prior round kept arrives in the same order
+     *    and with the same spelling, and only a fence tag inside the text stops looking
+     *    to a fence reader like a fence. The model folds it under the conversation-wins
+     *    rule; re-faceting here would be a second lossy pass over text that has already
+     *    been through one.
      *  - NOT a context-reminder rider (R-D): once the marker is stripped, a row
      *    whose remainder starts with {@see self::CONTEXT_REMINDER_PREFIX} is the
      *    token-count notice the app regenerates on every turn. It is not part of
@@ -9760,42 +9770,40 @@ final class Chat implements Model
      *    about; the discard instruction belongs to the summariser, not the
      *    extractor, and cutting transcript content here would be a silent loss.
      *
-     * THE FENCE RESIDUAL, DOCUMENTED AND ACCEPTED (ruling P8.S3-R1). What the bullets
-     * above return goes into {@see renderPriorSummariesForSummary()} exactly as the
-     * transcript holds it, and that method wraps the rows in `<prior-summary>` with no
-     * {@see Context\PromptFence::escape()} pass — so a row carrying `</prior-summary>`
-     * closes the block early, and whatever follows it reads to the model as the
-     * instruction's own voice. Two channels put bytes in that position with no model
-     * anywhere in the path, and both are deterministic. The heuristic fold returns raw,
-     * truncated USER text verbatim into a `[summary] ` row — the two return paths at
-     * `Context\ContextCompactor.php:1223` and `Context\ContextCompactor.php:1227`,
-     * marker prefixed at `Context\ContextCompactor.php:1166` — newlines and all,
-     * because nothing on that route flattens or bounds it. And this extractor filters
-     * NO role: a line a user typed as `[summary] ...` is still sitting in the wire
-     * history as a row of its own, and it rides into every later prior block. The
-     * absent role filter is the decision rather than the gap, because the role a landed
-     * row carries is the original message's own — `Context\ContextCompactor.php:1180`
-     * writes a rider row under `$rider['role']` and `Context\ContextCompactor.php:1156`
-     * a standalone under the pair's role; only `Context\ContextCompactor.php:1165`
-     * fixes `assistant` — so any single-role predicate aimed at the typed forgery
-     * removes the transport of the legitimate rows beside it, and §1.10 is that removal
-     * is never an available outcome. Accepted now on grounds that are measured, not a
-     * shrug: the exchanges message has handed this same summariser raw user text with
-     * no fence around it since the request existed ({@see renderExchangesForSummary()},
-     * fed raw and unfenced by {@see Context\ContextCompactor::exchangesToSummarize()} —
-     * the user half whole, and since P8.S4 the assistant half only character-clipped,
-     * never escaped), so what
-     * escaping this block adds is a label for an author who already supplies unlabelled
-     * input to forge — label-forgery by the SAME untrusted author, not new data
-     * exposure — and the reply is gated structurally on its own terms by
+     * THE FENCE CARRIES THE WORDS, NOT THEIR SPELLING (ruling P8.S3-R1, discharged here
+     * rather than deferred again). What the bullets above return goes into
+     * {@see renderPriorSummariesForSummary()}, which wraps the rows in `<prior-summary>`
+     * and runs each one through {@see PromptFence::escape()} between the tags — so a row
+     * carrying `</prior-summary>` no longer closes the block early: it arrives as
+     * neutralised text, and the line forged beneath it stays inside the block the
+     * summariser was taught holds a prior round's record. Two channels put bytes in that
+     * position with no model anywhere in the path, and both are deterministic, which is
+     * why this is an escape site and not a hypothetical. The heuristic fold returns raw,
+     * truncated USER text into a `[summary] ` row — both return paths of
+     * {@see Context\ContextCompactor::generateExchangeSummary()}, marker-prefixed by
+     * {@see Context\ContextCompactor::summarizeExchanges()} — newlines and all, because
+     * nothing on that route flattens or bounds it. And this extractor filters NO role: a
+     * line a user typed as `[summary] ...` is still sitting in the wire history as a row
+     * of its own, and it rides into every later prior block. The absent role filter is
+     * the decision rather than the gap, because the role a landed row carries is the
+     * original message's own — inside {@see Context\ContextCompactor::summarizeExchanges()}
+     * a rider row is written under the rider's own role and a standalone under the pair's,
+     * and only the folded-exchange line fixes `assistant` — so any single-role predicate
+     * aimed at the typed forgery removes the transport of the legitimate rows beside it,
+     * and §1.10 is that removal is never an available outcome. What the escape costs is
+     * stated exactly: for the one payload class that matters — a roster tag inside a
+     * carried row — the block is no longer byte-identical to the transcript, which is
+     * precisely why the carry bullet above promises verbatim WORDING. What it does not
+     * claim: the exchanges message still hands this same summariser raw user text with no
+     * fence around it and no escape pass ({@see renderExchangesForSummary()}, fed raw and
+     * unfenced by {@see Context\ContextCompactor::exchangesToSummarize()} — the user half
+     * whole, and since P8.S4 the assistant half only character-clipped), so this narrows
+     * the labelled channel's forgery surface without bounding the unlabelled one beside
+     * it. The reply is still gated structurally on its own terms by
      * {@see splitExchangeRecords()} through {@see SUMMARY_OPENER_PATTERN} and
-     * {@see SUMMARY_FACET_PATTERN}. State that containment exactly and no further: that
-     * parse decides which records and facets exist, while a facet-continuation line
-     * still passes whatever it says into the facet value above it. The remedy is named,
-     * not implied, and it is deferred: widen {@see Context\PromptFence::TAGS} (7 → 8)
-     * to cover `prior-summary` and escape the rows on the way in. That collides head-on
-     * with the verbatim-carry ruling above, so it belongs to its own deliberate step and
-     * not to a line in this one.
+     * {@see SUMMARY_FACET_PATTERN}, and that containment means exactly what it said
+     * before: the parse decides which records and facets exist, while a
+     * facet-continuation line still passes whatever it says into the facet value above it.
      *
      * @param array<array-key, array{role?: string, content?: string}> $wireHistory
      *
@@ -9830,15 +9838,25 @@ final class Chat implements Model
      * Kept apart from {@see renderExchangesForSummary()} on purpose (R-A): the two
      * blocks have different provenance — one is this round's live exchanges, the
      * other is an earlier round's record of exchanges that no longer exist — and
-     * the instruction has to be able to tell the model which is which. The rows go
-     * in undefanged, which is a ruling rather than an oversight: read THE FENCE
-     * RESIDUAL under {@see priorSummariesFromHistory()} before changing this line.
+     * the instruction has to be able to tell the model which is which. The rows are
+     * escaped on the way in, which is a ruling rather than an oversight: read THE
+     * FENCE CARRIES THE WORDS, NOT THEIR SPELLING under
+     * {@see priorSummariesFromHistory()} before changing this line. The open and close
+     * tags here are harness bytes and stay literal; only the carried bytes between them
+     * lose a roster tag's leading `<`, the same shape the project-instructions splice
+     * in Runtime::systemPromptSections() gives its documents. The note below the block
+     * is NOT escaped, because naming the tag to the model is the whole of its job.
      *
      * @param non-empty-list<string> $priors
      */
     private static function renderPriorSummariesForSummary(array $priors): string
     {
-        return "<prior-summary>\n" . implode("\n", $priors) . "\n</prior-summary>\n\n"
+        $carried = implode("\n", array_map(
+            static fn (string $prior): string => PromptFence::escape($prior),
+            $priors,
+        ));
+
+        return "<prior-summary>\n" . $carried . "\n</prior-summary>\n\n"
             . self::PRIOR_SUMMARY_NOTE;
     }
 

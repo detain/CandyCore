@@ -71,9 +71,22 @@ final class PromptFence
      * would close its own fence early and hand the remainder of the render to
      * the model outside any provenance frame. Widening for it costs zero
      * golden bytes (the fixture rule body carries no fence marker) — and
-     * `harness-injected`, the seventh entry and the only one the roster carries
+     * `prior-summary`, the seventh entry and the first the roster takes from a
+     * fence that opens OUTSIDE the assembled system prompt:
+     * {@see \SugarCraft\Crush\Chat::renderPriorSummariesForSummary()} wraps it in a
+     * summariser request, around summary rows read back out of the wire history, whose
+     * user half the heuristic fold writes raw. So the bytes between those tags are
+     * foreign by exactly the route a repo file is, and a row carrying
+     * `</prior-summary>` ends its own block early and hands the rest of the block to
+     * the model in the instruction's own voice. It joins at zero golden bytes for the
+     * same structural reason as `system-reminder` — nothing on the launch path renders
+     * a prior block — and at the cost of re-ruling the verbatim-carry promise the rows
+     * travel under, which is a promise about WORDING and survives an escape that
+     * changes BYTES (the frame is the FF1 note on
+     * {@see \SugarCraft\Crush\Chat::COMPACT_SUMMARY_PROMPT}) — and
+     * `harness-injected`, the eighth entry and the only one the roster carries
      * with NO emitter: no `PromptSection` reports it and no construction site
-     * opens it, so unlike the six above it is not derived from a fence that
+     * opens it, so unlike the seven above it is not derived from a fence that
      * exists. It is the roster's one pre-registered tag, and it is here because
      * the §9.15 harness-voiced channel is coming and this array — not the
      * section list — is the single head every construction site already agrees
@@ -83,8 +96,8 @@ final class PromptFence
      * which is itself proof that a defang-only tag earns its place with nothing
      * emitting it.
      *
-     * WHAT PINS THIS ROSTER — FIVE SITES, not the one this note used to name.
-     * Two are whole-roster: the SORTED list in
+     * WHAT PINS THIS ROSTER — EIGHT SITES, counted from the tests that read it and not
+     * from the note that used to name one. Two are whole-roster: the SORTED list in
      * {@see \SugarCraft\Crush\Tests\Context\PromptSectionTest::testTheEscapeRosterIsExactlyTheDerivedFenceTagList()}
      * and the DECLARATION-order map in
      * {@see \SugarCraft\Crush\Tests\BaseSystemPromptTest::testForgedInstructionDocumentCannotForgeFencesOrAuthorityVoice()},
@@ -105,13 +118,18 @@ final class PromptFence
      * caught instead by the two whole-roster sites above, by the escape-level guard
      * {@see \SugarCraft\Crush\Tests\Context\PromptSectionTest::testEscapeNeutralisesTheHarnessInjectedTagThatNothingEmits()}
      * — which reads the roster through escape() alone and never touches a splice —
-     * and by the assembler guard named below. The earlier prose here credited only
-     * the user-tier
-     * guard and was understated by four. `harness-injected` itself is
-     * load-bearing on the roster plus guard evidence only, which is what makes
-     * this widening cost zero golden bytes:
-     * {@see \SugarCraft\Crush\Tests\BaseSystemPromptTest::testAForgedHarnessInjectedCloserInsideAnInstructionDocumentCannotRender()}
-     * is the guard that proves it, and no fixture byte moves for it.
+     * and by the assembler guard below, which is the fifth and the one that proves
+     * `harness-injected` is load-bearing on the roster plus guard evidence only:
+     * {@see \SugarCraft\Crush\Tests\BaseSystemPromptTest::testAForgedHarnessInjectedCloserInsideAnInstructionDocumentCannotRender()}.
+     * No fixture byte moves for it, and that is what made that widening cost zero
+     * golden bytes. The eighth is the guard for `prior-summary` at the splice that
+     * emits it: the whole-roster map above already forges the tag in both polarities,
+     * and
+     * {@see \SugarCraft\Crush\Tests\Chat\CompactModelSummaryTest::testAForgedPriorSummaryCloserTravelsIntoTheNextRequestDefanged()}
+     * is the assembler-level one — it reads the request the real `/compact` route
+     * builds, so a `prior-summary` dropped from this array reappears undefanged
+     * inside the carried block and reddens there. The earlier prose here credited
+     * only the user-tier guard and was understated by seven.
      *
      * @var list<string>
      */
@@ -122,6 +140,7 @@ final class PromptFence
         'project-instructions',
         'system-reminder',
         'user-rules',
+        'prior-summary',
         'harness-injected',
     ];
 
