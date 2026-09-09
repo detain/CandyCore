@@ -107,15 +107,15 @@ final class RulePathNudge
     private const FOOTER = "\n</system-reminder>";
 
     /**
-     * The most bytes ONE delivered entry may occupy — the rule's name line plus
-     * its whole escaped body.
+     * The per-entry pricing unit of {@see maxBytes()}: the bytes that formula
+     * bills for one line slot — a rule's name line plus its whole escaped body.
      *
-     * An entry that would exceed this is NOT delivered: it is pointed at
-     * instead. This constant is therefore a gate rather than a clip, and the
-     * number is the largest whole rule that the tightest shipped caller budget
-     * can carry inside the ceiling below — see
-     * {@see \SugarCraft\Crush\Tests\Integration\RulePathScopingWiringTest} for
-     * the guard that keeps that sentence true.
+     * It is NOT a gate on delivery: {@see forPaths()} prices each entry against
+     * the REMAINING room — the caller budget capped at the ceiling below — so a
+     * body priced over this constant ships whole while room lasts (~4,097 bytes
+     * for a first entry), and the pointer branch triggers on room exhaustion,
+     * never on this number. The gate rather than clip holds — the gate is the
+     * room the loop checks, not this constant.
      */
     private const MAX_ENTRY_BYTES = 2048;
 
@@ -357,9 +357,9 @@ final class RulePathNudge
      * The most bytes {@see forPaths()} can ever return.
      *
      * Priced from the parts rather than hardcoded, so changing any of them moves
-     * this with it. Every line of a nudge costs at most {@see MAX_ENTRY_BYTES}
-     * — a pointer is bounded tighter still, at {@see MAX_POINTER_BYTES} — so the
-     * entry budget is the one that has to carry the ceiling.
+     * this with it. Each of the {@see MAX_ENTRIES} line slots is priced at
+     * {@see MAX_ENTRY_BYTES} — pointers tighter, at {@see MAX_POINTER_BYTES} —
+     * and it is the room test on the running total that holds the ceiling.
      */
     public static function maxBytes(): int
     {
