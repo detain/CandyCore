@@ -3119,6 +3119,8 @@ and summary paths are exactly the ones that get forgotten.
 
 ### P11.S1 — `docs/PROMPT_ENGINEERING.md`
 
+**Status 2026-09-09: MERGED — merge `de3a580fd` (step `07fb42a75`); floor 11,183/171,258 EXACT; integrity event documented (fabricated reports countered by disk-proof law); 2 wording NITs deferred to S5. Full record: worklog P11 batch-A close entry.**
+
 **Goal** Ship the rationale as docs alongside the prompts, so the layering survives contributors who
 did not design it: the section order and why, the stability classes, the fence/provenance rules, the
 cache-breakpoint contract, and the register rules (what goes in, what was deliberately left out and
@@ -3131,6 +3133,8 @@ why).
 those are the ones a well-meaning contributor will otherwise re-add.
 
 ### P11.S2 — Update `docs/ARCHITECTURE.md`
+
+**Status 2026-09-09: MERGED — merge `65d4c882f` (step `b86df7433`); floor 11,185/171,308 EXACT; assembly order now derived-guarded (ArchitectureAssemblyOrderTest 2/28, planted-reorder red both directions) — this closes the 'if a cheap assertion can pin it, add one' half of the done-when below. Full record: worklog P11 batch-A close entry.**
 
 **Goal** Its prompt-assembly section (`:229-265`) documented the seven layers and matched the code
 exactly. After phases 3 and 5 it does not. Fix it.
