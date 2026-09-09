@@ -211,6 +211,63 @@ like `"disabledRules": "focus"`, which the filter's non-array guard drops whole.
 The launch cannot tell a considered empty list from a typo in a shape, and none of
 the three say anything on their own.
 
+**A padded name is the fourth silent spelling, and the one with no shape error to
+learn from.** `Bootstrap::rulePacksToDisable()` keeps every string whose `trim()`
+is non-empty, so `"focus "` — one stray space from a hand edit — survives the
+filter, is stored verbatim by `RulesState::new()` (whose parse step rejects only a
+name blank as a whole, never a padded one), and is then compared to each pack's
+key with strict identity. A padded name equals no key, so it silences nothing, and
+it does so exactly as quietly as the wrong-depth name above.
+
+### The live half of the list: `/rules` is session-scoped, by pinned contract
+
+The same names are a conversation command. `/rules` lists every pack the loader
+found — both user directories, `~/.sugar-crush/rules` and
+`~/.sugar-crush/rulebooks`, the second holding the named packs of the same tier
+(`RuleLoader` walks four directories across three tiers: user rules, user
+rulebooks, project rules, root `RULES.md`) — and it lists them even when they are
+currently OFF, because a list that hides what is silenced cannot help you un-silence
+it. `/rules <name>` flips one pack out of, or back into, the session's
+`RulesState`; a pack whose stem sits in both user directories is two packs sharing
+one handle, and one toggle silences both
+(`RuleLoaderTest::testTheSameStemInBothUserDirectoriesStaysTwoPacksToggledByOneName()`).
+The command's own header states the scope — *"session only — nothing here is
+written to config"* — and the scope is pinned at the file level rather than in
+prose: `RulesCommandTest::testTogglingAPackLeavesTheConfigFileByteIdentical()`
+compares `config.json`'s bytes across a toggle. A flip reports `ON` or `OFF` for
+this session and takes effect on the prompt from the next turn onward; a pack
+whose frontmatter already says disabled stays off whichever way you toggle, because
+the session set only subtracts from the file's intent and never overrules it.
+
+**Persisting a toggle is a deferred step, not an omission.** The ruling in
+`prompt_plan.md` (P6.S4) kept the byte-identical contract standing and named the
+cost of breaking it: a third CLI-written key would collide with the two-key
+invariant above and with the census that guards that invariant, so the guarded
+write door waits for its own step. Until it lands, a `/rules` decision dies with
+the session, and `disabledRules` in one of your two files is the only way to make
+one permanent.
+
+And that file value arrives through the **merged** read, which is what makes the
+key live rather than decorative: `Bootstrap::chat()` seeds the session's
+`RulesState` from `Bootstrap::rulePacksToDisable()` applied to `disabledRules` as
+`readUserConfig()` returns it — so both `config.json` and your own
+`~/.sugar-crush/settings.json` can carry it, and no project file can, because the
+key sits outside `PROJECT_TIER_KEYS` (the user-tier-only half is derived from the
+full list by `LayeredSettings::userTierOnlyKeys()`, never hand-maintained in a
+second place). The rationale is the one `instructions` rests on: a rule pack is
+the operator's own prompt text — prose you wrote to steer the model — and a
+hand-edited list of which of your own prose to withhold at launch is a user-tier
+decision by construction. The wiring is pinned end to end: the seed comes from the
+user's own config
+(`RulesStateWiringTest::testTheLaunchSeedsTheDisableListFromTheUsersOwnConfig()`),
+from the merged read and not from either single user file
+(`RulesStateWiringTest::testTheSeedListIsBuiltFromTheMergedReadRatherThanFromEitherSingleUserFile()`),
+a toggle typed into the launched shell moves the pack out of the prompt that same
+session builds
+(`RulesStateWiringTest::testAToggleTypedIntoTheLaunchedShellMovesThePackOutOfThePromptItBuilds()`),
+and the backend consults the live set per turn rather than freezing it at launch
+(`RulesStateWiringTest::testTheBackendReadsItsToggleSetPerTurnRatherThanFreezingItAtLaunch()`).
+
 **`statusLine` runs a command, which is why it is user-tier only.** The shape
 is Claude Code's, so a settings file written for that tool carries over:
 
@@ -484,7 +541,10 @@ behaviour mid-session. That per-turn read feeds exactly two settings —
 and nothing else. Every other key is consumed once, while `Bootstrap` builds
 the session: `disabledSkills` is read by `Bootstrap::skillRegistry()` at launch
 (and again on a Ctrl+P skill switch), `theme` and `provider` when the `Chat` is
-constructed, `allowedTools`/`disabledTools` when the tool set is assembled.
+constructed, `disabledRules` when the launch seeds the session's `RulesState`
+— a mid-session edit to that file waits for a restart like the rest, though a
+`/rules` toggle flips the seeded set live, from the next turn onward — and
+`allowedTools`/`disabledTools` when the tool set is assembled.
 Changing any of those means restarting.
 
 The **trust list is not**: it is frozen for the life of the process, so a
