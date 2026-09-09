@@ -22,14 +22,14 @@ Three tiers, merged by name, later overriding earlier
 
 | Tier | Source | `` !`cmd` `` allowed? |
 |---|---|---|
-| built-in | `CommandRegistry::all()` — 24 rows | n/a, they are PHP |
+| built-in | `CommandRegistry::all()` | n/a, they are PHP |
 | user | `~/.sugar-crush/commands/*.md` | yes |
 | project | `<root>/.sugar-crush/commands/*.md` | **only if this root is trusted** |
 
 **A file's path under the commands directory is its name.** `test.md` gives
 `/test`; `deploy/staging.md` gives `/deploy/staging`. Subdirectories namespace,
-and the walk is capped at 4 levels deep — which also bounds a symlink cycle
-inside the directory.
+and the walk is capped at `CommandLoader::MAX_DEPTH` levels deep — which also
+bounds a symlink cycle inside the directory.
 
 A project file **may override a built-in** by name, and does: `Chat` keeps the
 merged map minus everything that is still a built-in row, so a file-based
@@ -38,17 +38,31 @@ dispatch arms (keeping both would list every built-in twice in the "/" popup).
 
 ### Except the control plane
 
-Seven names are taken back whatever a file says
-(`CommandRegistry::CONTROL_PLANE`): `budget`, `clear`, `exit`, `help`, `model`,
+Every name in `CommandRegistry::CONTROL_PLANE` is taken back whatever a file
+says: `budget`, `clear`, `exit`, `help`, `model`,
 `permissions`, `quit`. These are how you drive and leave the application, and a
 cloned repository redefining `/exit` is not a thing that should be possible. A
 refused file is recorded on `CommandLoader::refusedCommands()` and reported at
 launch — keyed by command *name*, deliberately separate from the directory
 refusals, whose keys are paths a reader prints for you to go and open.
 
-(One of the seven, `permissions`, is reserved but not implemented: it is not a
-row in `CommandRegistry::all()` and has no arm in `Chat::dispatchCommand()`. The
-reservation holds a name for later; typing `/permissions` today does nothing.)
+(`permissions` is the one name on that list this page used to call reserved but
+unbuilt — "not a row in `CommandRegistry::all()`", "typing `/permissions` today
+does nothing". That is no longer the shipped state: the name now has both, and
+typing it prints the session's permission mode, where that mode came from, and
+every rule the gate decides by, in evaluation order. The argument is not parsed
+— the report is total, so each spelling gets a superset of what it asked for
+rather than a "no such subcommand", which is why `permissions` sits below the
+bare-name commands in `Chat::dispatchCommand()` and not with them. The
+reservation earns its keep now for exactly the reason it was made: that report
+is how you check what a cloned repository has made possible, and a file that
+could replace it could falsify the check.
+
+`quit` is the asymmetry now. It is reserved and it is dispatched — an arm in
+`Chat::dispatchCommand()` — but it has no row of its own, so nothing advertises
+it. A file named `quit.md` still loses the name: `CommandLoader::loadAll()`
+takes back every reserved name, restoring the built-in row where one exists and
+unsetting the name where none does.)
 
 ---
 
@@ -95,10 +109,10 @@ cloned repository's `*.md` would otherwise be a one-line self-promotion.
 ## Template forms
 
 **Five** substitutions, applied in **one pass** over the body. They come from the
-*three* alternation branches of `CommandSpec::TEMPLATE_PATTERN` (line 112) — the
+*three* alternation branches of `CommandSpec::TEMPLATE_PATTERN` — the
 first branch, `$(\$|ARGUMENTS|[1-9])`, spells three of the five on its own — so
-neither "three" nor "four" describes this table. (`CommandSpec`'s own docblock at
-line 50 says "all four template forms"; that count is wrong in the source too.)
+neither "three" nor "four" describes this table. (That same constant's own
+docblock says "all four template forms"; that count is wrong in the source too.)
 
 Measured — this template, expanded with the arguments `one two`:
 
@@ -140,17 +154,17 @@ wants a script file — and an unterminated `` !` `` stays literal rather than
 swallowing the rest of the body.
 
 - Runs under `['bash', '-c', $command]`, cwd = the project root.
-- **One 10-second budget is shared by ALL of an expansion's forms**, not per
-  command. A per-command bound multiplies: sixty `` !`sleep 30` `` forms with a
-  ten-second per-command timeout wedges the single-threaded TUI for ten minutes,
-  and "wedged" means the frame does not repaint and Ctrl+C is not read. Forms
-  arriving after the budget is spent are refused with a notice naming the
-  budget, not silently dropped.
+- **One `CommandSpec::SHELL_BUDGET_SECONDS` budget is shared by ALL of an
+  expansion's forms**, not per command. A per-command bound multiplies: sixty
+  `` !`sleep 30` `` forms with a ten-second per-command timeout wedges the
+  single-threaded TUI for ten minutes, and "wedged" means the frame does not
+  repaint and Ctrl+C is not read. Forms arriving after the budget is spent are
+  refused with a notice naming the budget, not silently dropped.
 - The budget is **not operator-configurable**, deliberately, and that is the
   opposite of the rule for a provider HTTP call: a completion legitimately runs
   for tens of minutes; this is a local command holding the terminal.
-- Output is capped at `MAX_SUBSTITUTION_BYTES` = 16384 **per substitution**, and
-  the clip announces itself so a truncated substitution reads as truncated to
+- Output is capped at `CommandSpec::MAX_SUBSTITUTION_BYTES` **per substitution**,
+  and the clip announces itself so a truncated substitution reads as truncated to
   both you and the model. Overflow is counted **per fd**: on a zero exit the
   whole stderr buffer is discarded, so counting both together once reported a
   discarded buffer's overflow as the delivered text's drop count.
@@ -168,7 +182,7 @@ Root-**relative** references only, and only ones ending in a `.extension`:
 
 A resolved reference is still containment-checked against the checkout
 (`ContainedPath::within()`) for **both** tiers, because an included file becomes
-prompt text. It is capped at the same 16384 bytes.
+prompt text. It is capped at the same `CommandSpec::MAX_SUBSTITUTION_BYTES`.
 
 ### Fenced code blocks are NOT exempt
 
@@ -213,7 +227,7 @@ to match its `a.b` prefix and is now left literal.)
 ```
 
 Untrusted, the form is replaced by a refusal notice quoting the command (clipped
-to `MAX_QUOTED_FORM_BYTES` = 200, so a refusal cannot cost more context than the
+to `CommandSpec::MAX_QUOTED_FORM_BYTES`, so a refusal cannot cost more context than the
 substitution it declined). It is not silently dropped: the model is told a form
 was refused rather than shown a prompt with a hole in it.
 
@@ -236,21 +250,156 @@ properties this key shares with `trustedProjectHooks`, `trustedProjectMcp` and
 
 ---
 
-## The 22 built-in commands
+## The built-in commands
 
-For reference, since a custom command can override any of them but the seven
-control-plane names:
+For reference, since a custom command can override any built-in except the names
+`CommandRegistry::CONTROL_PLANE` reserves. The rows below are
+`CommandRegistry::all()` in that method's order — a command appears here because
+the registry defines it and not because anyone counted them — and the two marker
+columns are the same two derivations read off the same source: **S** marks a row
+`CommandRegistry::slashCommands()` advertises, **CP** marks a reserved name.
+*Takes* is the row's own `argumentHint`, verbatim where it has one and `—` where
+it does not; the *What the row says* column is its `description`.
 
-`new` `sessions` `model` `share` `docs` `exit` `theme` `agents` `mcp` `keys`
-`help` `compact` `clear` `budget` `workflow` `memory` `branch` `rename`
-`rewind` `bg` `fork` `websearch`
+| Command | S | CP | Takes | What the row says |
+|---|---|---|---|---|
+| `/new` | | | — | Start a fresh session |
+| `/sessions` | ✓ | | — | List all sessions |
+| `/model` | ✓ | ✓ | `[provider]` | Switch the active model provider |
+| `/share` | ✓ | | `[format] [expiry]` | Share the current session |
+| `/docs` | | | — | Open the documentation |
+| `/exit` | ✓ | ✓ | — | Quit the app |
+| `/theme` | ✓ | | — | Switch the color theme |
+| `/agents` | ✓ | | — | List active agents, or inspect one by name |
+| `/mcp` | ✓ | | `<list\|add\|remove> [server]` | Manage MCP server auth (list/add/remove) |
+| `/keys` | ✓ | | — | Show the keyboard shortcut reference (or press ?) |
+| `/help` | ✓ | ✓ | — | List every slash command |
+| `/permissions` | ✓ | ✓ | — | Show this session's permission mode, its source, and the rules it decides by |
+| `/rules` | ✓ | | `[name]` | List the rule packs, or toggle one for this session |
+| `/compact` | ✓ | | — | Manually compact chat history to save context |
+| `/clear` | ✓ | ✓ | — | Clear the transcript, keeping this session |
+| `/budget` | ✓ | ✓ | `[amount\|off]` | Show this session's reported spend, or cap it |
+| `/workflow` | ✓ | | — | Run, pause, resume, or inspect a workflow |
+| `/memory` | ✓ | | — | Add, list, search, edit, import, or clear memory entries |
+| `/branch` | ✓ | | — | Fork the current session into a new branch |
+| `/rename` | ✓ | | `<name>` | Rename the current session |
+| `/rewind` | ✓ | | — | Restore chat state from an earlier checkpoint |
+| `/bg` | ✓ | | `<task>` | Run a task in a background session |
+| `/fork` | ✓ | | `<prompt>` | Clone this conversation into a background session |
+| `/websearch` | ✓ | | `<query> [--safesearch 0\|1\|2] [--time-range day\|month\|year]` | Search the web via SearXNG |
 
-`new` and `docs` are palette-only (`slashVisible: false`) — they are reachable
-from Ctrl+P, not from the "/" popup. `/agent` is a second spelling of `/agents`.
-`/quit` is a second spelling of `/exit` with no registry row of its own.
+**S** is blank on `new` and `docs` alone: they are palette-only
+(`slashVisible: false`), reachable from Ctrl+P and from no "/" popup. They have
+the other asymmetry too — `Chat::dispatchCommand()` carries no arm for either, so
+a typed `/new` is a prompt to the model. The Ctrl+P palette and the draft box are
+two different surfaces over one registry, and only one of them dispatches by
+match arm.
+
+One row's description understates its handler. `/memory`'s text names every
+sub-action but one: `Chat::handleMemoryCommand()` also answers `delete`. The
+table quotes the row rather than the handler because the row is what `/help` and
+the "/" popup show you — but the command you can type is the handler's list, and
+[`MEMORY.md`](MEMORY.md) documents that surface, `import` included.
+
+Three spellings dispatch with no row of their own, so nothing advertises them:
+`/agent` for `/agents`, `/background` for `/bg`, and `/quit` for `/exit`. The
+first two are second names the old prefix chain had already made reachable and
+that stay reachable; `quit` is the control-plane case above.
+
+Two guards apply to every arm, and both fall through to the model rather than
+guess. A draft must begin with the canonical spelling verbatim, so `/KEYS` is
+prose and `/compactfoo` is a prompt about foo rather than a mistyped `/compact`.
+And five commands — `exit`, `quit`, `keys`, `help`, `clear` — fire only when the
+draft is exactly `/name`, because `/help me name this variable` is a request and
+not a command list. `permissions` sits below that block deliberately despite
+looking like its neighbour, and `rules` too: mis-routing those two is worse than
+answering a question loosely, because `/permissions rules` would ask the model
+about a gate it cannot see and answer plausibly, and `/rules terse` would never
+reach the toggle.
+
+One name reaches a handler with no leading slash at all: a draft starting
+`mcp auth` is routed to `Chat::handleMcpAuthCommand()` ahead of the parse, because
+that spelling predates the discoverable `/mcp` row and the palette's MCP toggle
+still uses it.
+
+What keeps the table honest is not this page — no guard counts the rows here. It
+is `Commands\SlashDispatchTest::testEverySlashVisibleRegistryRowHasALiveDispatchHandler()`,
+which fails if a row `CommandRegistry::slashCommands()` advertises has no arm to
+answer it. The reverse direction, an arm with no row, is exactly the three
+aliases above and is deliberately allowed.
+
+---
+
+## The `/rules` command
+
+`/rules` is the built-in that edits what the model is told rather than what the
+transcript shows, and it has the smallest surface that does that:
+
+| Spelling | Effect |
+|---|---|
+| `/rules` | lists every toggleable pack, in `Pack` / `State` / `Source` columns |
+| `/rules <name>` | flips that pack for the rest of the session and reports `ON` or `OFF` |
+
+There is no `list`, `enable` or `disable` sub-action. A bare `/rules` *is* the
+listing and `/rules <name>` *is* the enable-or-disable, the direction decided by
+the pack's current state — `RulesState::toggle()` returns which way it went, so
+the command never has to ask twice and cannot report the wrong word for the
+action it took. Only the first token is read, and a second one is an error rather
+than something to ignore: quietly dropping the stray would make `/rules terse r`
+report a successful toggle of a pack called `terse r`. An unknown name says
+`Unknown rule pack:` and prints what is available.
+
+**A pack is a file, and its name is the filename.** Every `*.md` under
+`~/.sugar-crush/rules/` and every `*.md` under `~/.sugar-crush/rulebooks/` is a
+pack, identified by the filename minus its extension (`RuleLoader::ruleKeyFor()`
+— `focus.md` is `focus`, `style/terse.md` is `style/terse`). There is no index or
+registry to keep in step: a file that appears is a pack the next listing shows.
+`Source` tells you which of the two directories a name came out of, which you
+want because the same stem in both is two packs under one name — one
+`/rules <name>` flips both, and the report says so rather than printing a
+singular sentence about an action that just silenced two files. The listing is
+built from `RuleLoader::loadUserRules()` and `RuleLoader::loadUserRulebooks()`
+rather than from `load()`, on purpose: `load()` returns enabled rules only, so a
+pack that is off would vanish from the one command whose job is to switch it back
+on.
+
+**Only the user tier is toggleable** (`RulesState::TOGGLEABLE_TIER`). Both
+directories above are ones the operator of this machine chose, so `/rules` may
+silence either. `<root>/.sugar-crush/rules` and `<root>/RULES.md` are the
+repository's voice, and a session-scoped set of names is not a place to grant or
+withhold a repository's authority — that decision belongs to the trust gate on
+this page. The cost is symmetric and you should expect it: a project rule whose
+filename collides with a pack name is not silenced by `/rules` with that name.
+
+**Frontmatter wins.** A pack is in the prompt when its own frontmatter says it is
+enabled *and* this session has not turned it off, and that conjunction is
+computed in one place, `RulesState::effectiveRule()`, so a listing can never
+promise bytes the prompt does not deliver. Hence the three states the listing
+prints: `on`, `off (session)`, `off (frontmatter)`. Toggling the third kind flips
+the session bit and leaves the pack out of the prompt, and says as much.
+
+**The effect is session-scoped: `/rules` writes nothing.** No `config.json`, no
+settings file, no config-change callback anywhere on the path — the listing's own
+header is "Rule packs (session only — nothing here is written to config)", and
+`RulesCommandTest::testTogglingAPackLeavesTheConfigFileByteIdentical()` fails if
+that ever stops being true. A restart therefore restores every pack to what its
+frontmatter says. Within a session the change takes effect from the next turn,
+which is what the report line means by "from the next turn onward".
+
+For the persisted side of the same surface — the user-tier `disabledRules` key
+that starts a session with named packs already off, and the shape its value has
+to take — see
+[`SETTINGS.md`](SETTINGS.md#which-keys-are-layered-at-all), which is also where
+the rule that `disabledRules` is not layered like most keys is written down. This
+page documents the command; that one documents the config. Nothing here is
+restated from it.
 
 ## See also
 
 - [`SKILLS.md`](SKILLS.md) — the other markdown-plus-frontmatter surface, for
   content the *model* invokes rather than you.
 - [`HOOKS.md`](HOOKS.md) — the other place a config file names a shell command.
+- [`SETTINGS.md`](SETTINGS.md) — `disabledRules`, the persisted counterpart to a
+  `/rules` toggle.
+- [`MEMORY.md`](MEMORY.md) — `/memory`'s sub-actions, including `import`.
+- [`PERMISSIONS.md`](PERMISSIONS.md) — the gate `/permissions` reports on.
