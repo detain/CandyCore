@@ -603,8 +603,10 @@ final class ContextCompactor
      * the keying works to build the map {@see withExchangeSummaries()} wants.
      *
      * Standalone messages (an unpaired system/assistant turn) are NOT included:
-     * stage 2 truncates those to 120 characters rather than summarising them,
-     * and offering them to a model would produce summaries nothing consumes.
+     * stage 2 truncates those to 120 characters rather than summarising them
+     * (except the regenerated token-count notice, which stage 2 declines outright —
+     * {@see isRegeneratedReminderRow()}), and offering them to a model would
+     * produce summaries nothing consumes.
      * Neither are pairs with no assistant reply, which have no exchange to
      * summarise yet.
      *
@@ -1196,13 +1198,57 @@ final class ContextCompactor
     }
 
     /**
+     * The first bytes of the 70% context-usage notice, spelled to match
+     * {@see \SugarCraft\Crush\Chat::CONTEXT_REMINDER_PREFIX}, whose `private`
+     * visibility this respects rather than works around: `Chat` constructs THIS
+     * class, so a `use` here would be the first code-level edge from `src/Context/`
+     * back up to `SugarCraft\Crush\Chat` (every existing `Chat` mention in this
+     * directory is a doc-block `{@see}`, never a `use`) — a dependency pointing the
+     * wrong way to save restating one string, which is also why
+     * {@see self::SKILL_OUTPUT_MARKER} spells `SkillTool::execute()`'s heading
+     * literally in this file. The duplication cannot rot unnoticed the way that one
+     * can, because `ContextCompactorTest::testTheReminderPrefixSpellingIsPinnedToTheChatConstThatEmitsIt()`
+     * reads `Chat`'s private const by reflection (the idiom `BaseSystemPromptTest`
+     * uses for `Runtime`'s private prose consts) and compares bytes: rename the
+     * notice without renaming this spelling and a test reddens, instead of the guard
+     * silently un-declining every reminder row.
+     */
+    private const CONTEXT_REMINDER_PREFIX = 'Heads up: this conversation has grown to ~';
+
+    /**
+     * Whether a row about to be written into the compacted history IS the app's
+     * regenerated token-count notice: the same two halves as
+     * {@see \SugarCraft\Crush\Chat::isContextReminder()} — role AND prefix, both
+     * required — applied to the wire arrays this class works on, and deliberately
+     * not a wider net, so a user quoting the notice back stays their own text and
+     * rides into a summary like any other row. The decline belongs HERE rather than
+     * in the 120-character clip because the notice is appended afresh on every
+     * dispatch, so any carry of its bytes is an older figure wearing a `[summary] `
+     * label and clipping it harder only shortens the stale number — E38 in one
+     * clause. `Chat` declines the same row at carry time out of the transcript
+     * ({@see \SugarCraft\Crush\Chat::priorSummariesFromHistory()}, ruling R-D); that
+     * decline keeps its job for rows transcripts written before this step still
+     * carry, and neither site widens the other's predicate.
+     */
+    private static function isRegeneratedReminderRow(string $role, string $content): bool
+    {
+        return $role === 'system'
+            && str_starts_with($content, self::CONTEXT_REMINDER_PREFIX);
+    }
+
+    /**
      * Summarize older exchanges into single-line summaries.
      *
      * Takes an array of pairs (from groupIntoPairs) and produces one
      * summary message per pair, capturing "what happened and any key decisions made."
-     * A pair carrying `interleaved` riders produces one extra truncated line per
-     * rider, so that nothing the compaction was handed is silently dropped —
-     * {@see groupIntoPairs()} for what those riders are and why.
+      * A pair carrying `interleaved` riders produces one extra truncated line per
+      * rider, so that nothing the compaction was handed is silently dropped —
+      * {@see groupIntoPairs()} for what those riders are and why. ONE rider is
+      * declined rather than carried: the regenerated token-count notice, whose bytes
+      * the app writes afresh on every dispatch, so a `[summary] ` line quoting a
+      * figure from an older turn is a stale number wearing a summary's label (E38;
+      * {@see isRegeneratedReminderRow()} for why the decline sits here and not in the
+      * clip, which the other riders still get).
      *
      * @param array<array{user:string,assistant:?string,standalone?:bool,role?:string,interleaved?:list<array{role:string,content:string}>}> $pairs
      * @return array<array{role:string,content:string}>
@@ -1220,6 +1266,9 @@ final class ContextCompactor
                 // Standalone message (unpaired role like 'system')
                 $content = $pair['assistant'] ?? '';
                 $role = $pair['role'] ?? 'assistant';
+                if (self::isRegeneratedReminderRow((string) $role, (string) $content)) {
+                    continue; // E38 — see isRegeneratedReminderRow()
+                }
                 // Truncate long standalone messages
                 $summary = mb_strlen($content) > 120
                     ? $this->truncateWithEllipsis($content, 120)
@@ -1247,9 +1296,13 @@ final class ContextCompactor
                 // rider, and `_Request cancelled._` is the case where dropping it
                 // loses the only record of how the turn ended.
                 foreach ($pair['interleaved'] ?? [] as $rider) {
+                    $riderRole = (string) $rider['role'];
                     $riderContent = (string) $rider['content'];
+                    if (self::isRegeneratedReminderRow($riderRole, $riderContent)) {
+                        continue; // E38 — see isRegeneratedReminderRow()
+                    }
                     $summaries[] = [
-                        'role' => (string) $rider['role'],
+                        'role' => $riderRole,
                         'content' => '[summary] ' . (mb_strlen($riderContent) > 120
                             ? $this->truncateWithEllipsis($riderContent, 120)
                             : $riderContent),

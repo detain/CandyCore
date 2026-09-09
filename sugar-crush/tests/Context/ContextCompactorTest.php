@@ -956,6 +956,135 @@ final class ContextCompactorTest extends TestCase
     }
 
     /**
+     * E38, fixed at the rider source. The 70% notice is regenerated on every
+     * dispatch, so a `[summary] ` line carrying its bytes is an older figure
+     * wearing a summary's label — measured on the fixture below, 130 B of the
+     * 171 B notice survives the 120-char rider clip, and 94 B of a shorter one
+     * rides out verbatim. Either way the model reads an app notice as a record of
+     * what the compaction decided.
+     *
+     * BOTH shapes the compactor mints a `[summary] ` row from are pinned on ONE
+     * fixture, because they are two branches of the same method: a reminder with no
+     * open pair above it (the standalone branch) and a reminder riding inside an
+     * exchange (the `interleaved` branch, which is the production shape —
+     * `Chat::dispatchTurn()` appends the notice immediately after the echoed
+     * prompt). Each reminder is paired with a GENUINE app row beside it, and the
+     * genuine row's bytes are asserted too, so the guard can neither pass by
+     * declining everything nor by declining nothing. The tier report is over the
+     * clip on purpose: its clipped form travelling byte-exact is what proves the
+     * 120-character bound and its ellipsis still run for real riders.
+     */
+    public function testARegeneratedReminderRowIsDeclinedFromTheSummaryMaterialAndAGenuineRowIsNot(): void
+    {
+        $reminder = 'Heads up: this conversation has grown to ~70123 estimated tokens, '
+            . 'past the context-usage reminder threshold. Consider running /compact '
+            . 'soon to keep the session responsive.';
+        $tierReport = 'Context reached the automatic-compaction tier, so older exchanges were '
+            . 'summarized: 40 messages -> 12 messages, ~73% of the estimated token count '
+            . 'freed (~88000 estimated tokens now, against a 120000-token context window).';
+        $this->assertSame(171, strlen($reminder), 'fixture: this is the notice at a five-digit figure');
+        $this->assertSame(220, mb_strlen($tierReport), 'fixture: the genuine row is over the 120 bound');
+
+        $compactor = new ContextCompactor($this->cfg(recentPreserveCount: 1));
+        $messages = [
+            $this->msg('system', $reminder),
+            $this->msg('system', $tierReport),
+            $this->msg('user', 'first question'),
+            $this->msg('system', $reminder),
+            $this->msg('system', '_Request cancelled._'),
+            $this->msg('assistant', 'first answer'),
+            $this->msg('user', 'tail question'),
+            $this->msg('assistant', 'tail answer'),
+        ];
+
+        $this->assertSame([
+            ['role' => 'system', 'content' => '[summary] ' . mb_substr($tierReport, 0, 117) . '...'],
+            ['role' => 'assistant', 'content' => '[summary] first question → first answer'],
+            ['role' => 'system', 'content' => '[summary] _Request cancelled._'],
+            ['role' => 'user', 'content' => 'tail question'],
+            ['role' => 'assistant', 'content' => 'tail answer'],
+        ], $compactor->compact($messages), 'both reminder shapes are gone and both genuine rows are not');
+
+        $text = implode("\n", array_column($compactor->compact($messages), 'content'));
+        // The known-positive control beside the assertion of absence: the marker
+        // fires three times in the same output, so the zeros below are the decline
+        // and not a summariser that never ran.
+        $this->assertSame(3, substr_count($text, '[summary] '), 'three carries survived: report, fold, cancellation');
+        $this->assertSame(0, substr_count($text, 'Heads up'), 'the notice is carried in no form at all');
+        $this->assertSame(0, substr_count($text, 'grown to ~'), 'nor is its clipped form');
+        $this->assertSame(
+            1,
+            substr_count($text, '_Request cancelled._'),
+            'the only record of the aborted turn still rides out once',
+        );
+
+        $this->assertCount(
+            1,
+            $compactor->exchangesToSummarize($messages),
+            'the declined rows do not change what is offered: the reminder still rides the '
+            . 'open pair rather than closing it, which is what '
+            . 'testAReminderAfterEveryPromptDoesNotDestroyTheOfferedExchangeSet pins',
+        );
+    }
+
+    /**
+     * The guard is anchored at offset zero and gated on the role, exactly like
+     * `Chat::isContextReminder()` — so the near misses must survive. A `Re:`
+     * quoting the notice is a human reply, not the app's own row, and a row whose
+     * text merely CONTAINS the prefix is not an instance of it. Declining either
+     * would delete a record nobody regenerates.
+     */
+    public function testASystemRowCarryingTheNoticeAnywhereButAtTheStartIsNotDeclined(): void
+    {
+        $quoted = 'Re: Heads up: this conversation has grown to ~70123 estimated tokens?';
+        $compactor = new ContextCompactor($this->cfg(recentPreserveCount: 1));
+        $messages = [
+            $this->msg('user', 'what did that mean?'),
+            $this->msg('system', $quoted),
+            $this->msg('assistant', 'A usage notice this app writes.'),
+            $this->msg('user', 'tail question'),
+            $this->msg('assistant', 'tail answer'),
+        ];
+
+        $this->assertSame([
+            ['role' => 'assistant', 'content' => '[summary] what did that mean? → A usage notice this app writes.'],
+            ['role' => 'system', 'content' => '[summary] ' . $quoted],
+            ['role' => 'user', 'content' => 'tail question'],
+            ['role' => 'assistant', 'content' => 'tail answer'],
+        ], $compactor->compact($messages), 'the quote is under the clip and rides out byte-exact');
+    }
+
+    /**
+     * The one thing that makes a second spelling of `Chat`'s private prefix safe
+     * rather than merely convenient: the two halves are compared by bytes, so a
+     * rename on either side reddens here instead of leaving the E38 guard quietly
+     * matching nothing. The literal is written out rather than read from one side
+     * only, for the reason `ContextReminderDedupTest` records at its own copy —
+     * an expectation derived from the implementation cannot notice the
+     * implementation changing — and `assertStringContainsString` uses the
+     * production emitter's own message shape at
+     * {@see \SugarCraft\Crush\Chat::contextReminderMessage()}.
+     */
+    public function testTheReminderPrefixSpellingIsPinnedToTheChatConstThatEmitsIt(): void
+    {
+        $emitter = (new \ReflectionClass(Chat::class))->getConstant('CONTEXT_REMINDER_PREFIX');
+        $guard = (new \ReflectionClass(ContextCompactor::class))->getConstant('CONTEXT_REMINDER_PREFIX');
+
+        $this->assertSame(
+            'Heads up: this conversation has grown to ~',
+            $emitter,
+            'Chat no longer opens the notice with these bytes; re-derive BOTH spellings from '
+            . 'Chat.php\'s CONTEXT_REMINDER_PREFIX doc-block and this test together',
+        );
+        $this->assertSame(
+            $emitter,
+            $guard,
+            "ContextCompactor's copy has drifted from Chat's: the E38 decline stops matching "
+            . 'every reminder row and nothing else would notice',
+        );
+    }
+
+    /**
      * Helper to count tokens using same approximation as ContextCompactor.
      */
     private function countTokens(array $messages): int

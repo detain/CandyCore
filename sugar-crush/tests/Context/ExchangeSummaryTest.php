@@ -523,6 +523,75 @@ final class ExchangeSummaryTest extends TestCase
     }
 
     /**
+     * E38's rider-source fix, pinned against the tightest rider-shape lock this
+     * file owns. The 70% context-usage notice rides on the first exchange exactly
+     * where `_Request cancelled._` does — `Chat::dispatchTurn()` appends it
+     * immediately after the echoed prompt — and it is the one rider whose bytes the
+     * app writes afresh every turn, so carrying it as a `[summary] ` line quotes an
+     * older figure under a summary's label. Declining it must not disturb a single
+     * byte beside it: the expected array below is `testAKeyCollapseNeverEatsTheRider
+     * ThatRecordsAnAbortedTurn`'s, unchanged, with the notice present in the input
+     * and absent from the output. That is the polarity pair in one assertion — the
+     * cancellation rider still walks out byte-exact through the same mint the
+     * reminder was declined at.
+     */
+    public function testARegeneratedContextReminderRiderAddsNoSummaryRowToACollapsedExchangeSet(): void
+    {
+        $reminder = 'Heads up: this conversation has grown to ~70123 estimated tokens, '
+            . 'past the context-usage reminder threshold. Consider running /compact '
+            . 'soon to keep the session responsive.';
+        $history = [
+            ['role' => 'user', 'content' => 'run the test suite'],
+            ['role' => 'system', 'content' => $reminder],
+            ['role' => 'system', 'content' => '_Request cancelled._'],
+            ['role' => 'assistant', 'content' => 'All 42 tests passed.'],
+            ['role' => 'user', 'content' => 'add a route'],
+            ['role' => 'assistant', 'content' => 'Created config/routes entry.'],
+            ['role' => 'user', 'content' => 'run the test suite'],
+            ['role' => 'assistant', 'content' => 'All 42 tests passed.'],
+            ['role' => 'user', 'content' => 'tail one'],
+            ['role' => 'assistant', 'content' => 't1'],
+            ['role' => 'user', 'content' => 'tail two'],
+            ['role' => 'assistant', 'content' => 't2'],
+        ];
+        $compactor = $this->compactor(2);
+
+        $offered = $compactor->exchangesToSummarize($history);
+        $this->assertCount(3, $offered, 'the notice does not add an exchange to offer');
+        $this->assertSame(
+            $offered[0]['key'],
+            $offered[2]['key'],
+            'and it does not enter the key — the pairs still collapse',
+        );
+
+        $compacted = $compactor
+            ->withExchangeSummaries([
+                $offered[0]['key'] => 'Ran tests.',
+                $offered[1]['key'] => 'Routing done.',
+            ])
+            ->compact($history);
+
+        $this->assertSame([
+            ['role' => 'assistant', 'content' => '[summary] Ran tests.'],
+            ['role' => 'system', 'content' => '[summary] _Request cancelled._'],
+            ['role' => 'assistant', 'content' => '[summary] Routing done.'],
+            ['role' => 'assistant', 'content' => '[summary] Ran tests.'],
+            ['role' => 'user', 'content' => 'tail one'],
+            ['role' => 'assistant', 'content' => 't1'],
+            ['role' => 'user', 'content' => 'tail two'],
+            ['role' => 'assistant', 'content' => 't2'],
+        ], $compacted, 'eight rows, one of them the cancellation record, none of them the notice');
+
+        $text = implode("\n", array_column($compacted, 'content'));
+        $this->assertSame(0, substr_count($text, 'Heads up'), 'no form of the notice survives');
+        $this->assertSame(
+            1,
+            substr_count($text, '[summary] _Request cancelled._'),
+            'the genuine rider is present exactly once — so the zero above is a decline, not a dead mint',
+        );
+    }
+
+    /**
      * The scenario the finding names: byte-identical text over DIFFERENT tool
      * payloads. The pairs do collide onto one key — the hash never saw the
      * payload. It cannot lose anything the key controls, because the payload
