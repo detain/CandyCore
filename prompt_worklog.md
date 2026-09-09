@@ -253,6 +253,46 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### P24 — PromptFence roster 7-to-8 with prior-summary, escape carried rows in-block, deliberate red executed · 2026-09-09 · merge 08f6cbb22
+
+**Status** `done`.
+
+**Chain** — a695ef9a4 staffing, base cb8a6c456 (P29 merge, ff'd), step b14a81e00, cycle-1 fix 30867d24f, merge 08f6cbb22 (parents cb8a6c456 + 30867d24f), belt 30867d24f..master sugar-crush/ = 0 bytes.
+
+**BUILDER DEATH LADDER** — the original builder died blank twice; disk forensics showed the FINAL continuation agent had already landed all 7 ceiling files modified-but-uncommitted with correct complete edits. The continuation committed b14a81e00 + HANDOFF.md after dedenting 81 six-space docblock lines to the files' 5-space convention (proved whitespace-only via diff -w; invisible to the paragraph census). Lesson re-confirmed: a blank return is never "no work".
+
+**Shipped** — PromptFence::TAGS gains 'prior-summary' (index 6; harness-injected stays 8th); escape() derives from TAGS via a memoized regex, compile-time const, no code edit, no test-order hazard (both reviewers verified); Chat::renderPriorSummariesForSummary payload routed through PromptFence::escape() IN-BLOCK (open/close literals + PRIOR_SUMMARY_NOTE stay literal; clean payloads byte-identical — why goldens cannot move); R-C re-ruled VERBATIM to VERBATIM-AT-WORDING-LEVEL via the FF1 frame (Chat.php ~:9146); residual paragraph corrected; stale numeric ContextCompactor cites replaced with symbolic {@see generateExchangeSummary/summarizeExchanges/exchangesToSummarize}.
+
+**THE DELIBERATE RED EXECUTED** — CompactModelSummaryTest forged-closer characterization pin renamed in place (section 1.10) to testAForgedPriorSummaryCloserTravelsIntoTheNextRequestDefanged; docblock CHARACTERISATION PIN re-labelled ADJUDICATION EXECUTED citing prompt_worklog.md:761; values flipped to defanged truth (inside-carry live tags 0, whole-block closer 1, both escaped-entity needles count-1 closer AND opener polarity, present-word + literal-note pins). Deletion experiment: removing the new Chat.php escape() call reddens EXACTLY the remade test (slice B full-suite probe M1: 1 failure in 11,182 tests).
+
+**Lockstep guards updated** — PromptSectionTest sorted 8-element roster assertSame; BaseSystemPromptTest declaration-order map + array_keys equality + prior-summary forgery polarity + spellings count sentence; MaximsSection.php + MaximsSectionTest ordinal prose; PromptFence.php census paragraph now names EIGHT SITES.
+
+**Files / suite** — 7 ceiling files exactly; +192/-103. Builder suite 11,182 / 170,906 / 0F / 0E / 2S prediction-first from final-tip per-class solos, remainder 0 (PromptSectionTest 23/84 to 86, BST 24/326 to 331, CMS 38/191 to 199, GlobFigureDrift 22,839 to 22,840, SymbolCitationDrift flat 3,204, EnvRoster 31/3,038, MMG no flip). Goldens FROZEN f5de3858c1bc130d1e97a120d3ead485/8,278 + ef0326dd38535aaa2f1d715919bff26e/1,060.
+
+**Reviews** — cycle-1 slice A APPROVE_WITH_FIXES (MINOR census ordinal fifth to seventh [assembler guard is the 7th site]; NIT PRIOR_SUMMARY_NOTE verbatim wording — ORCHESTRATOR RULING LEAVE, wire-visible literal, defensible); slice B PASS ran in its OWN detached sandbox worktree /tmp/opencode/P24/review-b-tree (cp -al vendor, torn down at exit — the NEW PATTERN adopted after the P29 shared-worktree mutant incident): deletion audit clean (33 deleted lines all sanctioned), proved escape-twice is a measured EQUIVALENT MUTANT with the idempotence guard itself red-proven, found B-2/B-3 INFO. Fix 30867d24f comment/docblock-only, 2 files (fifth to seventh; RED-ON-REVERT attribution corrected to (3) 0-to-1 first, (4) 1-to-2 never runs); GlobFigureDrift UNMOVED re-proving the in-paragraph law. Fresh cycle-2 reviewer APPROVE 0 findings (independently recounted the 8-site paragraph; master history read FIVE SITES/understated-by-four, cardinal tracked growth correctly).
+
+**Merge+gate** — master-direct prediction-first 11,182 / 170,906 / 0F / 0E / 2S / EXIT 0 EXACT (artifact /tmp/opencode/P24-merge/master.xml 3,872,311 B; detached setsid launch survived the harness 120s shell cap — poll closed JUnit root + banner, never trust killed runs). P29 worktree+branch reaped at this merge (ancestry-proven, plain -d). Ledger follow-ups (44) ordinal-prose-has-no-generator (B-3) and (45) recheck-file:66 quotes old FIVE SITES wording (historical record, leave; mention at Phase-11 docs sweep) ADDED.
+
+**NOTE** — prompt/P24 worktree reaped in THIS bookkeeping batch after the scout rescue; law-4g triple clean on b14a81e00, 30867d24f, 08f6cbb22 (fixed-string bracketed-EMAIL scans 0/0 + identity 4/4).
+
+### P29 — E38: decline the regenerated context reminder at the rider source · 2026-09-09 · merge cb8a6c456
+
+**Status** `done`.
+
+**Chain** — staffing a695ef9a4 (pair briefs + §5 recheck report + resume git_commits erratum 3 lines), step 901453f5c, merge cb8a6c456 (parents a695ef9a4 + 901453f5c), belt 901453f5c..master = 0 bytes, gate master-direct EXACT 11,182 / 170,890 / 0F / 0E / 2S / EXIT 0 (artifact /tmp/opencode/P29-merge/master.xml 3,872,310 B; attempt 1 SIGHUP-killed by the harness at ~11 percent — an env-kill, not a failure; fully detached relaunch clean 07:10.750; cmp +0/+0).
+
+**Shipped (3 files, Chat.php diff 0 bytes)** — private const CONTEXT_REMINDER_PREFIX in ContextCompactor byte-identical to Chat.php:480 (whole-line hash match) + static isRegeneratedReminderRow(role,content); guard continue at BOTH mint branches (standalone ~:1269-1271 before the clip; interleaved rider loop ~:1301-1303) — a regenerated token-count notice must never arrive as a `[summary] ` rider; mechanism = local const + REFLECTION DRIFT-PIN test instead of a Context-to-Chat code edge (zero such edges exist in both trees; SkillTool-marker spelling precedent in-file); isContextReminder() UNTOUCHED (plan-forbidden widening); R-D carry-time decline in Chat intact; 120-clip + truncateWithEllipsis intact; genuine riders byte-identical (ExchangeSummaryTest cancellation pin untouched).
+
+**Tests** — 4 new: 5-row full assertSame with 130-B-shaped expected rider + negative/positive needles; anchor near-miss control (Re:-quoted notice rides byte-exact); drift pin (rename reddens); ExchangeSummary 8-row byte-identical + assertCount(3, offered) + offered[0].key === offered[2].key (the guard drops the ROW not the EXCHANGE).
+
+**Red-on-revert** — each guard independently lethal (slice A twin-channel proof); slice B always-false mutant reddens exactly the 2 carriage tests. Builder 11,182/170,890; 4 movers named (ContextCompactorTest 85/317 to 88/328, ExchangeSummaryTest 22/54 to 23/59, GlobFigureDrift +4 paragraphs 22,835 to 22,839, SymbolCitationDrift +8 citations 3,196 to 3,204 — the missed-in-prediction citation census mover, attribution by isolated reverts). Goldens frozen.
+
+**Premises measured FALSE** — plan:2826-2827 "100% of the 171-byte text survives" (measured 130 B folded = marker 10 + 117 + ellipsis); docblock prose DOES move GlobFigureDrift when it adds blank-line paragraph units (in-paragraph edits move 0); the defect also existed in the STANDALONE branch (live probe widened scope beyond the brief; both branches guarded); SymbolCitationDriftTest is a mover whenever new {@see} cites land.
+
+**Reviews** — cycle-1 slice A APPROVE with NIT (8-line docblock 6-space indentation at :1244-1251 — deferred follow-up (43)) + INFO legacy pre-masked double-marker row re-mints (R-D carry path owns it, pre-existing) + PROCESS INCIDENT: slices A and B shared the worktree and B's live mutant was found dirty in the target file; A restored from HEAD and re-verified every figure — lesson: parallel mutation slices in one worktree are hazardous; P24 adopted the detached-sandbox pattern. Slice B PASS. Follow-up (43) = alignment nit + '94 B' prose figure with no fixture row + legacy re-mint note.
+
+**Serial ruling honored** — (29) before (24) because (24) escapes exactly the rows (29) authors.
+
 ### P10 CLOSE — Phase-10 close review verdict + FOLD-1 seam sentence + BATCH P10.B2 CLOSE   ·   2026-09-08   ·   bookkeeping (no merge; FOLD-1 code shipped at `b2936ee5c`)
 
 **Status** `done`. Phase 10 CLOSED 2026-09-08, four of four steps merged: S1 `77881b9cb` (`systemBlocks` on `CompleteRequest` — ONE shared `Runtime::assembleSections()` fold, the Vertex per-block arm; floor then 11,148 after S2) · S2 `341d71876` (`CacheBreakpoints`, unwired-by-design, FOUR load-bearing constraints — the plan's "three…three" preamble miscount corrected to FOUR; measured real-turn max 18 content blocks vs `LOOKBACK_LIMIT` 20) · S3 `5f30fec05` (kill switch `SUGARCRUSH_DISABLE_PROMPT_CACHE` + the threshold-3 both-zero `observeCacheHealth` diagnostic; the ctor default keeps the 17 P10.S2 tests byte-identical; ruling S3-R1 = no Bootstrap notice; `docs/ENVIRONMENT.md` self-registering roster pairing) · S4 `b0bc60ebd` (`Concerns/SessionAffinity` trait, `X-SugarCrush-Session` full-64-hex sha256, six per-request `post()` sites; the Guzzle per-request header merge-guard measured + pinned; live wiring on the other four transports RECORDED as a follow-up). Batch-1's S1/S2 detail lives in the P10 batch-1 entry above; S3's and S4's in their step entries above; THIS entry records ONLY the close review + the fold — no step content is duplicated.
