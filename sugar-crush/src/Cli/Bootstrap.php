@@ -21,6 +21,8 @@ use SugarCraft\Crush\Config\LayeredSettings;
 use SugarCraft\Crush\Config\StatusLineCommand;
 use SugarCraft\Crush\Context\EnvironmentBlock;
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\RuleLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Diagnostics\RuntimeNoticeSink;
 use SugarCraft\Crush\Hooks\BuiltIn\PermissionGateHook;
@@ -5612,11 +5614,30 @@ final class Bootstrap
         // fails that test until it is acknowledged there.
         $nudge = SkillPathNudge::new($skills);
 
+        // P6.S5b: the second transient channel carries `paths:`-scoped RULES, and
+        // it is a separate tracker from the skills one on purpose — one subject
+        // per class, so retuning a skill budget never moves a rule budget. The
+        // rules come from the same entry point the prompt splice uses, walked ONCE
+        // here at boot; announce time is pure string matching against the triggers
+        // the loader already built, with no filesystem read per tool call.
+        //
+        // ONE NAMED DIVERGENCE from the splice, stated rather than left to be
+        // discovered: `tools()` has no {@see RulesState} in scope. `chat()` builds
+        // the toggle set before it calls `backend()`, but `backend()` is what
+        // reaches this method, and threading the set through `backend()`,
+        // `backendFor()` and here is a signature change on three public boot
+        // entry points — outside this step's declared ceiling. So a rulebook pack
+        // the operator turned off in `disabledRules` still carries its
+        // PATH-SCOPED rules into this channel, while the splice and the `/rules`
+        // listing both correctly drop it. Recorded as a follow-up for whichever
+        // step owns the toggle's route to the tool side.
+        $ruleNudge = RulePathNudge::new((new RuleLoader($root))->load());
+
         $tools = [
             new Bash($root),
-            new Read($root, instructionLoader: $loader, skillNudge: $nudge),
-            new Edit($root, instructionLoader: $loader, skillNudge: $nudge),
-            new Glob($root, instructionLoader: $loader, skillNudge: $nudge, fdAvailable: $fdAvailable),
+            new Read($root, instructionLoader: $loader, skillNudge: $nudge, ruleNudge: $ruleNudge),
+            new Edit($root, instructionLoader: $loader, skillNudge: $nudge, ruleNudge: $ruleNudge),
+            new Glob($root, instructionLoader: $loader, skillNudge: $nudge, ruleNudge: $ruleNudge, fdAvailable: $fdAvailable),
             // Same pair as Read/Edit/Glob/Write, and it was the one
             // path-resolving tool without them: a `CLAUDE.md` governing a
             // directory stayed unannounced when Grep was what surfaced the
@@ -5628,7 +5649,7 @@ final class Bootstrap
             // {@see \SugarCraft\Crush\Tools\BuiltIn\Grep::isParallelSafe()}
             // for why its concurrency verdict is unchanged but its
             // justification is not.
-            new Grep($root, instructionLoader: $loader, skillNudge: $nudge, rgAvailable: $rgAvailable),
+            new Grep($root, instructionLoader: $loader, skillNudge: $nudge, ruleNudge: $ruleNudge, rgAvailable: $rgAvailable),
             // Write, and it was missing: {@see Edit} refuses a path that does
             // not exist yet (it requires `file_exists()` AND a non-empty
             // `old_string`), so with the set at nine the model's ONLY route to
@@ -5642,7 +5663,7 @@ final class Bootstrap
             // Edit deliberately — a write into a skill-scoped or
             // CLAUDE.md-bearing directory has to announce that context exactly
             // as touching the path through Read/Edit/Glob would.
-            new Write($root, instructionLoader: $loader, skillNudge: $nudge),
+            new Write($root, instructionLoader: $loader, skillNudge: $nudge, ruleNudge: $ruleNudge),
             new WebFetch(),
             new WebSearch(),
             new Doctor(),
