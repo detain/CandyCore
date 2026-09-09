@@ -91,7 +91,15 @@ That is why `matcher: 'Read|Write/Edit'` works. Under a fixed `/` delimiter it
 compiled to `/Read|Write/Edit/i`, whose delimiter closes at the slash — a valid
 regex that made `bin/sugarcrush` exit 2 over a slash. Picking an absent
 delimiter is both simpler and safer than escaping, which has to reason about
-already-escaped `\/` and gets it wrong at the edges.
+already-escaped `\/` and gets it wrong at the edges. The same wrapping is what
+makes the match-all the **empty string**: `''` holds no delimiter either, so it
+compiles to `//i` — the `i` is the case-insensitive modifier, and between the
+two delimiters there is no pattern at all, which PCRE reads as matching every
+subject. The glob instinct is the one spelling that does not survive the load:
+`matcher: '*'` becomes `/*/i`, PCRE refuses it because the quantifier has
+nothing to repeat, and the loud half of the rule above turns that into a refused
+launch rather than a guard that fires on nothing. Omitting the key outright is
+the third route, and it lands on `.*`, which matches everything the same way.
 
 One definition serves the config's own validation **and** both matchers
 (`HookRegistry::matcherMatches()` and `HookDispatcher::matcherMatches()`), since
@@ -165,9 +173,16 @@ already run:
 | `TaskCreated` / `TaskCompleted` | task lifecycle | — |
 
 The `—` rows are **dormant, not removed**: an entry naming one of them parses
-from `hooks.yaml`, registers, and keeps the block semantics below — but no call
-site in `src/` dispatches those events at this tip, so a script written against
-one will never run. Wiring them is open work.
+from `hooks.yaml`, registers, and keeps the block semantics below — but nothing
+in `src/` reaches them at this tip, and the two halves are worth telling apart.
+`Stop`, `SubagentStop`, `SessionEnd` and `PreCompact` have no dispatch call site
+at all: `HookDispatcher` carries a method for each and nothing in `src/` calls
+it. `TaskCreated`, `TaskCompleted` and `TeammateIdle` do have call sites, all
+three in `TaskList`, but each is guarded on an injected `HookDispatcher`, and
+`src/` constructs that class nowhere — `Team.php`, the only production
+`new TaskList(…)`, leaves the parameter at its default. So the operative reason
+a script written against one will never run is the dispatcher that is never
+built, not a call site that was left out. Wiring them is open work.
 
 What a **block** (exit 2) does depends on the event, because for some of them
 the action has already happened:
@@ -210,7 +225,12 @@ tool gates:
   `Message::system()` line. That is a documented divergence from the strict
   `HookEvent::stderrToUserOnly()` reading: `tests/Cli/StderrEmitterCensusTest`
   pins `Chat.php`'s emitter counts, so the transcript seam is the surface that
-  answers "where does the user see it".
+  answers "where does the user see it". And the history that refusal commits is
+  the **pre-compaction** one — the notice is appended to `$this->history`, while
+  a rewrite the automatic tier adopted for this same submit lives only in the
+  local that `dispatchTurn()` is handed — so a compaction that had already bought
+  space goes out with the prompt by design instead of being persisted, and the
+  tier re-runs on the next submit.
 - **A `SessionStart` block stops nothing.** Per `stderrToUserOnly()` the session
   continues, the hook's note is discarded outright, and only the reason appears
   in the transcript.
