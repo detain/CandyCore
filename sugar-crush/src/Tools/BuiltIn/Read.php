@@ -6,6 +6,7 @@ namespace SugarCraft\Crush\Tools\BuiltIn;
 
 use SugarCraft\Crush\Agents\PathJail as AgentPathJail;
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Tools\CarriesSessionState;
 use SugarCraft\Crush\Tools\Concerns\TruncatesOutput;
@@ -34,6 +35,7 @@ final readonly class Read implements Tool, ParallelSafe, CarriesSessionState, Pr
         private ?InstructionFileLoader $instructionLoader = null,
         private array $sessionCache = [],
         private ?SkillPathNudge $skillNudge = null,
+        private ?RulePathNudge $ruleNudge = null,
     ) {}
 
     /**
@@ -65,6 +67,7 @@ final readonly class Read implements Tool, ParallelSafe, CarriesSessionState, Pr
         return [
             'emittedInstructionPaths' => $this->instructionLoader?->emittedPaths() ?? [],
             'announcedSkills' => $this->skillNudge?->announced() ?? [],
+            'announcedRules' => $this->ruleNudge?->announcedPaths() ?? [],
         ];
     }
 
@@ -81,6 +84,11 @@ final readonly class Read implements Tool, ParallelSafe, CarriesSessionState, Pr
         $skills = $state['announcedSkills'] ?? null;
         if (is_array($skills)) {
             $this->skillNudge?->markAnnounced(array_values($skills));
+        }
+
+        $rules = $state['announcedRules'] ?? null;
+        if (is_array($rules)) {
+            $this->ruleNudge?->markAnnouncedPaths(array_values($rules));
         }
     }
 
@@ -333,6 +341,28 @@ final readonly class Read implements Tool, ParallelSafe, CarriesSessionState, Pr
             );
             if ($nudge !== null) {
                 $content .= "\n\n" . $nudge;
+            }
+
+            // P6.S5b: the second transient channel, for `paths:`-scoped RULES,
+            // appended on the same terms as the skill nudge directly above —
+            // AN EIGHTH of $maxBytes via {@see RulePathNudge::CALLER_BUDGET_DIVISOR},
+            // spent inside the caller's cap rather than beside it, and spent only
+            // after the read actually landed. The 1.375x total the paragraph above
+            // states is the file + instruction + SKILL bound, and it stays exactly
+            // that for every launch with no path-scoped rule; this channel adds a
+            // further eighth of the same shape, so a launch that carries scoped
+            // rules is bounded at 1.5x $maxBytes.
+            // A budget too small for one entry surfaces nothing and SPENDS nothing,
+            // so a rule is announced by the next call with room rather than retired
+            // unseen.
+            $ruleNudge = $this->ruleNudge?->forPath(
+                $path,
+                $this->maxBytes > 0
+                    ? intdiv($this->maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR)
+                    : null,
+            );
+            if ($ruleNudge !== null) {
+                $content .= "\n\n" . $ruleNudge;
             }
 
             return new ToolResult(
