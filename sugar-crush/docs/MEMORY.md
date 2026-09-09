@@ -70,13 +70,21 @@ created or is not writable, which is a real reason for `/memory` to report a
 failure and *not* a reason to refuse to launch. A broken optional input costs
 the feature, never the turn.
 
-### What reaches the prompt — `project` scope, and only that
+### The three tiers, and which one reaches the prompt
+
+The store has three scopes — `user`, `project` and `agent`. (The enum spells the
+third `MemoryScope::Local`; `MemoryStore::normalizeScope()` maps it onto the
+`agent` directory, per the naming note above.) They are three storage tiers but
+only one prompt tier: **`project` is the only scope that reaches the prompt.**
 
 `Runtime::buildSystemPrompt()` folds in a `MemoryBlock`
-(`src/Context/MemoryBlock.php`), captured once per `Runtime` from
-`MemoryStore::list(MemoryScope::Project)`. **User-scope and agent-scope entries
-never reach the prompt.** `/memory add` defaults to `user`, so an entry you want
-the model to see needs `--scope project` explicitly.
+(`src/Context/MemoryBlock.php`), captured once per `Runtime` — not once per step —
+from `MemoryStore::list(MemoryScope::Project)`. **User-scope and agent-scope
+entries never reach the prompt**
+(`MemoryPromptWiringTest::testAUserScopeNoteDoesNotReachThePrompt`,
+`MemoryPromptWiringTest::testTheMemoryDirectoryIsReadOncePerRuntimeNotOncePerStep`).
+`/memory add` defaults to `user`, so an entry you want the model to see needs
+`--scope project` explicitly.
 
 The block is bounded, because it is part of the system prompt and therefore paid
 for on every step of the agentic loop:
@@ -101,8 +109,9 @@ tags rendered unbounded — the docblock cites a measured case of one entry with
 And `MAX_ENTRY_BYTES <= MAX_BYTES` is what makes `MAX_BYTES` a real ceiling
 **with no first-entry exemption**: without a per-note cap, the first note has to
 be admitted whole or the block can render empty, so the total bound would be
-"4096, or one note, whichever is larger". The relation is asserted in the source
-rather than assumed. The truncation marker is also paid for *out of* the 512
+"4096, or one note, whichever is larger". The relation is asserted, not assumed —
+`MemoryBlockTest::testThePerNoteCeilingFitsInsideTheTotalBudget` goes red if it
+ever stops holding. The truncation marker is also paid for *out of* the 512
 rather than added on top. Measured — one project note of 5000 `X`s, rendered —
 the note line comes back at **exactly 512 bytes** and ends
 `XXXXX […truncated]`, not at the 527 it would be if the marker were added on
@@ -123,6 +132,31 @@ inside a memory entry" — essentially never true. Recall built that way would b
 permanently and silently empty: a wired feature that never fires, which is worse
 than an unwired one, because nothing looks broken.
 
+### The `<project-memory>` fence — and why every note line is escaped
+
+`MemoryBlock::render()` wraps the notes in a `<project-memory> … </project-memory>`
+fence, and `MemoryBlock::fence()` names that tag for the prompt's section
+machinery. Memory entries are untrusted, user-authored bytes that reach the prompt
+verbatim, so a note carrying its own `</project-memory>` would otherwise close the
+block early and forge whatever follows it — the same trust boundary the injected
+`<system-reminder>` fence exists to hold.
+
+So `MemoryBlock::renderEntry()` runs every assembled note line through
+`PromptFence::escape()` before the per-entry clip. `PromptFence` is the single
+authority owning the prompt's fence-tag roster — `env`, `project-memory`,
+`repo-map`, `project-instructions`, `system-reminder`, `user-rules`,
+`prior-summary`, `harness-injected` — and its `escape()` rewrites only the leading
+`<` of a recognised open/close tag to `&lt;`, touches nothing else, and is
+idempotent. A clean note therefore renders byte-for-byte identical to its raw
+text; a note forging a fence arrives as `&lt;/project-memory>` and cannot close
+the block it lives in (`MemoryBlockTest::testANoteForgingItsOwnClosingFenceRendersOneBalancedFence`,
+`MemoryBlockTest::testACleanNoteIsRenderedByteIdenticalToTheEscapeAuthorityTransparencyPromise`).
+
+The escape runs *before* the clip on purpose, so `MAX_ENTRY_BYTES` bounds the
+already-escaped line: an entry of nothing but fence tags still fits inside the 512
+ceiling rather than bloating past it once each `<` costs four bytes
+(`MemoryBlockTest::testAnEntryOfNothingButFenceTagsStillStaysInsideThePerNoteCeiling`).
+
 ### Importing another tool's memory
 
 `ForeignMemoryImporter` reads Claude Code's `~/.claude/projects/<slug>/memory/`
@@ -132,16 +166,24 @@ imported skills and agent presets. It is **read-only by design**: the foreign
 tree is harness-managed, so there is no export direction.
 
 **`Chat::memoryImport()` constructs it behind `/memory import claude|opencode`**
-(wired in P7.S6). The subcommand writes entries into the `agent` scope —
-reachable through `/memory list agent` and `/memory search`, and, per the
-project-scope-only policy above, deliberately **not** folded into the prompt:
-`MemoryBlock::MAX_ENTRIES` bounds the `project` list, so no import can crowd
-the prompt block either way. Imports are **not idempotent** (`MemoryStore::add()`
-mints a fresh UUID per call), which is why de-duplication lives at the trigger
-point rather than in the importer: the command writes a sentinel at
-`.sugar-crush/memory/.imported-<target>` in the project after a non-empty
-import, and refuses to import again while that file exists — delete it to
-re-import. Only the caller knows whether a re-import was intentional.
+(wired in P7.S6). The importer writes every entry with `MemoryScope::Local`, which
+`MemoryStore::normalizeScope()` lands in the `agent` directory — so imported
+entries reach `/memory list agent` and `/memory search`, and, per the
+project-scope-only policy above, are **deliberately never folded into the prompt**.
+That is the real reason an import cannot crowd the prompt block: it is a *scope
+separation*, not a size limit. `MemoryBlock::capture()` reads the `project` list
+alone, so however many entries pile into `agent` the captured block is unchanged
+(`MemoryImportCommandTest::testImportBeyondTwelveSucceedsAndCannotTouchThePromptBlock`,
+`MemoryImportCommandTest::testRenderCapBoundsOnlyTheProjectScopeThePromptFolds`).
+There is accordingly **no entry cap on `/memory import`** and no prompt-cap clamp
+on its response — none is needed once imports and the prompt share no scope.
+
+Imports are **not idempotent** (`MemoryStore::add()` mints a fresh UUID per call),
+which is why de-duplication lives at the trigger point rather than in the importer:
+the command writes a sentinel at `.sugar-crush/memory/.imported-<target>` in the
+project after a non-empty import, and refuses to import again while that file
+exists — delete it to re-import. Only the caller knows whether a re-import was
+intentional.
 
 The gate is not the wiring: `{projectRoot}/.opencode/memory` is a path a *cloned
 repository* chooses, so the directory is contained against the checkout and each
