@@ -2803,6 +2803,8 @@ sent to the summariser does not grow proportionally. Put both numbers in the wor
 
 **Status 2026-09-08: MERGED — merge `c4c9b3b01`; floor 11,055/169,621/0F/0E/2S gated `f55114842`. E31 bar met (gate-deleted blindness reproduced, new test kills it); E32 done via the PRE-EXISTING Backend token contract; breaker = IdleCompactionPolicy::REFILL_LIMIT 3 + Chat counter with R6 rescue-exemption; E38 skipped-with-reason. Phase 8 CLOSED 2026-09-08 — cycle-1 close review 0 BLOCKER / 0 MAJOR / 1 MINOR / 4 NIT; folds in b417dbbb7; E38 + PromptFence roster-widen scheduled after Phase 10. Full record: worklog P8.S5 entry.**
 
+**Status 2026-09-09: CLOSED — (29) merged cb8a6c456 (E38 rider-source decline, isContextReminder NOT widened), (24) merged 08f6cbb22 (TAGS 7-to-8 prior-summary, in-block escape, deliberate red executed; floor 11,182/170,906).**
+
 **Goal** Three related compaction-route defects, one bundle:
 - **Circuit breaker.** Stop after 3 consecutive compactions that immediately refill to the limit,
   with an actionable error, instead of burning API calls. Claude Code shipped the thrash loop and
@@ -2826,6 +2828,8 @@ gate. Record that you performed the deletion experiment and what it showed.
 **Also:** E38 — the context reminder survives compaction as a `[summary]` rider (100% of the
 171-byte text survives, merely prefixed). **Do NOT fix that by widening `isContextReminder()`.** If
 you touch it here, fix it at the source of the rider.
+
+**Status 2026-09-09: CLOSED — E38 fixed at the rider source per the constraint above: (29) merged cb8a6c456, guard continue at both ContextCompactor mint branches, `isContextReminder()` NOT widened (premise: the 171-byte claim measured FALSE — 130 B folded).**
 
 **Concurrency (Phase 8)** — **fully serial**: S1 → S2 → S3 → S4 → S5. Every step touches `Chat.php`
 or `ContextCompactor.php`, and each depends on the previous one's format decisions.
