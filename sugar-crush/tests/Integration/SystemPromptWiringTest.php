@@ -44,6 +44,13 @@ use SugarCraft\Crush\Tests\Support\HomeSandboxTrait;
  * -- one shared `Bootstrap::instructionLoader($root)` threaded into both the
  * engine and `Bootstrap::tools()` -- with only the provider's HTTP layer
  * stubbed, the same seam `BinSugarcrushWiringTest` stubs.
+ *
+ * P11.S4 ADDENDUM, one sentence because the gap it names was real: block-arm
+ * coverage of the same request (`CompleteRequest::$systemBlocks`, delivered
+ * across the same `completeAsync()` fork from a real keystroke turn) now
+ * lives in
+ * {@see PromptEndToEndTest::testARealKeystrokeTurnDeliversEveryLayerOnTheBlockArm()},
+ * and this file still reads only the flat `$systemPrompt`, by design.
  */
 final class SystemPromptWiringTest extends TestCase
 {
@@ -156,6 +163,15 @@ final class SystemPromptWiringTest extends TestCase
      * only two transmitted-prompt tests carrying that pin — and nothing else
      * across tests/Integration, tests/Context, tests/RuntimeTest.php,
      * tests/Agents/AgentTest.php and tests/Providers/PromptStabilityTest.php.
+     *
+     * MEASURED-CORRECTION (P11.S4; prose only, no assertion touched): the line
+     * quoted above, `$systemPrompt = $this->buildSystemPrompt($app);`, is stale
+     * prose from the pre-P10.S1 tree. The live `Runtime::run()` folds BOTH arms
+     * in one call now —
+     * `[$systemPrompt, $systemBlocks] = self::assembleSections($this->systemPromptSections($app));`
+     * — so the flat string this pin reads is one output of the same fold that
+     * fills `CompleteRequest::$systemBlocks`; the byte-identity being asserted
+     * still holds unchanged, only the assignment quoted above has moved.
      *
      * What it cannot see is a reorder that still leaves <env> at the TAIL:
      * the layer-5 move, after <project-memory> but before the skill layers,
