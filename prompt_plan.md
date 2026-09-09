@@ -3117,6 +3117,8 @@ and summary paths are exactly the ones that get forgotten.
 
 ## Phase 11 — Docs, sweep, final audit
 
+**Status 2026-09-09: PHASE 11 CLOSED — six of six steps landed (S1 `de3a580fd`, S2 `097473127` + S2-pin `65d4c882f`, S3a-e `37e61e760`/`64434c0d0`/`60d9ab81f`/`cb7a5fe68`/`8e822c6ed`, S4 `bbd8696fc`, S5 = the audit). Fresh close review of every §9.1-§9.15 item recorded in the worklog P11.S5 entry (74 items: 67 landed / 1 declined / 2 deferred-with-owner / 4 flagged with no trace). Floor 11,185/171,308/0F/0E/2S/EXIT 0 FLAT at the final tip; goldens UNMOVED (system `f5de3858c1bc130d1e97a120d3ead485`/8,278 + agent `ef0326dd38535aaa2f1d715919bff26e`/1,060). The plan now stands at 64 of 65 step headings landed; the sole outstanding heading is P6.S5b, blocked on user-decision item (4).**
+
 ### P11.S1 — `docs/PROMPT_ENGINEERING.md`
 
 **Status 2026-09-09: MERGED — merge `de3a580fd` (step `07fb42a75`); floor 11,183/171,258 EXACT; integrity event documented (fabricated reports countered by disk-proof law); 2 wording NITs deferred to S5. Full record: worklog P11 batch-A close entry.**
@@ -3148,6 +3150,8 @@ it, add one.
 
 ### P11.S3 — Update the affected feature docs
 
+**Status 2026-09-09: MERGED — the five-way batch landed as five merges: S3a HOOKS.md `37e61e760` (step `2c8b26fe1`, +160/-32), S3b SKILLS.md `64434c0d0` (step `ffd699396`, +167/-23), S3c MEMORY.md `60d9ab81f` (step `f250268c1`, +60/-17), S3d SETTINGS.md `cb7a5fe68` (step `bf0e0db88`, +61/-1), S3e COMMANDS.md `8e822c6ed` (step `4b4ff3398`, +179/-30). Docs-only, no `src/` change, goldens UNMOVED. Full record: worklog P11.S3a-S3e entries.**
+
 **Goal** `docs/HOOKS.md` (additionalContext, the new dispatch sites), `docs/SKILLS.md` (which
 skill→prompt path is canonical), `docs/MEMORY.md` (`/memory import`), `docs/SETTINGS.md` (the rules
 keys and their user-tier-only rule), `docs/COMMANDS.md` (`/rules`).
@@ -3162,6 +3166,8 @@ keys and their user-tier-only rule), `docs/COMMANDS.md` (`/rules`).
 phase's clean five-way batch.
 
 ### P11.S4 — The end-to-end proof
+
+**Status 2026-09-09: MERGED — merge `bbd8696fc` (step `b3d91a3f1`); `tests/Integration/PromptEndToEndTest.php` +544 (new) drives the block arm from a real keystroke turn; `SystemPromptWiringTest` +16 extended, the standing `testARealChatKeystrokeTurnDeliversBothHalves` DO-NOT-TOUCH entry untouched. No `src/` change, goldens UNMOVED. Done-when resolution recorded in the worklog P11.S4 entry: the "state it explicitly in the worklog" route is taken (the block-arm NEEDLE and its pre-Phase-11 FAILURE MAP are documented there); the "if feasible, run against the Phase-1 parent" demonstration is EXPLICITLY CLOSED NOT-FEASIBLE from a markdown-only step (it requires a historical-tree checkout plus a suite run, both outside P11.S5's three-file ceiling) — a dated reasoned disposition, not a deferral.**
 
 **Goal** One test that starts from a real keystroke turn and asserts the model receives all seven
 layers. Not a stub recording a DTO — the payload.
@@ -3178,6 +3184,8 @@ worklog and, if feasible, demonstrate it by running the new test against the Pha
 **A regression test that would not have caught the original bug is not a regression test.**
 
 ### P11.S5 — Final plan audit
+
+**Status 2026-09-09: MERGED — this batch (worklog audit entry `a8636ac6d`; plan stamps + resume close in the two following commits). The whole-plan §9.1-§9.15 audit is recorded in the worklog P11.S5 entry: 74 items enumerated (the brief's 73 undercount by one — §9.1's six sites), 67 landed / 1 declined (§9.15 utility prompts, §18 :3902) / 2 deferred-with-owner (§9.13 trigger-in-rules rides P6.S5b item (4); §9.15 memory-consolidation §18 :3903) / 4 flagged `deferred (no trace found)` and NAMED (the four silently-dropped candidates: §9.11 cw==0 auto-summarize guard, §9.11 anti-escalation clause, §9.15 template placeholders, §9.15 never-hardcode-a-tool-name). Zero items merged away or skipped. §9.12 count of record = SIX (the plan's :3132 "nine" prose stays as history; the shipped page records the correction). Final census: 64 of 65 step headings landed, P6.S5b the sole blocked heading.**
 
 **Goal** A whole-plan review agent walks all 12 phases' commits as one change-set and audits against
 `prompt_expand.md` §9's list: which items landed, which were deliberately declined and why, which
