@@ -13,6 +13,7 @@ use SugarCraft\Crush\Context\PromptFence;
 use SugarCraft\Crush\Context\PromptSection;
 use SugarCraft\Crush\Context\RepoMapBlock;
 use SugarCraft\Crush\Context\RuleLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Context\Sections\MaximsSection;
 use SugarCraft\Crush\Context\Stability;
 use SugarCraft\Crush\Events\ToolFinished;
@@ -2595,13 +2596,27 @@ final class Runtime
         // test red - and the roster-wide semantics by the forged-instruction
         // guard's neutralised-copy counts above it.
         //
-        // TRIGGERS ARE NOT YET APPLIED (named so, not hidden): the loader
-        // builds each rule's paths/keywords/description triggers into the Rule
-        // object and neither splice here reads $rule->triggers, so a rule
-        // scoped with `paths: ["src/**"]` renders into EVERY session until the
-        // P6.S5 / P7.S4 wiring gates it (measured at P6.S2 review: YES, it
-        // renders). Framing and escape are tier-blind, so this is a scoping
-        // gap, not a safety gap; recorded as a row in prompt_plan §18.
+        // WHAT THIS SAID: "TRIGGERS ARE NOT YET APPLIED … a rule scoped with
+        // `paths: ["src/**"]` renders into EVERY session until the P6.S5 / P7.S4
+        // wiring gates it".
+        // WHAT IS TRUE NOW: the paths half is gated, by P6.S5b, and the
+        // keywords/description half is not. Both loops below skip exactly the rules
+        // whose trigger list carries a PathTrigger, and deliver them at tool time
+        // through {@see RulePathNudge::forPaths()} instead, via the one shared
+        // predicate {@see RulePathNudge::isPathScoped()} that the tracker itself
+        // filters on — so the splice and the nudge cannot disagree about which rules
+        // are scoped, and a scoped rule is never both spliced and nudged (the
+        // double-presentation defect) and never neither (the silently-vanishing
+        // defect). A `keywords:`- or `description:`-only rule still renders into
+        // every session and always will until the dormant matcher P7.S4 measured
+        // (52-prompt battery, substring precision 0.162) is revived by its own step.
+        // WHY THE PREDICATE IS `instanceof PathTrigger` AND NOT "has triggers": a
+        // rule carrying a `description:` already carries an IntentTrigger, including
+        // the committed fixture rule behind the golden prompt, so the looser test
+        // would defer a standing rule out of the prompt and move frozen bytes.
+        // Framing and escape are tier-blind here as they were before, so this was a
+        // scoping property and never a safety one; the aggregate bound on the bytes
+        // the STANDING tiers can still carry remains its own open follow-up.
         // P6.S3: the loader is handed the session's rulebook toggle set, which is
         // the ONLY thing here that can subtract a pack. It travels on the App for
         // the same reason the memory store below does - this method assembles the
@@ -2624,6 +2639,13 @@ final class Runtime
 
         foreach ($rules as $rule) {
             if ($rule->tier !== 'user' || trim($rule->body) === '') {
+                continue;
+            }
+
+            // P6.S5b: a `paths:`-scoped rule is deferred to the tool-time channel
+            // rather than rendered into every session. See the trigger note above
+            // for why the predicate is a PathTrigger and not merely "has triggers".
+            if (RulePathNudge::isPathScoped($rule)) {
                 continue;
             }
 
@@ -2681,6 +2703,14 @@ final class Runtime
         // each document is.
         foreach ($rules as $rule) {
             if ($rule->tier === 'user' || trim($rule->body) === '') {
+                continue;
+            }
+
+            // P6.S5b: same skip as the user tier above, and for the same reason —
+            // the project and root tiers are where a repository can ship a
+            // `paths:`-scoped rule at all, so deferring only the user half would
+            // leave a scoped project rule rendering into every session.
+            if (RulePathNudge::isPathScoped($rule)) {
                 continue;
             }
 
