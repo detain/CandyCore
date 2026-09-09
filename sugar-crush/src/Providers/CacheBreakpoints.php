@@ -101,7 +101,14 @@ use SugarCraft\Crush\Usage;
  * skeleton fixed the parameter list, and hoisting to the top-level `system`
  * field stays the provider's own job, exactly as it is today. String content
  * normalises to a single text block (a bare string cannot carry a marker);
- * every other shape fails loudly at the boundary.
+ * every other shape fails loudly at the boundary. That hoisting carries a
+ * wiring-time hazard, recorded in close-review follow-ups (39)/(41): once this
+ * class is wired to the Anthropic arm, the last-system mark must travel through
+ * the P10.S1 `systemBlocks` block form, because
+ * {@see VertexProvider::systemInstruction()} hoists the system to a top-level
+ * string and {@see VertexProvider::formatAnthropicMessages()} drops
+ * SystemMessage rows from `messages` — a mark attached to an in-messages system
+ * row is silently discarded on the string arm.
  *
  * WHAT THIS TYPE IS FOR TODAY (P10.S2). It ships WITHOUT a production caller
  * by orchestration adjudication — the exact P6.S1 Triggers precedent
