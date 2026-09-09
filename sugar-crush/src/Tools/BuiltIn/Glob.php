@@ -68,11 +68,14 @@ final readonly class Glob implements Tool, ParallelSafe, CarriesSessionState
         private ?InstructionFileLoader $instructionLoader = null,
         private array $sessionCache = [],
         private ?SkillPathNudge $skillNudge = null,
-        private ?RulePathNudge $ruleNudge = null,
         private int $maxOutputBytes = self::DEFAULT_MAX_OUTPUT_BYTES,
         private int $maxMatches = self::DEFAULT_MAX_MATCHES,
         private ?array $prunedDirs = null,
         private bool $fdAvailable = false,
+        // P6.S5b: LAST, not beside the skill tracker it pairs with, because existing
+        // cap tests construct these tools with positional arguments and a
+        // mid-signature insert silently re-types them.
+        private ?RulePathNudge $ruleNudge = null,
     ) {}
 
     /**
