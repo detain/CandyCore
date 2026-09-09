@@ -3005,6 +3005,8 @@ converter. Drive it through the actual cancel path if one is reachable in test; 
 
 ## Phase 10 — Cache breakpoints
 
+**Status 2026-09-08: PHASE 10 CLOSED — four of four (S1 `77881b9cb`, S2 `341d71876`, S3 `5f30fec05`, S4 `b0bc60ebd`). Fresh close review: PHASE 10 MAY CLOSE WITH FOLDS — FOLD-1 seam sentence closed at `b2936ee5c`; FOLD-2 nit rostered as follow-up (42)(a), no action. Floor 11,178/170,862/0F/0E/2S master-direct at `b2936ee5c`; goldens UNMOVED both. Full record: worklog P10 CLOSE entry.**
+
 Only meaningful after Phase 3. Before the reorder, a breakpoint on a block that changes every request
 is never a hit — every request writes fresh and the lookback finds nothing.
 
