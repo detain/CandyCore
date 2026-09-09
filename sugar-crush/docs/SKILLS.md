@@ -1,13 +1,18 @@
 # Authoring a Skill
 
 A skill is a directory containing a `SKILL.md` file: YAML frontmatter, then a
-markdown body. The frontmatter is read at launch; the body is read only if the
-model actually asks for it.
+markdown body. The frontmatter is read at launch. The body is read when the
+model asks for it through the `Skill` tool — and also at launch, for the
+handful of skills the user names in the `enabledSkills` config key, whose bodies
+ride in the system prompt every turn (see
+[How a skill reaches the model](#how-a-skill-reaches-the-model)).
 
 Every claim below was checked against the code in this checkout. Where a
 frontmatter field is parsed but nothing reads it, that is stated in the field's
-own row rather than left to be discovered — `src/Skills/Skill.php` accepts nine
-keys and the live `bin/sugarcrush` path acts on four of them.
+own row rather than left to be discovered. Which keys the live `bin/sugarcrush`
+path acts on is answered per row, not by a count in this paragraph: a cardinality
+in prose is stale the moment one more reader lands, and the readers have been
+moving.
 
 ---
 
@@ -15,7 +20,7 @@ keys and the live `bin/sugarcrush` path acts on four of them.
 
 `SkillLoader` walks **three** native locations; a separate discovery class walks
 **four** foreign ones. The three are the three calls
-`SkillLoader::loadAllManifests()` (lines 716-734) makes —
+`SkillLoader::loadAllManifests()` makes —
 `builtInSkillsDir()`, `userSkillsDir()`, `projectSkillsDir()` — and they are
 merged lowest-priority-first with `array_merge`, so a later tier's skill with
 the same name replaces an earlier one:
@@ -81,36 +86,164 @@ skill's default name is its parent directory's name, not a `name:` field.
 | `description` | `Skill: <name>` | `SkillMatcher::listForPrompt()` | Live. This one line is what the model sees at session start; it is the whole basis on which the model decides to invoke the skill. |
 | `user-invocable` | `true` | `SkillRegistry::isUserInvocable()` → `App::userInvocableSkills()` | Live on the App shell's skill picker. `false` hides the skill from the picker while leaving it model-invocable. |
 | `disable-model-invocation` | `false` | `SkillRegistry::isAutoInvocable()` | Live. `true` keeps the skill out of the prompt listing **and** makes `SkillTool` refuse it by name — the check is re-done in the tool so a skill added to a registry by some other route still cannot be reached. |
-| `paths` | `[]` | `SkillRegistry::getForPaths()`, `SkillPathNudge` | Live. Glob patterns (see [What a `paths:` glob matches](#what-a-paths-glob-matches) for the semantics — they are not `FNM_PATHNAME`); touching a matching file nudges the skill into view once per session. Read from the Stage-1 manifest, so it costs no body read. The nudge is bounded (E66): at most 8 entries, each at most 300 bytes, and where it is spent depends on the tool: `Grep` and `Glob` subtract it from their own `maxOutputBytes`, so it is spent INSIDE the cap; `Read` takes an eighth BESIDE its cap (hence its stated 1.375x `maxBytes` total); `Edit` and `Write` have no output cap at all, so the class ceiling of 2,636 bytes is the whole bound there. A `description` too long for an entry is clipped and marked, and a skill held back is announced by a later call rather than dropped. |
+| `paths` | `[]` | `SkillRegistry::getForPaths()`, `SkillPathNudge` | Live. Glob patterns (see [What a `paths:` glob matches](#what-a-paths-glob-matches) for the semantics — they are not `FNM_PATHNAME`); touching a matching file nudges the skill into view once per session. Read from the Stage-1 manifest, so it costs no body read. The nudge is bounded (E66): at most 8 entries, each at most 300 bytes, and where it is spent depends on the tool: `Grep` and `Glob` subtract it from their own `maxOutputBytes`, so it is spent INSIDE the cap; `Read` takes an eighth BESIDE its cap (hence its stated 1.375x `maxBytes` total); `Edit` and `Write` have no output cap at all, so the class ceiling of 2,636 bytes is the whole bound there. A `description` too long for an entry is clipped and marked, and a skill held back is announced by a later call rather than dropped. Only model-invocable skills are ever nudged — a `disable-model-invocation: true` skill is filtered out of the nudge (E72), because telling the model to open a skill it may not invoke is a dead instruction. |
 | `allowed-tools` | `null` | nothing | **Inert.** Parsed, carried on the `Skill` object, copied by `ForeignSkillDiscovery`, and read by no tool-scoping code in `src/`. Writing it does not restrict anything. |
 | `disallowed-tools` | `null` | nothing | **Inert**, same as above. |
-| `model` | `null` | `App::dispatchSkill()` only | Reachable only through a method with no production caller — see [`context: fork`](#the-context-field-is-not-live-on-the-cli-path). |
-| `effort` | `medium` | nothing | **Inert.** Parsed and carried; nothing in `src/` reads `Skill::$effort`. |
-| `context` | `thread` | `App::applySkillsToSystemPrompt()`, `App::dispatchSkill()` | See below — neither reader is on the live path. |
+| `model` | `null` | `App::dispatchSkill()` only | **Not reachable on any live path.** `App::dispatchSkill()` reads it (`$skill->model ?? $this->model`) and that method has no production caller; `ForeignSkillDiscovery` merely copies the value onto the imported object. See [`context: fork`](#the-context-field-today). |
+| `effort` | `medium` | nothing acts on it | **Inert.** Parsed and carried; the only read of `Skill::$effort` in `src/` is `ForeignSkillDiscovery` copying it onto the imported object. No execution path consults it. |
+| `context` | `thread` | `SkillRegistry::isContextFork()` via `App::applySkillsToSystemPrompt()`, `App::dispatchSkill()`, `App::handleSelectSkill()` | See below — `fork` is implemented nowhere; the one live consulter only words a status message, and the standing-body splice does not consult the field at all. |
 
-### The `context:` field is not live on the CLI path
+## How a skill reaches the model
+
+There is one wired path that puts a skill's **body** in front of the model on
+every turn — the canonical one, described below — and two that put a skill in
+front of it another way: as a **line to choose from**
+(`SkillMatcher::listForPrompt()`) or **on demand during a turn** (`SkillTool`).
+They are deliberately different mechanisms. The page keeps saying which is which
+rather than letting "skills go into the prompt" blur three behaviours.
+
+### The canonical path: the `enabledSkills` key
+
+The key is `enabledSkills`, a list of skill names in the persisted user config —
+`Bootstrap::userConfigPath()`, which is `~/.sugar-crush/config.json` unless
+`--config` names another file. **Its default is the empty list**:
+`Bootstrap::promptEnabledSkills()` returns nothing at all when the key is absent,
+so the standing prompt of an existing user changed by nothing on the day this
+shipped. A body enters every turn only where the user asked for it by name.
+
+`Bootstrap::promptEnabledSkills()` resolves the names at composition time and is
+called at **both** composition sites — `Bootstrap::backend()` and
+`Bootstrap::backendFor()` — each threading the result through
+`EngineBackend::withSkills()` into `App::$enabledSkills`, so a provider switch
+mid-session cannot drop what the first launch put there. Three properties of the
+resolution are load-bearing, and all three are stated in its own doc-block:
+
+- **Each name counts once.** The list is deduplicated strictly before it is
+  resolved, because `Runtime::buildSystemPrompt()` renders one section per entry
+  it is handed — the exactly-once guarantee every body carries is decided here,
+  not downstream.
+- **Opting out beats opting in.** A name that `disabledSkills` also lists
+  resolves to null (`SkillRegistry::get()` honours the disable) and stays out of
+  the prompt; a stale or unknown name stays out the same way. And unlike
+  `disabledSkills`, `enabledSkills` is not in `LayeredSettings::LAYERED_KEYS`, so
+  the user config file is its only contributor — no `settings.json` tier and no
+  project tier, at any trust level. Growing that roster is a documented-roster
+  change belonging to a settings-surface step, not to this wiring one.
+- **A bad skill is a bounded notice, never a launch crash.** A non-list value, a
+  non-string element, a disabled or unknown name, or a source file that vanished
+  between discovery and launch each produce one notice through
+  `Bootstrap::warnPermissionConfigInTranscript()` — the same bounded
+  transcript-and-stderr channel every other config warning uses — and the launch
+  continues. Entries fail safe; a wrong-shaped key is said, not swallowed.
+
+Registry entries are **stage-1 manifests** — `SkillManager::loadAll()` never
+reads a body off disk — so each resolved name gets a full `Skill::fromFile()`
+here, the same source-of-truth load the `Skill` tool performs at invocation. A
+body-less heading would inject a fact about nothing, which is why an unreadable
+file drops to a notice instead.
+
+At prompt build, `Runtime::buildSystemPrompt()` splices each enabled body as its
+own section (`Skill::systemPromptContribution()` — a `## Skill:` heading with the
+body under it) and hands the enabled names to `SkillMatcher::listForPrompt()` as
+exclusions, so an enabled skill is **removed from the one-line listing**. A skill
+is presented exactly once per turn: as a body where you enabled it, as a
+description line where you did not. There is no double-presentation.
+
+Two widenings are deliberately **not** shipped, and are named here so that
+nobody infers them from the shape of the code:
+
+- **`rules paths:` scoping is not applied at the splice.** `Rule::buildTriggers()`
+  (reached from `Rule::new()`) builds a `PathTrigger` from a rule's `paths:`, and
+  `PathTrigger` matches — but nothing
+  in `Runtime::buildSystemPrompt()` consults any path predicate when it splices.
+  Path-conditional splicing is a deferred step (P6.S5b). Until it lands, a skill
+  named in `enabledSkills` is in every prompt turn, whichever files the session
+  touches.
+- **`context:` is not consulted at the splice** — see
+  [The `context:` field today](#the-context-field-today).
+
+### The TUI picker is not the canonical path
+
+The skill picker (opened from the TUI via `SourceSkillCmd` →
+`OpenSkillPickerMsg` → `App::handleSelectSkill()`) enables the chosen skill **in
+memory for the running session only** — it writes no config key, so it does not
+survive a restart — and what it appends to `App::$enabledSkills` is the
+**registry** object, not a body-loaded one. Because registry entries are
+stage-1 manifests with empty content, the section that splice produces is a
+`## Skill:` heading with no body under it; the skill's description leaves the
+listing line, and the model's access to the actual text remains the `Skill` tool.
+Enabling through the picker today is a session-scoped change to what the
+interface shows, not a delivery of instructions.
+
+### Auto-matching a skill into the prompt is deliberately dormant
+
+`Skill::matchesPrompt()` and `SkillRegistry::findForPrompt()` exist, are tested,
+and **reach no production path.** Their only callers are the wrappers
+`SkillManager::getSkillsForTask()` and `App::findSkillsForTask()`, and those have
+zero production call sites, so the chain is unreachable end-to-end. They are the second skill→prompt
+seam: naively wiring them would emit every enabled skill's body twice, once from
+the canonical path above and once from an automatic match, so which path is
+canonical was decided before any of it shipped.
+
+The reason the automatic match is unwired is measured, not stylistic. Scored
+against a labelled corpus of prompt/skill pairs —
+`prompt_kit/findings/P7.S4/measure.php`, re-run at this checkout on PHP 8.3.6 —
+the substring matching in `matchesPrompt()` lands at **0.162 precision** (recall
+1.000; 24 of 25 boundary cases false-positive). Rewriting the needle test as
+whole-word matching raises precision only to **0.214**. A matcher that is wrong
+on five of six candidate mentions does not spare the user from naming their
+skills; it injects unrelated instructions into every prompt and bills for them
+every turn. The substring wiring was falsified by its own numbers.
+
+The revival design, recorded in the methods' own doc-blocks, is curated
+frontmatter keywords fed to `KeywordTrigger` — an opt-in signal the skill author
+types, rather than a guess mined from prose. That design is not implemented; the
+dormancy stands until it is. The matcher is kept, its dormancy pinned by tests,
+and described here as dormant — not deleted, not stubbed, not silently unwired.
+
+## The `context:` field today
 
 `context: fork` is meant to run a skill in a spawned sub-agent instead of
 inlining its body into the conversation. `SkillRegistry::isContextFork()`
-implements the test, and two methods consult it: `App::applySkillsToSystemPrompt()`
-and `App::dispatchSkill()`. **Neither has a caller in `src/` or `bin/`** —
-`dispatchSkill()`'s own doc-block says so, and `applySkillsToSystemPrompt()` is
-referenced only from other doc-blocks.
+implements the test and three methods consult it:
+`App::applySkillsToSystemPrompt()` and `App::dispatchSkill()` — **neither has a
+caller in `src/` or `bin/`**; each is a seam waiting for its executor, not dead
+code — and `App::handleSelectSkill()`, which is live but does nothing
+fork-shaped with the answer: it words a different status line ("declares
+context: fork — enabled, but not inlined, and no fork dispatch is wired yet") so
+the interface stops claiming an effect that does not happen.
 
-What a real `bin/sugarcrush` run does instead:
-`Runtime::buildSystemPrompt()` appends `SkillMatcher::listForPrompt()` (name +
-description for every auto-invocable skill), and the body arrives later through
-`SkillTool`. That path does not consult `context:` at all. So on today's binary
-a `context: fork` skill behaves exactly like a `context: thread` one.
+What a real `bin/sugarcrush` run does instead: `Runtime::buildSystemPrompt()`
+appends `SkillMatcher::listForPrompt()` (name and description for every
+auto-invocable skill), the enabled bodies splice in through the canonical path
+above, and the on-demand body arrives through `SkillTool`. None of those three
+consults `context:`. So on today's binary a `context: fork` skill behaves exactly
+like a `context: thread` one — including on the canonical path, where a
+fork-declaring skill named in `enabledSkills` will have its body spliced like any
+other, because the splice has no `context:` predicate. If you want a skill kept
+out of the standing prompt, leave it out of the key; declaring `fork` does not.
 
 This is written down rather than removed because the payload is finished and
 waiting for an executor; it is a seam, not dead code.
 
-### What a `paths:` glob matches
+## What a `paths:` glob matches
 
 `SkillRegistry::pathMatches()` answers `fnmatch()`-style globs, and it is
 `fnmatch()` **without `FNM_PATHNAME`** — which is the clause most people get
 wrong, because almost every other glob dialect they have met sets it.
+
+There is **one dialect and one compiler**. `src/Util/PathGlob.php` translates a
+pattern to an anchored PCRE once and every matcher answers from the translation.
+Both production globbers route through it —
+`SkillRegistry::compilePathPattern()` and `SkillRegistry::pathMatches()` for a
+skill's `paths:` nudge, `PathTrigger::pattern()` for the `paths:` a markdown rule
+declares — so the same pattern means the same thing on both channels. Before that
+unification they did not: `PathTrigger`'s `*` was segment-scoped and would not
+cross a `/`, the skill channel's crossed it freely, and "which one am I writing
+for?" had no answer. `SkillRegistry::legacyPathMatch()` stays reachable as the
+fallback for patterns the translation will not compile, and the strict dialect (a
+`*` that never crosses `/`) was measured against real frontmatter patterns and
+rejected over `GlobDialectDifferentialTest`, not ignored.
 
 - A single `*` **crosses `/`**. `*.php` claims `src/a/b/foo.php`, not only
   `foo.php`. So does `?`, which will match a `/` like any other character.
@@ -160,7 +293,10 @@ roster is cheap:
    flags, `context`, `paths`, and the `SKILL.md` path. This is all that runs at
    launch, and it is what `SkillManager::loadAll()` registers.
 2. **Body** (`loadSkillBody()`) — everything after the frontmatter, trimmed.
-   Read on demand, when the model calls the `Skill` tool.
+   Read on demand, when the model calls the `Skill` tool; read at composition
+   through `Skill::fromFile()` for the skills named in `enabledSkills` (the
+   canonical path above), and at launch for every imported foreign skill, since
+   the foreign path parses the whole file.
 3. **Assets** (`loadSkillAsset()`) — one file from `scripts/`, `references/` or
    `assets/` beside the `SKILL.md`. Any other first path component is refused,
    and the resolved path must be contained by the skill directory.
@@ -180,6 +316,14 @@ empty success — when the name is unknown or not model-invocable.
 
 `Bootstrap::tools()` and `EngineBackend` are handed the *same* `SkillRegistry`
 instance, so a skill disabled on one is not reachable through the other.
+
+The parallel carrier is the sub-agent path: an agent definition may list
+`skillNames` (`Agent::$skillNames`) and `AgentManager::executeSubAgent()` would
+apply them — but nothing in `src/` or `bin/` calls `executeSubAgent()`, so that
+carrier is a seam with no production caller, in the same standing as
+`App::applySkillsToSystemPrompt()` and `App::dispatchSkill()` above. On today's
+binary the on-demand body arrives only through the `Skill` tool, and the standing
+body only through the canonical `enabledSkills` path.
 
 ---
 
