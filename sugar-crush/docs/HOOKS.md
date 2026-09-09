@@ -98,6 +98,16 @@ One definition serves the config's own validation **and** both matchers
 a pattern validated under one delimiter and matched under another is a hook that
 loads and never fires.
 
+A pattern can also compile fine and still fail to *evaluate*: `preg_match()`
+returns `false` — not `0` — when PCRE exhausts `pcre.backtrack_limit` or
+`pcre.recursion_limit` on the subject, and `'(a+)+$'` against a long enough tool
+name does exactly that. `HookRegistry::matcherMatches()` reads that as
+**matching**: the hook runs and gets to deny, because treating an
+unevaluable guard as satisfied is the one failure mode a guard must not have.
+The pattern and the PCRE error are kept on `HookRegistry::matcherFailures()` —
+recorded, not printed, because the match happens mid-frame where the renderer
+owns the screen.
+
 ### A loaded hook may only add to the chain
 
 `HookRegistry::register()` keys by event + name and overwrites, so an entry that
@@ -141,17 +151,23 @@ already run:
 
 `src/Hooks/HookEvent.php` defines eleven:
 
-| Event | Fires |
-|---|---|
-| `PreToolUse` | before a tool runs — the one that can stop it |
-| `PostToolUse` | after a tool ran, in provider order |
-| `Stop` | the agent is about to stop |
-| `SubagentStop` | a sub-agent is about to stop |
-| `SessionStart` / `SessionEnd` | session lifecycle |
-| `UserPromptSubmit` | you submitted a prompt |
-| `PreCompact` | before history compaction |
-| `TeammateIdle` | a teammate went idle |
-| `TaskCreated` / `TaskCompleted` | task lifecycle |
+| Event | Fires | Dispatched from |
+|---|---|---|
+| `PreToolUse` | before a tool runs — the one that can stop it | `Runtime::gate()`, `Chat::gateToolCall()` |
+| `PostToolUse` | after a tool ran, in provider order | `Runtime::settle()`, `Chat::applyPostToolUse()` |
+| `Stop` | the agent is about to stop | — |
+| `SubagentStop` | a sub-agent is about to stop | — |
+| `SessionStart` | the first prompt submitted into an empty history | `Chat::dispatchTurnHooks()` |
+| `SessionEnd` | the session is ending | — |
+| `UserPromptSubmit` | you submitted a prompt | `Chat::dispatchTurnHooks()` |
+| `PreCompact` | before history compaction | — |
+| `TeammateIdle` | a teammate went idle | — |
+| `TaskCreated` / `TaskCompleted` | task lifecycle | — |
+
+The `—` rows are **dormant, not removed**: an entry naming one of them parses
+from `hooks.yaml`, registers, and keeps the block semantics below — but no call
+site in `src/` dispatches those events at this tip, so a script written against
+one will never run. Wiring them is open work.
 
 What a **block** (exit 2) does depends on the event, because for some of them
 the action has already happened:
@@ -161,7 +177,8 @@ the action has already happened:
 - `PostToolUse`, `SubagentStop`, `TaskCompleted` — too late to stop; surfaces
   through `continueOnBlock`.
 - `PreCompact`, `SessionStart` — stderr reaches **you only**; there is no agent
-  action to feed it to.
+  action to feed it to. (The two wired events are elaborated under *The two turn
+  events* below, including where a shipped block reason actually surfaces.)
 - `UserPromptSubmit` — discards the prompt entirely; nothing goes to the agent.
 
 ### One caveat on `PostToolUse` under concurrency
@@ -178,6 +195,44 @@ It cannot cover a hook body you wrote. Set
 `SUGARCRUSH_DISABLE_PARALLEL_TOOL_CALLS=1` if your hooks depend on the
 sequential interleave.
 
+### The two turn events
+
+`Chat::dispatchTurnHooks()` is the only production call site for both, reached
+from `submit()` on every prompt. Their verdicts behave differently from the
+tool gates:
+
+- **Fired gate-first.** `UserPromptSubmit` runs before `SessionStart`, so a
+  SessionStart script never spawns just to learn its prompt was blocked. The
+  notes are *inserted* in the opposite order — session note, then prompt note,
+  both as `role: system` history messages immediately before the user's line.
+- **A `UserPromptSubmit` block discards the prompt.** Nothing is sent, the
+  draft stays in the input box, and the reason lands in the transcript as a
+  `Message::system()` line. That is a documented divergence from the strict
+  `HookEvent::stderrToUserOnly()` reading: `tests/Cli/StderrEmitterCensusTest`
+  pins `Chat.php`'s emitter counts, so the transcript seam is the surface that
+  answers "where does the user see it".
+- **A `SessionStart` block stops nothing.** Per `stderrToUserOnly()` the session
+  continues, the hook's note is discarded outright, and only the reason appears
+  in the transcript.
+- **An `ASK` fails closed on this path.** The turn dispatch has no approver UI
+  in front of it, so `Chat::turnHookRefusalReason()` treats an ask as a block —
+  the prompt is not sent rather than silently permitted.
+- **The SessionStart gate is `count($this->history) === 0` at the dispatch
+  point** — a once-per-*empty-history* gate, not once-per-session: `/clear`
+  re-opens it, while `resume` and the palette's new-session path never re-fire
+  it, and `compact` is unreachable there. The method's own docblock records this
+  as a known gap rather than papering over it.
+- **Context is smuggled through the tool-shaped `HookContext`.** `toolName`
+  carries the event name — the only slot `HookRegistry::findMatches()` tests —
+  `toolInput` is JSON (`{"prompt": …, "source": "startup"}` for `SessionStart`,
+  `{"prompt": …}` for `UserPromptSubmit`), and `model`/`provider` are empty. A
+  `matcher:` written against tool names will not fire on these events unless it
+  names the event.
+
+Hook notes go onto **history**, never into the prompt assembler — `role: system`
+is the non-spoofable operator channel — which is why wiring these two events
+moves no prompt golden.
+
 ---
 
 ## The exit-code contract
@@ -191,26 +246,44 @@ anybody checked it.)
 
 | Exit | Verdict | stdout means |
 |---|---|---|
-| `0` | **allow** | the result message — *on `ScriptHook` only; see below* |
+| `0` | **allow** | a model-visible **note**, capped at 10,000 bytes — *see below* |
 | `3` | **ask** | the question put to the user, clipped at 16 KiB |
 | `4` | **modify** | a JSON **object** replacing the tool's arguments, **refused** over its ceiling rather than clipped |
 | `1`, `2`, or **any** other non-zero | **deny** | — (stderr is the reason, clipped at 16 KiB; stdout is discarded) |
 
-**"stdout becomes the result message" is true of `ScriptHook` and false of the
-live path, for exit 0.** `HookRegistry::executeHooks()` ends
-`return $modified ?? $inertRewrite ?? HookResult::allow();`, rebuilding a
-permitting verdict with an **empty** message, and both live gates interpolate
-`$hookResult->message` only into `"Hook denied: …"`. Measured: a hook printing
-200,000 bytes and exiting 0 yields a 0-byte message at
-`HookManager::preToolUse()`. An exit-0 hook's stdout is for *your* debugging, not
-for the model — if you want the model to read something, deny or ask.
+**Where an exit-0 hook's stdout goes.** `ScriptHook::execute()`'s `EXIT_ALLOW`
+arm returns `HookResult::allow('', HookContextFiles::bound($output,
+HookResult::MAX_ADDITIONAL_CONTEXT_BYTES))` — the *message* stays empty, and the
+stdout travels in the third payload channel, `additionalContext`. It is the
+**model-visible** one, and `HookRegistry::executeHooks()` collects it across the
+whole chain: every hook that ran contributes its note, notes are joined with a
+blank line and re-bound through the same cap on every re-scan pass, and the
+total is set onto the settled permitting verdict with
+`HookResult::withContextSet()`. A settled ASK carries the collected notes
+through the user's answer (`HookManager::resolveAsk()`); a hard DENY returns the
+blocking verdict alone — the chain's notes die with the call they were collected
+for.
+
+Where the note then lands depends on the event:
+
+- **`PostToolUse`** — both live tool paths append it to the model-visible tool
+  result: `Runtime::settle()` through the existing `Runtime::annotate()` seam,
+  `Chat::applyPostToolUse()` onto whichever half (result or error) carries the
+  body. An empty note returns the result **byte-identical**, so a chain that
+  printed nothing cannot alter any payload, wired or not.
+- **`PreToolUse`** — neither live gate (`Runtime::gate()`,
+  `Chat::gateToolCall()`) consumes a permitting verdict's note; both read only
+  `message` — interpolated into `"Hook denied: …"`, which is why the deny
+  reason and the ask question reach the model — and `modifiedInput`. A
+  `PreToolUse` hook's stdout is collected and carried but nothing on that path
+  reads it; a note meant for the model belongs on a `PostToolUse` hook.
 
 **How much a hook may say, per exit code.** Measured through
 `HookManager::preToolUse()` with a 200,000-byte payload:
 
 | Exit | What is bounded | Bound | Over the bound |
 |---|---|---|---|
-| `0` | nothing reaches the model | — | — |
+| `0` | the note (`additionalContext`) | 10,000 bytes | UTF-8-safe head kept, plus a marker naming both figures and the file where the full output was retained |
 | `3` | the question | 16,384 bytes | clipped, with a marker naming both figures |
 | `4` | the rewrite (`modifiedInput`) | the larger of 16,384 bytes and the byte length of the arguments it replaces | **denied**, naming the size and the ceiling |
 | `1`/`2`/other | the deny reason | 16,384 bytes | clipped, with a marker |
@@ -231,9 +304,9 @@ the moment the hook writes anything to stderr, since the arm is
 `$errors ?: "Hook exited with code $exitCode"`.
 
 `HookDispatcher` does carry a *notion* of a non-blocking deny, keyed off an
-`[exit-1]` message prefix. It is not reachable from here. Its own docblock
-(`HookDispatcher.php` lines 32-39) records that **no shipped `HookInterface`
-implementation emits that prefix** — not `ScriptHook`, not any `BuiltIn/*Hook` —
+`[exit-1]` message prefix. It is not reachable from here. Its own class
+docblock records that **no shipped `HookInterface` implementation emits that
+prefix** — not `ScriptHook`, not any `BuiltIn/*Hook` —
 so everything that fails to permit execution resolves to exit code 2. A
 `hooks.yaml` hook cannot select the non-blocking path, and it should not try to
 by printing the marker itself — see the first bullet below.
@@ -449,6 +522,36 @@ during a hook returns EINTR: breaking there truncated deny reasons, half of an
 `exit 3` question, and — worst — a partial `exit 4` rewrite, which is invalid
 JSON and therefore a deny of a call the hook meant to permit differently.
 
+### The cap on the note, and the retained overflow
+
+`additionalContext` has exactly one bound, `HookResult::MAX_ADDITIONAL_CONTEXT_BYTES`
+— **10,000 bytes**, counted as bytes and not characters, because the figure that
+matters is what the provider bills. It is applied by the *producer*, never
+trusted from the writer: `ScriptHook` runs every exit-0 stdout, and
+`HookRegistry::executeHooks()` re-runs every chain total after joining, through
+`HookContextFiles::bound()`.
+
+At or under the cap the text passes through unchanged. Over it, what travels is
+the UTF-8-safe head plus a marker naming both figures and the file where the
+**complete** output was retained:
+
+- retained files live in a `sc-hook-ctx/` directory inside the system temp
+  directory — one file per overflow, created `0600`, filled and then renamed, so
+  a reader never sees a partial file;
+- they are **never auto-deleted**: a hook's output is treated as audit material
+  and outlives the run that produced it;
+- they are deliberately outside the tool-IPC sweep. `ToolIpcFiles::sweep()`
+  matches only its three bare-temp prefixes (`sc_runtime_tool_*`,
+  `sc_chat_tool_*`, `crush-hook-payload-*`), and a glob `*` does not cross the
+  directory separator — so nothing under `sc-hook-ctx/` can be swept however
+  long the notes pile up;
+- if the temp directory will not take the file, the marker says the output
+  *could not be retained* instead, and the bounded head still travels.
+
+Because the chain re-binds after joining, the 10,000-byte figure bounds what
+**one tool call** puts in front of the model, not each hook: fifty hooks printing
+a kilobyte apiece still arrive as one bounded note on the result.
+
 ### The timeout
 
 **A hook run is bounded, drain and reap together.** 60 seconds by default;
@@ -490,9 +593,12 @@ question whole and hands it to the model). The clip is what the MODEL sees; the
 permission modal was never the unbounded half of that path, since it keeps 8
 wrapped rows and appends its own `… N more lines` well before 16 KiB.
 
-`EXIT_MODIFY` JSON and an `EXIT_ALLOW` message are not clipped: the first must
-round-trip or it becomes a deny of a call the hook meant to permit, and the
-second reaches the model nowhere at all.
+`EXIT_MODIFY` JSON is not clipped, and that half is permanent: a truncated
+rewrite is invalid JSON, so clipping would become a deny of the very call the
+hook meant to permit differently — hence refusal at the ceiling instead. An
+`EXIT_ALLOW` message used to be unclipped because it reached the model nowhere;
+its stdout now travels in `additionalContext`, and the cap that rides on it is
+`HookResult::MAX_ADDITIONAL_CONTEXT_BYTES` — see above.
 
 It used to be unbounded in two independent places, and either one alone was
 enough to freeze the CLI — no spinner, no Escape. Measured at `4a4ecb98`, each
@@ -542,9 +648,11 @@ For real containment, run the process in a jail or container.
 Implement `SugarCraft\Crush\Hooks\HookInterface` (`name()`, `event()`,
 `matcher()`, `execute(HookContext): HookResult`) and register it on a
 `HookManager`. `HookResult` has four constructors — `allow()`, `deny()`,
-`ask()`, `modify()` — the same four the exit codes above map onto. This is the
-route for anything the five-key YAML shape cannot express; it needs an embedder,
-not a config file.
+`ask()`, `modify()` — the same four the exit codes above map onto, each taking
+an optional trailing `$additionalContext`: that is where a PHP hook puts the
+model-visible note `ScriptHook` derives from stdout, and the chain collects it
+the same way. This is the route for anything the six-key YAML shape cannot
+express; it needs an embedder, not a config file.
 
 ## See also
 
