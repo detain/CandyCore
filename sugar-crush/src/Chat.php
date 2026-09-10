@@ -672,7 +672,7 @@ final class Chat implements Model
          * state) a second time, and would re-ask the question the user just
          * answered.
          *
-          * @var list<array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult, 4: string}>
+         * @var list<array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult, 4: string}>
          */
         private readonly array $pendingPermissionJobs = [],
         /**
