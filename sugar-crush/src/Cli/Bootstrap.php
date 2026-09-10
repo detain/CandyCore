@@ -1008,14 +1008,19 @@ final class Bootstrap
         // survive the statement — see the `commandLoader:` argument below.
         $commandLoader = new CommandLoader();
 
-        // ONE set, TWO OWNERS (P6.S3). `Chat` is the only thing that writes it (the
+        // ONE set, THREE READERS (P6.S3; the third added with the nudge gate).
+        // `Chat` is the only thing that writes it (the
         // `/rules` command is handled there) and `EngineBackend` is the only thing
         // that reads it (it builds each turn's `App`, and the rules splice subtracts
         // what the App carries). Neither is in a call chain with the other, so the
         // instance is created here and handed to both — which is the same reason
         // {@see tools()} shares one guard chain and {@see agentRoster()} one manager
         // across the launch: two copies would be two sources of truth about which
-        // packs the operator just switched off, and the failure is silent.
+        // packs the operator just switched off, and the failure is silent. The third
+        // reader is the {@see RulePathNudge} that `backend()` → `tools()` builds, and
+        // it reads the set at announce time; that is what makes a `/rules` keystroke
+        // reach the transient channel and not only the standing one, and it is the
+        // same one-instance argument rather than a new one.
         //
         // Guarded by `instanceof` because {@see backend()} answers `Backend`, and a
         // launch configured to shell out to an external binary returns a
@@ -1042,7 +1047,7 @@ final class Bootstrap
         // tolerantly by design. So the junk is filtered HERE, up front, rather
         // than caught around it.
         $rulesState = RulesState::new(self::rulePacksToDisable($userConfig['disabledRules'] ?? null));
-        $backend = self::backend($root, $skills, $permissionGate);
+        $backend = self::backend($root, $skills, $permissionGate, rulesState: $rulesState);
         if ($backend instanceof EngineBackend) {
             $backend = $backend->withRulesState($rulesState);
         }
@@ -2300,8 +2305,14 @@ final class Bootstrap
      *        owns stdin outright and passes true. See the class docblock on
      *        {@see HeadlessPermissionPrompt} for why the TUI needs a different
      *        mechanism rather than this one wired more widely.
+     * @param RulesState|null $rulesState The session's rulebook toggle set, threaded
+     *        to {@see tools()} so the `paths:`-scoped rules of a pack named in
+     *        `disabledRules` (or switched off later with `/rules`) stay off the
+     *        tool-time channel as surely as they are off the splice. Trailing and
+     *        defaulted: a caller that holds no set — {@see NonInteractive}, the `-p`
+     *        path — changes nothing, and the splice it builds never had a set either.
      */
-    public static function backend(?string $root = null, ?SkillRegistry $skills = null, ?PermissionGate $gate = null, bool $consolePermissionPrompt = false): Backend
+    public static function backend(?string $root = null, ?SkillRegistry $skills = null, ?PermissionGate $gate = null, bool $consolePermissionPrompt = false, ?RulesState $rulesState = null): Backend
     {
         // Same first-line refusal {@see chat()} makes, for the same ordering
         // reason: this method is the `-p` path's entry point, where nothing
@@ -2324,7 +2335,7 @@ final class Bootstrap
         $providerType = getenv('SUGARCRUSH_PROVIDER');
         if ($providerType !== false && $providerType !== '') {
             try {
-                return self::backendFor($providerType, $root, $skills, $gate, $consolePermissionPrompt);
+                return self::backendFor($providerType, $root, $skills, $gate, $consolePermissionPrompt, $rulesState);
             } catch (PermissionConfigException $e) {
                 // Not a provider problem, and not survivable by degrading:
                 // the echo fallback below builds the very same gate and would
@@ -2372,7 +2383,7 @@ final class Bootstrap
         $persisted = self::readUserConfig()['provider'] ?? null;
         if (is_string($persisted) && $persisted !== '') {
             try {
-                return self::backendFor($persisted, $root, $skills, $gate, $consolePermissionPrompt);
+                return self::backendFor($persisted, $root, $skills, $gate, $consolePermissionPrompt, $rulesState);
             } catch (PermissionConfigException $e) {
                 // See the env-var branch above: this arm exists to keep the
                 // `\Throwable` degrade-to-echo arm below from catching it.
@@ -2399,6 +2410,7 @@ final class Bootstrap
                 $skills,
                 rgAvailable: self::capabilityPresent('rg'),
                 fdAvailable: self::capabilityPresent('fd'),
+                rulesState: $rulesState,
             ))
             ->withHooks(self::hooks(null, $root))
             // `??=`, not `??`, and INSIDE the chain rather than hoisted above
@@ -2443,10 +2455,21 @@ final class Bootstrap
      * @param bool $consolePermissionPrompt See {@see backend()} — same opt-in,
      *        same reason it is not on by default here either: this method is
      *        also what Chat's Ctrl+P provider switch calls, mid-TUI.
+     * @param RulesState|null $rulesState See {@see backend()}. It matters here more
+     *        than the phrase "see backend()" suggests: a real launch with
+     *        $SUGARCRUSH_PROVIDER set, or with a provider persisted by an earlier
+     *        Ctrl+P, gets its tools from THIS method, so a set threaded into
+     *        {@see backend()} and not forwarded past here would leave the nudge
+     *        unfiltered on exactly the common path. What this cannot fix from here is
+     *        that {@see \SugarCraft\Crush\Chat::selectPaletteProvider()} builds its
+     *        replacement backend without the session's set, so after a provider
+     *        switch BOTH channels fall back to unfiltered — the splice already did
+     *        that before this argument existed; carrying the set across is a
+     *        `src/Chat.php` change and is reported rather than made here.
      *
      * @throws \Throwable
      */
-    public static function backendFor(string $providerName, ?string $root = null, ?SkillRegistry $skills = null, ?PermissionGate $gate = null, bool $consolePermissionPrompt = false): Backend
+    public static function backendFor(string $providerName, ?string $root = null, ?SkillRegistry $skills = null, ?PermissionGate $gate = null, bool $consolePermissionPrompt = false, ?RulesState $rulesState = null): Backend
     {
         // See backend(): whichever of the two a run enters through, the sweep
         // happens once, and the config directory is named before any store or
@@ -2480,6 +2503,7 @@ final class Bootstrap
                 $skills,
                 rgAvailable: self::capabilityPresent('rg'),
                 fdAvailable: self::capabilityPresent('fd'),
+                rulesState: $rulesState,
             ))
             ->withHooks(self::hooks(null, $root))
             // See backend(): `??=` in place, so the approver below can read the
@@ -5583,6 +5607,14 @@ final class Bootstrap
      *        this factory stays a pure function of its arguments and every test
      *        that calls it without the flag renders the absent description.
      * @param bool $fdAvailable Host has `fd`; same rule, threaded to {@see Glob}.
+     * @param RulesState|null $rulesState The session's rulebook toggle set, threaded
+     *        to the {@see RulePathNudge} and nothing else — the skills channel has
+     *        its own disable mechanism (`SkillRegistry::disableMultiple()`) and the
+     *        two trackers deliberately share no state. Trailing and defaulted for the
+     *        reason {@see \SugarCraft\Crush\Providers\CustomProvider}'s
+     *        `$sessionAffinityId` is: the callers that hold no set (the `-p` path, a
+     *        background child, every test that boots the tool array for its shape)
+     *        keep calling with exactly the arguments they pass today.
      *
      * @return list<Tool>
      */
@@ -5593,6 +5625,7 @@ final class Bootstrap
         ?LspClient $lsp = null,
         bool $rgAvailable = false,
         bool $fdAvailable = false,
+        ?RulesState $rulesState = null,
     ): array {
         $root = self::requireRoot($root);
         $loader ??= self::instructionLoader($root);
@@ -5621,17 +5654,19 @@ final class Bootstrap
         // here at boot; announce time is pure string matching against the triggers
         // the loader already built, with no filesystem read per tool call.
         //
-        // ONE NAMED DIVERGENCE from the splice, stated rather than left to be
-        // discovered: `tools()` has no {@see RulesState} in scope. `chat()` builds
-        // the toggle set before it calls `backend()`, but `backend()` is what
-        // reaches this method, and threading the set through `backend()`,
-        // `backendFor()` and here is a signature change on three public boot
-        // entry points — outside this step's declared ceiling. So a rulebook pack
-        // the operator turned off in `disabledRules` still carries its
-        // PATH-SCOPED rules into this channel, while the splice and the `/rules`
-        // listing both correctly drop it. Recorded as a follow-up for whichever
-        // step owns the toggle's route to the tool side.
-        $ruleNudge = RulePathNudge::new((new RuleLoader($root))->load());
+        // THE TOGGLE REACHES THIS CHANNEL TOO. The set handed below is the SAME
+        // instance `chat()` gave the backend and `Chat`, so a pack silenced in
+        // `disabledRules` is absent from the first turn and one silenced later with
+        // `/rules` goes quiet on the next tool call — the tracker consults it per
+        // rule rather than baking the launch answer into a candidate list, because
+        // `load()` IS walked once here and the splice's copy is not. Passing a
+        // pre-filtered rule list instead would freeze boot-time intent and leave the
+        // toggle half of the goal unmet; passing a SECOND `RulesState` built from the
+        // same config key would be the two-copies disagreement the note above the
+        // `chat()` construction names. Null — every caller that does not thread a
+        // set, including the shell's display copies in `app()`, whose tracker no tool
+        // call ever reaches — is the pre-fix behaviour, stated rather than assumed.
+        $ruleNudge = RulePathNudge::new((new RuleLoader($root))->load(), $rulesState);
 
         $tools = [
             new Bash($root),
