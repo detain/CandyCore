@@ -1069,16 +1069,18 @@ final class ToolOutputBudgetTest extends TestCase
      * ceiling on the tracker call, not a floor on it, and each channel has its own
      * hard ceiling — {@see SkillPathNudge::maxBytes()} = 2,636 and
      * {@see RulePathNudge::maxBytes()} = 4,291. Read's shipped cap is 1 MiB, so its
-     * eighth is 131,072 and the ceilings bind long before the shares do: measured
-     * at the default a both-live Read returns 1,061,094 bytes (this class's
-     * 9,611-byte governing file) against a stated 1.5x bound of 1,572,864, and the
-     * worst that geometry can reach at all is
-     * C + C/4 + 2,636 + 4,291 + 21 = 1,317,667 — 255,197 bytes, 16%, of slack.
-     * The share only
-     * becomes the live constraint below
+     * eighth is 131,072 and the ceilings bind long before the shares do: MEASURED
+     * at that cap the two trackers answer 2,619 and 4,203 bytes — 99.4% and 98.0%
+     * of their own ceilings — so the whole both-live tail costs 6,822 bytes where
+     * the two eighths reserve 262,144, and 97.4% of that headroom goes unspent
+     * however large the file is. What the geometry can reach at all is therefore
+     * C + C/4 + 2,636 + 4,291 + 21 = 1,317,668 against the 1,572,864 a 1.5x bound
+     * states — 255,196 bytes, 16.2%, of slack. The share becomes the live
+     * constraint only below
      * {@see SkillPathNudge::smallestUnclippedCallerCap()} = 21,088 and
      * {@see RulePathNudge::smallestUnclippedCallerCap()} = 34,328, which is what
-     * the caps below are chosen around.
+     * the caps below are chosen around: at 21,000 the eighth is 2,625 and the skill
+     * channel alone spends 2,318 of it, which is where the pins below bite.
      */
     public static function readNudgeChannelStates(): iterable
     {
@@ -1208,17 +1210,24 @@ final class ToolOutputBudgetTest extends TestCase
      * occupy its FULL cap with both channels live. Read's reserves are taken beside
      * the cap precisely so the named file is never squeezed, and a future
      * "simplification" that moves them inside it — the Glob/Grep disposition, which
-     * reads as the inconsistent one — would take 2,318 + 2,263 bytes, the two
-     * channels as this cap prices them, off a read the caller asked for, and stay
-     * inside every ceiling above.
+     * reads as the inconsistent one — would take both channels at their full price
+     * for this cap — 2,318 bytes of skill text plus a rule section measured at
+     * 2,266 to 2,306 across the fixture paths swept here — off a read the caller
+     * asked for, and stay inside every ceiling above. That second figure is a range
+     * on purpose: a rule channel that cannot carry its bodies ends in deferred
+     * pointers quoting each rule's ABSOLUTE path, so it moves one byte per byte of
+     * the temp directory, where the skill text does not move at all.
      */
     public function testReadSpendsAllThreeReservesBesideItsCapWhenBothChannelsAreLive(): void
     {
         // 21,000, not 1 MiB: at the shipped default both eighths (131,072 each)
         // dwarf what the trackers can ever emit, so the shares bind only below
         // each channel's smallestUnclippedCallerCap(). At this cap the skill text
-        // costs 2,318 of its 2,625 and the rule text 2,263 of the same, i.e. both
-        // reserves are the live constraint and a changed divisor cannot hide.
+        // costs 2,318 of its 2,625 and the rule text most of another 2,625 — that
+        // second figure moves with the temp directory, because the channel ends in
+        // a deferred pointer quoting the rule's absolute path, while 2,318 never
+        // moves — i.e. both reserves are the live constraint and a changed divisor
+        // cannot hide.
         $maxBytes = 21000;
         $file = "<?php\n" . str_repeat("// filler line to make this file large\n", 5000);
         $path = $this->dir . '/sub/target.php';
