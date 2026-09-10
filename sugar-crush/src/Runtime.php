@@ -133,6 +133,47 @@ final class Runtime
     private const USER_RULES_AUTHORITY_PREAMBLE = 'Written by the operator of this machine in their own home directory and chosen by that operator rather than by the repository, included here as personal instruction with any block markers in the text neutralised so it cannot open or close a block; where it conflicts with a project-authored layer below it this carries the weight, while the identity and maxims layers above it keep precedence.';
 
     /**
+     * FU5: the aggregate ceiling, in FRAMED bytes, on everything the two standing
+     * rule loops in {@see self::systemPromptSections()} splice into one prompt build —
+     * one per-BUILD running budget shared by the user tier and the project/root tier
+     * in loader order, so the operator spends it first, exactly as the authority
+     * ladder above orders the fences. The derivation ladder, priced honestly: the
+     * per-file cap is {@see RuleLoader::MAX_FILE_BYTES} = 65,536 READ bytes, and the
+     * whole-section precedents beside this splice are
+     * {@see RepoMapBlock::MAX_SECTION_BYTES} = 8,192 and {@see MemoryBlock::MAX_BYTES}
+     * = 4,096 — so this budget says the standing splice may spend what ONE max-size
+     * rule file may. Bytes are charged AFTER {@see PromptFence::escape()} and include
+     * the fence and preamble framing, deliberately: prompt_worklog.md measured the
+     * unbounded splice at 12,724,235 emitted bytes becoming 20,313,188 after escape,
+     * and a budget priced pre-escape would be the 1.6x lesson unwalked. A rule whose
+     * framed section does not fit the remaining budget is never rendered and never
+     * clipped — it arrives as exactly one {@see RulePathNudge::pointer()} line inside
+     * its own tier's deferral fence, with the same counted-not-dropped note as the
+     * tool-time channel, because a rule that silently vanished is the one outcome
+     * worse than a rule deferred.
+     */
+    private const MAX_STANDING_RULE_BYTES = 65_536;
+
+    /**
+     * The most pointer lines ONE tier's standing-rule deferral fence may carry,
+     * mirroring the tool-time channel's own entry ceiling for the same reason:
+     * without a count bound the lines grow with the number of rules that happen
+     * to overrun the byte budget. Rules beyond this are not lost — they are
+     * counted in {@see self::STANDING_DEFERRED_NOTE}, exactly as
+     * {@see RulePathNudge} counts its overflow.
+     */
+    private const MAX_STANDING_POINTERS = 2;
+
+    /**
+     * The counted-not-dropped tail of a standing-rule deferral fence: how many
+     * deferred rules the {@see self::MAX_STANDING_POINTERS} pointer lines do not
+     * name. Same shape as the tool-time channel's note, different promise — a
+     * deferred standing rule has no PathTrigger, so it announces nothing later;
+     * what is true is only that it is not in this prompt.
+     */
+    private const STANDING_DEFERRED_NOTE = '... [%d further standing rule(s) deferred: budget; not rendered in this prompt.]';
+
+    /**
      * The three ways a tool call can be stopped before it runs, as the prefix
      * each one's reason string opens with (E210, E211).
      *
@@ -2615,8 +2656,12 @@ final class Runtime
         // the committed fixture rule behind the golden prompt, so the looser test
         // would defer a standing rule out of the prompt and move frozen bytes.
         // Framing and escape are tier-blind here as they were before, so this was a
-        // scoping property and never a safety one; the aggregate bound on the bytes
-        // the STANDING tiers can still carry remains its own open follow-up.
+        // scoping property and never a safety one; the aggregate bound that stood as
+        // the open follow-up now exists: both loops below spend ONE per-build budget
+        // of {@see self::MAX_STANDING_RULE_BYTES} framed bytes in loader order, and a
+        // standing rule that no longer fits is rendered as exactly one
+        // {@see RulePathNudge::pointer()} line inside its tier's deferral fence —
+        // never clipped, and never silently gone.
         // P6.S3: the loader is handed the session's rulebook toggle set, which is
         // the ONLY thing here that can subtract a pack. It travels on the App for
         // the same reason the memory store below does - this method assembles the
@@ -2637,6 +2682,17 @@ final class Runtime
             rulesState: $app->rulesState,
         ))->load();
 
+        // FU5: one running budget for both standing loops, in loader order — the
+        // user loop spends it first, so the operator's bytes outrank the
+        // repository's when the sum is tight, exactly as the fences already do by
+        // position. The pointer channel's worst-case framing is RESERVED up front
+        // rather than competed for, because a deferred rule must be able to name
+        // itself unconditionally: a pointer that found no room would be the silent
+        // vanishing the whole design refuses.
+        $standingRemaining = self::MAX_STANDING_RULE_BYTES - self::standingDeferReserve();
+        $userDeferred = [];
+        $userOverflow = 0;
+
         foreach ($rules as $rule) {
             if ($rule->tier !== 'user' || trim($rule->body) === '') {
                 continue;
@@ -2649,14 +2705,33 @@ final class Runtime
                 continue;
             }
 
+            // Same opener + preamble + blank line + escaped body +
+            // closer geometry as the instruction fence below it, so the
+            // two framings differ in exactly one thing: their voice.
+            $framed = "<user-rules>\n" . self::USER_RULES_AUTHORITY_PREAMBLE . "\n\n"
+                . PromptFence::escape($rule->body) . "\n</user-rules>";
+
+            if (strlen($framed) > $standingRemaining) {
+                // Over budget, so the body is NOT delivered — the same indivisibility
+                // the tool-time channel rules by. One pointer line takes its place.
+                if (count($userDeferred) < self::MAX_STANDING_POINTERS) {
+                    $userDeferred[] = RulePathNudge::pointer($rule);
+                } else {
+                    ++$userOverflow;
+                }
+
+                continue;
+            }
+
+            $standingRemaining -= strlen($framed);
+            $sections[] = $this->section('<user-rules>', Stability::PerSession, $framed);
+        }
+
+        if ($userDeferred !== []) {
             $sections[] = $this->section(
                 '<user-rules>',
                 Stability::PerSession,
-                // Same opener + preamble + blank line + escaped body +
-                // closer geometry as the instruction fence below it, so the
-                // two framings differ in exactly one thing: their voice.
-                "<user-rules>\n" . self::USER_RULES_AUTHORITY_PREAMBLE . "\n\n"
-                . PromptFence::escape($rule->body) . "\n</user-rules>",
+                self::standingDeferFence('user-rules', self::USER_RULES_AUTHORITY_PREAMBLE, $userDeferred, $userOverflow),
             );
         }
 
@@ -2701,6 +2776,8 @@ final class Runtime
         // project-voiced layers reads instructions first, then the rules
         // files that specialise them, each rule in its own fence the way
         // each document is.
+        $projectDeferred = [];
+        $projectOverflow = 0;
         foreach ($rules as $rule) {
             if ($rule->tier === 'user' || trim($rule->body) === '') {
                 continue;
@@ -2714,11 +2791,28 @@ final class Runtime
                 continue;
             }
 
+            $framed = "<project-instructions>\n" . self::INSTRUCTIONS_AUTHORITY_PREAMBLE . "\n\n"
+                . PromptFence::escape($rule->body) . "\n</project-instructions>";
+
+            if (strlen($framed) > $standingRemaining) {
+                if (count($projectDeferred) < self::MAX_STANDING_POINTERS) {
+                    $projectDeferred[] = RulePathNudge::pointer($rule);
+                } else {
+                    ++$projectOverflow;
+                }
+
+                continue;
+            }
+
+            $standingRemaining -= strlen($framed);
+            $sections[] = $this->section('<project-instructions>', Stability::PerSession, $framed);
+        }
+
+        if ($projectDeferred !== []) {
             $sections[] = $this->section(
                 '<project-instructions>',
                 Stability::PerSession,
-                "<project-instructions>\n" . self::INSTRUCTIONS_AUTHORITY_PREAMBLE . "\n\n"
-                . PromptFence::escape($rule->body) . "\n</project-instructions>",
+                self::standingDeferFence('project-instructions', self::INSTRUCTIONS_AUTHORITY_PREAMBLE, $projectDeferred, $projectOverflow),
             );
         }
 
@@ -2815,6 +2909,59 @@ final class Runtime
         usort($entries, static fn(array $a, array $b): int => strcmp($a[0], $b[0]) ?: strcmp($a[1], $b[1]));
 
         return implode("\n\n", array_column($entries, 1));
+    }
+
+    /**
+     * Build one tier's standing-rule deferral fence: the same opener, preamble and
+     * closer geometry as a whole-rule section of that tier, with the escaped body
+     * replaced by its pointer lines and the counted-not-dropped note. $tag is the
+     * BARE fence name — 'user-rules', brackets added here — because the fence the
+     * model sees must be spelled by exactly one line of code. Named rather
+     * than spelled twice so the two tiers cannot drift apart mid-file.
+     *
+     * @param list<string> $pointers lines from {@see RulePathNudge::pointer()}, at
+     *        most {@see self::MAX_STANDING_POINTERS} of them by caller construction.
+     */
+    private static function standingDeferFence(
+        string $tag,
+        string $preamble,
+        array $pointers,
+        int $overflow,
+    ): string {
+        $lines = $pointers;
+        if ($overflow > 0) {
+            $lines[] = sprintf(self::STANDING_DEFERRED_NOTE, $overflow);
+        }
+
+        return "<$tag>\n" . $preamble . "\n\n" . implode("\n", $lines) . "\n</$tag>";
+    }
+
+    /**
+     * The bytes {@see self::standingDeferFence()} can spend in the worst case, for
+     * BOTH standing tiers together — every pointer line at
+     * {@see RulePathNudge::maxPointerBytes()}, every fence with its full framing,
+     * note, and the newlines between them. Subtracted from
+     * {@see self::MAX_STANDING_RULE_BYTES} before the first whole rule is priced,
+     * which is what makes the aggregate bound a true statement in every direction:
+     * whole renders plus deferral fences can never exceed it, and a deferral never
+     * competes with a whole render for the same byte.
+     */
+    private static function standingDeferReserve(): int
+    {
+        // Arithmetic in BYTES, never strlen of a concatenation that embeds the
+        // interior count: PHP casts the int to its decimal text, so "2147" would
+        // be measured as 4 bytes and the reserve undercount by the very interior
+        // it exists to cover — the FU5 fix round 1 of this method.
+        $interior = self::MAX_STANDING_POINTERS * RulePathNudge::maxPointerBytes()
+            + (self::MAX_STANDING_POINTERS - 1)
+            + 1
+            + strlen(sprintf(self::STANDING_DEFERRED_NOTE, PHP_INT_MAX));
+        $userFence = strlen("<user-rules>\n") + strlen(self::USER_RULES_AUTHORITY_PREAMBLE)
+            + strlen("\n\n") + $interior + strlen("\n</user-rules>");
+        $projectFence = strlen("<project-instructions>\n") + strlen(self::INSTRUCTIONS_AUTHORITY_PREAMBLE)
+            + strlen("\n\n") + $interior + strlen("\n</project-instructions>");
+
+        return $userFence + $projectFence;
     }
 
     /**

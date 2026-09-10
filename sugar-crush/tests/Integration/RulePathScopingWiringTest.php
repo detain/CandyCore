@@ -11,6 +11,7 @@ use ReflectionProperty;
 use SugarCraft\Crush\App\App;
 use SugarCraft\Crush\Backend\EngineBackend;
 use SugarCraft\Crush\Cli\Bootstrap;
+use SugarCraft\Crush\Context\Rule;
 use SugarCraft\Crush\Context\RuleLoader;
 use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Context\RulesState;
@@ -140,6 +141,38 @@ final class RulePathScopingWiringTest extends TestCase
         self::assertSame(0, substr_count($prompt, 'PROJECT SCOPED CANARY'), 'the project tier gets the same skip as the user tier');
         self::assertSame(1, substr_count($prompt, 'PROJECT STANDING CANARY'));
         self::assertSame(1, substr_count($prompt, '<project-instructions>'));
+    }
+
+    /**
+     * FU5: the two deferral channels must stay disjoint in BOTH directions. A rule
+     * deferred by the SPLICE byte budget is a standing rule — it carries no
+     * PathTrigger — so the tool-time tracker never claims it, and its only
+     * representation in the whole session is the one pointer line inside its tier's
+     * fence. And the nudge's own scoped rule still renders zero bytes into the
+     * prompt, budget or no budget. Splice-budget-deferred intersected with nudge
+     * candidates is empty because the two predicates key on different facts: room
+     * in a running byte budget, and the presence of a compiled glob.
+     */
+    public function testASpliceBudgetDeferredStandingRuleNeverEntersTheNudgeChannel(): void
+    {
+        $this->writeUserRule('a-standing', 'BUDGET STANDING CANARY', []);
+        $this->writeUserRule('b-scoped', 'BUDGET SCOPED CANARY', ['**/*.php']);
+        $this->writeUserRule('c-huge', 'BUDGET HUGE CANARY ' . str_repeat('W', 65400), []);
+
+        $prompt = $this->renderAssembledPrompt();
+
+        $pointer = RulePathNudge::pointer($this->spliceRuleForKey('c-huge'));
+        self::assertSame(1, substr_count($prompt, $pointer), 'the over-budget standing rule is exactly one shared-grammar pointer line');
+        self::assertSame(0, substr_count($prompt, 'BUDGET HUGE CANARY'), 'and its body renders in no form');
+        self::assertStringContainsString('BUDGET STANDING CANARY', $prompt, 'the under-budget sibling is untouched by its neighbour');
+
+        $nudge = RulePathNudge::new((new RuleLoader($this->repo))->load());
+        $delivered = $nudge->forPaths([$this->repo . '/src/Widget.php']);
+
+        self::assertIsString($delivered, 'the scoped rule still delivers on a matching path');
+        self::assertStringContainsString('BUDGET SCOPED CANARY', (string) $delivered);
+        self::assertStringNotContainsString('c-huge', (string) $delivered, 'a budget-deferred standing rule is NOT a nudge candidate — the channels stay disjoint');
+        self::assertStringNotContainsString('BUDGET SCOPED CANARY', $prompt, 'and the disjointness holds the other way too');
     }
 
     // -- 2. the boot path hands one tracker to all five tools ------------------
@@ -449,6 +482,23 @@ final class RulePathScopingWiringTest extends TestCase
         self::assertIsArray($tools);
 
         return $tools;
+    }
+
+    /**
+     * The loader's own Rule for a pack written into this sandbox — the identity
+     * the expected pointer line is built from, so the assertion compares against
+     * production parsing (name fallback, absolute path) rather than a hand-made
+     * Rule that could disagree with what the splice actually saw.
+     */
+    private function spliceRuleForKey(string $key): Rule
+    {
+        foreach ((new RuleLoader($this->repo))->load() as $rule) {
+            if ($rule->key === $key) {
+                return $rule;
+            }
+        }
+
+        self::fail('the loader no longer emits a rule keyed ' . $key);
     }
 
     private function writeUserRule(string $name, string $body, array $globs, ?string $description = null): void
