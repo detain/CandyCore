@@ -1783,6 +1783,15 @@ fixture. What is left after the correction is a narrower but real dead end.
   `scheduleModelCompaction()`; the two would share it.
 - **Blocked on** Nothing. It is a shape decision worth making before the ordering
   it depends on is ever touched.
+- **CLOSED 2026-09-08 (prompt plan P8.S5 — merge `c4c9b3b01`, close fold
+  `b417dbbb7`) — CLOSED-with-variant-shape.** The goal was met, but not via the
+  shape this Step implies: E31's `compactNow`-shape guidance is measured UNSOUND
+  for the parked route (the E31 argument at `sugar-crush/src/Chat.php:9511-9549`
+  — the route OWES a turn and `compactNow()` starts none, so returning a
+  completed parked turn would silently drop the prompt the user pressed Enter
+  for). The goal was met instead via the null + by-ref `$capNotice` surfaced
+  through the parked continuation, pinned at `AutomaticCompactionModelSummaryTest`
+  :1572 (`testTheParkedTierTellsTheUserWhenTheCapStoppedTheModelAsk`).
 
 ### E32 — a parked summarization cannot be cancelled at the provider, so a cancelled turn still pays for it
 
