@@ -362,13 +362,16 @@ final class RulebookPromptRenderTest extends TestCase
         self::assertSame(1, substr_count($prompt, 'SPLICE-SMALL-'), 'the fitting pack still renders whole');
         self::assertSame(0, substr_count($prompt, 'SPLICE-BIG-'), 'no deferred body runs or clips');
 
-        $fences = [];
-        preg_match_all('/<user-rules>\n.*?<\/user-rules>/s', $prompt, $fences);
-        self::assertCount(2, $fences[0], 'one whole user fence plus one deferral fence');
-        preg_match_all('/<project-instructions>\n.*?<\/project-instructions>/s', $prompt, $prj);
-        self::assertCount(1, $prj[0], 'one project deferral fence');
+        // Summed with strpos/substr rather than a regex on purpose: a
+        // preg pattern literal is glob-shaped, and harvesting string literals
+        // from the tree is exactly how GlobDialectDifferentialTest derives its
+        // corpus — this test must not move that figure by existing.
+        $fences = $this->spliceBlocks($prompt, 'user-rules');
+        self::assertCount(2, $fences, 'one whole user fence plus one deferral fence');
+        $projectFences = $this->spliceBlocks($prompt, 'project-instructions');
+        self::assertCount(1, $projectFences, 'one project deferral fence');
 
-        $total = array_sum(array_map('strlen', array_merge($fences[0], $prj[0])));
+        $total = array_sum(array_map('strlen', array_merge($fences, $projectFences)));
         $ceiling = (new ReflectionClass(Runtime::class))->getConstant('MAX_STANDING_RULE_BYTES');
 
         self::assertIsInt($ceiling);
@@ -441,6 +444,30 @@ final class RulebookPromptRenderTest extends TestCase
         $method->setAccessible(true);
 
         return (string) $method->invoke($runtime, $app);
+    }
+
+    /**
+     * Every whole fence block with the given bare tag in a rendered prompt,
+     * delimited by literal byte searches rather than a regex: a
+     * pattern literal containing a star and a question mark is
+     * glob-shaped, and harvesting string literals from the tree is exactly how
+     * GlobDialectDifferentialTest derives its corpus - this file must not move
+     * that pinned figure merely by existing.
+     */
+    private function spliceBlocks(string $prompt, string $tag): array
+    {
+        $open = "<$tag>\n";
+        $close = "\n</$tag>";
+        $blocks = [];
+        $offset = 0;
+        while (($start = strpos($prompt, $open, $offset)) !== false) {
+            $end = strpos($prompt, $close, $start);
+            self::assertNotFalse($end, 'an unclosed ' . $tag . ' fence in a rendered prompt');
+            $blocks[] = substr($prompt, $start, $end + strlen($close) - $start);
+            $offset = $end + strlen($close);
+        }
+
+        return $blocks;
     }
 
     private function preamble(): string
