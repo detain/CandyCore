@@ -7,8 +7,10 @@ namespace SugarCraft\Crush\Tests\Context;
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
+use ReflectionMethod;
 use SugarCraft\Crush\Context\Rule;
 use SugarCraft\Crush\Context\RulePathNudge;
+use SugarCraft\Crush\Context\RulesState;
 
 /**
  * P6.S5b: `paths:`-scoped rules reach the model through a transient tool-result
@@ -29,6 +31,13 @@ use SugarCraft\Crush\Context\RulePathNudge;
  * where it is small enough to write out, `substr_count` canaries where it is not,
  * both polarities throughout. §1.11 — an assertion that passes on the wrong value
  * is not a test.
+ *
+ * The last block of tests is the follow-up to that step: the session's rulebook
+ * toggle set now reaches this channel as well, so a pack named in `disabledRules`
+ * or switched off with `/rules` is silent here too. Those pins are deliberately
+ * two-sided — one test per polarity — because a filter written `true` by mistake
+ * silences every rule in the tree and stays green for any test that only measures
+ * the disabled case.
  */
 final class RulePathNudgeTest extends TestCase
 {
@@ -348,6 +357,245 @@ final class RulePathNudgeTest extends TestCase
             $nudge->forPath('/repo/src/Widget.php'),
             'the null-budget call — what Edit and Write make — is bounded by maxBytes() and nothing else',
         );
+    }
+
+    // -- the disable gate: a silenced pack is off this channel too --------------
+
+    public function testARuleFromAPackTheSessionTurnedOffBuysNoEntryNoPointerAndNoMark(): void
+    {
+        $state = RulesState::new();
+        $state->disable('tone');
+        $nudge = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'SILENCED PACK CANARY.', ['**/*.php']),
+        ], $state);
+
+        self::assertNull(
+            $nudge->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'a pack `/rules` switched off must be as invisible on the transient channel as it is in <user-rules>',
+        );
+        self::assertSame([], $nudge->announcedPaths(), 'the refusal spends no mark — a deferred rule is not a retired one');
+        self::assertFalse(
+            self::reportsPending($nudge),
+            'hasPending() must consult the same gate the collection loop does, or the steady-state guard of a long session never settles again (E72)',
+        );
+
+        self::assertTrue($state->toggle('tone'), 'the same keystroke switches the pack back on — true is the command saying it landed ENABLED');
+        self::assertTrue(self::reportsPending($nudge), 'and the guard opens again without rebuilding the tracker');
+
+        self::assertSame(
+            self::ENVELOPE_OPEN . '- tone' . "\n" . 'SILENCED PACK CANARY.' . self::ENVELOPE_CLOSE,
+            $nudge->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'the rule arrives whole on the next matching call, which is what proves the disable refused it rather than deleting it',
+        );
+    }
+
+    public function testAConfigSeededDisableGatesTheChannelAndAnEmptySeedDoesNot(): void
+    {
+        // The seeding shape `Bootstrap::chat()` uses for the operator's own
+        // `disabledRules` key — entries arrive through the constructor, not a
+        // toggle, and the gate must not read one and not the other.
+        $silenced = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'CONFIG SEEDED CANARY.', ['**/*.php']),
+        ], RulesState::new(['tone']));
+
+        self::assertNull($silenced->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()));
+        self::assertSame([], $silenced->announcedPaths());
+
+        // The polarity that stops this file being green on an always-true filter:
+        // the identical tracker over the identical rule, with nothing turned off.
+        $open = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'CONFIG SEEDED CANARY.', ['**/*.php']),
+        ], RulesState::new([]));
+
+        self::assertSame(
+            self::ENVELOPE_OPEN . '- tone' . "\n" . 'CONFIG SEEDED CANARY.' . self::ENVELOPE_CLOSE,
+            $open->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'an empty session set delivers exactly what no session set delivers',
+        );
+    }
+
+    public function testDisablingOnePackLeavesEveryOtherScopedRuleDeliverableAndUnmarkedItself(): void
+    {
+        $nudge = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'OFF PACK CANARY.', ['**/*.php']),
+            self::scopedRule('/rules/other.md', 'ON PACK CANARY.', ['**/*.php']),
+        ], RulesState::new(['tone']));
+
+        $delivered = $nudge->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes());
+
+        self::assertSame(
+            self::ENVELOPE_OPEN . '- other' . "\n" . 'ON PACK CANARY.' . self::ENVELOPE_CLOSE,
+            $delivered,
+            'the sibling pack pays nothing for its neighbour being off, and no deferral note is owed for a rule that is not a candidate',
+        );
+        self::assertSame(['/rules/other.md'], $nudge->announcedPaths(), 'only the delivered rule is marked');
+    }
+
+    public function testTheLoopGateHoldsWhenThePendingGuardStaysOpenForADifferentRule(): void
+    {
+        // `hasPending()` carries the same refusal, so a tracker whose every candidate
+        // is disabled short-circuits before the match loop and cannot tell the two
+        // apart. This fixture keeps the guard open with a rule that claims nothing
+        // this call touches, which is the only shape that observes the gate inside
+        // {@see RulePathNudge::forPaths()} on its own.
+        $nudge = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'GUARD ISOLATION CANARY.', ['**/*.php']),
+            self::scopedRule('/rules/markdown.md', 'UNTOUCHED MARKDOWN RULE.', ['**/*.md']),
+        ], RulesState::new(['tone']));
+
+        self::assertTrue(self::reportsPending($nudge), 'the enabled, unannounced, unmatched rule holds the guard open');
+        self::assertNull(
+            $nudge->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'the collection loop refuses the disabled rule for itself — not because the guard never let it get this far',
+        );
+        self::assertSame([], $nudge->announcedPaths(), 'and neither rule spent a mark');
+    }
+
+    public function testANestedPackIsGatedByItsLoaderKeyAndNotByItsBasenameOrItsName(): void
+    {
+        $rule = self::scopedRuleKeyed('/rulebooks/style/terse.md', 'NESTED PACK CANARY.', ['**/*.php'], 'user', 'style/terse');
+
+        // `Rule::$key` is the identity the whole feature keys on: a basename or a
+        // frontmatter `name:` read here would be the second identity function this
+        // design refuses to have.
+        $byBasename = RulePathNudge::new([$rule], RulesState::new(['terse']));
+        self::assertStringContainsString(
+            'NESTED PACK CANARY.',
+            (string) $byBasename->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'disabling a flat `terse` silences nothing about `style/terse`',
+        );
+
+        $byKey = RulePathNudge::new([$rule], RulesState::new(['style/terse']));
+        self::assertNull($byKey->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()), 'the whole relative key does');
+        self::assertSame([], $byKey->announcedPaths());
+    }
+
+    public function testTheToggleSilencesTheUserTierOnlyAndTheSpliceSeesItThatWayToo(): void
+    {
+        $state = RulesState::new(['tone']);
+
+        // `RulesState::effectiveRule()` is the one conjunction, so its
+        // TOGGLEABLE_TIER guard applies here without being restated: a repository
+        // file that happens to share a pack name is still the repository's voice.
+        $project = RulePathNudge::new([
+            self::scopedRuleKeyed('/repo/.sugar-crush/rules/tone.md', 'PROJECT VOICE CANARY.', ['**/*.php'], 'project', 'tone'),
+        ], $state);
+
+        self::assertStringContainsString(
+            'PROJECT VOICE CANARY.',
+            (string) $project->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'a session set never silences a project rule — same as the splice',
+        );
+
+        $user = RulePathNudge::new([
+            self::scopedRuleKeyed('/rules/tone.md', 'USER VOICE CANARY.', ['**/*.php'], 'user', 'tone'),
+        ], $state);
+
+        self::assertNull($user->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()), 'and it silences the user one');
+    }
+
+    public function testAToggleNeverRevisesTheAnnouncedSet(): void
+    {
+        // Documented choice, pinned: a mark is the record that the model already
+        // received those bytes. Switching a pack off forgets nothing, and switching
+        // it back on does not repeat what was already said.
+        $state = RulesState::new();
+        $nudge = RulePathNudge::new([
+            self::scopedRule('/rules/tone.md', 'ALREADY SAID CANARY.', ['**/*.php']),
+        ], $state);
+
+        self::assertStringContainsString(
+            'ALREADY SAID CANARY.',
+            (string) $nudge->forPath('/repo/src/A.php', RulePathNudge::maxBytes()),
+        );
+
+        $state->disable('tone');
+        $state->toggle('tone');
+
+        self::assertSame(['/rules/tone.md'], $nudge->announcedPaths(), 'neither flip touched the mark');
+        self::assertNull(
+            $nudge->forPath('/repo/src/B.php', RulePathNudge::maxBytes()),
+            'a re-enabled pack does not re-announce a rule the model was already given',
+        );
+    }
+
+    public function testTheGateAddsNoCandidateAndRemovesNoStandingRule(): void
+    {
+        // D1, re-pinned on this side of the change: the gate reads a set of pack
+        // names and never touches the `instanceof PathTrigger` question. A rule with
+        // no path trigger was never a candidate, disabled or not, and a disabled
+        // one must not become a candidate for anything.
+        $nudge = RulePathNudge::new([
+            self::scopedRule('/rules/standing.md', 'STANDING CANARY MUST NOT NUDGE.', []),
+            self::scopedRule('/rules/off.md', 'DISABLED STANDING CANARY.', []),
+        ], RulesState::new(['off']));
+
+        self::assertNull($nudge->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()));
+        self::assertSame([], $nudge->announcedPaths());
+        self::assertFalse(self::reportsPending($nudge), 'a pack-less rule list still settles the guard');
+    }
+
+    public function testAFrontmatterDisabledRuleIsRefusedByTheSameArithmetic(): void
+    {
+        $rules = [
+            self::scopedRuleKeyed(
+                '/rules/off.md',
+                'FRONTMATTER OFF CANARY.',
+                ['**/*.php'],
+                'user',
+                'off',
+                "enabled: false\n",
+            ),
+        ];
+
+        self::assertNull(
+            RulePathNudge::new($rules, RulesState::new([]))->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'effectiveRule() reports an already-off rule as off, so a set in scope refuses it — unreachable through `load()`, which never emits one',
+        );
+        self::assertSame(
+            self::ENVELOPE_OPEN . '- off' . "\n" . 'FRONTMATTER OFF CANARY.' . self::ENVELOPE_CLOSE,
+            RulePathNudge::new($rules)->forPath('/repo/src/Widget.php', RulePathNudge::maxBytes()),
+            'and a tracker built with no set at all behaves byte-for-byte as it did before the gate existed',
+        );
+    }
+
+    /**
+     * The candidate-list guard's answer, read directly: it is private precisely
+     * because nothing outside the class may branch on it, and both of its operands
+     * have to agree with the collection loop or the guard stops short-circuiting.
+     */
+    private static function reportsPending(RulePathNudge $nudge): bool
+    {
+        $pending = new ReflectionMethod(RulePathNudge::class, 'hasPending');
+        $pending->setAccessible(true);
+
+        return (bool) $pending->invoke($nudge);
+    }
+
+    /**
+     * The same real-parser geometry as {@see scopedRule()}, with the two fields the
+     * disable gate keys on chosen by the caller: the tier `RulesState` guards and
+     * the loader's pack identity (a nested rulebook is `style/terse`, not `terse`).
+     *
+     * @param list<string> $globs
+     */
+    private static function scopedRuleKeyed(
+        string $path,
+        string $body,
+        array $globs,
+        string $tier,
+        string $key,
+        string $extraFront = '',
+    ): Rule {
+        $front = 'name: ' . basename($path, '.md') . "\n" . $extraFront;
+        if ($globs !== []) {
+            $front .= "paths:\n";
+            foreach ($globs as $glob) {
+                $front .= '  - "' . $glob . "\"\n";
+            }
+        }
+
+        return Rule::new($path, $tier, "---\n" . $front . "---\n" . $body, basename($path, '.md'), $key);
     }
 
     /**
