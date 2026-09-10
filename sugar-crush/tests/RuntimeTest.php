@@ -833,6 +833,294 @@ final class RuntimeTest extends TestCase
         };
     }
 
+    /**
+     * FU6: the PRE half of the same consumer pair. A permitting PreToolUse hook's
+     * collected note used to die inside `gate()` — the verdict left scope with its
+     * `additionalContext` unconsumed. Now the permit arms carry it to `settle()`,
+     * which appends it through the existing {@see \SugarCraft\Crush\Runtime::annotate()}
+     * seam. This is the path a plain `ScriptHook` on its DEFAULT event (PreToolUse,
+     * exit-0 stdout) actually takes, which is what the HOOKS.md operator claim
+     * promises. Red on revert: drop the pre-context append in `settle()` and the
+     * note never reaches `content()`.
+     */
+    public function testAPermittingPreToolUseHookNoteReachesTheModelResult(): void
+    {
+        $this->hookRegistry->register(
+            $this->createPreToolUseNoteHook('pre_note_for_the_model'),
+        );
+
+        $tool = $this->createMockTool('preguarded_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_pre', 'preguarded_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(
+            "Executed successfully\n\npre_note_for_the_model",
+            $results[0]->content(),
+        );
+        $this->assertFalse($results[0]->isError());
+    }
+
+    /**
+     * The polarity pair of the test above: a pre-chain that collected nothing must
+     * stamp nothing. `settle()` skips `annotate()` entirely on an empty note, so the
+     * result stays BYTE-IDENTICAL to the no-hook run.
+     */
+    public function testAnEmptyPreToolUseNoteLeavesTheToolResultByteIdentical(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook(''));
+
+        $tool = $this->createMockTool('quiet_pre_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_quiet_pre', 'quiet_pre_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Executed successfully', $results[0]->content());
+    }
+
+    /**
+     * The exact model-visible slot ORDER is `result\n\npre\n\npost`: the
+     * `PostToolUse` chain observes the RAW tool output, then the pre-note is
+     * appended, then the post-note. Pinned with both hooks firing at once and
+     * every needle counted to prove neither fires twice. Red on revert: reorder
+     * the two `annotate()` calls in `settle()` and this is the test that goes red.
+     */
+    public function testPreAndPostHookNotesLandOnTheResultInPinnedOrder(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('PRE_SLOT'));
+        $this->hookRegistry->register($this->createPostToolUseContextHook('POST_SLOT'));
+
+        $tool = $this->createMockTool('both_notes_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_both', 'both_notes_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(
+            "Executed successfully\n\nPRE_SLOT\n\nPOST_SLOT",
+            $results[0]->content(),
+        );
+        $this->assertSame(1, substr_count($results[0]->content(), 'PRE_SLOT'));
+        $this->assertSame(1, substr_count($results[0]->content(), 'POST_SLOT'));
+    }
+
+    /**
+     * DENY must not leak a note. A deny verdict short-circuits to
+     * {@see \SugarCraft\Crush\Runtime::failure()} and never reaches `settle()`,
+     * and the deny arm returns the note slot pinned to `''` — and a deny verdict
+     * carrying its OWN `additionalContext` still drops it on the gate floor
+     * (HookRegistry returns a blocking verdict verbatim without the chain
+     * collection). Byte-exact denial content + zero occurrences of either needle.
+     */
+    public function testADeniedPreToolUseHookNeverCarriesCollectedNotes(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('NOTE_BEFORE_DENY'));
+        $this->hookRegistry->register($this->createDenyHookCarryingContext('blocked_by_policy'));
+
+        $tool = $this->createMockTool('guarded_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_deny', 'guarded_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Hook denied: blocked_by_policy', $results[0]->content());
+        $this->assertTrue($results[0]->isError());
+        $this->assertSame(0, substr_count($results[0]->content(), 'NOTE_BEFORE_DENY'));
+        $this->assertSame(0, substr_count($results[0]->content(), 'DENY_OWN_NOTE'));
+    }
+
+    /**
+     * A tool the runtime cannot resolve never reaches the gate at all, so the
+     * registered pre-note hook is never consulted and its note cannot leak into
+     * the not-found failure either. Pins the early-exit arm of the sequential path.
+     */
+    public function testAnUnknownToolNeverConsultsThePreHookChain(): void
+    {
+        $consulted = 0;
+        $this->hookRegistry->register($this->createCountingPreNoteHook($consulted));
+
+        $tool = $this->createMockTool('known_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_ghost', 'ghost_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Tool not found: ghost_tool', $results[0]->content());
+        $this->assertSame(0, $consulted);
+    }
+
+    /**
+     * The second hop: the note must survive into the bytes the provider actually
+     * receives. `completeAsync()` FORKS — capture would die in the child — so
+     * this uses the synchronous `EngineBackend::complete()` over a
+     * `CustomProvider` wired to a Guzzle `MockHandler` with a history middleware
+     * (the P7.S1 two-step pattern), then counts the needle in the request body.
+     * `assertSame(1, ...)` pins exactly-once: no double-append through gate and
+     * settle both holding the string.
+     */
+    public function testAPreToolUseHookNoteReachesTheProviderRequestBody(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('FU6_PROVIDER_BOUND_NOTE'));
+
+        $tool = $this->createMockTool('payload_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_payload', 'payload_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+        $this->assertCount(1, $results);
+
+        $body = $this->providerRequestBodyForMessages([$results[0]]);
+
+        $this->assertSame(1, substr_count($body, 'FU6_PROVIDER_BOUND_NOTE'));
+        $this->assertStringContainsString('"role":"tool"', $body);
+    }
+
+    /**
+     * A permitting PreToolUse hook whose collected note is exactly $additionalContext.
+     * The Runtime-side producer twin of {@see self::createPostToolUseContextHook()},
+     * shaped after what a default-event ScriptHook's exit-0 stdout produces.
+     */
+    private function createPreToolUseNoteHook(string $additionalContext): HookInterface
+    {
+        return new class($additionalContext) implements HookInterface {
+            public function __construct(
+                private string $additionalContext,
+            ) {}
+
+            public function name(): string
+            {
+                return 'pre_ctx_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return HookResult::allow('', $this->additionalContext);
+            }
+        };
+    }
+
+    /**
+     * A DENY verdict that itself carries an `additionalContext`. Distinctly named
+     * (and distinctly bodied) from every other pre-hook factory in this tree so the
+     * duplicated-helper drift guard keeps its distance — this one's whole point is
+     * the verdict KIND, which the note hooks never produce.
+     */
+    private function createDenyHookCarryingContext(string $message): HookInterface
+    {
+        return new class($message) implements HookInterface {
+            public function __construct(
+                private string $message,
+            ) {}
+
+            public function name(): string
+            {
+                return 'deny_with_ctx_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return HookResult::deny($this->message, 'DENY_OWN_NOTE');
+            }
+        };
+    }
+
+    /**
+     * Pre-hook that counts executions and emits a note — for the arm where the
+     * chain must NOT run (tool resolution fails first). The by-reference counter
+     * is why this is not just {@see self::createPreToolUseNoteHook()} reused.
+     */
+    private function createCountingPreNoteHook(int &$consulted): HookInterface
+    {
+        return new class($consulted) implements HookInterface {
+            public function __construct(
+                private int &$consulted,
+            ) {}
+
+            public function name(): string
+            {
+                return 'counting_pre_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                ++$this->consulted;
+
+                return HookResult::allow('', 'NOTE_ON_UNRESOLVED_PATH');
+            }
+        };
+    }
+
+    /**
+     * The literal HTTP body a real `CustomProvider` posts for $messages.
+     *
+     * Named and bodied apart from the SessionStart wire test's own capture helper
+     * (that one drives a full turn through a recorder backend); this one serves the
+     * narrower job of serializing an already-produced message list — `completeAsync()`
+     * FORKS, so an in-parent capture only works on the synchronous HTTP hop, and the
+     * provider's `formatMessages()` is the exact mapping that puts a
+     * {@see ToolResultMessage} on the wire as `role:"tool"`.
+     *
+     * @param list<Message> $messages
+     */
+    private function providerRequestBodyForMessages(array $messages): string
+    {
+        $sink = [];
+        $stack = \GuzzleHttp\HandlerStack::create(new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(200, ['Content-Type' => 'application/json'], '{"choices":[{"message":{"content":"ok"}}],"usage":{"total_tokens":1}}'),
+        ]));
+        $stack->push(\GuzzleHttp\Middleware::history($sink));
+
+        $client = new \GuzzleHttp\Client([
+            'base_uri' => 'https://api.example.com/',
+            'handler' => $stack,
+        ]);
+
+        $provider = new \SugarCraft\Crush\Providers\CustomProvider('custom', 'https://api.example.com', 'gpt-4', null, $client, false, false);
+
+        $provider->complete(new CompleteRequest(model: 'gpt-4', messages: $messages));
+
+        $this->assertCount(1, $sink);
+
+        return (string) $sink[0]['request']->getBody();
+    }
+
     // =========================================================================
     // A throwing tool must cost its own call, not the whole turn
     // =========================================================================

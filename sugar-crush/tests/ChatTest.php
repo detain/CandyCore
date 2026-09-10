@@ -3604,6 +3604,213 @@ final class ChatTest extends TestCase
     }
 
     /**
+     * FU6: the PRE half of the Chat-side consumer pair, and the shape the
+     * operator-visible HOOKS.md claim makes real — a plain `ScriptHook` with NO
+     * `event` key defaults to `PreToolUse`, and its exit-0 stdout becomes the
+     * chain's collected `additionalContext`. Before this step the verdict was
+     * consulted for permission and the note was dropped; now `gateToolCall()`
+     * carries it on the permit arms and `applyPostToolUse()` appends it through
+     * the same seam the post-note uses. Real subprocess, real gate, real
+     * history bytes — a fixture-level assertion is the only kind that can fail.
+     */
+    public function testAScriptHookOnTheDefaultPreToolUseEventReachesTheChatToolResult(): void
+    {
+        $script = $this->tempPath('sc_fu6_pre_note_') . '.sh';
+        file_put_contents($script, "#!/bin/sh\nprintf 'pre_note_from_the_script'\n");
+        chmod($script, 0o755);
+
+        $hooks = $this->hookManagerWith(new \SugarCraft\Crush\Hooks\ScriptHook(
+            name: 'fu6-pre-note',
+            event: HookEvent::PreToolUse,
+            matcher: '.*',
+            command: $script,
+            description: '',
+        ));
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertSame("total 0\n\npre_note_from_the_script", $final->history[1]->content);
+
+        $wire = $final->history[1]->toolResults[0]->toWire();
+        $this->assertSame(
+            ['role' => 'tool', 'tool_call_id' => 'call_1', 'name' => 'bash', 'content' => "total 0\n\npre_note_from_the_script"],
+            $wire,
+            'the pre-note must reach the provider-visible wire bytes, not only the display content',
+        );
+    }
+
+    /**
+     * The polarity pair: a default-event script that prints NOTHING collected no
+     * context, and the result is byte-identical to the no-hook run — no stray
+     * separator stamped onto ordinary permitted calls.
+     */
+    public function testASilentScriptHookLeavesTheChatToolResultByteIdentical(): void
+    {
+        $script = $this->tempPath('sc_fu6_pre_silent_') . '.sh';
+        file_put_contents($script, "#!/bin/sh\nexit 0\n");
+        chmod($script, 0o755);
+
+        $hooks = $this->hookManagerWith(new \SugarCraft\Crush\Hooks\ScriptHook(
+            name: 'fu6-pre-silent',
+            event: HookEvent::PreToolUse,
+            matcher: '.*',
+            command: $script,
+            description: '',
+        ));
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertSame('total 0', $final->history[1]->content);
+        $this->assertSame(0, substr_count($final->history[1]->content, "\n\n"));
+    }
+
+    /**
+     * The pinned slot ORDER on the Chat path, matching {@see \SugarCraft\Crush\Runtime::settle()}:
+     * `result\n\npre\n\npost`. The post chain observes the RAW output, then the
+     * pre-note is appended, then the post-note — every needle counted to once.
+     */
+    public function testPreAndPostHookNotesLandOnTheChatResultInPinnedOrder(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->spyHook(
+                HookEvent::PreToolUse,
+                static fn(HookContext $c): HookResult => HookResult::allow('', 'PRE_SLOT'),
+            ),
+            $this->spyHook(
+                HookEvent::PostToolUse,
+                static function (HookContext $c): HookResult {
+                    // The order claim is only half about the appended bytes: the
+                    // post chain must still observe the RAW output, never the
+                    // pre-note riding alongside it.
+                    \PHPUnit\Framework\Assert::assertSame('total 0', $c->toolOutput);
+
+                    return HookResult::allow('', 'POST_SLOT');
+                },
+            ),
+        );
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertSame("total 0\n\nPRE_SLOT\n\nPOST_SLOT", $final->history[1]->content);
+        $this->assertSame(1, substr_count($final->history[1]->content, 'PRE_SLOT'));
+        $this->assertSame(1, substr_count($final->history[1]->content, 'POST_SLOT'));
+    }
+
+    /**
+     * DENY must not leak. A deny verdict never reaches `applyPostToolUse()`, and
+     * the deny arm of `gateToolCall()` pins the note slot to `''` — so neither a
+     * preceding permit-with-note's collected bytes nor the deny verdict's OWN
+     * context can surface anywhere in the model-visible error half.
+     */
+    public function testADeniedPreToolUseHookNeverCarriesNotesIntoTheChatResult(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->spyHook(
+                HookEvent::PreToolUse,
+                static fn(HookContext $c): HookResult => HookResult::allow('', 'NOTE_BEFORE_DENY'),
+            ),
+            $this->spyHook(
+                HookEvent::PreToolUse,
+                static fn(HookContext $c): HookResult => HookResult::deny('blocked_by_policy', 'DENY_OWN_NOTE'),
+            ),
+        );
+
+        $executed = false;
+        $chat = (new Chat())
+            ->registerTool('bash', static function (array $args) use (&$executed): string {
+                $executed = true;
+
+                return 'total 0';
+            })
+            ->withHooks($hooks);
+
+        $call = new \SugarCraft\Crush\ToolCall('bash', ['cmd' => 'ls'], 'call_1');
+        [, $final] = $this->runToolCallsToCompletion($chat, Message::assistant('running')->withToolCalls([$call]));
+
+        $this->assertFalse($executed, 'a denied call must not run');
+        $this->assertSame('Tool error: Hook denied: blocked_by_policy', $final->history[1]->content);
+        $this->assertSame(0, substr_count($final->history[1]->content, 'NOTE_BEFORE_DENY'));
+        $this->assertSame(0, substr_count($final->history[1]->content, 'DENY_OWN_NOTE'));
+    }
+
+    /**
+     * A settled ASK carries: {@see HookRegistry::executeHooks()} rebuilds the
+     * parked question with the chain's collected note, so when the user approves,
+     * the note rides the resolved verdict through the parked-job re-entry and
+     * lands on the result exactly like an immediate permission's would.
+     */
+    public function testASettledAskCarriesTheChainCollectedNoteToTheResult(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->namedPreToolUseHook('noter', static fn(HookContext $c): HookResult =>
+                HookResult::allow('', 'ASK_CHAIN_NOTE')),
+            $this->namedPreToolUseHook('gate', static fn(HookContext $c): HookResult =>
+                HookResult::ask('Run bash?', additionalContext: 'ASK_OWN_NOTE')),
+        );
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        [$suspended] = $chat->update(new AssistantMsg($this->askingToolCall()));
+        $this->assertNotNull($suspended->pendingPermission());
+
+        [$resumed, $resumeCmd] = $suspended->update(new PermissionReplyMsg(PermissionReply::Once));
+        $final = $this->awaitToolResults($resumed, $resumeCmd);
+
+        $this->assertSame("total 0\n\nASK_CHAIN_NOTE\n\nASK_OWN_NOTE", $final->history[1]->content);
+    }
+
+    /**
+     * The unanswered park dies cleanly: a parked batch whose permission is
+     * REJECTED never dispatches, so the ASK's collected note has no model-visible
+     * slot to leak into — the refusal text is the whole result, byte-exact.
+     */
+    public function testARejectedAskParksDieWithoutLeakingTheirNotes(): void
+    {
+        $hooks = $this->hookManagerWith(
+            $this->namedPreToolUseHook('noter', static fn(HookContext $c): HookResult =>
+                HookResult::allow('', 'PARKED_CHAIN_NOTE')),
+            $this->namedPreToolUseHook('gate', static fn(HookContext $c): HookResult =>
+                HookResult::ask('Run bash?')),
+        );
+
+        $chat = (new Chat())
+            ->registerTool('bash', static fn(array $args): string => 'total 0')
+            ->withHooks($hooks);
+
+        [$suspended] = $chat->update(new AssistantMsg($this->askingToolCall()));
+        $this->assertNotNull($suspended->pendingPermission());
+
+        [$rejected, $cmd] = $suspended->update(new PermissionReplyMsg(PermissionReply::Reject));
+        $this->assertNull($cmd, 'a rejection ends the turn without dispatching anything');
+
+        $this->assertSame('_Permission denied: bash was not run._', $rejected->history[1]->content);
+        $needle = 'PARKED_CHAIN_NOTE';
+        foreach ($rejected->history as $message) {
+            $this->assertSame(0, substr_count($message->content, $needle));
+            foreach ($message->toolResults as $toolResult) {
+                $this->assertSame(0, substr_count((string) ($toolResult->error ?? $toolResult->result), $needle));
+            }
+        }
+    }
+
+    /**
      * Runtime resolves the tool first and only builds a HookContext once it
      * has one, so an unknown name never reaches the hook chain. Chat matches
      * that ordering rather than inventing a second convention.
