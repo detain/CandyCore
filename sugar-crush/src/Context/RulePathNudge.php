@@ -60,6 +60,40 @@ use SugarCraft\Crush\Context\Triggers\PathTrigger;
  * globs. It is deliberately invisible to the read-sink census over `src/` for
  * the reason {@see PathTrigger} gives.
  *
+ * THE DISABLE GATE (follow-up (a) to P6.S5b). A rulebook pack the operator turned
+ * off — in the `disabledRules` config key or with the session-scoped `/rules`
+ * toggle — is subtracted from the splice by {@see RulesState::effectiveRule()}
+ * inside {@see RuleLoader::load()}. This channel was originally handed nothing but
+ * that `load()` output, so a pack the user had just silenced kept speaking through
+ * its `paths:` rules at tool time: the toggle reached the standing prompt, the
+ * `/rules` listing, and nowhere else. It now holds the SAME {@see RulesState} and
+ * asks the SAME question of every rule, through {@see enabledForThisSession()},
+ * which delegates to `effectiveRule()` rather than re-spelling the conjunction — so
+ * there is still exactly one place in the tree that decides whether a rule is on.
+ * Two consequences are worth naming because both are the point: a disabled pack is
+ * as invisible on this channel as on the splice, and a PROJECT-tier rule whose
+ * filename collides with a silenced pack name is still delivered here, because the
+ * tier guard lives inside `effectiveRule()` and is inherited rather than copied.
+ *
+ * WHY THE ANSWER IS TAKEN AT CONSULT TIME AND NOT AT CONSTRUCTION. `tools()` builds
+ * this tracker once, at launch, and holds it for the life of the process, while a
+ * `/rules` keystroke can land in any later turn. Filtering the candidate list in the
+ * constructor would therefore freeze the boot-time answer and silence exactly the
+ * case the toggle is for; the splice gets fresh arithmetic every turn because
+ * `Runtime::systemPromptSections()` rebuilds its loader per prompt, and consulting
+ * the set per rule here is what makes the two channels agree MID-session as well as
+ * at launch. The cost is one `in_array` per still-pending candidate per tool call,
+ * which the {@see hasPending()} short-circuit already bounds. The re-enable half
+ * comes free with the same choice: a pack switched back on is deliverable again on
+ * the next matching call, because it was never removed from the list — only refused.
+ *
+ * A TOGGLE NEVER REVISES THE ANNOUNCED SET. A mark is the record that the model
+ * already received those bytes, either whole or as a pointer, and neither flipping a
+ * pack off nor flipping it back rewrites what was said: a rule announced before it
+ * was disabled stays silent after it is re-enabled. That is the same one-shot
+ * semantics the budget rules give (a pointer counts as delivery), and it keeps the
+ * fork round trip in {@see markAnnouncedPaths()} a pure union.
+ *
  * This is a SugarCraft architecture type, not a port — charmbracelet/crush has
  * no rule-nudge symbol, so the repo's "Mirrors charmbracelet/…" convention does
  * not apply. Its shape is borrowed from
@@ -96,6 +130,18 @@ final class RulePathNudge
      * @var list<Rule>
      */
     private readonly array $candidates;
+
+    /**
+     * The session's rulebook toggle set, or null when nothing can be turned off.
+     *
+     * Held, not unwrapped into a name list, for the reason {@see RulesState} gives
+     * for being mutable: one instance has two owners that are not in a call chain
+     * with each other, and a copy taken here would be a snapshot of the operator's
+     * intent at launch rather than the intent of the current turn. Null is the
+     * pre-P6.S3 shape of this class — every tracker built without a set delivers
+     * exactly what it delivered before the gate existed.
+     */
+    private readonly ?RulesState $rulesState;
 
     /**
      * Opens every nudge. Named once so {@see maxBytes()} prices it.
@@ -179,12 +225,17 @@ final class RulePathNudge
     public const CALLER_BUDGET_DIVISOR = 8;
 
     /**
-     * @param list<Rule> $rules The session's loaded rule list, in loader order.
+     * @param list<Rule>      $rules       The session's loaded rule list, in loader order.
+     * @param RulesState|null $rulesState  The session's rulebook toggle set, consulted
+     *        per rule at match time through {@see enabledForThisSession()}. Null —
+     *        what every caller predating this argument passes — means no pack is off.
      *
      * @throws InvalidArgumentException if the list holds a non-Rule element.
      */
-    public function __construct(array $rules)
+    public function __construct(array $rules, ?RulesState $rulesState = null)
     {
+        $this->rulesState = $rulesState;
+
         $candidates = [];
         foreach ($rules as $rule) {
             if (!$rule instanceof Rule) {
@@ -207,11 +258,33 @@ final class RulePathNudge
     /**
      * Build a tracker over the rules the session already loaded.
      *
-     * @param list<Rule> $rules
+     * @param list<Rule>      $rules
+     * @param RulesState|null $rulesState See the constructor.
      */
-    public static function new(array $rules): self
+    public static function new(array $rules, ?RulesState $rulesState = null): self
     {
-        return new self($rules);
+        return new self($rules, $rulesState);
+    }
+
+    /**
+     * Is this rule still ON for this session, by the splice's own arithmetic?
+     *
+     * One line on purpose: the conjunction "frontmatter says enabled AND this
+     * session has not turned the pack off AND only the user tier can be turned off"
+     * is {@see RulesState::effectiveRule()}'s to know, and spelling it a second time
+     * here is how a listing starts promising bytes the prompt does not deliver. The
+     * identity it keys on is {@see Rule::$key} — the loader's pack name, nested
+     * spellings included — so `/rules style/terse` and a config entry naming the
+     * same pack gate this channel exactly as they gate `<user-rules>`.
+     *
+     * A rule whose own frontmatter says `enabled: false` is refused here once a set
+     * is in scope, because that is what `effectiveRule()` reports; {@see
+     * RuleLoader::load()} never emits one, so no production call site can observe
+     * the difference from the null case.
+     */
+    private function enabledForThisSession(Rule $rule): bool
+    {
+        return $this->rulesState === null || $this->rulesState->effectiveRule($rule)->enabled;
     }
 
     /**
@@ -260,6 +333,10 @@ final class RulePathNudge
      * A budget too small for even one entry returns null and MARKS NOTHING, so a
      * rule is never retired for the session by a call that never named it.
      *
+     * A rule whose pack this session turned off is not collected at all, so it
+     * buys neither an entry nor a pointer nor a mark — which is what lets a pack
+     * switched back on mid-session still be delivered on a later call.
+     *
      * @param list<string> $paths
      */
     public function forPaths(array $paths, ?int $budget = null): ?string
@@ -276,7 +353,7 @@ final class RulePathNudge
                 continue;
             }
 
-            if (!self::matchesAny($rule, $paths)) {
+            if (!$this->enabledForThisSession($rule) || !self::matchesAny($rule, $paths)) {
                 continue;
             }
 
@@ -429,12 +506,15 @@ final class RulePathNudge
      * walk instead of a glob match per rule per touched path — which for a Glob
      * handing over a whole match list is paths x patterns per call, forever.
      * The filter here MUST stay identical to the one {@see forPaths()} collects
-     * with, or the guard never fires again (E72).
+     * with, or the guard never fires again (E72) — which now means BOTH of its
+     * operands, the announce-once mark and {@see enabledForThisSession()}: a
+     * disabled rule that this method counted as pending while the collection loop
+     * refused it would hold the guard open for the rest of the session.
      */
     private function hasPending(): bool
     {
         foreach ($this->candidates as $rule) {
-            if (!isset($this->announced[$rule->path])) {
+            if (!isset($this->announced[$rule->path]) && $this->enabledForThisSession($rule)) {
                 return true;
             }
         }
