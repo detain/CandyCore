@@ -8,7 +8,9 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionMethod;
 use SugarCraft\Crush\App\App;
+use SugarCraft\Crush\Context\Rule;
 use SugarCraft\Crush\Context\RuleLoader;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Context\RulesState;
 use SugarCraft\Crush\Hooks\HookManager;
 use SugarCraft\Crush\Hooks\HookRegistry;
@@ -215,6 +217,114 @@ final class RulebookPromptRenderTest extends TestCase
         self::assertSame(0, substr_count($rendered, '<user-rules>'), 'and the splice frames nothing for it');
     }
 
+    // -- FU5: the standing-splice byte budget ---------------------------------
+
+    /**
+     * The ceiling is a ratified number, not a dial: FU5 fixed it at what ONE
+     * max-size rule file may spend (65,536 framed bytes, the same figure
+     * {@see RuleLoader}'s per-file cap carries), and this pin is what makes a
+     * silent widening red rather than review-only.
+     */
+    public function testTheStandingCeilingIsTheRatifiedValueNotAWidenedOne(): void
+    {
+        $ref = new ReflectionClass(Runtime::class);
+
+        self::assertSame(65536, $ref->getConstant('MAX_STANDING_RULE_BYTES'));
+        self::assertSame(2, $ref->getConstant('MAX_STANDING_POINTERS'));
+    }
+
+    /**
+     * Requirement 7(a): two smalls and one huge — both smalls render whole, and
+     * the huge body NEVER appears (not rendered, not clipped); what appears is
+     * exactly one pointer line, byte-identical to the shared
+     * {@see RulePathNudge::pointer()} grammar the tool-time channel emits, riding
+     * inside its own tier's fence. A single deferral names itself, so there is no
+     * counted note.
+     */
+    public function testARuleOverTheStandingBudgetArrivesAsExactlyOnePointerLine(): void
+    {
+        file_put_contents($this->packsDir . '/one.md', "SMALL-ONE-CANARY\n");
+        file_put_contents($this->packsDir . '/two.md', "SMALL-TWO-CANARY\n");
+        file_put_contents($this->packsDir . '/zhuge.md', "---\nname: Zhuge\n---\n" . str_repeat('H', 65400));
+
+        $rendered = $this->render(RulesState::new());
+
+        self::assertStringContainsString('SMALL-ONE-CANARY', $rendered, 'both smalls render whole');
+        self::assertStringContainsString('SMALL-TWO-CANARY', $rendered);
+        self::assertSame(0, substr_count($rendered, 'HHHH'), 'the over-budget body renders in no form at all');
+
+        $pointer = RulePathNudge::pointer($this->loadedRuleByKey('zhuge'));
+        self::assertSame(1, substr_count($rendered, $pointer), 'exactly one pointer line, byte-exact from the shared gate');
+        self::assertTrue(
+            str_contains($rendered, "<user-rules>\n" . $this->preamble() . "\n\n" . $pointer . "\n</user-rules>"),
+            'the pointer rides inside its own tier fence with the tier preamble intact',
+        );
+        self::assertSame(0, substr_count($rendered, 'further standing rule'), 'one deferral needs no counted note');
+        self::assertSame(3, substr_count($rendered, '<user-rules>'), 'two whole fences plus one deferral fence');
+    }
+
+    /**
+     * Requirement 7(b): deferrals beyond the two-line pointer ceiling are COUNTED,
+     * never silently gone — the same grammar the nudge channel's
+     * counted-not-dropped test pins, on the splice's channel. The third oversized
+     * rule contributes no line of its own; it exists in the note's count.
+     */
+    public function testDeferralsBeyondThePointerCeilingAreCountedNotDropped(): void
+    {
+        $bodyRoom = $this->standingWholeBudget() - $this->userRuleFramingOverhead();
+        // Names sort the way the loader walks them: x1 < x2 < x3 under ksort,
+        // which a wordy naming (xone, xtwo, xthree) would not.
+        file_put_contents($this->packsDir . '/abig.md', 'BIGBODY-' . str_repeat('b', $bodyRoom - strlen('BIGBODY-') - 4096) . "\n");
+        foreach (['x1', 'x2', 'x3'] as $i => $name) {
+            $marker = 'XMARC' . $i . '-';
+            file_put_contents($this->packsDir . '/' . $name . '.md', $marker . str_repeat('y', 8192 - strlen($marker)) . "\n");
+        }
+
+        $rendered = $this->render(RulesState::new());
+
+        self::assertStringContainsString('BIGBODY-', $rendered, 'the whole-rules budget spends itself on the first three fits');
+        self::assertSame(0, substr_count($rendered, 'XMARC'), 'and none of the three overs runs or clips');
+
+        $note = sprintf(
+            (string) (new ReflectionClass(Runtime::class))->getConstant('STANDING_DEFERRED_NOTE'),
+            1,
+        );
+        $p1 = RulePathNudge::pointer($this->loadedRuleByKey('x1'));
+        $p2 = RulePathNudge::pointer($this->loadedRuleByKey('x2'));
+        $p3 = RulePathNudge::pointer($this->loadedRuleByKey('x3'));
+
+        self::assertSame(2, substr_count($rendered, 'deferred: budget. Read'), 'the pointer ceiling holds at two lines');
+        self::assertTrue(str_contains($rendered, $p1 . "\n" . $p2 . "\n" . $note), 'in loader order, with the overflow counted in the note');
+        self::assertSame(0, substr_count($rendered, $p3), 'the third deferral is counted, not pointed at twice over');
+        self::assertTrue(str_contains($rendered, '[1 further standing rule(s) deferred'));
+    }
+
+    /**
+     * Requirement 7(c): the boundary is the LAST BYTE THAT FITS. A rule whose
+     * framed section equals the whole-rules budget to the byte renders; one byte
+     * more defers to a pointer. This is what turns the budget from an
+     * approximately-right number into a measured gate.
+     */
+    public function testTheStandingBudgetBoundaryRendersTheLastFittingByteAndDefersOneMore(): void
+    {
+        $exact = $this->standingWholeBudget() - $this->userRuleFramingOverhead();
+        file_put_contents($this->packsDir . '/edge.md', 'EDGEMARK' . str_repeat('e', $exact - 8));
+
+        $fits = $this->render(RulesState::new());
+        self::assertStringContainsString('EDGEMARK', $fits, 'exactly on budget, it renders whole');
+        self::assertSame(0, substr_count($fits, 'deferred: budget'));
+
+        file_put_contents($this->packsDir . '/edge.md', 'EDGEMARK' . str_repeat('e', $exact - 7));
+
+        $over = $this->render(RulesState::new());
+        self::assertSame(0, substr_count($over, 'EDGEMARK'), 'one byte past it, the body is gone whole');
+        self::assertSame(
+            1,
+            substr_count($over, RulePathNudge::pointer($this->loadedRuleByKey('edge'))),
+            'and the pointer line is what stands in its place',
+        );
+    }
+
     // -- helpers --------------------------------------------------------------
 
     private function provider(): ProviderInterface
@@ -254,5 +364,48 @@ final class RulebookPromptRenderTest extends TestCase
         self::assertIsString($preamble, 'Runtime::USER_RULES_AUTHORITY_PREAMBLE must exist as a string constant');
 
         return $preamble;
+    }
+
+    /**
+     * The framed bytes a whole standing-rule section costs around one user-tier
+     * body: opener, preamble, blank line, body, closer. Derived from the same
+     * constant the splice reads rather than a copied count, so a preamble reword
+     * moves this with it instead of red-ing the boundary fixtures by accident.
+     */
+    private function userRuleFramingOverhead(): int
+    {
+        return strlen("<user-rules>\n") + strlen($this->preamble()) + 2 + strlen("\n</user-rules>");
+    }
+
+    /**
+     * What the two standing loops may spend on WHOLE rule sections: the ratified
+     * ceiling minus the reserved worst-case deferral framing, both read from the
+     * production class so the boundary fixtures test the real gate and not a
+     * re-derivation of it.
+     */
+    private function standingWholeBudget(): int
+    {
+        $reserve = new ReflectionMethod(Runtime::class, 'standingDeferReserve');
+        $reserve->setAccessible(true);
+        $ceiling = (new ReflectionClass(Runtime::class))->getConstant('MAX_STANDING_RULE_BYTES');
+
+        return (int) $ceiling - (int) $reserve->invoke(null);
+    }
+
+    /**
+     * The loader's own Rule for a pack written into this sandbox — the identity
+     * the pointer line is built from, taken from production parsing rather than a
+     * hand-made Rule, so frontmatter name fallback and path spelling are exactly
+     * what the splice saw.
+     */
+    private function loadedRuleByKey(string $key): Rule
+    {
+        foreach ((new RuleLoader($this->sandbox . '/repo'))->load() as $rule) {
+            if ($rule->key === $key) {
+                return $rule;
+            }
+        }
+
+        self::fail('the loader no longer emits a rule keyed ' . $key);
     }
 }
