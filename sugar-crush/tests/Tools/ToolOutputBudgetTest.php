@@ -85,11 +85,13 @@ use SugarCraft\Crush\Tools\BuiltIn\Write;
  * two shapes, which is how the 1.375x pin below came to be true of a call shape
  * the shipped tool no longer has.
  *
- * MEASURED, not inferred: the 1.375x assertion held at every cap because the
- * Read it built passes a `$skillNudge` and no `$ruleNudge`, so the state P6.S5b
- * added — both channels live, the one a launch with path-scoped rules actually
- * runs in — was policed by nothing in this file. Deleting the whole rule block
- * from `Read::execute()` at aba6b9278 left `ToolOutputBudgetTest` green.
+     * MEASURED, not inferred: the 1.375x assertion held at every cap because the
+     * Read it built passes a `$skillNudge` and no `$ruleNudge`, so the state P6.S5b
+     * added — both channels live, the one a launch with path-scoped rules actually
+     * runs in — was policed by nothing in this file. Deleting the whole rule block
+     * from `Read::execute()` left the old pin green (MEASURED at 864f5e407: OK,
+     * 1 test, 16 assertions) and reddens three rows of the new one.
+
  */
 final class ToolOutputBudgetTest extends TestCase
 {
@@ -1067,8 +1069,11 @@ final class ToolOutputBudgetTest extends TestCase
      * hard ceiling — {@see SkillPathNudge::maxBytes()} = 2,636 and
      * {@see RulePathNudge::maxBytes()} = 4,291. Read's shipped cap is 1 MiB, so its
      * eighth is 131,072 and the ceilings bind long before the shares do: measured
-     * at the default, a both-live Read returns 1,061,094 bytes against a stated
-     * 1.5x bound of 1,572,864 — the bound holds and is 32% slack. The share only
+     * at the default a both-live Read returns 1,061,094 bytes (this class's
+     * 9,611-byte governing file) against a stated 1.5x bound of 1,572,864, and the
+     * worst that geometry can reach at all is
+     * C + C/4 + 2,636 + 4,291 + 21 = 1,317,667 — 255,197 bytes, 16%, of slack.
+     * The share only
      * becomes the live constraint below
      * {@see SkillPathNudge::smallestUnclippedCallerCap()} = 21,088 and
      * {@see RulePathNudge::smallestUnclippedCallerCap()} = 34,328, which is what
@@ -1120,7 +1125,7 @@ final class ToolOutputBudgetTest extends TestCase
                 null,
                 [],
                 $withSkill ? $this->fatNudge(20, 20000) : null,
-                $withRule ? $this->fatRuleNudge(4, 300) : null,
+                $withRule ? $this->fatRuleNudge(4, 2000) : null,
             ))->execute(['file_path' => $path])->content();
 
             // The expectation is built from a SECOND tracker per channel, at the
@@ -1131,7 +1136,7 @@ final class ToolOutputBudgetTest extends TestCase
                 ? $this->fatNudge(20, 20000)->forPath($path, intdiv($maxBytes, SkillPathNudge::CALLER_BUDGET_DIVISOR))
                 : null;
             $ruleText = $withRule
-                ? $this->fatRuleNudge(4, 300)->forPath($path, intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR))
+                ? $this->fatRuleNudge(4, 2000)->forPath($path, intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR))
                 : null;
 
             self::assertSame(
@@ -1202,12 +1207,18 @@ final class ToolOutputBudgetTest extends TestCase
      * occupy its FULL cap with both channels live. Read's reserves are taken beside
      * the cap precisely so the named file is never squeezed, and a future
      * "simplification" that moves them inside it — the Glob/Grep disposition, which
-     * reads as the inconsistent one — would take 2,636 + 4,291 bytes off a read the
-     * caller asked for and stay inside every ceiling above.
+     * reads as the inconsistent one — would take 2,318 + 2,263 bytes, the two
+     * channels as this cap prices them, off a read the caller asked for, and stay
+     * inside every ceiling above.
      */
     public function testReadSpendsAllThreeReservesBesideItsCapWhenBothChannelsAreLive(): void
     {
-        $maxBytes = 8192;
+        // 21,000, not 1 MiB: at the shipped default both eighths (131,072 each)
+        // dwarf what the trackers can ever emit, so the shares bind only below
+        // each channel's smallestUnclippedCallerCap(). At this cap the skill text
+        // costs 2,318 of its 2,625 and the rule text 2,263 of the same, i.e. both
+        // reserves are the live constraint and a changed divisor cannot hide.
+        $maxBytes = 21000;
         $file = "<?php\n" . str_repeat("// filler line to make this file large\n", 5000);
         $path = $this->dir . '/sub/target.php';
         file_put_contents($path, $file);
@@ -1215,7 +1226,7 @@ final class ToolOutputBudgetTest extends TestCase
 
         $skillText = $this->fatNudge(20, 20000)
             ->forPath($path, intdiv($maxBytes, SkillPathNudge::CALLER_BUDGET_DIVISOR));
-        $ruleText = $this->fatRuleNudge(4, 300)
+        $ruleText = $this->fatRuleNudge(4, 2000)
             ->forPath($path, intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR));
 
         self::assertNotNull($skillText, 'the fixture must produce a skill nudge at this cap');
@@ -1228,7 +1239,7 @@ final class ToolOutputBudgetTest extends TestCase
             new InstructionFileLoader($this->dir),
             [],
             $this->fatNudge(20, 20000),
-            $this->fatRuleNudge(4, 300),
+            $this->fatRuleNudge(4, 2000),
         ))->execute(['file_path' => $path])->content();
 
         $tail = substr($file, 0, $maxBytes) . "\n... [truncated]" . "\n\n" . $skillText . "\n\n" . $ruleText;
@@ -1309,17 +1320,17 @@ final class ToolOutputBudgetTest extends TestCase
         foreach ([8192, 16384, 65536] as $cap) {
             $budget = intdiv($cap, RulePathNudge::CALLER_BUDGET_DIVISOR);
             $skillText = $this->fatNudge(20, 20000)->forPath($path, intdiv($cap, SkillPathNudge::CALLER_BUDGET_DIVISOR));
-            $ruleText = $this->fatRuleNudge(4, 300)->forPath($path, $budget);
+            $ruleText = $this->fatRuleNudge(4, 2000)->forPath($path, $budget);
             self::assertNotNull($skillText, "no skill nudge fits an eighth of $cap");
             self::assertNotNull($ruleText, "no rule nudge fits an eighth of $cap");
 
             // The floor the split owes the answer once BOTH channels have spent.
             $bodyCeiling = $cap - (strlen($skillText) + 1) - (strlen($ruleText) + 1);
 
-            $grep = (new Grep($this->dir, $cap, null, $this->fatNudge(20, 20000), false, $this->fatRuleNudge(4, 300)))
+            $grep = (new Grep($this->dir, $cap, null, $this->fatNudge(20, 20000), false, $this->fatRuleNudge(4, 2000)))
                 ->execute(['pattern' => 'NEEDLE_TOKEN', 'path' => $this->dir])
                 ->content();
-            $glob = (new Glob($this->dir, null, [], $this->fatNudge(20, 20000), $cap, 1000, null, false, $this->fatRuleNudge(4, 300)))
+            $glob = (new Glob($this->dir, null, [], $this->fatNudge(20, 20000), $cap, 1000, null, false, $this->fatRuleNudge(4, 2000)))
                 ->execute(['pattern' => 'sub/*.php', 'path' => $this->dir])
                 ->content();
 
