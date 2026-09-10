@@ -2731,7 +2731,7 @@ final class Runtime
             $sections[] = $this->section(
                 '<user-rules>',
                 Stability::PerSession,
-                self::standingDeferFence('<user-rules>', self::USER_RULES_AUTHORITY_PREAMBLE, $userDeferred, $userOverflow),
+                self::standingDeferFence('user-rules', self::USER_RULES_AUTHORITY_PREAMBLE, $userDeferred, $userOverflow),
             );
         }
 
@@ -2812,7 +2812,7 @@ final class Runtime
             $sections[] = $this->section(
                 '<project-instructions>',
                 Stability::PerSession,
-                self::standingDeferFence('<project-instructions>', self::INSTRUCTIONS_AUTHORITY_PREAMBLE, $projectDeferred, $projectOverflow),
+                self::standingDeferFence('project-instructions', self::INSTRUCTIONS_AUTHORITY_PREAMBLE, $projectDeferred, $projectOverflow),
             );
         }
 
@@ -2914,7 +2914,9 @@ final class Runtime
     /**
      * Build one tier's standing-rule deferral fence: the same opener, preamble and
      * closer geometry as a whole-rule section of that tier, with the escaped body
-     * replaced by its pointer lines and the counted-not-dropped note. Named rather
+     * replaced by its pointer lines and the counted-not-dropped note. $tag is the
+     * BARE fence name — 'user-rules', brackets added here — because the fence the
+     * model sees must be spelled by exactly one line of code. Named rather
      * than spelled twice so the two tiers cannot drift apart mid-file.
      *
      * @param list<string> $pointers lines from {@see RulePathNudge::pointer()}, at
