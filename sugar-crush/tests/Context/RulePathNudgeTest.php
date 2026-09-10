@@ -440,7 +440,7 @@ final class RulePathNudgeTest extends TestCase
         // {@see RulePathNudge::forPaths()} on its own.
         $nudge = RulePathNudge::new([
             self::scopedRule('/rules/tone.md', 'GUARD ISOLATION CANARY.', ['**/*.php']),
-            self::scopedRule('/rules/markdown.md', 'UNTOUCHED MARKDOWN RULE.', ['**/*.md']),
+            self::scopedRule('/rules/markdown.md', 'UNTOUCHED MARKDOWN RULE.', ['*.md']),
         ], RulesState::new(['tone']));
 
         self::assertTrue(self::reportsPending($nudge), 'the enabled, unannounced, unmatched rule holds the guard open');
