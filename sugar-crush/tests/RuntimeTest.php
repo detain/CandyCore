@@ -40,6 +40,7 @@ use SugarCraft\Crush\Tests\Support\DropsInsignificantTokensTrait;
 use SugarCraft\Crush\Tests\Support\FlattensSourceProseTrait;
 use SugarCraft\Crush\Tests\Support\HomeSandboxTrait;
 use SugarCraft\Crush\Tests\Tools\BuiltInToolCorpus;
+use SugarCraft\Crush\Tools\ParallelSafe;
 use SugarCraft\Crush\Tools\Tool;
 use SugarCraft\Crush\Tools\ToolCall;
 use SugarCraft\Crush\Tools\ToolResult;
@@ -831,6 +832,422 @@ final class RuntimeTest extends TestCase
                 return HookResult::allow('', $this->additionalContext);
             }
         };
+    }
+
+    /**
+     * FU6: the PRE half of the same consumer pair. A permitting PreToolUse hook's
+     * collected note used to die inside `gate()` — the verdict left scope with its
+     * `additionalContext` unconsumed. Now the permit arms carry it to `settle()`,
+     * which appends it through the existing {@see \SugarCraft\Crush\Runtime::annotate()}
+     * seam. This is the path a plain `ScriptHook` on its DEFAULT event (PreToolUse,
+     * exit-0 stdout) actually takes, which is what the HOOKS.md operator claim
+     * promises. Red on revert: drop the pre-context append in `settle()` and the
+     * note never reaches `content()`.
+     */
+    public function testAPermittingPreToolUseHookNoteReachesTheModelResult(): void
+    {
+        $this->hookRegistry->register(
+            $this->createPreToolUseNoteHook('pre_note_for_the_model'),
+        );
+
+        $tool = $this->createMockTool('preguarded_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_pre', 'preguarded_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(
+            "Executed successfully\n\npre_note_for_the_model",
+            $results[0]->content(),
+        );
+        $this->assertFalse($results[0]->isError());
+    }
+
+    /**
+     * The polarity pair of the test above: a pre-chain that collected nothing must
+     * stamp nothing. `settle()` skips `annotate()` entirely on an empty note, so the
+     * result stays BYTE-IDENTICAL to the no-hook run.
+     */
+    public function testAnEmptyPreToolUseNoteLeavesTheToolResultByteIdentical(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook(''));
+
+        $tool = $this->createMockTool('quiet_pre_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_quiet_pre', 'quiet_pre_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Executed successfully', $results[0]->content());
+    }
+
+    /**
+     * The exact model-visible slot ORDER is `result\n\npre\n\npost`: the
+     * `PostToolUse` chain observes the RAW tool output, then the pre-note is
+     * appended, then the post-note. Pinned with both hooks firing at once and
+     * every needle counted to prove neither fires twice. Red on revert: reorder
+     * the two `annotate()` calls in `settle()` and this is the test that goes red.
+     */
+    public function testPreAndPostHookNotesLandOnTheResultInPinnedOrder(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('PRE_SLOT'));
+        $this->hookRegistry->register($this->createPostToolUseContextHook('POST_SLOT'));
+
+        $tool = $this->createMockTool('both_notes_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_both', 'both_notes_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame(
+            "Executed successfully\n\nPRE_SLOT\n\nPOST_SLOT",
+            $results[0]->content(),
+        );
+        $this->assertSame(1, substr_count($results[0]->content(), 'PRE_SLOT'));
+        $this->assertSame(1, substr_count($results[0]->content(), 'POST_SLOT'));
+    }
+
+    /**
+     * DENY must not leak a note. A deny verdict short-circuits to
+     * {@see \SugarCraft\Crush\Runtime::failure()} and never reaches `settle()`,
+     * and the deny arm returns the note slot pinned to `''` — and a deny verdict
+     * carrying its OWN `additionalContext` still drops it on the gate floor
+     * (HookRegistry returns a blocking verdict verbatim without the chain
+     * collection). Byte-exact denial content + zero occurrences of either needle.
+     */
+    public function testADeniedPreToolUseHookNeverCarriesCollectedNotes(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('NOTE_BEFORE_DENY'));
+        $this->hookRegistry->register($this->createDenyHookCarryingContext('blocked_by_policy'));
+
+        $tool = $this->createMockTool('guarded_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_deny', 'guarded_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Hook denied: blocked_by_policy', $results[0]->content());
+        $this->assertTrue($results[0]->isError());
+        $this->assertSame(0, substr_count($results[0]->content(), 'NOTE_BEFORE_DENY'));
+        $this->assertSame(0, substr_count($results[0]->content(), 'DENY_OWN_NOTE'));
+    }
+
+    /**
+     * A tool the runtime cannot resolve never reaches the gate at all, so the
+     * registered pre-note hook is never consulted and its note cannot leak into
+     * the not-found failure either. Pins the early-exit arm of the sequential path.
+     */
+    public function testAnUnknownToolNeverConsultsThePreHookChain(): void
+    {
+        $consulted = 0;
+        $this->hookRegistry->register($this->createCountingPreNoteHook($consulted));
+
+        $tool = $this->createMockTool('known_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_ghost', 'ghost_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+
+        $this->assertCount(1, $results);
+        $this->assertSame('Tool not found: ghost_tool', $results[0]->content());
+        $this->assertSame(0, $consulted);
+    }
+
+    /**
+     * The second hop: the note must survive into the bytes the provider actually
+     * receives. `completeAsync()` FORKS — capture would die in the child — so
+     * this goes through {@see providerRequestBodyForMessages()} instead, which
+     * calls `CustomProvider::complete()` DIRECTLY over a Guzzle `MockHandler`
+     * with a history middleware (the P7.S1 two-step pattern) and hands back the
+     * literal request body. No engine is involved: the provider is built
+     * non-streaming, so that call is the same `ProviderInterface::complete()` hop
+     * `Runtime` makes in its batch dispatch — the one `EngineBackend::complete()`
+     * would eventually reach — minus the loop around it. `assertSame(1, ...)`
+     * pins exactly-once: no double-append through gate and settle both holding
+     * the string.
+     */
+    public function testAPreToolUseHookNoteReachesTheProviderRequestBody(): void
+    {
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('FU6_PROVIDER_BOUND_NOTE'));
+
+        $tool = $this->createMockTool('payload_tool', 'Executed successfully');
+        $toolCall = new ToolCall('call_payload', 'payload_tool', []);
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [[$toolCall], $app]));
+        $this->assertCount(1, $results);
+
+        $body = $this->providerRequestBodyForMessages([$results[0]]);
+
+        $this->assertSame(1, substr_count($body, 'FU6_PROVIDER_BOUND_NOTE'));
+        $this->assertStringContainsString('"role":"tool"', $body);
+    }
+
+    /**
+     * FU6, the CONCURRENT half of the pre-note carry — the arm none of the cases
+     * above reaches. `executeConcurrently()` gates the WHOLE group in this
+     * process before a single child exists and stores each call's collected note
+     * on its job as `preContext`; `release()` then hands that slot to
+     * {@see \SugarCraft\Crush\Runtime::settle()} as each child is reaped, so the
+     * note is carried per CALL rather than per group.
+     *
+     * RED ON REVERT: blanking the job write in that phase-1 build is invisible to
+     * every sequential case in this file — they never build a job at all, which is
+     * precisely why the slot could go unwritten with the suite green — so this is
+     * the test that reddens, and it reddens on both siblings.
+     *
+     * THE ARM IS PROVEN, NOT ASSUMED: a group can silently degrade to in-process
+     * execution (`runsConcurrently()` says no without ext-pcntl, and a fork that
+     * returns -1 runs that one call here), and the assertion above would still
+     * pass on the sequential path because `settle()` is shared. So the tool body
+     * reports the pid it ran in and the test requires it to be a child of this
+     * process — the child of a group member that never forked is this pid, and
+     * that reds with the reason in its message.
+     */
+    public function testAPermittingPreToolUseNoteSurvivesTheConcurrentGateArm(): void
+    {
+        if (!function_exists('pcntl_fork') || !function_exists('pcntl_waitpid')) {
+            $this->markTestSkipped('Concurrent tool dispatch requires ext-pcntl.');
+        }
+
+        $pidDir = $this->makeTempRepo();
+        $this->hookRegistry->register($this->createPreToolUseNoteHook('FU6_PARALLEL_PRE_NOTE'));
+
+        $tool = $this->createPidReportingParallelTool('parallel_note_tool', $pidDir);
+        $calls = [
+            new ToolCall('call_par_a', 'parallel_note_tool', ['sibling' => 'A']),
+            new ToolCall('call_par_b', 'parallel_note_tool', ['sibling' => 'B']),
+        ];
+        $app = App::new($this->provider, 'gpt-4')->withTools([$tool]);
+
+        $results = iterator_to_array($this->invokePrivateMethod($this->runtime, 'executeToolCalls', [$calls, $app]));
+
+        // Provider order is kept by the reaper, and the note rides on the call it
+        // was collected for — so both halves of this pairing have to hold.
+        $this->assertCount(2, $results);
+        $this->assertSame(
+            ['call_par_a', 'call_par_b'],
+            array_map(static fn (ToolResultMessage $m): string => $m->toolCallId(), $results),
+        );
+
+        foreach (['A', 'B'] as $index => $sibling) {
+            $this->assertSame(
+                "OUTPUT_OF_{$sibling}\n\nFU6_PARALLEL_PRE_NOTE",
+                $results[$index]->content(),
+                "the pre-note collected for sibling {$sibling} must reach its model-visible result",
+            );
+            $this->assertFalse($results[$index]->isError());
+
+            // Written by the body, read after the production reap: the payload
+            // file only becomes readable once the child has exited, so there is
+            // nothing to wait for here.
+            $childPid = (int) @file_get_contents($pidDir . "/{$sibling}.pid");
+            $this->assertGreaterThan(0, $childPid, "sibling {$sibling} never reported a pid");
+            $this->assertNotSame(
+                getmypid(),
+                $childPid,
+                "sibling {$sibling} ran in THIS process, so the assertions above measured the sequential arm, not the concurrent one",
+            );
+        }
+    }
+
+    /**
+     * A permitting PreToolUse hook whose collected note is exactly $additionalContext.
+     * The Runtime-side producer twin of {@see self::createPostToolUseContextHook()},
+     * shaped after what a default-event ScriptHook's exit-0 stdout produces.
+     */
+    private function createPreToolUseNoteHook(string $additionalContext): HookInterface
+    {
+        return new class($additionalContext) implements HookInterface {
+            public function __construct(
+                private string $additionalContext,
+            ) {}
+
+            public function name(): string
+            {
+                return 'pre_ctx_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return HookResult::allow('', $this->additionalContext);
+            }
+        };
+    }
+
+    /**
+     * A {@see ParallelSafe} tool whose body reports the pid it ran into, so a test
+     * can tell a concurrent group from a group that silently degraded to running
+     * in-process.
+     *
+     * WHY THIS IS NOT {@see self::createMockTool()} with a mock interface added:
+     * the claim being pinned is about a REAL `pcntl_fork()`, and the evidence has
+     * to cross the process boundary. A mock cannot answer `isParallelSafe()` at all
+     * (`Runtime::runsConcurrently()` tests `$tool instanceof ParallelSafe`), and a
+     * property bumped in the child is invisible to the parent — so the body writes
+     * `<sibling>.pid` into $pidDir, a directory the parent only reads after the
+     * production reap. Distinctly named from every other tool factory in this tree
+     * because its payload is a pid, and the `$args['sibling']` label is what makes
+     * two calls of ONE tool instance tell apart in the results.
+     */
+    private function createPidReportingParallelTool(string $name, string $pidDir): Tool
+    {
+        return new class($name, $pidDir) implements Tool, ParallelSafe {
+            public function __construct(
+                private string $toolName,
+                private string $pidDirectory,
+            ) {}
+
+            public function name(): string
+            {
+                return $this->toolName;
+            }
+
+            public function description(): string
+            {
+                return 'reports the pid its body executed in';
+            }
+
+            public function inputSchema(): array
+            {
+                return ['type' => 'object'];
+            }
+
+            public function isParallelSafe(): bool
+            {
+                return true;
+            }
+
+            public function execute(array $args): ToolResult
+            {
+                $sibling = (string) ($args['sibling'] ?? 'anon');
+                file_put_contents($this->pidDirectory . '/' . $sibling . '.pid', (string) getmypid());
+
+                return new ToolResult(
+                    toolCallId: $sibling,
+                    content: 'OUTPUT_OF_' . $sibling,
+                );
+            }
+        };
+    }
+
+    /**
+     * A DENY verdict that itself carries an `additionalContext`. Distinctly named
+     * (and distinctly bodied) from every other pre-hook factory in this tree so the
+     * duplicated-helper drift guard keeps its distance — this one's whole point is
+     * the verdict KIND, which the note hooks never produce.
+     */
+    private function createDenyHookCarryingContext(string $message): HookInterface
+    {
+        return new class($message) implements HookInterface {
+            public function __construct(
+                private string $message,
+            ) {}
+
+            public function name(): string
+            {
+                return 'deny_with_ctx_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                return HookResult::deny($this->message, 'DENY_OWN_NOTE');
+            }
+        };
+    }
+
+    /**
+     * Pre-hook that counts executions and emits a note — for the arm where the
+     * chain must NOT run (tool resolution fails first). The by-reference counter
+     * is why this is not just {@see self::createPreToolUseNoteHook()} reused.
+     */
+    private function createCountingPreNoteHook(int &$consulted): HookInterface
+    {
+        return new class($consulted) implements HookInterface {
+            public function __construct(
+                private int &$consulted,
+            ) {}
+
+            public function name(): string
+            {
+                return 'counting_pre_hook';
+            }
+
+            public function event(): HookEvent
+            {
+                return HookEvent::PreToolUse;
+            }
+
+            public function matcher(): string
+            {
+                return '.*';
+            }
+
+            public function execute(HookContext $context): HookResult
+            {
+                ++$this->consulted;
+
+                return HookResult::allow('', 'NOTE_ON_UNRESOLVED_PATH');
+            }
+        };
+    }
+
+    /**
+     * The literal HTTP body a real `CustomProvider` posts for $messages.
+     *
+     * Named and bodied apart from the SessionStart wire test's own capture helper
+     * (that one drives a full turn through a recorder backend); this one serves the
+     * narrower job of serializing an already-produced message list — `completeAsync()`
+     * FORKS, so an in-parent capture only works on the synchronous HTTP hop, and the
+     * provider's `formatMessages()` is the exact mapping that puts a
+     * {@see ToolResultMessage} on the wire as `role:"tool"`.
+     *
+     * @param list<Message> $messages
+     */
+    private function providerRequestBodyForMessages(array $messages): string
+    {
+        $sink = [];
+        $stack = \GuzzleHttp\HandlerStack::create(new \GuzzleHttp\Handler\MockHandler([
+            new \GuzzleHttp\Psr7\Response(200, ['Content-Type' => 'application/json'], '{"choices":[{"message":{"content":"ok"}}],"usage":{"total_tokens":1}}'),
+        ]));
+        $stack->push(\GuzzleHttp\Middleware::history($sink));
+
+        $client = new \GuzzleHttp\Client([
+            'base_uri' => 'https://api.example.com/',
+            'handler' => $stack,
+        ]);
+
+        $provider = new \SugarCraft\Crush\Providers\CustomProvider('custom', 'https://api.example.com', 'gpt-4', null, $client, false, false);
+
+        $provider->complete(new CompleteRequest(model: 'gpt-4', messages: $messages));
+
+        $this->assertCount(1, $sink);
+
+        return (string) $sink[0]['request']->getBody();
     }
 
     // =========================================================================

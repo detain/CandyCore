@@ -1618,7 +1618,7 @@ final class Runtime
 
         $context = $this->hookContext($toolCall, $tool, $app);
 
-        [$args, $denial, $context] = $this->gate($toolCall, $context, $onPermissionRequest);
+        [$args, $denial, $context, $preContext] = $this->gate($toolCall, $context, $onPermissionRequest);
         if ($denial !== null) {
             return $this->failure($toolCall, $denial, $onEvent);
         }
@@ -1647,7 +1647,7 @@ final class Runtime
             $result = self::executionFailure($tool, $toolCall, $e);
         }
 
-        return $this->settle($toolCall, $context, $result, $onEvent);
+        return $this->settle($toolCall, $context, $result, $onEvent, $preContext);
     }
 
     /**
@@ -1727,6 +1727,7 @@ final class Runtime
                     'context' => null,
                     'args' => [],
                     'denied' => "Tool not found: {$toolCall->name()}",
+                    'preContext' => '',
                     'pid' => null,
                     'file' => null,
                     'result' => null,
@@ -1737,7 +1738,7 @@ final class Runtime
             }
 
             $context = $this->hookContext($toolCall, $tool, $app);
-            [$args, $denial, $context] = $this->gate($toolCall, $context, $onPermissionRequest);
+            [$args, $denial, $context, $preContext] = $this->gate($toolCall, $context, $onPermissionRequest);
 
             $jobs[] = [
                 'call' => $toolCall,
@@ -1745,6 +1746,7 @@ final class Runtime
                 'context' => $context,
                 'args' => $args ?? [],
                 'denied' => $denial,
+                'preContext' => $preContext,
                 'pid' => null,
                 // Reserved HERE, not next to the fork that uses it, so that
                 // every child inherits the whole group's ledger rather than
@@ -1943,9 +1945,17 @@ final class Runtime
      * in a concurrent group it is called during phase 1, before any child
      * exists, so nothing can run past a question that has not been answered.
      *
-     * @return array{0: ?array<string, mixed>, 1: ?string, 2: HookContext}
+     * The fourth slot is the chain-collected `additionalContext` the PRE gate
+     * turns up — carried to `settle()` on the permit arms and pinned to `''` on
+     * every non-permitting arm, so a DENY verdict's collected note can never
+     * reach a model-visible slot (the denial text is the only thing that
+     * surfaces). `settleAsk()` → `HookManager::resolveAsk()` already merged the
+     * chain's note into a settled ASK's verdict, so an approved question carries
+     * it through this same arm; an unanswered one lands on the deny arm below.
+     *
+     * @return array{0: ?array<string, mixed>, 1: ?string, 2: HookContext, 3: string}
      *     [arguments, denial reason, the context describing the call that will
-     *     actually run — see below]
+     *     actually run, the pre-hook model-visible note (empty unless permitted)]
      */
     private function gate(ToolCall $toolCall, HookContext $context, ?callable $onPermissionRequest): array
     {
@@ -1978,7 +1988,7 @@ final class Runtime
         }
 
         if (!$hookResult->isAllowed() && !$hookResult->isModified()) {
-            return [null, $kind->reason($hookResult->message), $context];
+            return [null, $kind->reason($hookResult->message), $context, ''];
         }
 
         // A MODIFY hook rewrites the tool input before execution.
@@ -1995,7 +2005,7 @@ final class Runtime
             $context = $context->withRewrittenArgs($args, (string) $hookResult->modifiedInput);
         }
 
-        return [$args, null, $context];
+        return [$args, null, $context, $hookResult->additionalContext];
     }
 
     /**
@@ -2036,18 +2046,28 @@ final class Runtime
 
         $result = $job['result'] ?? $this->collectChildResult($job);
 
-        return $this->settle($job['call'], $job['context'], $result, $onEvent);
+        return $this->settle($job['call'], $job['context'], $result, $onEvent, (string) ($job['preContext'] ?? ''));
     }
 
     /**
-     * The tail every executed call shares: PostToolUse, {@see ToolFinished},
-     * and the {@see ToolResultMessage} the model sees.
+     * The tail every executed call shares: the pre-hook note (if any), then
+     * PostToolUse, {@see ToolFinished}, and the {@see ToolResultMessage} the
+     * model sees.
+     *
+     * $preContext is the `additionalContext` {@see gate()} collected before the
+     * call ran, appended through the same {@see self::annotate()} seam as the
+     * post-hook note. It lands FIRST — before the `PostToolUse` chain even
+     * observes the output — so the model-visible bytes are
+     * `result\n\npre\n\npost`, an order deterministic by construction rather
+     * than by timing. An empty note is the no-op the POST side already is:
+     * `annotate()` is not called and the result stays byte-identical.
      */
     private function settle(
         ToolCall $toolCall,
         HookContext $context,
         ToolResult $result,
         ?callable $onEvent,
+        string $preContext = '',
     ): ToolResultMessage {
         // Post-hook observes the tool output. HookRegistry::executeHooks()
         // calls $hook->execute() bare, so a ScriptHook whose script is
@@ -2055,6 +2075,12 @@ final class Runtime
         // a hook is OBSERVABILITY, not the answer. The tool already ran
         // and its output is valid, so the failure is reported alongside
         // that output rather than replacing it or discarding the turn.
+        //
+        // The post verdict is CAPTURED first and appended after $preContext,
+        // which keeps two orders independent: the hook still observes the RAW
+        // tool output (pre-notes are model-visible context, not the tool's
+        // stdout), and the model-visible bytes land as `result\n\npre\n\npost`.
+        $postNote = '';
         try {
             $hookResult = $this->hookManager->postToolUse($context->withToolOutput($result->content()));
             // A permitting PostToolUse hook's stdout now REACHES THE MODEL: the
@@ -2065,15 +2091,21 @@ final class Runtime
             // EXISTING blessed {@see self::annotate()} seam so it lands in the
             // model-visible content with no new wire shape. Empty context is a
             // no-op (annotate not called) and leaves the result BYTE-IDENTICAL.
-            if ($hookResult->additionalContext !== '') {
-                $result = self::annotate($result, $hookResult->additionalContext);
-            }
+            $postNote = $hookResult->additionalContext;
         } catch (\Throwable $e) {
-            $result = self::annotate($result, sprintf(
+            $postNote = sprintf(
                 '[PostToolUse hook failed: %s: %s]',
                 $e::class,
                 $e->getMessage(),
-            ));
+            );
+        }
+
+        if ($preContext !== '') {
+            $result = self::annotate($result, $preContext);
+        }
+
+        if ($postNote !== '') {
+            $result = self::annotate($result, $postNote);
         }
 
         // A listener that throws is a UI bug. It must not take the turn's
