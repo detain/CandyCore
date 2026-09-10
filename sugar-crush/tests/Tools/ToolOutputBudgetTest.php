@@ -89,8 +89,9 @@ use SugarCraft\Crush\Tools\BuiltIn\Write;
      * Read it built passes a `$skillNudge` and no `$ruleNudge`, so the state P6.S5b
      * added — both channels live, the one a launch with path-scoped rules actually
      * runs in — was policed by nothing in this file. Deleting the whole rule block
-     * from `Read::execute()` left the old pin green (MEASURED at 864f5e407: OK,
-     * 1 test, 16 assertions) and reddens three rows of the new one.
+     * from `Read::execute()` left the old pin green (MEASURED: the pre-FU2 version
+     * of it, as of a40b13ca6, ran OK — 1 test, 16 assertions — against that
+     * mutant) and reddens three rows of the new one.
 
  */
 final class ToolOutputBudgetTest extends TestCase
