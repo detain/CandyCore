@@ -672,7 +672,7 @@ final class Chat implements Model
          * state) a second time, and would re-ask the question the user just
          * answered.
          *
-         * @var list<array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult}>
+          * @var list<array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult, 4: string}>
          */
         private readonly array $pendingPermissionJobs = [],
         /**
@@ -2529,7 +2529,11 @@ final class Chat implements Model
 
                 $answered = $job[0] === $request->toolCall || ($grants[$job[0]->name] ?? false);
 
-                return $answered ? [$job[0], $job[1], $job[2], null] : $job;
+                // Drop ONLY the ASK the user just answered; slot 4 (the pre-hook
+                // note) rides across the re-entry so a settled question's
+                // model-visible context reaches the result the same way an
+                // immediate permission's does.
+                return $answered ? [$job[0], $job[1], $job[2], null, $job[4]] : $job;
             },
             $jobs,
         );
@@ -3517,7 +3521,7 @@ final class Chat implements Model
         $canFork = function_exists('pcntl_fork') && function_exists('pcntl_waitpid');
 
         $jobs = [];
-        foreach ($gated as [$toolCall, $denied, $hookContext, $ask]) {
+        foreach ($gated as [$toolCall, $denied, $hookContext, $ask, $preContext]) {
             if ($ask !== null) {
                 // Reaching the fork boundary with an unanswered ASK means the
                 // batch was released without the user deciding on this call.
@@ -3538,12 +3542,12 @@ final class Chat implements Model
                 // replaces beginToolCalls()'s "running" placeholder for it
                 // exactly as it does for an executed call, instead of leaving
                 // a spinner that never resolves.
-                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $denied, 'hookContext' => null];
+                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $denied, 'hookContext' => null, 'preContext' => ''];
                 continue;
             }
 
             if (!$canFork) {
-                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $this->executeToolSynchronously($toolCall), 'hookContext' => $hookContext];
+                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $this->executeToolSynchronously($toolCall), 'hookContext' => $hookContext, 'preContext' => $preContext];
                 continue;
             }
 
@@ -3556,7 +3560,7 @@ final class Chat implements Model
             if ($pid === -1) {
                 // Fork failed for this call only - run it synchronously right
                 // here, same as the no-pcntl fallback.
-                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $this->executeToolSynchronously($toolCall), 'hookContext' => $hookContext];
+                $jobs[] = ['toolCall' => $toolCall, 'file' => null, 'pid' => null, 'result' => $this->executeToolSynchronously($toolCall), 'hookContext' => $hookContext, 'preContext' => $preContext];
                 continue;
             }
 
@@ -3565,7 +3569,7 @@ final class Chat implements Model
                 \SugarCraft\Crush\Support\ForkedChild::exitNow(0);
             }
 
-            $jobs[] = ['toolCall' => $toolCall, 'file' => $file, 'pid' => $pid, 'result' => null, 'hookContext' => $hookContext];
+            $jobs[] = ['toolCall' => $toolCall, 'file' => $file, 'pid' => $pid, 'result' => null, 'hookContext' => $hookContext, 'preContext' => $preContext];
         }
 
         return $jobs;
@@ -3591,16 +3595,21 @@ final class Chat implements Model
      * {@see PermissionReply::Always} for skips that: the ASK becomes plain
      * permission, with its HookContext intact so `PostToolUse` still runs.
      *
-     * @return array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult}
+     * @return array{0: ToolCall, 1: ?ToolResult, 2: ?HookContext, 3: ?\SugarCraft\Crush\Hooks\HookResult, 4: string}
      *     [the call to execute (arguments rewritten by a MODIFY hook), a
      *     pre-resolved error result when the call was DENIED, the context to
      *     hand `PostToolUse` once the call finishes (null when it will not
-     *     run), the unanswered ASK decision when one is outstanding]
+     *     run), the unanswered ASK decision when one is outstanding, the
+     *     pre-hook model-visible note (empty on every non-permitting arm —
+     *     a DENY's collected note must not reach a result slot; an ASK's
+     *     note rides its settled verdict because {@see HookRegistry::executeHooks()}
+     *     rebuilds the question carrying it, and dies with the call when the
+     *     park is never answered)]
      */
     private function gateToolCall(ToolCall $toolCall): array
     {
         if ($this->hooks === null || !isset($this->tools[$toolCall->name])) {
-            return [$toolCall, null, null, null];
+            return [$toolCall, null, null, null, ''];
         }
 
         $context = new HookContext(
@@ -3629,8 +3638,8 @@ final class Chat implements Model
             [$toolCall, $context] = self::applyRewrite($toolCall, $context, $hookResult);
 
             return ($this->permissionGrants[$toolCall->name] ?? false)
-                ? [$toolCall, null, $context, null]
-                : [$toolCall, null, $context, $hookResult];
+                ? [$toolCall, null, $context, null, $hookResult->additionalContext]
+                : [$toolCall, null, $context, $hookResult, $hookResult->additionalContext];
         }
 
         if (!$hookResult->isAllowed() && !$hookResult->isModified()) {
@@ -3639,12 +3648,13 @@ final class Chat implements Model
                 ToolResult::error($toolCall->name, DenialKind::Hook->reason($hookResult->message), $toolCall->id),
                 null,
                 null,
+                '',
             ];
         }
 
         [$toolCall, $context] = self::applyRewrite($toolCall, $context, $hookResult);
 
-        return [$toolCall, null, $context, null];
+        return [$toolCall, null, $context, null, $hookResult->additionalContext];
     }
 
     /**
@@ -3696,6 +3706,39 @@ final class Chat implements Model
     }
 
     /**
+     * Append one model-visible note to a tool result's content.
+     *
+     * The Chat-path twin of {@see Runtime::annotate()}: an empty note returns
+     * the SAME instance untouched (byte-identical no-op), a non-empty one lands
+     * on whichever half the provider actually reads — `error ?? result`, exactly
+     * what `toWire()`/`toEngineResult()` emit — so a note reaches the model
+     * regardless of whether the call succeeded.
+     */
+    private static function withAppendedModelNote(ToolResult $result, string $note): ToolResult
+    {
+        if ($note === '') {
+            return $result;
+        }
+
+        return new ToolResult(
+            $result->name,
+            $result->error === null
+                ? ($result->result === '' ? $note : $result->result . "\n\n" . $note)
+                : $result->result,
+            $result->error === null
+                ? null
+                : ($result->error . "\n\n" . $note),
+            $result->id,
+            $result->imageBytes,
+            $result->imagePath,
+            $result->imageProtocol,
+            $result->diff,
+            $result->durationMs,
+            $result->description,
+        );
+    }
+
+    /**
      * Run the `PostToolUse` hook chain over a finished tool call's output,
      * in the parent process, and return the result unchanged.
      *
@@ -3703,41 +3746,31 @@ final class Chat implements Model
      * pre-hook never allowed the call (no hooks wired, unknown tool, or a
      * DENY), which is also when {@see Runtime} skips its own postToolUse -
      * a call that never ran has no output to observe.
+     *
+     * `$preContext` is the note {@see gateToolCall()} collected before the call
+     * ran, appended on the same seam the post-hook note uses and in the same
+     * order as {@see Runtime::settle()}: the post chain observes the RAW tool
+     * output first, then pre, then post, so the model-visible bytes are
+     * `result\n\npre\n\npost` and an unused field stays byte-identical.
      */
-    private function applyPostToolUse(?HookContext $context, ToolResult $result): ToolResult
-    {
+    private function applyPostToolUse(
+        ?HookContext $context,
+        ToolResult $result,
+        string $preContext = '',
+    ): ToolResult {
+        $postNote = '';
         if ($context !== null && $this->hooks !== null) {
             // R-1: the Chat path's live consumer of a permitting hook's
             // `additionalContext` — the same field Runtime::settle() appends on
-            // the engine path. It is appended to the MODEL-VISIBLE content
-            // (`error ?? result`, exactly what toWire()/toEngineResult() emit) so
-            // the note reaches the provider regardless of which half carries the
-            // body. Empty context (every chain that produced no stdout) returns
-            // $result UNCHANGED — byte-identical no-op when the field is unused.
+            // the engine path. The verdict is captured here and appended below
+            // after the pre-note, so the hook still observes the raw output.
             $hookResult = $this->hooks->postToolUse($context->withToolOutput($result->result));
-            $note = $hookResult->additionalContext;
-
-            if ($note !== '') {
-                $result = new ToolResult(
-                    $result->name,
-                    $result->error === null
-                        ? ($result->result === '' ? $note : $result->result . "\n\n" . $note)
-                        : $result->result,
-                    $result->error === null
-                        ? null
-                        : ($result->error . "\n\n" . $note),
-                    $result->id,
-                    $result->imageBytes,
-                    $result->imagePath,
-                    $result->imageProtocol,
-                    $result->diff,
-                    $result->durationMs,
-                    $result->description,
-                );
-            }
+            $postNote = $hookResult->additionalContext;
         }
 
-        return $result;
+        $result = self::withAppendedModelNote($result, $preContext);
+
+        return self::withAppendedModelNote($result, $postNote);
     }
 
     /**
@@ -4002,7 +4035,7 @@ final class Chat implements Model
      * Chat::update()) also lands here via $cancellation, same as it does
      * for the backend call.
      *
-     * @param list<array{toolCall: ToolCall, file: ?string, pid: ?int, result: ?ToolResult, hookContext: ?HookContext}> $jobs
+     * @param list<array{toolCall: ToolCall, file: ?string, pid: ?int, result: ?ToolResult, hookContext: ?HookContext, preContext: string}> $jobs
      * @return PromiseInterface<list<ToolResult>>
      */
     private function waitForToolChildrenAsync(array $jobs, CancellationToken $cancellation): PromiseInterface
@@ -4011,10 +4044,12 @@ final class Chat implements Model
 
         // PostToolUse runs here, on the parent's side of the fork boundary,
         // for the same reason PreToolUse runs before the fork - see
-        // forkToolCalls()'s docblock.
+        // forkToolCalls()'s docblock. The pre-hook note crosses the same
+        // boundary inside the job array and is appended by the same call.
         $collect = fn(array $job): ToolResult => $this->applyPostToolUse(
             $job['hookContext'] ?? null,
             $job['result'] ?? $this->collectToolResult((string) $job['file'], $job['toolCall']),
+            (string) ($job['preContext'] ?? ''),
         );
 
         $pendingIndexes = [];
