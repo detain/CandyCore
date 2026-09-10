@@ -253,6 +253,76 @@ silently widened; the orchestrator approved the widening before the fix agent pr
 
 ## ENTRIES
 
+### FU PROGRAM: six authorized follow-ups — ALL MERGED + GATED (2026-09-09/10)
+
+**Status** `complete`. **Master tip at record time** `e4416c32b` (FU6 merge). **NEW FLOOR 11,267 / 172,237 / 0F / 0E / Skipped 2 / EXIT 0.** Goldens UNMOVED at every checkpoint.
+
+**Authorization** — user message m0198 (2026-09-09): run all six follow-ups through the standard loop (staff → build → review cycles → prediction-first FULL-suite gate → merge) after PLAN COMPLETE (phrased "65/65 at `a40b13ca6`"). CORRECTED per disk: `a40b13ca6` is the final markdown resume stamp ("resume: PLAN COMPLETE — 65 of 65…"); the 65/65 CODE completion merge was `aba6b9278` (P6.S5b). Merge chain of the program, in landing order: `5d5b86aa2` (FU4) → `46283ba7e` (FU1) → `d30ca3287` (FU2) → `8e2902a3a` (FU3) → `d06db88c5` (FU5) → six foreign-lane master commits → `e4416c32b` (FU6).
+
+**Gate discipline (all six)** — every gate ran the FULL suite detached (`setsid`), artifacts under `/tmp/opencode/FU*/` + `/tmp/opencode/FU*-merge/` (run.log + PREDICTION.txt + master.xml); every gate prediction-first EXACT, zero movers on cmp. Goldens re-measured pre == post at EVERY checkpoint: system `f5de3858c1bc130d1e97a120d3ead485` / 8,278 B + agent `ef0326dd38535aaa2f1d715919bff26e` / 1,060 B (figures are BYTES, not lines; re-verified by this bookkeeping batch on master disk = MATCH).
+
+#### FU1 — gate the rule-nudge channel on the session's rulebook toggle set
+
+The transient `RulePathNudge` channel now honors `disabledRules` and `/rules` state: reached via a per-call `RulesState::effectiveRule` conjunction, threaded through trailing defaulted `?RulesState` params on `Bootstrap::tools()` / `backend()` / `backendFor()` (no public boot signature breaks — `:2315`/`:2472` verified on disk). D1 — the splice's `instanceof PathTrigger`-only deferral test — proven load-bearing: widening it reddened a golden (mutation red). **Branch tip** `0b2054d85` (3 commits from `5d5b86aa2`: `babda4a4d`, `9595075b7`, `0b2054d85`). **Merge** `46283ba7e` (parents `5d5b86aa2` + `0b2054d85`). **Gate** Tests 11,229 / Assertions 171,760 / 2S.
+
+#### FU2 — police Read's nudge-overhead arithmetic across 4 states
+
+Retuned the stale `ToolOutputBudgetTest` 1.375x pin to the both-live 1.5x + 21 B chrome truth (`READ_BOTH_CHANNEL_CHROME_BYTES = 21`, `:112`). FINDING — the brief's own premise ("per-call overhead is now 1.5x") is FALSE at shipped defaults: the eighth cap 131,072 dwarfs the tracker ceilings 2,636 / 4,291, so 1.5x is a SHARE-ceiling only below 21,088 / 34,328 B (truths present at `TruncatesOutput.php:97-103`, `ToolOutputBudgetTest:1072`/`:1223`). 4th commit carried the finding-14 docblock truth-up. **Branch tip** `22ccd8879` (4 commits from `46283ba7e`: `864f5e407`, `bc49237ec`, `cf428fafd`, `22ccd8879`). **Merge** `d30ca3287`. **Gate** 11,234 / 171,927 / 2S.
+
+#### FU3 — HookContextFiles directory verification + multi-pass retention
+
+`src/Support/HookContextFiles.php`: directory-verification BEFORE writing — `lstat`; symlink / non-dir / foreign-uid / group-or-other bits → fail-CLOSED to an in-band preview + nothing-was-retained marker (`DIR_NAME` sc-hook-ctx, `DIRECTORY_MODE` 0700, `FOREIGN_ACCESS_BITS` 0077, `REFUSAL_UNSAFE_DIRECTORY` = 7). Multi-pass retention: one file per overflowing pass with a walkable chain (`MARKER_RESERVE_BYTES` = 512). CORRECTED per disk — the brief's "disclosure floor at 2,032 B" exists NOWHERE in code, tests, docs, or artifacts; the shipped disclosure floor is the marker's OWN footprint (~138–145 B depending on temp-path length; `HookContextFilesTest.php:553-558` "THE NAMED-PATH FLOOR": caps 128 refuses + un-writes, 160 carries the whole path + 2 B text, chosen for margin; preview room = cap − 512 reserve, floored at 1 byte; disclosure outranks preview). Tests grew 6/25 → 16 tests / 118 assertions (`tests/Support/HookContextFilesTest.php`). **Branch tip** `7ef47a74c` (src `7a716318b`, tests tip `7ef47a74c`). **Merge** `8e2902a3a`. **Gate** 11,244 / 172,076 / 2S.
+
+#### FU4 — authorized crush-lane exception (docs-only)
+
+User-decision item (6) licensed the touch: `docs/plans/crush_code_hardening_backlog.md` E31 CLOSED-with-variant-shape annotation (backlog `:1760`/`:1788`) — `compactNow` guidance measured UNSOUND for the parked route; shipped shape = null + by-ref `$capNotice`, pinned at `AutomaticCompactionModelSummaryTest:1572`; the drifted draft cite corrected to `Chat.php:9511-9549`. **Step** `d22e2e2c4`. **Merge** `5d5b86aa2` (parents `a40b13ca6` + `d22e2e2c4`). Docs-only belt transfer — no suite run (record-only; the standing order treats the belt proof as the gate).
+
+#### FU5 — aggregate standing-rule splice bound
+
+`Runtime.php:155` `MAX_STANDING_RULE_BYTES = 65_536` — a single running total across the user→project loader order with whole-or-pointer discipline reusing the SHARED `RulePathNudge::pointer()` grammar (private→public at `:583`, additive `maxPointerBytes()` at `:616`) + a counted-not-dropped note. Cycle-1 caught F1 BLOCKER — `strlen(int)` cast inside string concat undercounted the reserve (759 B reserved vs 5,045 actual → bound FALSE by up to 4,286 B; E2E overrun measured 65,756 / 67,576 through the real render) — plus F2 MAJOR self-referential boundary tests. Fix `d58482e20`: byte-exact arithmetic + 2 independent guards (rendered-bytes E2E bound + known-answer reserve). `adbf135c6` removed a glob-harvestable regex literal — NEW LANDMINE banked: regex literals with `<tag>` shapes in tests get harvested tree-wide by `GlobDialectDifferentialTest::corpus()`. Cycle-2 fresh reviewer: ZERO findings (its own mutant closed the blind spot exactly). **Branch tip** `adbf135c6` (5 commits `f5e0262eb..adbf135c6`: `f5e0262eb`, `27113e69b`, `fc19c186e`, `d58482e20`, `adbf135c6`). **Merge** `d06db88c5`. **Gate** 11,252 / 172,153 / 2S. Lane-collision incident: foreign uncommitted WIP co-resided in the step worktree — preserved byte-exact, never committed/stashed/deleted (see Lessons).
+
+#### FU6 — §1.10 adoption: PreToolUse additionalContext reaches the model
+
+The collected-but-unconsumed PreToolUse `additionalContext` now ships through BOTH engines: `Runtime::gate()` 4th tuple slot on permit (`:1948-2008`) → `settle()` + `annotate()`; `Chat::gateToolCall()` 5th slot on permit (`:3641-3657`) → `applyPostToolUse()` + new `withAppendedModelNote()` (`:3717`, used `:3771`/`:3773`). Pinned semantics: order result-pre-post; the post chain sees RAW output; empty note byte-identical; DENY pins `''`; settled ASK carries; parked-ask dies clean; unknown-tool early-return consults nothing (a brief premise stated FALSE — corrected in-step). `docs/HOOKS.md` PreToolUse section made true. 15 value tests incl. a fork-witnessed concurrent-arm test whose exclusive kill is deleting the parallel job's preContext write. **Branch tip** `b3d4cb640` (4 commits: `9d81a6823`, `e45dab074`, `8d4f4c4f1`, `b3d4cb640`). **Merge** `e4416c32b` — 3-way over six intervening master commits (all foreign-lane ansi/vhs work; law-4g clean: `git diff b3d4cb640 e4416c32b -- sugar-crush/src sugar-crush/tests` EMPTY, only `.vhs` GIF binaries inside sugar-crush/ differed). **Gate** 11,267 / 172,237 / 2S EXIT 0 EXACT, zero movers cmp vs branch tip.
+
+**LESSONS BANKED — Worktree & sandbox hygiene**
+
+- Foreign uncommitted WIP can co-reside in a step worktree — NEVER commit, stash, or delete it; work from detached sandboxes; merge operates on branch commits (FU5 lane collision — byte-exact preservation proven).
+- Reviewer sandboxes must be sibling-isolated — never `rm -rf` a parent directory of another reviewer's tree.
+- Commit BEFORE running mutation experiments — an uncommitted fix was once lost to `checkout --`.
+
+**LESSONS BANKED — Byte arithmetic & oracle design**
+
+- `strlen(int)` inside string concat is a byte-arithmetic bug class (PHP casts the int to its digit-count string — the FU5 F1 BLOCKER).
+- Self-referential oracle tests go green over their own guard's undercount — pair every bound with one rendered-bytes E2E bound + one independently-known-answer guard.
+
+**OUT-OF-CEILING LEDGER (owners; NOT yet licensed)**
+
+- FU1-x — `Chat::selectPaletteProvider()` (`Chat.php:12290`) Ctrl+P rebuild path lacks the RulesState injection.
+- FU1-y — `Cli/NonInteractive.php` + `Sessions/BackgroundSessionRunner.php` never install RulesState (verified: zero references in either file).
+- FU1-z — `src/Util/PathGlob.php:51` rot-prone corpus literal ("131,040 pattern-path pairs") pinned only by a derived test.
+- FU2 finding-13 — the rule-term +1 in Glob/Grep `$nudgeCost` is UNPOLICED (skill term pinned at `tests/Tools/BuiltIn/SkillPathScopingTest.php:263` + `GrepInstructionWiringTest.php:544`; derived saturation sweep owed).
+- FU2 prose ledger (stale comments/docs) — `Read.php:280` / `:349` / `:354` (stale 1.375x at :280 vs 1.5x at :354; inside-vs-beside CONTRADICTION at :349), `TruncatesOutput.php:52` / `:300` (three-quarters → floor C/2-3), `Grep.php:289`, `Glob.php:496`, `sugar-crush/docs/SKILLS.md:89` (1.375x "eighth BESIDE" prose).
+- FU5 — the instruction-doc loop remains the LAST unbounded prompt-byte source; check `docs/PROMPT_ENGINEERING.md:229-234` (trigger bullet now stale post-P6.S5b) on next touch.
+- FU6 — none new.
+- Prior ledger (44)-(49) from prompt_resume.md §8 stands unchanged.
+
+**FLOOR / GOLDEN TABLE** — every row 0F / 0E / Skipped 2 / EXIT 0; goldens system `f5de3858c1bc130d1e97a120d3ead485` / 8,278 B + agent `ef0326dd38535aaa2f1d715919bff26e` / 1,060 B UNMOVED at every checkpoint.
+
+| checkpoint | merge | Tests | Assertions |
+|---|---|---|---|
+| plan end (P6.S5b) | `aba6b9278` | 11,215 | 171,659 |
+| FU4 (docs-only, no suite run) | `5d5b86aa2` | — | — |
+| FU1 | `46283ba7e` | 11,229 | 171,760 |
+| FU2 | `d30ca3287` | 11,234 | 171,927 |
+| FU3 | `8e2902a3a` | 11,244 | 172,076 |
+| FU5 | `d06db88c5` | 11,252 | 172,153 |
+| FU6 — **NEW FLOOR** | `e4416c32b` | **11,267** | **172,237** |
+
+**Worktrees** — `/home/sites/prompt-step-FU1` / `-FU2` / `-FU3` / `-FU5` / `-FU6` RETAINED DELIBERATELY (foreign-lane WIP hazard; do not reap without user decision).
+
+---
+
 ### P6.S5b — path-scoped rules reach the model at tool time (final plan step) · 2026-09-09 · merge aba6b9278
 
 **Status** `done`. **Worktree** /home/sites/prompt-step-P6.S5b (branch prompt/P6.S5b, base `941bdcd45`) — removed in this FINAL bookkeeping batch after ancestry proof (`git merge-base --is-ancestor db31bc15f master`) and porcelain-clean, branch deleted with plain `-d`. **Base** `941bdcd45`. **This merge closed the plan: 65 of 65 step headings landed.**
