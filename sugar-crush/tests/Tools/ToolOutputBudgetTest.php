@@ -6,6 +6,8 @@ namespace SugarCraft\Crush\Tests\Tools;
 
 use PHPUnit\Framework\TestCase;
 use SugarCraft\Crush\Context\InstructionFileLoader;
+use SugarCraft\Crush\Context\Rule;
+use SugarCraft\Crush\Context\RulePathNudge;
 use SugarCraft\Crush\Skills\Skill;
 use SugarCraft\Crush\Skills\SkillPathNudge;
 use SugarCraft\Crush\Skills\SkillRegistry;
@@ -56,9 +58,56 @@ use SugarCraft\Crush\Tools\BuiltIn\Write;
  * places: the returned bytes stay inside the cap, at least one real result
  * survives, and no instruction file is spent from the announce-once ledger
  * without being shown.
+ *
+ * THE TWO TRANSIENT CHANNELS, AND WHAT EACH COSTS, RE-DERIVED FROM THE SHIPPED
+ * CONSTANTS ON THIS TREE (PHP 8.3.6) RATHER THAN CARRIED DOWN FROM THE SENTENCE
+ * THAT STATED IT. `C` is the tool's own cap; the reserves are
+ * {@see SkillPathNudge::CALLER_BUDGET_DIVISOR} and
+ * {@see RulePathNudge::CALLER_BUDGET_DIVISOR}, both 8, and the instruction
+ * reserve is the quarter in {@see \SugarCraft\Crush\Tools\Concerns\TruncatesOutput}.
+ *
+ *   reserve                      bytes at C=65,536    ceiling of one nudge
+ *   instruction  C/4                    16,384         9,611-byte CLAUDE.md fits whole
+ *   skill        C/8                     8,192          SkillPathNudge::maxBytes() = 2,636
+ *   rule         C/8                     8,192          RulePathNudge::maxBytes()  = 4,291
+ *
+ *   tool          reserves are…    none live   one live   both live
+ *   Glob / Grep   TAKEN OUT of C      1.00 C      1.00 C      1.00 C
+ *   Read          ADDED beside C      1.25 C      1.375 C     1.50 C
+ *
+ * Same eighth, opposite disposition, and the difference is what the answer's
+ * floor is: Glob and Grep keep at least `C − C/8 − C/8 − C/4 = C/2` of the cap
+ * for the answer once BOTH channels have spent inside it, where the split alone
+ * promised three quarters; Read keeps its whole `C` of the file and lets the
+ * total run past the cap it advertises, on the argument that a read returning
+ * less of the named file because a sibling `CLAUDE.md` exists is silent content
+ * loss. A single figure for "the overhead" therefore cannot be quoted across the
+ * two shapes, which is how the 1.375x pin below came to be true of a call shape
+ * the shipped tool no longer has.
+ *
+ * MEASURED, not inferred: the 1.375x assertion held at every cap because the
+ * Read it built passes a `$skillNudge` and no `$ruleNudge`, so the state P6.S5b
+ * added — both channels live, the one a launch with path-scoped rules actually
+ * runs in — was policed by nothing in this file. Deleting the whole rule block
+ * from `Read::execute()` at aba6b9278 left `ToolOutputBudgetTest` green.
  */
 final class ToolOutputBudgetTest extends TestCase
 {
+    /**
+     * `"\n... [truncated]"` — the marker {@see Read} appends to a file that came
+     * in over its cap. Named because every bound in this file that quotes a
+     * multiple of Read's cap is that multiple PLUS this, and a reader who cannot
+     * see the addend cannot tell a tight bound from a slack one.
+     */
+    private const READ_TRUNCATION_MARKER_BYTES = 16;
+
+    /**
+     * The fixed chrome a fully-populated Read carries: the 16-byte truncation
+     * marker, the one newline in front of the instruction body, and two in front
+     * of each transient channel.
+     */
+    private const READ_BOTH_CHANNEL_CHROME_BYTES = 21;
+
     private string $dir;
 
     protected function setUp(): void
@@ -988,72 +1037,321 @@ final class ToolOutputBudgetTest extends TestCase
 
     /**
      * Read's cap is a per-file READ bound, so — exactly as for the instruction
-     * body prepended above it — the FILE's share is not reduced to pay for the
-     * nudge. The nudge instead takes its own eighth, which makes the stated
-     * total 1.375x $maxBytes where before it was an unbounded multiple:
-     * MEASURED at 8add627b at $maxBytes 200, twenty skills with 20,000-byte
-     * descriptions returned 400,406 bytes — 2,002.0x.
+     * body prepended above it — the FILE's share is not reduced to pay for a
+     * transient channel. Each channel instead takes its own eighth BESIDE the
+     * cap, which makes the stated total a multiple of $maxBytes where before it
+     * was an unbounded one: MEASURED at 8add627b at $maxBytes 200, twenty skills
+     * with 20,000-byte descriptions returned 400,406 bytes — 2,002.0x.
+     *
+     * THE FOUR STATES, because P6.S5b made the third and fourth reachable and the
+     * old single-state pin could only ever see the second. Each row below is
+     * asserted at every cap, and the expectation for each is the whole composed
+     * result built from the parts — the file at its full cap with its marker, then
+     * each live channel at the share Read hands the tracker — rather than a byte
+     * figure copied in. That is what makes the ceiling non-vacuous: every delivered
+     * byte has a named source, so an over-run has nowhere to hide and neither does
+     * a channel that quietly stops firing.
+     *
+     *   state              reserve sum          stated bound     fixed chrome
+     *   none live          0                    1.00 C + 16 B    truncation marker
+     *   skill only         C/8                  1.125 C + 18 B   + 2 B separator
+     *   rule only          C/8                  1.125 C + 18 B   + 2 B separator
+     *   both live          C/4                  1.25 C + 20 B    + 2 B separators
+     *
+     * (The instruction body's quarter is out of this table because this fixture
+     * wires no loader; the paragraph and test below add it back, taking the same
+     * four rows to 1.25x / 1.375x / 1.375x / 1.50x.)
+     *
+     * WHY THE SMALL CAPS ARE THE ONLY ONES THAT PROVE ANYTHING. A share is a
+     * ceiling on the tracker call, not a floor on it, and each channel has its own
+     * hard ceiling — {@see SkillPathNudge::maxBytes()} = 2,636 and
+     * {@see RulePathNudge::maxBytes()} = 4,291. Read's shipped cap is 1 MiB, so its
+     * eighth is 131,072 and the ceilings bind long before the shares do: measured
+     * at the default, a both-live Read returns 1,061,094 bytes against a stated
+     * 1.5x bound of 1,572,864 — the bound holds and is 32% slack. The share only
+     * becomes the live constraint below
+     * {@see SkillPathNudge::smallestUnclippedCallerCap()} = 21,088 and
+     * {@see RulePathNudge::smallestUnclippedCallerCap()} = 34,328, which is what
+     * the caps below are chosen around.
      */
-    public function testReadBoundsTheSkillNudgeItAppends(): void
+    public static function readNudgeChannelStates(): iterable
+    {
+        yield 'no channel live' => [false, false];
+        yield 'skill channel live only' => [true, false];
+        yield 'rule channel live only' => [false, true];
+        yield 'both channels live' => [true, true];
+    }
+
+    /**
+     * @param bool $withSkill  wire {@see SkillPathNudge} into the tool
+     * @param bool $withRule   wire {@see RulePathNudge} into the tool
+     *
+     * @dataProvider readNudgeChannelStates
+     */
+    public function testReadBoundsTheSkillNudgeItAppends(bool $withSkill, bool $withRule): void
     {
         // A file large enough that the BODY saturates its cap. With the short
         // fixture this test used to carry, Read returned 22 bytes against a
         // 1.375x-of-65,536 assertion — the bound was never approached and the
         // ceiling proved nothing. MEASURED on this fixture (PHP 8.3.6): the
         // worst ratio reached is 1.111x at maxBytes 21,000.
-        file_put_contents(
-            $this->dir . '/sub/target.php',
-            "<?php\n" . str_repeat("// filler line to make this file large\n", 5000),
-        );
+        $file = "<?php\n" . str_repeat("// filler line to make this file large\n", 5000);
+        file_put_contents($this->dir . '/sub/target.php', $file);
+        $path = $this->dir . '/sub/target.php';
 
-        // Read gives the nudge an EIGHTH of its cap, and one clipped entry
-        // costs 434 bytes (115 header + 300 entry + 19 footer, no deferred-note
-        // reserve when a single skill is all there is). So below a cap of
-        // 8 x 434 = 3,472 the eighth cannot hold even one entry and the nudge
-        // is DEFERRED, not spent. Both regimes are asserted, because a test
-        // that only checks the ceiling passes when the nudge never appears —
-        // measured: replacing Read::execute()'s forPath(...) call with `null`
-        // left the old version of this test green.
+        // Read gives each channel an EIGHTH of its cap, and one clipped skill
+        // entry costs 434 bytes (115 header + 300 entry + 19 footer, no
+        // deferred-note reserve when a single skill is all there is), while one
+        // rule pointer costs the chrome plus `Rule 'x' deferred: budget. Read
+        // /abs/path`. So below roughly 8 x 434 = 3,472 neither eighth can hold an
+        // entry and both channels are DEFERRED, not spent. Both regimes are
+        // asserted, because a test that only checks the ceiling passes when the
+        // nudge never appears — measured: replacing Read::execute()'s forPath(...)
+        // call with `null` left the old version of this test green.
         $affordable = [8192, 21000, 65536];
         $tooSmall = [200, 1024];
 
         foreach ([...$tooSmall, ...$affordable] as $maxBytes) {
-            $content = (new Read($this->dir, $maxBytes, null, null, [], $this->fatNudge(20, 20000)))
-                ->execute(['file_path' => $this->dir . '/sub/target.php'])
-                ->content();
+            $state = ($withSkill ? 'skill' : 'none') . '+' . ($withRule ? 'rule' : 'none');
+            $content = (new Read(
+                $this->dir,
+                $maxBytes,
+                null,
+                null,
+                [],
+                $withSkill ? $this->fatNudge(20, 20000) : null,
+                $withRule ? $this->fatRuleNudge(4, 300) : null,
+            ))->execute(['file_path' => $path])->content();
 
-            self::assertLessThanOrEqual(
-                (int) ($maxBytes * 1.375),
-                strlen($content),
-                "Read at maxBytes $maxBytes overran its stated 1.375x",
+            // The expectation is built from a SECOND tracker per channel, at the
+            // share Read's own source passes, so this says "Read appended what the
+            // tracker produced, in this order, behind these separators" rather
+            // than "some reminder-looking text appeared somewhere".
+            $skillText = $withSkill
+                ? $this->fatNudge(20, 20000)->forPath($path, intdiv($maxBytes, SkillPathNudge::CALLER_BUDGET_DIVISOR))
+                : null;
+            $ruleText = $withRule
+                ? $this->fatRuleNudge(4, 300)->forPath($path, intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR))
+                : null;
+
+            self::assertSame(
+                substr($file, 0, $maxBytes) . "\n... [truncated]"
+                    . ($skillText === null ? '' : "\n\n" . $skillText)
+                    . ($ruleText === null ? '' : "\n\n" . $ruleText),
+                $content,
+                "Read at maxBytes $maxBytes ($state) did not compose the file and the live channels as stated",
             );
 
-            if (\in_array($maxBytes, $affordable, true)) {
-                self::assertStringContainsString(
+            // The stated ceiling for this state, built from the same constants the
+            // tool reads: the cap for the file, 16 bytes for its truncation marker,
+            // and per live channel a two-byte separator plus an eighth.
+            $ceiling = $maxBytes + self::READ_TRUNCATION_MARKER_BYTES
+                + ($skillText === null ? 0 : 2 + intdiv($maxBytes, SkillPathNudge::CALLER_BUDGET_DIVISOR))
+                + ($ruleText === null ? 0 : 2 + intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR));
+            self::assertLessThanOrEqual(
+                $ceiling,
+                strlen($content),
+                "Read at maxBytes $maxBytes ($state) overran its stated ceiling by "
+                    . (strlen($content) - $ceiling) . ' bytes',
+            );
+
+            foreach ([['skill', $withSkill, $skillText], ['rule', $withRule, $ruleText]] as [$channel, $wired, $text]) {
+                if (!$wired) {
+                    continue;
+                }
+
+                if (in_array($maxBytes, $affordable, true)) {
+                    self::assertNotNull(
+                        $text,
+                        "Read at maxBytes $maxBytes can afford a $channel entry and must emit one, "
+                            . 'or the ceiling above is vacuous',
+                    );
+                    self::assertGreaterThan(
+                        $maxBytes,
+                        strlen($content),
+                        "the headroom beside the cap must actually be used for the $channel channel",
+                    );
+                    continue;
+                }
+
+                self::assertNull(
+                    $text,
+                    "a $channel entry cannot fit an eighth of $maxBytes, so it must be deferred",
+                );
+                self::assertStringNotContainsString(
                     '<system-reminder>',
                     $content,
-                    "Read at maxBytes $maxBytes can afford a nudge and must emit one, "
-                    . 'or the ceiling above is vacuous',
+                    "Read at maxBytes $maxBytes deferred the $channel channel and must not spend a mark on it",
                 );
-                continue;
+            }
+        }
+    }
+
+    /**
+     * THE ROW THE 1.375x PIN COULD NOT SEE: a Read with BOTH channels live and a
+     * governing `CLAUDE.md`, so all three reserves spend on one call and the total
+     * is the 1.5x the shipped source states rather than the 1.375x it stated before
+     * P6.S5b. The instruction file is the 9,611-byte oversize fixture used
+     * throughout this class — four times what this cap reserves — so the section is
+     * clipped TO its reserve instead of arriving whole and leaving the claim that
+     * all three reserves spent untested. Every byte of the tail is still derivable
+     * from the parts, so the composition is asserted with `assertSame` on the whole
+     * tail rather than bounded.
+     *
+     * The assertion that pays for this test is the last one: the file must still
+     * occupy its FULL cap with both channels live. Read's reserves are taken beside
+     * the cap precisely so the named file is never squeezed, and a future
+     * "simplification" that moves them inside it — the Glob/Grep disposition, which
+     * reads as the inconsistent one — would take 2,636 + 4,291 bytes off a read the
+     * caller asked for and stay inside every ceiling above.
+     */
+    public function testReadSpendsAllThreeReservesBesideItsCapWhenBothChannelsAreLive(): void
+    {
+        $maxBytes = 8192;
+        $file = "<?php\n" . str_repeat("// filler line to make this file large\n", 5000);
+        $path = $this->dir . '/sub/target.php';
+        file_put_contents($path, $file);
+        $this->seedOversizeInstructions();
+
+        $skillText = $this->fatNudge(20, 20000)
+            ->forPath($path, intdiv($maxBytes, SkillPathNudge::CALLER_BUDGET_DIVISOR));
+        $ruleText = $this->fatRuleNudge(4, 300)
+            ->forPath($path, intdiv($maxBytes, RulePathNudge::CALLER_BUDGET_DIVISOR));
+
+        self::assertNotNull($skillText, 'the fixture must produce a skill nudge at this cap');
+        self::assertNotNull($ruleText, 'and a rule nudge — this is the state no pin in this file used to reach');
+
+        $content = (new Read(
+            $this->dir,
+            $maxBytes,
+            null,
+            new InstructionFileLoader($this->dir),
+            [],
+            $this->fatNudge(20, 20000),
+            $this->fatRuleNudge(4, 300),
+        ))->execute(['file_path' => $path])->content();
+
+        $tail = substr($file, 0, $maxBytes) . "\n... [truncated]" . "\n\n" . $skillText . "\n\n" . $ruleText;
+        self::assertSame(
+            $tail,
+            substr($content, -strlen($tail)),
+            'the file at its FULL cap, then its marker, then the skill channel, then the rule '
+                . 'channel, byte for byte, with nothing cut from the file to pay for either',
+        );
+        self::assertStringStartsWith("# BIG-RULE\n", $content, 'the instruction body leads, as on every other disposition');
+
+        // The instruction section's own share of the accounting, read off the total
+        // rather than written down: one byte of separator separates it from the tail.
+        $reserve = max(1, intdiv($maxBytes, 4));
+        $section = strlen($content) - strlen($tail) - 1;
+        self::assertLessThanOrEqual($reserve, $section, 'the instruction section overran its quarter');
+        self::assertGreaterThan(
+            $reserve - 47,
+            $section,
+            'the quarter must be SPENT, not merely available — 47 is one line of the oversize '
+                . 'fixture, the most a clip to a line boundary can leave unspent',
+        );
+
+        self::assertLessThanOrEqual(
+            intdiv($maxBytes * 3, 2) + self::READ_BOTH_CHANNEL_CHROME_BYTES,
+            strlen($content),
+            'a both-live Read overran the 1.5x bound the shipped source states',
+        );
+        self::assertGreaterThan(
+            (int) ($maxBytes * 1.4),
+            strlen($content),
+            'all three reserves must land BESIDE the cap on this call, or the bound above is vacuous',
+        );
+
+        // THE FRACTION TABLE, pinned as integers off the shipped constants so the
+        // multiples quoted above cannot rot into prose. Each row is the reserve sum
+        // of one state at a cap an eighth divides exactly.
+        $cap = 65536;
+        $instruction = intdiv($cap, 4);
+        $skill = intdiv($cap, SkillPathNudge::CALLER_BUDGET_DIVISOR);
+        $rule = intdiv($cap, RulePathNudge::CALLER_BUDGET_DIVISOR);
+        self::assertSame(16384, $instruction, 'the instruction reserve is a quarter of the cap');
+        self::assertSame(8192, $skill, 'the skills channel is an eighth of the cap');
+        self::assertSame($skill, $rule, 'the rules channel is the SAME eighth, which is what makes both-live 1.5x');
+        self::assertSame(intdiv($cap * 5, 4), $cap + $instruction, 'file + instruction = 1.25x');
+        self::assertSame(intdiv($cap * 11, 8), $cap + $instruction + $skill, 'plus the skills channel = 1.375x');
+        self::assertSame(intdiv($cap * 11, 8), $cap + $instruction + $rule, 'plus the rules channel = 1.375x');
+        self::assertSame(intdiv($cap * 3, 2), $cap + $instruction + $skill + $rule, 'both live = 1.5x');
+    }
+
+    /**
+     * THE OTHER DISPOSITION, SAME TWO CHANNELS: Glob and Grep bound a COMPOSED
+     * result, so both eighths are subtracted from the cap before the answer is
+     * clipped — the answer pays for the nudges instead of the caller paying beside
+     * the cap. That subtraction is a two-term expression
+     * ({@see Glob::execute()}, {@see Grep::execute()}) and before this test only the
+     * first term was policed anywhere in this file.
+     *
+     * Two things are asserted, and they are the two halves of the reservation:
+     *
+     *   * the result stays inside the cap with both channels live, and
+     *   * the ANSWER shrinks by exactly what both channels cost — `strlen(body) <=
+     *     cap − (skill+1) − (rule+1)`.
+     *
+     * The second is the one that kills the mutation. The first alone stays green
+     * with the rule term deleted from `$nudgeCost` at every cap this fixture
+     * overflows, because the list still stops at a newline; MEASURED at f8272f8f
+     * with the term removed, Grep overran cap 2,350 by 267 bytes and cap-sweeping
+     * alone found it in only one of 3,600 caps tried. Sizing the answer against both
+     * costs instead reds at every cap where the answer saturates, and the 400-match
+     * fixture guarantees saturation.
+     */
+    public function testGlobAndGrepPayBothNudgeChannelsInsideTheirOwnCap(): void
+    {
+        $this->seedMatches(400);
+        $path = $this->dir . '/sub/needle-file-000.php';
+
+        foreach ([8192, 16384, 65536] as $cap) {
+            $budget = intdiv($cap, RulePathNudge::CALLER_BUDGET_DIVISOR);
+            $skillText = $this->fatNudge(20, 20000)->forPath($path, intdiv($cap, SkillPathNudge::CALLER_BUDGET_DIVISOR));
+            $ruleText = $this->fatRuleNudge(4, 300)->forPath($path, $budget);
+            self::assertNotNull($skillText, "no skill nudge fits an eighth of $cap");
+            self::assertNotNull($ruleText, "no rule nudge fits an eighth of $cap");
+
+            // The floor the split owes the answer once BOTH channels have spent.
+            $bodyCeiling = $cap - (strlen($skillText) + 1) - (strlen($ruleText) + 1);
+
+            $grep = (new Grep($this->dir, $cap, null, $this->fatNudge(20, 20000), false, $this->fatRuleNudge(4, 300)))
+                ->execute(['pattern' => 'NEEDLE_TOKEN', 'path' => $this->dir])
+                ->content();
+            $glob = (new Glob($this->dir, null, [], $this->fatNudge(20, 20000), $cap, 1000, null, false, $this->fatRuleNudge(4, 300)))
+                ->execute(['pattern' => 'sub/*.php', 'path' => $this->dir])
+                ->content();
+
+            foreach (['Grep' => $grep, 'Glob' => $glob] as $tool => $content) {
+                self::assertLessThanOrEqual($cap, strlen($content), "$tool overran cap $cap with both channels live");
+                self::assertStringContainsString('These skills are scoped to paths', $content, "$tool lost the skill channel at cap $cap");
+                self::assertStringContainsString('These rules are scoped to paths', $content, "$tool lost the rule channel at cap $cap");
+                self::assertLessThan($cap, $bodyCeiling, "guard: at cap $cap the derived body ceiling is not tighter than the cap, so the bound below proves nothing");
+
+                $body = substr($content, 0, (strpos($content, '<system-reminder>') ?: strlen($content)));
+                self::assertLessThanOrEqual(
+                    $bodyCeiling,
+                    strlen($body),
+                    "$tool's answer took more than cap minus BOTH reservations at cap $cap — "
+                        . 'a nudge term missing from $nudgeCost is the only way',
+                );
             }
 
-            self::assertStringNotContainsString(
-                '<system-reminder>',
-                $content,
-                "Read at maxBytes $maxBytes cannot fit one entry in an eighth, so the "
-                . 'nudge must be deferred rather than half-emitted',
-            );
-        }
+            self::assertGreaterThanOrEqual(1, $this->hitCount($grep), "Grep lost every hit at cap $cap");
+            self::assertGreaterThanOrEqual(1, $this->pathCount($glob), "Glob lost every path at cap $cap");
 
-        // …and the ceiling is not vacuous BECAUSE the body really saturates:
-        // at the cap where the ratio peaks, the result must exceed the cap
-        // itself, which is only possible if a nudge was appended beside it.
-        $peak = (new Read($this->dir, 21000, null, null, [], $this->fatNudge(20, 20000)))
-            ->execute(['file_path' => $this->dir . '/sub/target.php'])
-            ->content();
-        self::assertGreaterThan(21000, strlen($peak), 'the 1.375x headroom must actually be used');
+            // The rule block is the LAST thing in both results, byte for byte.
+            foreach (['Grep' => $grep, 'Glob' => $glob] as $tool => $content) {
+                self::assertSame(
+                    $ruleText,
+                    substr($content, -strlen($ruleText)),
+                    "$tool did not end on the rule channel verbatim at cap $cap",
+                );
+            }
+        }
     }
+
 
     /**
      * A tool built with no nudge tracker, and a tool whose every scoped skill
@@ -1124,6 +1422,33 @@ final class ToolOutputBudgetTest extends TestCase
         $registry->register($skills);
 
         return SkillPathNudge::new($registry);
+    }
+
+    /**
+     * $count `paths:`-scoped rules whose bodies are $bodyLen bytes, all matching
+     * every `.php` path under the fixture root — the rules twin of
+     * {@see fatNudge()} above, built through the real parser so the trigger
+     * geometry is what {@see RulePathNudge::isPathScoped()} admits rather than a
+     * hand-made double.
+     *
+     * $bodyLen above the caller's share is the adversarial half: a rule body is
+     * INDIVISIBLE, so a long one arrives as one pointer line (or as nothing at all
+     * when even the pointer will not fit), and the worst case this file bounds is
+     * a channel that spends its whole eighth.
+     */
+    private function fatRuleNudge(int $count, int $bodyLen): RulePathNudge
+    {
+        $rules = [];
+        for ($i = 0; $i < $count; $i++) {
+            $rules[] = Rule::new(
+                $this->dir . "/rules/r$i.md",
+                'user',
+                "---\nname: fat-rule-$i\npaths:\n  - \"**/*.php\"\n---\n" . str_repeat('R', $bodyLen),
+                "fat-rule-$i",
+            );
+        }
+
+        return RulePathNudge::new($rules);
     }
 
     // =========================================================================
