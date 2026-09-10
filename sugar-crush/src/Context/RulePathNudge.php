@@ -572,8 +572,15 @@ final class RulePathNudge
      * so the name takes the clip when the two together overflow, and the whole
      * line is clipped only in the case where the path alone cannot fit, which
      * needs an absolute path over a kilobyte.
+     *
+     * PUBLIC SINCE THE FU5 STANDING SPLICE BECAME THE CHANNEL'S SECOND CUSTOMER:
+     * `Runtime::systemPromptSections()` prices every standing rule against a
+     * per-build byte budget and calls THIS method for the rules that do not fit,
+     * so `Rule '...' deferred: budget. Read ...` is spelled in exactly one place
+     * and byte-identical prose across the two channels is structural rather than
+     * a copy somebody must remember to keep copies of.
      */
-    private static function pointer(Rule $rule): string
+    public static function pointer(Rule $rule): string
     {
         $name = PromptFence::escape($rule->name);
         $path = PromptFence::escape($rule->path);
@@ -599,5 +606,15 @@ final class RulePathNudge
         }
 
         return self::POINTER_HEAD . $name . self::POINTER_TAIL . $path;
+    }
+
+    /**
+     * The most bytes {@see pointer()} can ever return — the ceiling the method
+     * enforces by construction, exposed so the splice's standing-rule budget can
+     * price a deferral fence against the real number instead of a copy of it.
+     */
+    public static function maxPointerBytes(): int
+    {
+        return self::MAX_POINTER_BYTES;
     }
 }

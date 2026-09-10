@@ -104,7 +104,14 @@ use SugarCraft\Crush\Support\HomeDirectory;
  * the loop: the counter is LOCAL TO ONE {@see loadFromDirectory()} CALL, so the
  * ceiling a single `load()` can spend is (directories walked x MAX_FILES) = 3 x 64
  * = 192 reads - user `rules`, user `rulebooks`, project `rules` - plus the root
- * tier's single `RULES.md`, which has no walk to cap. Per-directory is the
+ * tier's single `RULES.md`, which has no walk to count it but is no uncapped
+ * outlier either: the root file reaches the same {@see readRule()} stat-before-read
+ * gate, so all 193 files this sum can name are bounded at {@see MAX_FILE_BYTES}
+ * each. What the walk's caps never bounded was the SPLICE, and FU5 closed that:
+ * {@see Runtime::MAX_STANDING_RULE_BYTES} prices the standing loops at 65,536
+ * framed post-escape bytes per prompt build and defers the overflow to pointer
+ * lines, so the 193-file worst case can no longer emit 12,724,235 raw bytes
+ * (20,313,188 after escape). Per-directory is the
  * semantics kept, deliberately and after measurement: the P6.S2 finding this cap
  * answers was an untrusted clone forcing UNBOUNDED reads, and a fixed, closed set
  * of directories each under its own ceiling is still a bounded aggregate. What a

@@ -629,4 +629,29 @@ final class RulePathNudgeTest extends TestCase
 
         return Rule::new($path, 'user', "---\n" . $front . "---\n" . $body, basename($path, '.md'));
     }
+
+    /**
+     * FU5's shared-surface pin: the splice's standing-rule budget calls
+     * {@see RulePathNudge::pointer()} directly, so the pointer grammar lives in
+     * exactly one method and byte-identical prose across the tool-time channel and
+     * the standing deferral fences is structural, not a copy somebody must keep.
+     * Asserted against the literal spelling, so a reword cannot move one channel
+     * alone, and against {@see RulePathNudge::maxPointerBytes()}, so the ceiling
+     * the splice reserves framing against is the ceiling this method enforces.
+     */
+    public function testThePromotedPointerSurfaceIsTheOneGrammarBothChannelsCall(): void
+    {
+        $rule = self::scopedRule('/rules/huge.md', str_repeat('X', 70000), []);
+
+        self::assertSame(
+            "Rule 'huge' deferred: budget. Read /rules/huge.md",
+            RulePathNudge::pointer($rule),
+            'the promoted public surface spells the line the tool-time channel has always spelled',
+        );
+        self::assertSame(
+            1024,
+            RulePathNudge::maxPointerBytes(),
+            'the reserve the standing budget prices against is the clip pointer() enforces by construction',
+        );
+    }
 }
