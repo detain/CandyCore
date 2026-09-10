@@ -3121,6 +3121,8 @@ and summary paths are exactly the ones that get forgotten.
 
 **Status 2026-09-09: PHASE 11 CLOSED — six of six steps landed (S1 `de3a580fd`, S2 `097473127` + S2-pin `65d4c882f`, S3a-e `37e61e760`/`64434c0d0`/`60d9ab81f`/`cb7a5fe68`/`8e822c6ed`, S4 `bbd8696fc`, S5 = the audit). Fresh close review of every §9.1-§9.15 item recorded in the worklog P11.S5 entry (74 items: 67 landed / 1 declined / 2 deferred-with-owner / 4 flagged with no trace). Floor 11,185/171,308/0F/0E/2S/EXIT 0 FLAT at the final tip; goldens UNMOVED (system `f5de3858c1bc130d1e97a120d3ead485`/8,278 + agent `ef0326dd38535aaa2f1d715919bff26e`/1,060). The plan now stands at 64 of 65 step headings landed; the sole outstanding heading is P6.S5b, blocked on user-decision item (4).**
 
+FU follow-up program (user-authorized post-plan): FU1-FU6 all merged, final merge e4416c32b, floor 11,267/172,237 — see prompt_worklog.md FU PROGRAM entry.
+
 ### P11.S1 — `docs/PROMPT_ENGINEERING.md`
 
 **Status 2026-09-09: MERGED — merge `de3a580fd` (step `07fb42a75`); floor 11,183/171,258 EXACT; integrity event documented (fabricated reports countered by disk-proof law); 2 wording NITs deferred to S5. Full record: worklog P11 batch-A close entry.**
