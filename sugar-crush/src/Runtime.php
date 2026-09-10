@@ -2948,13 +2948,20 @@ final class Runtime
      */
     private static function standingDeferReserve(): int
     {
-        $body = self::MAX_STANDING_POINTERS * RulePathNudge::maxPointerBytes()
+        // Arithmetic in BYTES, never strlen of a concatenation that embeds the
+        // interior count: PHP casts the int to its decimal text, so "2147" would
+        // be measured as 4 bytes and the reserve undercount by the very interior
+        // it exists to cover — the FU5 fix round 1 of this method.
+        $interior = self::MAX_STANDING_POINTERS * RulePathNudge::maxPointerBytes()
             + (self::MAX_STANDING_POINTERS - 1)
             + 1
             + strlen(sprintf(self::STANDING_DEFERRED_NOTE, PHP_INT_MAX));
+        $userFence = strlen("<user-rules>\n") + strlen(self::USER_RULES_AUTHORITY_PREAMBLE)
+            + strlen("\n\n") + $interior + strlen("\n</user-rules>");
+        $projectFence = strlen("<project-instructions>\n") + strlen(self::INSTRUCTIONS_AUTHORITY_PREAMBLE)
+            + strlen("\n\n") + $interior + strlen("\n</project-instructions>");
 
-        return strlen("<user-rules>\n" . self::USER_RULES_AUTHORITY_PREAMBLE . "\n\n" . $body . "\n</user-rules>")
-            + strlen("<project-instructions>\n" . self::INSTRUCTIONS_AUTHORITY_PREAMBLE . "\n\n" . $body . "\n</project-instructions>");
+        return $userFence + $projectFence;
     }
 
     /**

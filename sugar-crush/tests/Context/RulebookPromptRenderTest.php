@@ -325,6 +325,91 @@ final class RulebookPromptRenderTest extends TestCase
         );
     }
 
+    /**
+     * The end-to-end bound guard fix round 1 asked for, through the real render
+     * seam: sum the actual framed bytes of every standing-rule section the prompt
+     * carries and assert the ratified ceiling. The plant is the worst case the
+     * grammar can build — a whole user pack plus three oversized user packs and
+     * three oversized project packs whose names push their pointer lines toward
+     * {@see RulePathNudge::maxPointerBytes()}, so BOTH tier fences carry the two
+     * lines plus the counted note. The positive controls make the test
+     * non-vacuous: if the geometry ever stops being the worst case, the pointer
+     * and note counts fail before the ceiling assertion gets to lie.
+     */
+    public function testTheRenderedStandingSpliceNeverExceedsTheCeiling(): void
+    {
+        $longName = str_repeat('L', 900);
+        file_put_contents($this->packsDir . '/a-small.md', 'SPLICE-SMALL-' . str_repeat('s', 2986) . "\n");
+        foreach (['b1', 'b2', 'b3'] as $n) {
+            file_put_contents(
+                $this->packsDir . '/' . $n . '.md',
+                "---\nname: " . $longName . "\n---\n" . 'SPLICE-BIG-' . $n . str_repeat('b', 57984 - strlen('SPLICE-BIG-' . $n)) . "\n",
+            );
+        }
+        $projectDir = $this->sandbox . '/repo/.sugar-crush/rules';
+        mkdir($projectDir, 0o700, true);
+        foreach (['p1', 'p2', 'p3'] as $n) {
+            file_put_contents(
+                $projectDir . '/' . $n . '.md',
+                "---\nname: " . $longName . "\n---\n" . 'SPLICE-PRJ-' . $n . str_repeat('p', 57984 - strlen('SPLICE-PRJ-' . $n)) . "\n",
+            );
+        }
+
+        $prompt = $this->render(RulesState::new());
+
+        self::assertSame(4, substr_count($prompt, 'deferred: budget. Read'), 'two pointer lines in each tier fence');
+        self::assertSame(2, substr_count($prompt, 'further standing rule(s) deferred'), 'both fences carry the counted note');
+        self::assertSame(1, substr_count($prompt, 'SPLICE-SMALL-'), 'the fitting pack still renders whole');
+        self::assertSame(0, substr_count($prompt, 'SPLICE-BIG-'), 'no deferred body runs or clips');
+
+        $fences = [];
+        preg_match_all('/<user-rules>\n.*?<\/user-rules>/s', $prompt, $fences);
+        self::assertCount(2, $fences[0], 'one whole user fence plus one deferral fence');
+        preg_match_all('/<project-instructions>\n.*?<\/project-instructions>/s', $prompt, $prj);
+        self::assertCount(1, $prj[0], 'one project deferral fence');
+
+        $total = array_sum(array_map('strlen', array_merge($fences[0], $prj[0])));
+        $ceiling = (new ReflectionClass(Runtime::class))->getConstant('MAX_STANDING_RULE_BYTES');
+
+        self::assertIsInt($ceiling);
+        self::assertGreaterThan(8000, $total, 'the plant really did produce the framing this test exists to price');
+        self::assertLessThanOrEqual($ceiling, $total, 'the emitted splice, measured end to end, respects the ceiling');
+    }
+
+    /**
+     * The known-answer pin for the reserve: computed here INDEPENDENTLY of
+     * {@see Runtime::standingDeferReserve()} from the same public surface —
+     * literal framings, the shared pointer ceiling, the worst-case note — so the
+     * budget tests no longer agree with production merely by asking production
+     * what it thinks. The integer interior must never ride inside a strlen'd
+     * string again: that is exactly how the 759-byte undercount survived the
+     * first round's self-referential oracle.
+     */
+    public function testStandingDeferReserveEqualsAnIndependentlyComputedKnownAnswer(): void
+    {
+        $rc = new ReflectionClass(Runtime::class);
+        $pointers = (int) $rc->getConstant('MAX_STANDING_POINTERS');
+        $note = sprintf((string) $rc->getConstant('STANDING_DEFERRED_NOTE'), PHP_INT_MAX);
+
+        $interior = $pointers * RulePathNudge::maxPointerBytes()
+            + ($pointers - 1)
+            + 1
+            + strlen($note);
+        $expected = strlen("<user-rules>\n")
+            + strlen((string) $rc->getConstant('USER_RULES_AUTHORITY_PREAMBLE'))
+            + strlen("\n\n") + $interior + strlen("\n</user-rules>")
+            + strlen("<project-instructions>\n")
+            + strlen((string) $rc->getConstant('INSTRUCTIONS_AUTHORITY_PREAMBLE'))
+            + strlen("\n\n") + $interior + strlen("\n</project-instructions>");
+
+        $reserve = new ReflectionMethod(Runtime::class, 'standingDeferReserve');
+        $reserve->setAccessible(true);
+
+        self::assertSame(2147, $interior, 'the worst-case deferral interior is this fixed arithmetic');
+        self::assertSame(5045, $expected, 'the ratified reserve: 65,536 ceiling minus this is what whole renders may spend');
+        self::assertSame($expected, (int) $reserve->invoke(null), 'production agrees with the independent sum');
+    }
+
     // -- helpers --------------------------------------------------------------
 
     private function provider(): ProviderInterface
