@@ -38,7 +38,6 @@
 .claude/sessions/
 .php-cs-fixer.cache
 
-sugarcraft
 .sugar-crush-build/
 /.sugar-crush-prompt/
 codacy-coverage-reporter
