@@ -3604,14 +3604,19 @@ final class ChatTest extends TestCase
     }
 
     /**
-     * FU6: the PRE half of the Chat-side consumer pair, and the shape the
-     * operator-visible HOOKS.md claim makes real — a plain `ScriptHook` with NO
-     * `event` key defaults to `PreToolUse`, and its exit-0 stdout becomes the
-     * chain's collected `additionalContext`. Before this step the verdict was
-     * consulted for permission and the note was dropped; now `gateToolCall()`
-     * carries it on the permit arms and `applyPostToolUse()` appends it through
-     * the same seam the post-note uses. Real subprocess, real gate, real
-     * history bytes — a fixture-level assertion is the only kind that can fail.
+     * FU6: the PRE half of the Chat-side consumer pair — the consumer proof of
+     * what `docs/HOOKS.md` now states about a `PreToolUse` note. Scope stated
+     * exactly, because the hook's `event` is constructed here rather than left
+     * out: what this case pins is the CARRY and the APPEND — a real `ScriptHook`
+     * subprocess exits 0, its stdout becomes the chain's collected
+     * `additionalContext`, `gateToolCall()` carries that on the permit arms, and
+     * `applyPostToolUse()` appends it through the same seam the post-note uses.
+     * That a `ScriptHook` with NO `event` key DEFAULTS to `PreToolUse` is a
+     * different claim, proven by
+     * {@see \SugarCraft\Crush\Tests\Hooks\HookGateE2ETest::testADefaultEventScriptHookNoteSurvivesThePreChain()}.
+     * Before this step the verdict was consulted for permission and the note was
+     * dropped. Real subprocess, real gate, real history bytes — a fixture-level
+     * assertion is the only kind that can fail.
      */
     public function testAScriptHookOnTheDefaultPreToolUseEventReachesTheChatToolResult(): void
     {

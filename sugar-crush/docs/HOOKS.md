@@ -291,12 +291,32 @@ Where the note then lands depends on the event:
   `Chat::applyPostToolUse()` onto whichever half (result or error) carries the
   body. An empty note returns the result **byte-identical**, so a chain that
   printed nothing cannot alter any payload, wired or not.
-- **`PreToolUse`** — neither live gate (`Runtime::gate()`,
-  `Chat::gateToolCall()`) consumes a permitting verdict's note; both read only
-  `message` — interpolated into `"Hook denied: …"`, which is why the deny
-  reason and the ask question reach the model — and `modifiedInput`. A
-  `PreToolUse` hook's stdout is collected and carried but nothing on that path
-  reads it; a note meant for the model belongs on a `PostToolUse` hook.
+- **`PreToolUse`** — WHAT THIS SAID: that neither live gate consumes a
+  permitting verdict's note, that both read only `message` and `modifiedInput`,
+  and that "a note meant for the model belongs on a `PostToolUse` hook". WHAT
+  IS TRUE NOW (since `9d81a6823`): `Runtime::gate()` returns the collected note
+  as a fourth slot and `Chat::gateToolCall()` as a fifth, and both live paths
+  append it to the model-visible tool result exactly the way `PostToolUse`
+  does — `Runtime::settle()` through the existing `Runtime::annotate()` seam,
+  `Chat::applyPostToolUse()` through its Chat twin `Chat::withAppendedModelNote()`
+  onto whichever half (result or error) carries the body. The model-visible
+  bytes are `result\n\npre\n\npost`, and that order is deterministic by
+  construction rather than by timing: each consumer CAPTURES the `PostToolUse`
+  verdict before appending anything, so the post chain still observes the RAW
+  tool output — a pre-note is model-visible context, never the tool's own
+  stdout — and only then are pre and post appended, in that order. The
+  byte-identical discipline is the same on both halves of the pair: on an empty
+  note `Runtime::annotate()` is never called and
+  `Chat::withAppendedModelNote()` returns the instance untouched, so a chain
+  that printed nothing cannot alter any payload, on either event. What the old
+  sentence still gets right: `deny` and `ask` speak through `message`,
+  interpolated into `"Hook denied: …"` — which is why the deny reason and the
+  ask question reach the model — and `modifiedInput` is the rewrite channel;
+  and a hard DENY pins the note slot to `''` on every gate arm, so a blocked
+  call carries no note at all, while a settled ASK carries the chain's notes
+  through the user's answer. A `PreToolUse` hook's stdout therefore reaches the
+  model today: pick the event by what the hook needs to OBSERVE, not on the
+  assumption that only `PostToolUse` is wired.
 
 **How much a hook may say, per exit code.** Measured through
 `HookManager::preToolUse()` with a 200,000-byte payload:
